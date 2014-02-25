@@ -1,3 +1,5 @@
+import sys
+
 from setuptools import setup
 from setuptools import find_packages
 
@@ -6,6 +8,9 @@ install_requires = [
     'catkin-pkg',
     'distribute',
 ]
+
+if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
+    install_requires.append('argparse')
 
 setup(
     name='catkin_tools',
@@ -25,11 +30,7 @@ setup(
         'Programming Language :: Python',
     ],
     description="Command line tools for working with catkin.",
-    long_description="""\
-This python package provides command line tools for working with catkin, \
-catkin packages, and catkin workspaces. The provided tools ease development \
-tasks like building one to many catkin packages at the same time, preparing \
-catkin packages for release, and other things.""",
+    long_description="Provides command line tools for working with catkin.",
     license='Apache 2.0',
     test_suite='tests',
     entry_points={
