@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .cli import argument_preprocessor
 from .cli import main
-from .cli import parse_arguments
 from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    title='build',
+    verb='build',
     description="Builds a catkin workspace",
     main=main,
     prepare_arguments=prepare_arguments,
-    parse_arguments=parse_arguments,
+    argument_preprocessor=argument_preprocessor,
 )

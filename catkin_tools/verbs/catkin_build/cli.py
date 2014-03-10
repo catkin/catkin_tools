@@ -35,7 +35,8 @@ from .build import determine_packages_to_be_built
 from .build import topological_order_packages
 
 
-def parse_arguments(parser, args):
+def argument_preprocessor(args):
+    """Processes the arguments for the build verb, before being passed to argparse"""
     # CMake/make pass-through flags collect dashed options. They require special
     # handling or argparse will complain about unrecognized options.
     args = sys.argv[1:] if args is None else args
@@ -46,15 +47,12 @@ def parse_arguments(parser, args):
     if jobs_flags:
         args = re.sub(jobs_flags, '', ' '.join(args)).split()
         jobs_flags = jobs_flags.split()
-
-    opts = parser.parse_args(args)
-    opts.cmake_args = cmake_args
-    opts.make_args = make_args + (jobs_flags or [])
-    opts.catkin_make_args = catkin_make_args
-
-    if opts.no_deps and not opts.packages:
-        sys.exit("With --no-deps, you must specify packages to build.")
-    return opts
+    extras = {
+        'cmake_args': cmake_args,
+        'make_args': make_args + (jobs_flags or []),
+        'catkin_make_args': catkin_make_args,
+    }
+    return args, extras
 
 
 def prepare_arguments(parser):
@@ -144,6 +142,9 @@ def list_only(context, packages, no_deps, start_with):
 
 
 def main(opts):
+    if opts.no_deps and not opts.packages:
+        sys.exit("With --no-deps, you must specify packages to build.")
+
     if not opts.force_color and not is_tty(sys.stdout):
         set_color(False)
 

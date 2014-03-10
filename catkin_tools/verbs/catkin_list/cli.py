@@ -33,7 +33,6 @@ def prepare_arguments(parser):
 
 
 def main(opts):
-    print(opts.depends_on)
     folders = opts.folders or [os.getcwd()]
     for folder in folders:
         for pkg_pth, pkg in find_packages(folder).items():
