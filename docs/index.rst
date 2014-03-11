@@ -6,7 +6,7 @@ This Python package provides command line tools for working with catkin and cakt
 Installing
 ----------
 
-You can install the `catkin_tools` package as a binary through a package manager like `pip` or `apt-get`, or from source.
+You can install the ``catkin_tools`` package as a binary through a package manager like ``pip`` or ``apt-get``, or from source.
 
 Installing on Ubuntu with apt-get
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -64,3 +64,24 @@ Now the commands, like ``catkin``, will be in the system path and the local sour
 .. code-block:: bash
 
     $ python setup.py develop -u
+
+Using the ``catkin`` command
+----------------------------
+
+The ``catkin`` Command-Line Interface (CLI) tool is the single point of entry for most of the tools provided by this package.
+All invocations of the ``catkin`` CLI tool take this form:
+
+.. code-block:: bash
+
+    $ catkin [global options] <verb> [verb arguments and options]
+
+The ``catkin`` CLI tool requires that you provide a verb.
+The verbs could be many things, like ``build`` which builds a catkin workspace or ``list`` which simply lists the catkin packages found in one or more folders.
+Optionally, global options can be provided before the verb, things like ``-d`` for debug level verbosity or ``-h`` for help on the ``catkin`` CLI tool itself.
+Verbs can take arbitrary arguments and options, but they must all come after the verb.
+For more help on a particular verb, simply pass ``-h`` or ``--help`` after the verb.
+
+Using the ``catkin build`` command
+----------------------------------
+
+asdfasdfasd
