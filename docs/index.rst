@@ -119,8 +119,7 @@ Or like this in ``zsh``:
 ``source``'ing these setup scripts adds this workspace and any "underlaid" workspaces to your environment, prefixing the ``CMAKE_PREFIX_PATH``, ``PKG_CONFIG_PATH``, ``PATH``, ``LD_LIBRARY_PATH``, ``CPATH``, and ``PYTHONPATH`` with local workspace folders.
 The setup scripts will also execute any shell hooks exported by packages in the workspace, which is how ``roslib``, for example, sets the ``ROS_PACKAGE_PATH`` environment variable.
 
-Finally, if the packages in the workspace are setup for installing, the install option can be invoked to install the
-packages to the ``CMAKE_INSTALL_PREFIX``, a.k.a. the "install space".
+Finally, if the packages in the workspace are setup for installing, the ``--install`` option can be invoked to install the packages to the ``CMAKE_INSTALL_PREFIX``, which in `REP-0128 <http://www.ros.org/reps/rep-0128.html>`_ terms is the "install space".
 The "install space", like the "devel space", has a FHS layout along with some generated setup files.
 The "install space" is set to ``/path/to/workspace/install`` by changing the ``CMAKE_INSTALL_PREFIX`` by default.
 This is done to prevent users from accidentally trying to install to the normal ``CMAKE_INSTALL_PREFIX`` path, ``/usr/local``.
@@ -130,8 +129,9 @@ Unlike the "devel space", the "install space" is completely stand alone and does
 
     Like the "devel space", the "install space" includes ``setup.*`` and related files at the top of the file hierarchy.
     This is not suitable for some packaging systems, so this can be disabled by passing the ``-DCATKIN_BUILD_BINARY_PACKAGE="1"`` option to ``cmake`` using the ``--cmake-args`` option for this verb.
+    Though this will suppress the installation of the setup files, you will loose the functionality provided by them, namely extending the environment and executing environment hooks.
 
-Though there are conventions for the layout and location of the workspace's various "spaces", all of them can be changed using options to this verb.
+Though there are conventions for the layout and location of the workspace's various "spaces", all of the locations can be changed using options to this verb.
 
 Understanding the build process
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,23 +145,23 @@ The command basically automated the standard CMake work flow while setting some 
     $ mkdir build
     $ cd build
     $ cmake ../src -DCATKIN_DEVEL_SPACE=../devel -DCMAKE_INSTALL_PREFIX=../install
-    $ make -j<number of cores> [optional target, e.g. install]
+    $ make -j<number of cores> -l<number of cores> [optional target, e.g. install]
 
-In the ``../src`` folder there would be a special "top-level" ``CMakeLists.txt`` which did the work of adding all the catkin projects below it to the single large CMake project.
+In the ``../src`` folder there would be a boiler-plate "top-level" ``CMakeLists.txt`` which did the work of adding all the catkin projects below it to the single large CMake project.
 The advantage of this is that the total configuration time is smaller than configuring each package in turn and that the Make targets can be parallelized even amongst dependent packages.
-The disadvantage is that there is no fault isolation, i.e. an error in a leaf package will prevent all packages from configuring, or two packages might have colliding target names.
+The disadvantage is that there is no fault isolation, e.g. an error in a leaf package will prevent all packages from configuring, or two packages might have colliding target names.
 
 The other disadvantage is that this build process can only work on a homogeneous workspace of only catkin packages.
 Other types of packages like plain CMake packages and autotools packages cannot be integrated into a single configuration and a single build step.
 Because of this limitation the ``catkin_make_isolated`` command was created.
-The ``catkin_make_isolated`` command used an isolated build process, where each package was configured, built, and the result sourced in turn.
+The ``catkin_make_isolated`` command uses an isolated build process, where each package is configured, built, and the results sourced in turn.
 This way each package is built in isolation and the next packages are built on the result of the current one, which also allows for automation of other work flows like the plain CMake work flow.
-There were, however, some problems with ``catkin_make_isolated``, like the fact that you could not parallelize the building of packages which do not depend on each other and the fact that it was not robust to changes in the packages in the workspace.
+There were, however, some problems with ``catkin_make_isolated``, like the fact that you could not parallelize the building of packages which do not depend on each other and the fact that it was not robust to changes in the list of packages in the workspace.
 These faults lead to the development of a parallel catkin make isolated, or ``pcmi``, as part of `Project Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
 ``pcmi`` later became the ``catkin build`` command.
 
-Therefore, the build process for this verb is an isolated build which can be parallelized and works by building each package in topological order, composing an environment for each package based on the packages on which it depends.
-Other conceptual improvements over ``catkin_make_isolated`` include the ability to build part of a workspace, or robustly adapt a build when packages are added or removed from a workspace.
+Therefore, the build process for this verb is an isolated build which can be parallelized and works by building each package in topological order; composing an environment for each package's build based on the packages on which it depends.
+Other conceptual improvements over ``catkin_make_isolated`` include the ability to build part of a workspace, or robustly adapt a build when packages are added to or removed from a workspace.
 
 Understanding workspace packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -171,8 +171,8 @@ A package is any folder which contains a ``package.xml`` as defined in `REP-0127
 The ``catkin build`` command uses the ``build_depend``, ``run_depend``, and ``build_type`` tags in the ``package.xml``.
 The ``*_depend`` tags are used to determine the topological build order of the packages.
 The ``build_type`` tag is used to determine which build work flow to use on the package.
-Packages without an explicitly defined ``build_type`` tag are assumed to be catkin packages, but plain CMake packages can be built by adding a ``package.xml`` file to the root of their source tree with the ``build_type`` flag set to ``cmake`` and appropriate ``build_depend`` and ``run_depend`` tags set.
-This has been done for building packages like ``opencv``, ``pcl``, and ``flann`` in the past.
+Packages without an explicitly defined ``build_type`` tag are assumed to be catkin packages, but plain CMake packages can be built by adding a ``package.xml`` file to the root of their source tree with the ``build_type`` flag set to ``cmake`` and appropriate ``build_depend`` and ``run_depend`` tags set, as described in `REP-0136 <http://www.ros.org/reps/rep-0136.html>`_.
+This has been done in the past for building packages like ``opencv``, ``pcl``, and ``flann``.
 
 Typical ``catkin build`` command usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -247,7 +247,7 @@ The typical work flow for using ``catkin build`` is to execute it in the root of
     - turtlesim            (catkin)
     Total packages: 36
 
-In this example, we have setup a workspace with a few packages (actually its all the packages needed to build the `ros_tutorials` packages).
+In this example, we have setup a workspace with a few packages (actually its all the packages needed to build the ``ros_tutorials``).
 We start with only the "source space" and then use the ``--list`` option (short for ``--list-only``) to have the ``build`` verb figure out what packages it would build, and in what order, but then only list that information out and not actually build anything.
 
 You can use the ``--list`` option to preview the behavior of ``catkin build`` will be with various options.
@@ -390,7 +390,7 @@ This would differ from ``catkin_make``, for example, which would have a combined
 
 You may have noticed the status lines like this:
 
-.. raw::
+.. code-block:: none
 
     [cmi - 5.9] [genmsg - 1.3] [message_runtime - 0.7] [ros_tutorials - 0.6] [rosbuild - 0.6]        [4/4 Active | 3/36 Completed]
 
@@ -405,7 +405,7 @@ Debugging with the ``catkin build`` command
 By default the output from each build is optimistically hidden to give a clean overview of the workspace build, but when there is a problem with a build a few things happen.
 First, the package with a failure prints its build output to the screen between some enclosing lines:
 
-.. raw::
+.. code-block:: none
 
     [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
     [ 66%] Built target rospack
@@ -416,13 +416,13 @@ First, the package with a failure prints its build output to the screen between 
 
 And the status line is updated to reflect that that package has run into an issue by placing a ``!`` in front of it:
 
-.. raw::
+.. code-block:: none
 
     [cmi - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
 
 Then ``catkin build`` command waits for the rest of the packages to finish (without starting new package builds) and then summarizes the errors for you:
 
-.. raw::
+.. code-block:: none
 
     [cmi] There were errors:
 
@@ -442,7 +442,7 @@ Then ``catkin build`` command waits for the rest of the packages to finish (with
 
 If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``cmi_logs`` folder in the "build space":
 
-.. raw::
+.. code-block:: none
 
     $ cat build/cmi_logs/rospack.log
     [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make cmake_check_build_system' in '/path/to/my_catkin_ws/build/rospack'
