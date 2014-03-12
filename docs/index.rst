@@ -496,8 +496,8 @@ This ends up being pretty confusing, so when interleaved output is used ``catkin
 
 When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
-Debugging with the ``catkin build`` command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Debugging with ``catkin build``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 By default the output from each build is optimistically hidden to give a clean overview of the workspace build, but when there is a problem with a build a few things happen.
 

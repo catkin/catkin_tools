@@ -103,8 +103,8 @@ def prepare_arguments(parser):
     # Behavior
     add('--force-color', action='store_true', default=False,
         help='Forces cmi to ouput in color, even when the terminal does not appear to support it.')
-    add('--quiet', '-q', action='store_true', default=False,
-        help='Supresses output from commands unless there is an error.')
+    add('--verbose', '-v', action='store_true', default=False,
+        help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
@@ -177,7 +177,7 @@ def main(opts):
             jobs=opts.parallel_jobs,
             force_cmake=opts.force_cmake,
             force_color=opts.force_color,
-            quiet=opts.quiet,
+            quiet=not opts.verbose,
             interleave_output=opts.interleave_output,
             no_status=opts.no_status,
             lock_install=not opts.no_install_lock
