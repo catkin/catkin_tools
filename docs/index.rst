@@ -388,22 +388,106 @@ Since we didn't give any packages as arguments ``catkin build`` tried to build a
 And as you can see, after the build finishes, we now have a "build space" with a folder for each package and a "devel space" which also has a folder for each package.
 This would differ from ``catkin_make``, for example, which would have a combined "build space" and a single "devel space".
 
+Without any additional arguments, the packages are not installed.
+If we providing ``catkin build`` with the ``--install`` option, an "install space" will be created containing the installed packages.
+Afterwards, the workspace will also have an install folder in it:
+
+.. code-block:: none
+
+    $ ls ./install
+    _setup_util.py bin            env.sh         etc            include
+    lib            setup.bash     setup.sh       setup.zsh      share
+
+Controlling output of ``catkin build``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 You may have noticed the status lines like this:
 
 .. code-block:: none
 
-    [cmi - 5.9] [genmsg - 1.3] [message_runtime - 0.7] [ros_tutorials - 0.6] [rosbuild - 0.6]        [4/4 Active | 3/36 Completed]
+    [cmi - 5.9] [genmsg - 1.3] [message_runtime - 0.7] ...        [4/4 Active | 3/36 Completed]
 
 This status line stays at the bottom of the screen and lets you know, at a glance, what the status of you build is.
 The ``[cmi - 5.9]`` indicates that the total run time thus far has been ``5.9`` seconds.
-The blocks like ``[genmsg - 1.3]`` means that you are currently building a package, in this case ``genmsg`` and it has been building for ``1.3`` seconds.
+The blocks like ``[genmsg - 1.3]`` means that you are currently building a package, in this case ``genmsg``, and it has been building for ``1.3`` seconds.
 Justified to the right is the number of packages being actively built out of the total allowed in parallel and the number of completed packages out of the total, respectively, rendered like this: ``[4/4 Active | 3/36 Completed]``
+
+This status line can be disabled by passing the ``--no-status`` option to ``catkin build``.
+
+Normally the output from each build is collected and not printed, unless there is an error, and a pair of messages are the only thing printed to signify the start and end of a package's build:
+
+.. code-block:: none
+
+    Starting ==> catkin
+    Finished <== catkin [ 2.4 seconds ]
+
+However, if you would like to see more than this you can invoke the ``-v`` or ``--verbose`` option.
+This will give a message when a package build starts and finished as well as printing the output of each build command in a block, once it finishes:
+
+.. code-block:: none
+
+    Starting ==> catkin
+
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' in '/path/to/my_catkin_ws/build/catkin'
+    -- The C compiler identification is Clang 5.0.0
+    -- The CXX compiler identification is Clang 5.0.0
+    -- Check for working C compiler: /usr/bin/cc
+    -- Check for working C compiler: /usr/bin/cc -- works
+    -- Detecting C compiler ABI info
+    -- Detecting C compiler ABI info - done
+    -- Check for working CXX compiler: /usr/bin/c++
+    -- Check for working CXX compiler: /usr/bin/c++ -- works
+    -- Detecting CXX compiler ABI info
+    -- Detecting CXX compiler ABI info - done
+    -- Using CATKIN_DEVEL_PREFIX: /path/to/my_catkin_ws/devel/catkin
+    -- Using CMAKE_PREFIX_PATH: /path/to/my_catkin_ws/install
+    -- This workspace overlays: /path/to/my_catkin_ws/install
+    -- Found PythonInterp: /usr/bin/python (found version "2.7.5")
+    -- Using PYTHON_EXECUTABLE: /usr/bin/python
+    -- Python version: 2.7
+    -- Using default Python package layout
+    -- Found PY_em: /Library/Python/2.7/site-packages/em.pyc
+    -- Using CATKIN_ENABLE_TESTING: ON
+    -- Call enable_testing()
+    -- Using CATKIN_TEST_RESULTS_DIR: /path/to/my_catkin_ws/build/catkin/test_results
+    -- Found gtest: gtests will be built
+    -- catkin 0.5.86
+    -- Configuring done
+    -- Generating done
+    -- Build files have been written to: /path/to/my_catkin_ws/build/catkin
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' finished with return code '0'
+
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/catkin'
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make -j4 -l4' finished with return code '0'
+
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make install' in '/path/to/my_catkin_ws/build/catkin'
+    Install the project...
+    -- Install configuration: ""
+    ... truncated for brevity
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make install' finished with return code '0'
+
+    Finished <== catkin [ 3.4 seconds ]
+
+Theses printing of command outputs can be interleaved with commands from other package builds.
+By default ``catkin build`` will build up to ``N`` packages in parallel and pass ``-jN -lN`` to ``make`` where ``N`` is the number of cores in your computer.
+You can change the number of packages allowed to build in parallel by using the ``-p`` or ``--parallel-jobs`` option and you can change the jobs flags given to ``make`` by passing them directly to ``catkin build``, i.e. ``catkin build -j1`` will result in ``make -j1 ...`` getting called to build the packages.
+
+.. note::
+
+    Jobs flags (``-jN`` and/or ``-lN``) can be passed directly to ``make`` by giving them to ``catkin build``, but other ``make`` arguments need to be passed to the ``--make-args`` option.
+
+If you want to see the output from commands streaming to the screen, then you can use the ``-i`` or ``--interleave`` option.
+This option will cause the output from commands to be pushed to the screen immediately, instead of buffering until the command finishes.
+This ends up being pretty confusing, so when interleaved output is used ``catkin build`` prefixes each line with this: ``[<package name>]: ``
+
+When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
 Debugging with the ``catkin build`` command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 By default the output from each build is optimistically hidden to give a clean overview of the workspace build, but when there is a problem with a build a few things happen.
-First, the package with a failure prints its build output to the screen between some enclosing lines:
+
+First, the package with a failure prints the failing command's output to the screen between some enclosing lines:
 
 .. code-block:: none
 
@@ -420,7 +504,7 @@ And the status line is updated to reflect that that package has run into an issu
 
     [cmi - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
 
-Then ``catkin build`` command waits for the rest of the packages to finish (without starting new package builds) and then summarizes the errors for you:
+Then the ``catkin build`` command waits for the rest of the packages to finish (without starting new package builds) and then summarizes the errors for you:
 
 .. code-block:: none
 
@@ -442,7 +526,7 @@ Then ``catkin build`` command waits for the rest of the packages to finish (with
 
 If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``cmi_logs`` folder in the "build space":
 
-.. code-block:: none
+.. code-block:: bash
 
     $ cat build/cmi_logs/rospack.log
     [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make cmake_check_build_system' in '/path/to/my_catkin_ws/build/rospack'
