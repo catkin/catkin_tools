@@ -468,7 +468,8 @@ This will give a message when a package build starts and finished as well as pri
 
     Finished <== catkin [ 3.4 seconds ]
 
-Theses printing of command outputs can be interleaved with commands from other package builds.
+The printing of these command outputs maybe be interleaved with commands from other package builds if more than one package is being built at the same time.
+
 By default ``catkin build`` will build up to ``N`` packages in parallel and pass ``-jN -lN`` to ``make`` where ``N`` is the number of cores in your computer.
 You can change the number of packages allowed to build in parallel by using the ``-p`` or ``--parallel-jobs`` option and you can change the jobs flags given to ``make`` by passing them directly to ``catkin build``, i.e. ``catkin build -j1`` will result in ``make -j1 ...`` getting called to build the packages.
 
@@ -478,7 +479,20 @@ You can change the number of packages allowed to build in parallel by using the 
 
 If you want to see the output from commands streaming to the screen, then you can use the ``-i`` or ``--interleave`` option.
 This option will cause the output from commands to be pushed to the screen immediately, instead of buffering until the command finishes.
-This ends up being pretty confusing, so when interleaved output is used ``catkin build`` prefixes each line with this: ``[<package name>]: ``
+This ends up being pretty confusing, so when interleaved output is used ``catkin build`` prefixes each line with ``[<package name>]: `` like this:
+
+.. code-block:: none
+
+    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/cmi_env.sh /usr/bin/make cmake_check_build_system' in '/Users/william/my_catkin_ws/build/roscpp_traits'
+    [ros_tutorials]: -- The CXX compiler identification is Clang 5.0.0
+    [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc
+    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/cmi_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/roscpp_traits'
+    [rosbuild]: ==> '/Users/william/my_catkin_ws/build/rosbuild/cmi_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/rosbuild'
+    [rosclean]: -- The C compiler identification is Clang 5.0.0
+    [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc -- works
+    [ros_tutorials]: -- Detecting C compiler ABI info
+    [rosclean]: -- The CXX compiler identification is Clang 5.0.0
+    [rosclean]: -- Check for working C compiler: /usr/bin/cc
 
 When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
