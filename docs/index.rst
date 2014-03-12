@@ -1,7 +1,7 @@
 Catkin Command Line Tools
 =========================
 
-This Python package provides command line tools for working with catkin and caktin workspaces.
+This Python package provides command line tools for working with catkin and catkin workspaces.
 
 The ``catkin`` command
 ----------------------
