@@ -80,8 +80,25 @@ class Context(object):
         self.__locked = False
         ss = '' if space_suffix is None else space_suffix
         # Validation is done on assignment
+
         # Handle *space assignment and defaults
-        self.workspace = '.' if workspace is None else workspace
+        if workspace:
+            self.workspace = workspace
+        else:
+            # By default, use the current directory
+            self.workspace = '.' 
+            # Find the parent workspace (assuming
+            workspace_candidate = os.getcwd()
+            # Iterate over directories until we get to the root directory
+            while workspace_candidate != '/':
+                # Check for a catkin toplevel.cmake link
+                # TODO: It would be great if there was a better marker file to look for instead of this
+                toplevel_cmake = os.path.join(workspace_candidate,'CMakeLists.txt')
+                if os.path.isfile(toplevel_cmake) and os.path.islink(toplevel_cmake) and os.readlink(toplevel_cmake).endswith('toplevel.cmake'):
+                    (self.workspace,_) = os.path.split(workspace_candidate)
+                    break
+                (workspace_candidate, _) = os.path.split(workspace_candidate)
+
         self.source_space = os.path.join(self.workspace, 'src') if source_space is None else source_space
         self.build_space = os.path.join(self.workspace, 'build' + ss) if build_space is None else build_space
         self.devel_space = os.path.join(self.workspace, 'devel' + ss) if devel_space is None else devel_space
