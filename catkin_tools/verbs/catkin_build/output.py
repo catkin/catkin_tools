@@ -72,11 +72,12 @@ class FileBackedLogCache(object):
 
 
 class OutputController(object):
-    def __init__(self, log_dir, quiet, interleave_output, color, prefix_output=False):
+    def __init__(self, log_dir, quiet, interleave_output, color, max_package_name_length, prefix_output=False):
         self.log_dir = log_dir
         self.quiet = quiet
         self.interleave = interleave_output
         self.color = color
+        self.max_package_name_length = max_package_name_length
         self.prefix_output = prefix_output
         self.__command_log = {}
 
@@ -143,4 +144,5 @@ class OutputController(object):
     def job_finished(self, package, time):
         self.__command_log[package].close()
         del self.__command_log[package]
-        wide_log(clr("Finished <== {package} [ {time} ]").format(**locals()))
+        msg = clr("Finished <== {package:<") + str(self.max_package_name_length) + clr("} [ {time} ]")
+        wide_log(msg.format(**locals()))
