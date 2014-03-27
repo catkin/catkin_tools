@@ -14,11 +14,11 @@
 
 """This module implements many of the colorization functions used by cmi"""
 
-from .terminal_color import ansi
-from .terminal_color import enable_ANSI_colors
-from .terminal_color import disable_ANSI_colors
-from .terminal_color import fmt
-from .terminal_color import sanitize
+from catkin_tools.terminal_color import ansi
+from catkin_tools.terminal_color import enable_ANSI_colors
+from catkin_tools.terminal_color import disable_ANSI_colors
+from catkin_tools.terminal_color import fmt
+from catkin_tools.terminal_color import sanitize
 
 # This map translates more human reable format strings into colorized versions
 _color_translation_map = {

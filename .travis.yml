@@ -3,7 +3,7 @@ python:
   - "2.7"
   - "3.3"
 install:
-  - pip install argparse catkin-pkg distribute
+  - pip install argparse catkin-pkg distribute PyYAML
   - pip install nose coverage pep8
 script:
   - python setup.py nosetests -s

@@ -19,6 +19,50 @@ Optionally, global options can be provided before the verb, things like ``-d`` f
 Verbs can take arbitrary arguments and options, but they must all come after the verb.
 For more help on a particular verb, simply pass ``-h`` or ``--help`` after the verb.
 
+Verb aliasing
+^^^^^^^^^^^^^
+
+The ``catkin`` command allows you to create verb "aliases" and it also comes with some defaults.
+Verb aliases are defined in YAML files in the ``verb_aliases`` folder in the catkin config folder.
+The catkin config folder is located at ``~/.config/catkin``, therefore the alias files are located in ``~/.config/catkin/verb_aliases``.
+By default there is one file in that directory called ``00-default-aliases.yaml``, but any files in that folder which end with either ``.yaml`` or ``.yml`` will be processed.
+The built-in file should not be edited, because it is kept up-to-date by the ``catkin`` command.
+
+Verb alias files are processed in sorted order, so making files which start with larger numbers will override files with smaller numbers.
+In this way you can override the built-in aliases using a file which starts with a higher number.
+For example, the ``install: build --install`` alias exists in the default file, but you can create this file to override it (``~/.config/catkin/verb_aliases/01-my-aliases.yml``):
+
+.. code-block:: yaml
+
+    install: build --install --merge-devel
+
+You can also nullify or unset aliases by setting their values to ``null``.
+So, for example, the ``ls: list`` alias is defined in the default aliases, you can override it with this entry in a custom file:
+
+.. code-block:: yaml
+
+    ls: null
+
+You can list the available aliases using the ``--list-aliases`` option to the ``catkin`` command:
+
+.. code-block:: bash
+
+    $ catkin --list-aliases
+    i: install
+    b: build
+    ls: list
+    install: build --install
+
+Additionally, verb aliases can be recursive, for instance the ``i`` alias expands to ``install`` and that alias in turn expands to ``build --install``.
+The ``catkin`` command shows the expansion of aliases so that the behavior is more transparent:
+
+.. code-block:: bash
+
+    $ catkin i
+    ==> Expanding alias 'i' from 'catkin i' to 'catkin install'
+    ==> Expanding alias 'install' from 'catkin install' to 'catkin build --install'
+    ...
+
 Built-in ``catkin`` command verbs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
