@@ -28,7 +28,7 @@ The catkin config folder is located at ``~/.config/catkin``, therefore the alias
 By default there is one file in that directory called ``00-default-aliases.yaml``, but any files in that folder which end with either ``.yaml`` or ``.yml`` will be processed.
 The built-in file should not be edited, because it is kept up-to-date by the ``catkin`` command.
 
-Verb alias files are processed in ls list order, so making files which start with larger numbers will override files with smaller numbers.
+Verb alias files are processed in sorted order, so making files which start with larger numbers will override files with smaller numbers.
 In this way you can override the built-in aliases using a file which starts with a higher number.
 For example, the ``install: build --install`` alias exists in the default file, but you can create this file to override it (``~/.config/catkin/verb_aliases/01-my-aliases.yml``):
 

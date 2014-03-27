@@ -25,7 +25,7 @@ builtin_verb_aliases_content = """\
 ### If you want to add your own verb aliases, add additional files to this directory
 ### If you want to override an alias in this file, put the same alias in a new file
 ### If you want to disable an alias in this file, set the alias to null in a new file
-### Files in this folder which end with `.yaml` are evaluated in ls list order
+### Files in this folder which end with `.yaml` are evaluated in sorted order
 
 b: build
 ls: list
@@ -81,7 +81,7 @@ def get_verb_aliases(path=catkin_config_path):
             "Cannot get verb aliases because the verb aliases config path ('{0}') does not exist or is a file."
             .format(verb_aliases_path))
     verb_aliases = {}
-    for file_name in os.listdir(verb_aliases_path):
+    for file_name in sorted(os.listdir(verb_aliases_path)):
         if file_name.endswith('.yaml') or file_name.endswith('.yml'):
             with open(os.path.join(verb_aliases_path, file_name), 'r') as f:
                 yaml_dict = yaml.load(f)
