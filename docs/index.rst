@@ -1,6 +1,13 @@
 Catkin Command Line Tools
 =========================
 
+.. toctree::
+   :hidden:
+
+   commands/catkin_build
+   commands/catkin_list
+   development/extending_the_catkin_command
+
 This Python package provides command line tools for working with catkin and catkin workspaces.
 
 The ``catkin`` command
@@ -74,7 +81,11 @@ Built-in ``catkin`` command verbs
 Extending the ``catkin`` command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you would like to add a verb to the ``catkin`` command, please read this document: `Extending the catkin command <development/extending_the_catkin_command>
+If you would like to add a verb to the ``catkin`` command, please read this document:
+
+.. toctree::
+
+    development/extending_the_catkin_command
 
 Installing
 ----------
