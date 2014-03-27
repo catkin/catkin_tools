@@ -14,6 +14,7 @@
 
 """This module implements many of the colorization functions used by cmi"""
 
+from .terminal_color import ansi
 from .terminal_color import enable_ANSI_colors
 from .terminal_color import disable_ANSI_colors
 from .terminal_color import fmt
@@ -39,8 +40,11 @@ _color_translation_map = {
     "[{package}]: <== '{cmd.cmd_str}' finished with return code '{retcode}'":
     fmt("[@{cf}{package}@|]: @{gf}<==@| '@!{cmd.cmd_str}@|' finished with return code '@!{retcode}@|'"),
 
-    "Finished <== {package} [ {time} ]":
-    fmt("@!@{kf}Finished@| @{gf}<==@| @{cf}{package}@| [ @{yf}{time}@| ]"),
+    "Finished <== {package:<":
+    fmt("@!@{kf}Finished@| @{gf}<==@| @{cf}{package:<").rstrip(ansi('reset')),
+
+    "} [ {time} ]":
+    fmt("}@| [ @{yf}{time}@| ]"),
 
     "[{name} - {run_time}] ":
     fmt("[@{cf}{name}@| - @{yf}{run_time}@|] "),

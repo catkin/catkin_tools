@@ -249,6 +249,7 @@ def build_isolated_workspace(
         packages_to_be_built.extend(packages_to_be_built_deps)
     # Also resort
     packages_to_be_built = topological_order_packages(dict(packages_to_be_built))
+    max_package_name_length = max([len(pkg.name) for pth, pkg in packages_to_be_built])
 
     # Setup pool of executors
     executors = {}
@@ -284,7 +285,7 @@ def build_isolated_workspace(
     color = True
     if not force_color and not is_tty(sys.stdout):
         color = True
-    out = OutputController(log_dir, quiet, interleave_output, color, prefix_output=(jobs > 1))
+    out = OutputController(log_dir, quiet, interleave_output, color, max_package_name_length, prefix_output=(jobs > 1))
     if no_status:
         disable_wide_log()
 
