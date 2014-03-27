@@ -73,19 +73,13 @@ The ``catkin`` command shows the expansion of aliases so that the behavior is mo
 Built-in ``catkin`` command verbs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. toctree::
-
-    build: Verb for building a catkin workspace <commands/catkin_build>
-    list: Verb for finding and listing information about catkin packages <commands/catkin_list>
+- :doc:`build: Verb for building a catkin workspace <commands/catkin_build>`
+- :doc:`list: Verb for finding and listing information about catkin packages <commands/catkin_list>`
 
 Extending the ``catkin`` command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you would like to add a verb to the ``catkin`` command, please read this document:
-
-.. toctree::
-
-    development/extending_the_catkin_command
+If you would like to add a verb to the ``catkin`` command, please read this document: :doc:`development/extending_the_catkin_command`
 
 Installing
 ----------
