@@ -94,6 +94,15 @@ def main(sysargs=None):
     sysargs = sys.argv[1:] if sysargs is None else sysargs
     cmd = os.path.basename(sys.argv[0])
 
+    # Check for --list-aliases
+    for arg in sysargs:
+        if arg == '--list-aliases':
+            for alias, expansion in verb_aliases.items():
+                print("{0}: {1}".format(alias, expansion))
+            sys.exit(0)
+        if not arg.startswith('-'):
+            break
+
     # Do alias expansion
     expanding_verb_aliases = True
     while expanding_verb_aliases:
