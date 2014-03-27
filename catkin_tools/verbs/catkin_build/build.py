@@ -409,12 +409,14 @@ def build_isolated_workspace(
                 msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed]").format(
                     len(executing_jobs),
                     len(executors),
-                    len(completed_packages),
+                    len(packages) if no_deps else len(completed_packages),
                     total_packages
                 )
                 # Update title bar
-                sys.stdout.write("\x1b]2;[cmi] {0}/{1}\x07"
-                                 .format(len(completed_packages), total_packages))
+                sys.stdout.write("\x1b]2;[cmi] {0}/{1}\x07".format(
+                    len(packages) if no_deps else len(completed_packages),
+                    total_packages
+                ))
                 # Update status bar
                 wide_log(msg, rhs=msg_rhs, end='\r')
                 sys.stdout.flush()
