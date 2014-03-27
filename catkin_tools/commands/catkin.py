@@ -15,8 +15,14 @@
 from __future__ import print_function
 
 import argparse
+import os
 import pkg_resources
 import sys
+
+from catkin_tools.config import get_verb_aliases
+from catkin_tools.config import initialize_config
+
+from catkin_tools.terminal_color import fmt
 
 CATKIN_COMMAND_VERB_GROUP = 'catkin_tools.commands.catkin.verbs'
 
@@ -66,6 +72,12 @@ def create_subparsers(parser, verbs):
 
 
 def main(sysargs=None):
+    # Initialize config
+    try:
+        initialize_config()
+    except RuntimeError as exc:
+        sys.exit("Failed to initialize config: {0}".format(exc))
+
     # Create a top level parser
     parser = argparse.ArgumentParser(description="catkin command")
 
@@ -75,9 +87,29 @@ def main(sysargs=None):
     # Create the subparsers for each verb and collect the argument preprocessors
     argument_preprocessors = create_subparsers(parser, verbs)
 
+    # Get verb aliases
+    verb_aliases = get_verb_aliases()
+
+    # Setup sysargs
+    sysargs = sys.argv[1:] if sysargs is None else sysargs
+    cmd = os.path.basename(sys.argv[0])
+
+    # Do alias expansion
+    expanding_verb_aliases = True
+    while expanding_verb_aliases:
+        expanding_verb_aliases = False
+        for index, arg in enumerate(sysargs):
+            if not arg.startswith('-'):
+                if arg in verb_aliases:
+                    old_sysargs = list(sysargs)
+                    sysargs = sysargs[:index - 1] + verb_aliases[arg].split() + sysargs[index + 1:]
+                    print(fmt("@!@{gf}==>@| Expanding alias '@!@{yf}{0}@|' from '@!@{yf}{1}@|' to '@!@{yf}{2}@|'")
+                          .format(arg, ' '.join([cmd] + old_sysargs), ' '.join([cmd] + sysargs)))
+                    expanding_verb_aliases = True
+                break
+
     # Determine the verb, splitting arguments into pre and post verb
     verb = None
-    sysargs = sys.argv[1:] if sysargs is None else sysargs
     pre_verb_args = []
     post_verb_args = []
     for index, arg in enumerate(sysargs):
