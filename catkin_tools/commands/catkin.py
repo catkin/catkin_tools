@@ -97,8 +97,8 @@ def main(sysargs=None):
     # Check for --list-aliases
     for arg in sysargs:
         if arg == '--list-aliases':
-            for alias, expansion in verb_aliases.items():
-                print("{0}: {1}".format(alias, expansion))
+            for alias in sorted(list(verb_aliases.keys())):
+                print("{0}: {1}".format(alias, verb_aliases[alias]))
             sys.exit(0)
         if not arg.startswith('-'):
             break

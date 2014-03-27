@@ -86,5 +86,5 @@ ls: null
 """)
     aliases = config.get_verb_aliases(test_folder)
     assert 'b' in aliases
-    assert aliases['b'] == 'build --merge-devel'
+    assert aliases['b'] == 'build --merge-devel', aliases['b']
     assert 'ls' not in aliases
