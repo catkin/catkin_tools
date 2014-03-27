@@ -27,6 +27,11 @@ Built-in ``catkin`` command verbs
     build: Verb for building a catkin workspace <commands/catkin_build>
     list: Verb for finding and listing information about catkin packages <commands/catkin_list>
 
+Extending the ``catkin`` command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you would like to add a verb to the ``catkin`` command, please read this document: `Extending the catkin command <development/extending_the_catkin_command>
+
 Installing
 ----------
 
