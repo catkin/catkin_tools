@@ -111,7 +111,9 @@ def main(sysargs=None):
             if not arg.startswith('-'):
                 if arg in verb_aliases:
                     old_sysargs = list(sysargs)
-                    sysargs = sysargs[:index - 1] + verb_aliases[arg].split() + sysargs[index + 1:]
+                    before = [] if index == 0 else sysargs[:index - 1]
+                    after = [] if index == len(sysargs) else sysargs[index + 1:]
+                    sysargs = before + verb_aliases[arg].split() + after
                     print(fmt("@!@{gf}==>@| Expanding alias '@!@{yf}{0}@|' from '@!@{yf}{1}@|' to '@!@{yf}{2}@|'")
                           .format(arg, ' '.join([cmd] + old_sysargs), ' '.join([cmd] + sysargs)))
                     expanding_verb_aliases = True
