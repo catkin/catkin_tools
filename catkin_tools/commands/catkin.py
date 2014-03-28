@@ -80,6 +80,9 @@ def main(sysargs=None):
 
     # Create a top level parser
     parser = argparse.ArgumentParser(description="catkin command")
+    add = parser.add_argument
+    add('-a', '--list-aliases', action="store_true", default=False,
+        help="lists the current verb aliases and then quits, all other arguments are ignored")
 
     # Generate a list of verbs available
     verbs = list_verbs()
@@ -96,7 +99,7 @@ def main(sysargs=None):
 
     # Check for --list-aliases
     for arg in sysargs:
-        if arg == '--list-aliases':
+        if arg == '--list-aliases' or arg == '-a':
             for alias in sorted(list(verb_aliases.keys())):
                 print("{0}: {1}".format(alias, verb_aliases[alias]))
             sys.exit(0)
