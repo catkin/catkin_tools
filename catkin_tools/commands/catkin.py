@@ -120,6 +120,8 @@ def main(sysargs=None):
                     print(fmt("@!@{gf}==>@| Expanding alias '@!@{yf}{0}@|' from '@!@{yf}{1}@|' to '@!@{yf}{2}@|'")
                           .format(arg, ' '.join([cmd] + old_sysargs), ' '.join([cmd] + sysargs)))
                     expanding_verb_aliases = True
+                    # Remove the alias from verb_aliases to prevent infinite recursion
+                    del verb_aliases[arg]
                 break
 
     # Determine the verb, splitting arguments into pre and post verb
