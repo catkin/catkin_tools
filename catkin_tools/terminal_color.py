@@ -112,3 +112,17 @@ def fmt(msg):
     msg = msg.replace('@|', '@{reset}')
     t = ColorTemplate(msg)
     return t.substitute(_ansi) + ansi('reset')
+
+
+def test_colors():
+    def cprint(msg):
+        print(fmt(msg))
+
+    cprint("| @{kf}Black      @|| @!@{kf}Black Bold")
+    cprint("| @{rf}Red        @|| @!@{rf}Red Bold")
+    cprint("| @{gf}Green      @|| @!@{gf}Green Bold")
+    cprint("| @{yf}Yellow     @|| @!@{yf}Yellow Bold")
+    cprint("| @{bf}Blue       @|| @!@{bf}Blue Bold")
+    cprint("| @{pf}Purple     @|| @!@{pf}Purple Bold")
+    cprint("| @{cf}Cyan       @|| @!@{cf}Cyan Bold")
+    cprint("| White      | @!White Bold")

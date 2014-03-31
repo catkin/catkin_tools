@@ -23,6 +23,7 @@ from catkin_tools.config import get_verb_aliases
 from catkin_tools.config import initialize_config
 
 from catkin_tools.terminal_color import fmt
+from catkin_tools.terminal_color import test_colors
 
 CATKIN_COMMAND_VERB_GROUP = 'catkin_tools.commands.catkin.verbs'
 
@@ -83,6 +84,8 @@ def main(sysargs=None):
     add = parser.add_argument
     add('-a', '--list-aliases', action="store_true", default=False,
         help="lists the current verb aliases and then quits, all other arguments are ignored")
+    add('--test-colors', action='store_true', default=False,
+        help="prints a color test pattern to the screen and then quits, all other arguments are ignored")
 
     # Generate a list of verbs available
     verbs = list_verbs()
@@ -96,6 +99,14 @@ def main(sysargs=None):
     # Setup sysargs
     sysargs = sys.argv[1:] if sysargs is None else sysargs
     cmd = os.path.basename(sys.argv[0])
+
+    # Check for --test-colors
+    for arg in sysargs:
+        if arg == '--test-colors':
+            test_colors()
+            sys.exit(0)
+        if not arg.startswith('-'):
+            break
 
     # Check for --list-aliases
     for arg in sysargs:
