@@ -269,6 +269,7 @@ def build_isolated_workspace(
     if jobs == 1:
         # TODO: make the system more intelligent so that it can automatically switch to streaming output
         #       when only one job is building, even if multiple jobs could be building
+        quiet = False
         interleave_output = True
     # Start the executors
     for x in range(jobs):

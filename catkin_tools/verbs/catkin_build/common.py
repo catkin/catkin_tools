@@ -453,7 +453,7 @@ def __wide_log(msg, **kwargs):
             msg = slice_to_printed_length(msg, width - rhs_len - 4) + '...'
             msg_len = len(remove_ansi_escape(msg))
         del kwargs['truncate']
-    if msg_len + rhs_len < width:
+    if (msg_len + rhs_len) < width:
         log(msg + (' ' * (width - msg_len - rhs_len - 1)) + rhs, **kwargs)
     else:
         log(msg, **kwargs)

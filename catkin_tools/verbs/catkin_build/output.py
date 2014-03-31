@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import os
 
+from .color import ansi
 from .color import clr
 
 from .common import remove_ansi_escape
@@ -105,6 +106,7 @@ class OutputController(object):
         if not self.color:
             msg = remove_ansi_escape(msg)
         if not self.quiet and self.interleave:
+            msg = msg.rstrip(ansi('reset'))
             msg = msg.rstrip()
             if self.interleave and self.prefix_output:
                 wide_log(clr("[{package}]: {msg}").format(**locals()))
@@ -125,6 +127,8 @@ class OutputController(object):
         self.__command_log[package].close()
         if not self.interleave:
             self.__command_log[package].print_last_command_log()
+        else:
+            wide_log(msg)
         del self.__command_log[package]
 
     def command_finished(self, package, cmd, location, retcode):
@@ -140,6 +144,8 @@ class OutputController(object):
         self.__command_log[package].finish_command(msg)
         if not self.quiet and not self.interleave:
             self.__command_log[package].print_last_command_log()
+        else:
+            wide_log(msg)
 
     def job_finished(self, package, time):
         self.__command_log[package].close()
