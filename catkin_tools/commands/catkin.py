@@ -126,13 +126,13 @@ def main(sysargs=None):
                     print(fmt(
                         "@!@{gf}==>@| Expanding alias "
                         "'@!@{yf}{alias}@|' "
-                        "from '@{yf}{before} @!{alias}@{boldoff} {after}@|' "
-                        "to '@{yf}{before} @!{expansion}@{boldoff} {after}@|'"
+                        "from '@{yf}{before} @!{alias}@{boldoff}{after}@|' "
+                        "to '@{yf}{before} @!{expansion}@{boldoff}{after}@|'"
                     ).format(
                         alias=arg,
                         expansion=verb_aliases[arg],
                         before=' '.join([cmd] + before),
-                        after=' '.join(after)
+                        after=(' '.join([''] + after) if after else '')
                     ))
                     expanding_verb_aliases = True
                     # Prevent the alias from being used again, to prevent infinite recursion
