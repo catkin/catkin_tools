@@ -83,8 +83,22 @@ def get_verb_aliases(path=catkin_config_path):
     verb_aliases = {}
     for file_name in sorted(os.listdir(verb_aliases_path)):
         if file_name.endswith('.yaml') or file_name.endswith('.yml'):
-            with open(os.path.join(verb_aliases_path, file_name), 'r') as f:
+            full_path = os.path.join(verb_aliases_path, file_name)
+            with open(full_path, 'r') as f:
                 yaml_dict = yaml.load(f)
+            if yaml_dict is None:
+                continue
+            if not isinstance(yaml_dict, dict):
+                raise RuntimeError("Invalid alias file ('{0}'), expected a dict but got a {1}"
+                                   .format(full_path, type(yaml_dict)))
+            for key, value in yaml_dict.items():
+                if not isinstance(key, str):
+                    raise RuntimeError("Invalid alias in file ('{0}'), expected a string but got '{1}' of type {2}"
+                                       .format(full_path, key, type(key)))
+                if not isinstance(value, str) and not isinstance(value, type(None)):
+                    raise RuntimeError(
+                        "Invalid alias expansion in file ('{0}'), expected a string but got '{1}' of type {2}"
+                        .format(full_path, value, type(value)))
             verb_aliases.update(yaml_dict)
     for alias, value in dict(verb_aliases).items():
         if not value:

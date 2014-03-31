@@ -79,7 +79,8 @@ def test_get_verb_aliases():
     assert 'b' in aliases
     assert aliases['b'] == 'build'
     # Test a custom file
-    with open(os.path.join(test_folder, 'verb_aliases', '01-my-custom-aliases.yml'), 'w') as f:
+    base_path = os.path.join(test_folder, 'verb_aliases')
+    with open(os.path.join(base_path, '01-my-custom-aliases.yml'), 'w') as f:
         f.write("""\
 b: build --merge-devel
 ls: null
@@ -88,3 +89,32 @@ ls: null
     assert 'b' in aliases
     assert aliases['b'] == 'build --merge-devel', aliases['b']
     assert 'ls' not in aliases
+    # Test a bad alias files
+    bad_path = os.path.join(base_path, '02-bad.yaml')
+    with open(bad_path, 'w') as f:
+        f.write("""\
+- foo
+- bar
+""")
+    with assert_raises_regex(RuntimeError, "Invalid alias file"):
+        config.get_verb_aliases(test_folder)
+    os.remove(bad_path)
+    with open(bad_path, 'w') as f:
+        f.write("""\
+null: foo
+""")
+    with assert_raises_regex(RuntimeError, "Invalid alias in file"):
+        config.get_verb_aliases(test_folder)
+    os.remove(bad_path)
+    with open(bad_path, 'w') as f:
+        f.write("""\
+foo: 13.4
+""")
+    with assert_raises_regex(RuntimeError, "Invalid alias expansion in file"):
+        config.get_verb_aliases(test_folder)
+    os.remove(bad_path)
+    # Test with an empty custom file
+    empty_path = os.path.join(base_path, '02-my-empty.yaml')
+    with open(empty_path, 'a') as f:
+        os.utime(empty_path, None)
+    aliases = config.get_verb_aliases(test_folder)

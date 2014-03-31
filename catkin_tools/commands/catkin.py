@@ -80,6 +80,9 @@ def main(sysargs=None):
 
     # Create a top level parser
     parser = argparse.ArgumentParser(description="catkin command")
+    add = parser.add_argument
+    add('-a', '--list-aliases', action="store_true", default=False,
+        help="lists the current verb aliases and then quits, all other arguments are ignored")
 
     # Generate a list of verbs available
     verbs = list_verbs()
@@ -96,7 +99,7 @@ def main(sysargs=None):
 
     # Check for --list-aliases
     for arg in sysargs:
-        if arg == '--list-aliases':
+        if arg == '--list-aliases' or arg == '-a':
             for alias in sorted(list(verb_aliases.keys())):
                 print("{0}: {1}".format(alias, verb_aliases[alias]))
             sys.exit(0)
@@ -105,18 +108,36 @@ def main(sysargs=None):
 
     # Do alias expansion
     expanding_verb_aliases = True
+    used_aliases = []
     while expanding_verb_aliases:
         expanding_verb_aliases = False
         for index, arg in enumerate(sysargs):
             if not arg.startswith('-'):
+                if arg in used_aliases:
+                    print(fmt(
+                        "@!@{yf}Warning:@| The verb alias '@!@{yf}" +
+                        arg +
+                        "@|' was previously expanded, ignoring this time to prevent infinite recursion."
+                    ))
                 if arg in verb_aliases:
-                    old_sysargs = list(sysargs)
                     before = [] if index == 0 else sysargs[:index - 1]
                     after = [] if index == len(sysargs) else sysargs[index + 1:]
                     sysargs = before + verb_aliases[arg].split() + after
-                    print(fmt("@!@{gf}==>@| Expanding alias '@!@{yf}{0}@|' from '@!@{yf}{1}@|' to '@!@{yf}{2}@|'")
-                          .format(arg, ' '.join([cmd] + old_sysargs), ' '.join([cmd] + sysargs)))
+                    print(fmt(
+                        "@!@{gf}==>@| Expanding alias "
+                        "'@!@{yf}{alias}@|' "
+                        "from '@{yf}{before} @!{alias}@{boldoff}{after}@|' "
+                        "to '@{yf}{before} @!{expansion}@{boldoff}{after}@|'"
+                    ).format(
+                        alias=arg,
+                        expansion=verb_aliases[arg],
+                        before=' '.join([cmd] + before),
+                        after=(' '.join([''] + after) if after else '')
+                    ))
                     expanding_verb_aliases = True
+                    # Prevent the alias from being used again, to prevent infinite recursion
+                    used_aliases.append(arg)
+                    del verb_aliases[arg]
                 break
 
     # Determine the verb, splitting arguments into pre and post verb
