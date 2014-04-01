@@ -126,7 +126,7 @@ def main(sysargs=None):
             if not arg.startswith('-'):
                 if arg in used_aliases:
                     print(fmt(
-                        "@!@{yf}Warning:@| The verb alias '@!@{yf}" +
+                        "@!@{gf}==>@| Expanding alias '@!@{yf}" +
                         arg +
                         "@|' was previously expanded, ignoring this time to prevent infinite recursion."
                     ))
