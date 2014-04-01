@@ -90,7 +90,7 @@ class OutputController(object):
         if package not in self.__command_log:
             raise RuntimeError("Command started received for package '{0}' before package job started: '{1}' in '{2}'"
                                .format(package, cmd.pretty, location))
-        msg = clr("[{package}]: ==> '{cmd.cmd_str}' in '{location}'").format(**locals())
+        msg = clr("[{package}] ==> '{cmd.cmd_str}' in '{location}'").format(**locals())
         self.__command_log[package].start_command(cmd, msg)
         if not self.quiet and self.interleave:
             wide_log(msg)
@@ -109,7 +109,7 @@ class OutputController(object):
             msg = msg.rstrip(ansi('reset'))
             msg = msg.rstrip()
             if self.interleave and self.prefix_output:
-                wide_log(clr("[{package}]: {msg}").format(**locals()))
+                wide_log(clr("[{package}] {msg}").format(**locals()))
             else:
                 wide_log(msg)
 
@@ -122,7 +122,7 @@ class OutputController(object):
             raise RuntimeError(
                 "Command failed received for package '{0}' before command started: '{1}' in '{2}' returned '{3}'"
                 .format(package, cmd.pretty, location, retcode))
-        msg = clr("[{package}]: <== '{cmd.cmd_str}' failed with return code '{retcode}'").format(**locals())
+        msg = clr("[{package}] <== '{cmd.cmd_str}' failed with return code '{retcode}'").format(**locals())
         self.__command_log[package].finish_command(msg)
         self.__command_log[package].close()
         if not self.interleave:
@@ -140,7 +140,7 @@ class OutputController(object):
             raise RuntimeError(
                 "Command finished received for package '{0}' before command started: '{1}' in '{2}' returned '{3}'"
                 .format(package, cmd.pretty, location, retcode))
-        msg = clr("[{package}]: <== '{cmd.cmd_str}' finished with return code '{retcode}'").format(**locals())
+        msg = clr("[{package}] <== '{cmd.cmd_str}' finished with return code '{retcode}'").format(**locals())
         self.__command_log[package].finish_command(msg)
         if not self.quiet and not self.interleave:
             self.__command_log[package].print_last_command_log()
