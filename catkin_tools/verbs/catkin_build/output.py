@@ -127,7 +127,7 @@ class OutputController(object):
         self.__command_log[package].close()
         if not self.interleave:
             self.__command_log[package].print_last_command_log()
-        else:
+        elif not self.quiet:
             wide_log(msg)
         del self.__command_log[package]
 
@@ -144,7 +144,7 @@ class OutputController(object):
         self.__command_log[package].finish_command(msg)
         if not self.quiet and not self.interleave:
             self.__command_log[package].print_last_command_log()
-        else:
+        elif not self.quiet:
             wide_log(msg)
 
     def job_finished(self, package, time):

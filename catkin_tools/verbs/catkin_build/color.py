@@ -25,20 +25,20 @@ _color_translation_map = {
     # 'output': 'colorized_output'
     '': fmt('@!' + sanitize('') + '@|'),
 
-    "[{package}]: ==> '{cmd.cmd_str}' in '{location}'":
-    fmt("[@{cf}{package}@|]: @!@{bf}==>@| '@!{cmd.cmd_str}@|' @{kf}@!in@| '@!{location}@|'"),
+    "[{package}] ==> '{cmd.cmd_str}' in '{location}'":
+    fmt("[@{cf}{package}@|] @!@{bf}==>@| '@!{cmd.cmd_str}@|' @{kf}@!in@| '@!{location}@|'"),
 
     "Starting ==> {package}":
     fmt("Starting @!@{gf}==>@| @!@{cf}{package}@|"),
 
-    "[{package}]: {msg}":
-    fmt("[@{cf}{package}@|]: {msg}"),
+    "[{package}] {msg}":
+    fmt("[@{cf}{package}@|] {msg}"),
 
-    "[{package}]: <== '{cmd.cmd_str}' failed with return code '{retcode}'":
-    fmt("[@{cf}{package}@|]: @!@{rf}<==@| '@!{cmd.cmd_str}@|' @{rf}failed with return code@| '@!{retcode}@|'"),
+    "[{package}] <== '{cmd.cmd_str}' failed with return code '{retcode}'":
+    fmt("[@{cf}{package}@|] @!@{rf}<==@| '@!{cmd.cmd_str}@|' @{rf}failed with return code@| '@!{retcode}@|'"),
 
-    "[{package}]: <== '{cmd.cmd_str}' finished with return code '{retcode}'":
-    fmt("[@{cf}{package}@|]: @{gf}<==@| '@!{cmd.cmd_str}@|' finished with return code '@!{retcode}@|'"),
+    "[{package}] <== '{cmd.cmd_str}' finished with return code '{retcode}'":
+    fmt("[@{cf}{package}@|] @{gf}<==@| '@!{cmd.cmd_str}@|' finished with return code '@!{retcode}@|'"),
 
     "Finished <== {package:<":
     fmt("@!@{kf}Finished@| @{gf}<==@| @{cf}{package:<").rstrip(ansi('reset')),
