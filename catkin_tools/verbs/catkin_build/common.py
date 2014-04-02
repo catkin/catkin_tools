@@ -17,6 +17,7 @@ from __future__ import print_function
 import datetime
 import os
 import re
+import stat
 import sys
 
 from multiprocessing import cpu_count
@@ -30,6 +31,39 @@ from .color import clr
 
 # Get platform specific run command
 run_command = run.run_command
+
+env_file_template = """\
+#!/usr/bin/env sh
+# generated from within catkin_tools/verbs/catkin_build/common.py
+
+if [ $# -eq 0 ] ; then
+  /bin/echo "Usage: build_env.sh COMMANDS"
+  /bin/echo "Calling build_env.sh without arguments is not supported anymore."
+  /bin/echo "Instead spawn a subshell and source a setup file manually."
+  exit 1
+fi
+
+# save original args for later
+_ARGS=$@
+# remove all passed in args, resetting $@, $*, $#, $n
+shift $#
+# set the args for the sourced scripts
+set -- $@ "--extend"
+# source setup.sh with implicit --extend argument for each direct build depend in the workspace
+{sources}
+
+# execute given args
+exec $_ARGS
+"""
+
+
+def generate_env_file(sources, env_file_path):
+    env_file = env_file_template.format(sources='\n'.join(sources))
+    with open(env_file_path, 'w') as f:
+        f.write(env_file)
+    # Make this file executable
+    os.chmod(env_file_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    return env_file_path
 
 
 class FakeLock(object):
