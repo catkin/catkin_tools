@@ -102,7 +102,7 @@ def prepare_arguments(parser):
              'It must be passed after other arguments since it collects all following options.')
     # Behavior
     add('--force-color', action='store_true', default=False,
-        help='Forces cmi to ouput in color, even when the terminal does not appear to support it.')
+        help='Forces catkin build to ouput in color, even when the terminal does not appear to support it.')
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
@@ -183,4 +183,4 @@ def main(opts):
             lock_install=not opts.no_install_lock
         )
     finally:
-        log("[cmi] Runtime: {0}".format(format_time_delta(time.time() - start)))
+        log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))

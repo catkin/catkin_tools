@@ -39,8 +39,8 @@ class ExecutorEvent(object):
 
 
 class Executor(Thread):
-    """Threaded executor for the parallel cmi jobs"""
-    name_prefix = 'cmi'
+    """Threaded executor for the parallel catkin build jobs"""
+    name_prefix = 'build'
 
     def __init__(self, executor_id, context, comm_queue, job_queue, install_lock):
         super(Executor, self).__init__()

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module implements many of the colorization functions used by cmi"""
+"""This module implements many of the colorization functions used by catkin build"""
 
 from catkin_tools.terminal_color import ansi
 from catkin_tools.terminal_color import enable_ANSI_colors

@@ -267,14 +267,14 @@ At this point the workspace has not been touched, but once we tell the ``build``
 
     ... build goes on
 
-    [cmi] Finished.
-    [cmi] Runtime: 3 minutes and 54.6 seconds
+    [build] Finished.
+    [build] Runtime: 3 minutes and 54.6 seconds
 
     $ ls ./*
     ./build:
     catkin               genlisp              message_runtime      roscpp
     rosgraph_msgs        rosout               rostest              turtlesim
-    cmi_logs             genmsg               ros_tutorials
+    build_logs           genmsg               ros_tutorials
     roscpp_serialization roslang              rospack              rostime
     xmlrpcpp             console_bridge       genpy                rosbuild
     roscpp_traits        roslaunch            rosparam             rosunit
@@ -322,10 +322,10 @@ You may have noticed the status lines like this:
 
 .. code-block:: none
 
-    [cmi - 5.9] [genmsg - 1.3] [message_runtime - 0.7] ...        [4/4 Active | 3/36 Completed]
+    [build - 5.9] [genmsg - 1.3] [message_runtime - 0.7] ...        [4/4 Active | 3/36 Completed]
 
 This status line stays at the bottom of the screen and lets you know, at a glance, what the status of you build is.
-The ``[cmi - 5.9]`` indicates that the total run time thus far has been ``5.9`` seconds.
+The ``[build - 5.9]`` indicates that the total run time thus far has been ``5.9`` seconds.
 The blocks like ``[genmsg - 1.3]`` means that you are currently building a package, in this case ``genmsg``, and it has been building for ``1.3`` seconds.
 Justified to the right is the number of packages being actively built out of the total allowed in parallel and the number of completed packages out of the total, respectively, rendered like this: ``[4/4 Active | 3/36 Completed]``
 
@@ -345,7 +345,7 @@ This will give a message when a package build starts and finished as well as pri
 
     Starting ==> catkin
 
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' in '/path/to/my_catkin_ws/build/catkin'
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' in '/path/to/my_catkin_ws/build/catkin'
     -- The C compiler identification is Clang 5.0.0
     -- The CXX compiler identification is Clang 5.0.0
     -- Check for working C compiler: /usr/bin/cc
@@ -372,16 +372,16 @@ This will give a message when a package build starts and finished as well as pri
     -- Configuring done
     -- Generating done
     -- Build files have been written to: /path/to/my_catkin_ws/build/catkin
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' finished with return code '0'
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' finished with return code '0'
 
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/catkin'
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make -j4 -l4' finished with return code '0'
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/catkin'
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make -j4 -l4' finished with return code '0'
 
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make install' in '/path/to/my_catkin_ws/build/catkin'
+    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make install' in '/path/to/my_catkin_ws/build/catkin'
     Install the project...
     -- Install configuration: ""
     ... truncated for brevity
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/cmi_env.sh /usr/bin/make install' finished with return code '0'
+    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make install' finished with return code '0'
 
     Finished <== catkin [ 3.4 seconds ]
 
@@ -400,11 +400,11 @@ This ends up being pretty confusing, so when interleaved output is used ``catkin
 
 .. code-block:: none
 
-    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/cmi_env.sh /usr/bin/make cmake_check_build_system' in '/Users/william/my_catkin_ws/build/roscpp_traits'
+    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/build_env.sh /usr/bin/make cmake_check_build_system' in '/Users/william/my_catkin_ws/build/roscpp_traits'
     [ros_tutorials]: -- The CXX compiler identification is Clang 5.0.0
     [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc
-    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/cmi_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/roscpp_traits'
-    [rosbuild]: ==> '/Users/william/my_catkin_ws/build/rosbuild/cmi_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/rosbuild'
+    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/build_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/roscpp_traits'
+    [rosbuild]: ==> '/Users/william/my_catkin_ws/build/rosbuild/build_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/rosbuild'
     [rosclean]: -- The C compiler identification is Clang 5.0.0
     [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc -- works
     [ros_tutorials]: -- Detecting C compiler ABI info
@@ -422,49 +422,49 @@ First, the package with a failure prints the failing command's output to the scr
 
 .. code-block:: none
 
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
+    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
     [ 66%] Built target rospack
     make[1]: *** [CMakeFiles/rosstackexe.dir/all] Interrupt: 2
     make[1]: *** [CMakeFiles/rospackexe.dir/all] Interrupt: 2
     make: *** [all] Interrupt: 2
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'
+    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'
 
 And the status line is updated to reflect that that package has run into an issue by placing a ``!`` in front of it:
 
 .. code-block:: none
 
-    [cmi - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
+    [build - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
 
 Then the ``catkin build`` command waits for the rest of the packages to finish (without starting new package builds) and then summarizes the errors for you:
 
 .. code-block:: none
 
-    [cmi] There were errors:
+    [build] There were errors:
 
     Failed to build package 'cpp_common' because the following command:
 
         # Command run in directory: /path/to/my_catkin_ws/build/cpp_common
-        /path/to/my_catkin_ws/build/cpp_common/cmi_env.sh /usr/bin/make -j4 -l4
+        /path/to/my_catkin_ws/build/cpp_common/build_env.sh /usr/bin/make -j4 -l4
 
     Exited with return code: -2
 
     Failed to build package 'rospack' because the following command:
 
         # Command run in directory: /path/to/my_catkin_ws/build/rospack
-        /path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4
+        /path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4
 
     Exited with return code: -2
 
-If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``cmi_logs`` folder in the "build space":
+If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``build_logs`` folder in the "build space":
 
 .. code-block:: bash
 
-    $ cat build/cmi_logs/rospack.log
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make cmake_check_build_system' in '/path/to/my_catkin_ws/build/rospack'
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make cmake_check_build_system' finished with return code '0'
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
+    $ cat build/build_logs/rospack.log
+    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make cmake_check_build_system' in '/path/to/my_catkin_ws/build/rospack'
+    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make cmake_check_build_system' finished with return code '0'
+    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
     [ 66%] Built target rospack
     make[1]: *** [CMakeFiles/rosstackexe.dir/all] Interrupt: 2
     make[1]: *** [CMakeFiles/rospackexe.dir/all] Interrupt: 2
     make: *** [all] Interrupt: 2
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/cmi_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'
+    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'

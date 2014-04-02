@@ -115,7 +115,6 @@ def create_env_file(package, context):
         source_path = os.path.join(context.install_space if context.install else context.devel_space, 'setup.sh')
         sources = [source_snippet.format(source_path=source_path)] if os.path.exists(source_path) else []
     # Build the env_file
-    env_file_path = os.path.abspath(os.path.join(context.build_space, package.name, 'cmi_env.sh'))
     env_file = """\
 #!/usr/bin/env sh
 # generated from within catkin/python/catkin/cmi/job.py
@@ -143,6 +142,7 @@ exec $_ARGS
         f.write(env_file)
     # Make this file executable
     os.chmod(env_file_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    env_file_path = os.path.abspath(os.path.join(context.build_space, package.name, 'build_env.sh'))
     return env_file_path
 
 

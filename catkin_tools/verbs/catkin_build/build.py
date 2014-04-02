@@ -41,12 +41,14 @@ except ImportError as e:
 
 from .color import clr
 
-from .common import FakeLock
 from .common import disable_wide_log
-from .common import get_build_type
-from .common import get_cached_recursive_build_depends_in_workspace
+from .common import FakeLock
 from .common import format_time_delta
 from .common import format_time_delta_short
+from .common import generate_bash_and_zsh_files
+from .common import generate_env_file
+from .common import get_build_type
+from .common import get_cached_recursive_build_depends_in_workspace
 from .common import is_tty
 from .common import log
 from .common import wide_log
@@ -106,7 +108,7 @@ def queue_ready_packages(ready_packages, running_jobs, job_queue, context, force
     :param job_queue: queue to put new jobs in, which will be consumed by executors
     :type job_queue: :py:class:`multiprocessing.Queue`
     :param context: context of the build environment
-    :type context: :py:class:`catkin.cmi.context.Context`
+    :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
     :param force_cmake: must run cmake if True
     :type force_cmake: bool
     :returns: updated running_jobs dict
@@ -133,7 +135,7 @@ def determine_packages_to_be_built(packages, context):
     :param packages: list of packages to be built, if None all packages are built
     :type packages: list
     :param context: Workspace context
-    :type context: :py:class:`catkin.cmi.context.Context`
+    :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
     :returns: tuple of packages to be built and those package's deps
     :rtype: tuple
     """
@@ -198,7 +200,7 @@ def build_isolated_workspace(
     packages, and handling the shutdown of the executors when appropriate.
 
     :param context: context in which to build the catkin workspace
-    :type context: :py:class:`catkin.cmi.context.Context`
+    :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
     :param packages: list of packages to build, by default their dependencies will also be built
     :type packages: list
     :param start_with: package to start with, skipping all packages which proceed it in the topological order
@@ -282,7 +284,7 @@ def build_isolated_workspace(
     total_packages = len(packages_to_be_built)
     package_count = 0
     running_jobs = {}
-    log_dir = os.path.join(context.build_space, 'cmi_logs')
+    log_dir = os.path.join(context.build_space, 'build_logs')
     color = True
     if not force_color and not is_tty(sys.stdout):
         color = True
@@ -301,7 +303,7 @@ def build_isolated_workspace(
             if pkg.name != start_with:
                 completed_packages.append(pkg.name)
                 package_count += 1
-                wide_log("[cmi] Skipping package '{0}'".format(pkg.name))
+                wide_log("[build] Skipping package '{0}'".format(pkg.name))
             else:
                 ready_packages.insert(0, (pth, pkg))
                 start_with = None
@@ -368,7 +370,7 @@ def build_isolated_workspace(
                     continue
                 # Calculate new packages
                 if not no_status:
-                    wide_log('[cmi] Calculating new jobs...', end='\r')
+                    wide_log('[build] Calculating new jobs...', end='\r')
                     sys.stdout.flush()
                 ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
                 running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
@@ -400,7 +402,7 @@ def build_isolated_workspace(
                         'name': name,
                         'run_time': format_time_delta_short(time.time() - start_time)
                     })
-                msg = "[cmi - {run_time}] ".format(run_time=format_time_delta_short(time.time() - start))
+                msg = "[build - {run_time}] ".format(run_time=format_time_delta_short(time.time() - start))
                 # If errors post those
                 if errors:
                     for error in errors:
@@ -415,7 +417,7 @@ def build_isolated_workspace(
                     total_packages
                 )
                 # Update title bar
-                sys.stdout.write("\x1b]2;[cmi] {0}/{1}\x07".format(
+                sys.stdout.write("\x1b]2;[build] {0}/{1}\x07".format(
                     len(packages) if no_deps else len(completed_packages),
                     total_packages
                 ))
@@ -423,15 +425,15 @@ def build_isolated_workspace(
                 wide_log(msg, rhs=msg_rhs, end='\r')
                 sys.stdout.flush()
         except KeyboardInterrupt:
-            wide_log("[cmi] User interrupted, stopping.")
+            wide_log("[build] User interrupted, stopping.")
             set_error_state(error_state)
     # All executors have shutdown
     sys.stdout.write("\x1b]2;\x07")
     if not errors:
-        wide_log("[cmi] Finished.")
+        wide_log("[build] Finished.")
         return 0
     else:
-        wide_log(clr("[cmi] There were @!@{rf}errors@|:"))
+        wide_log(clr("[build] There were @!@{rf}errors@|:"))
         for error in errors:
             if error.event_type == 'exit':
                 wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
