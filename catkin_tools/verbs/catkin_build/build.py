@@ -15,6 +15,7 @@
 """This modules implements the engine for building packages in parallel"""
 
 import os
+import stat
 import sys
 import time
 
@@ -45,8 +46,6 @@ from .common import disable_wide_log
 from .common import FakeLock
 from .common import format_time_delta
 from .common import format_time_delta_short
-from .common import generate_bash_and_zsh_files
-from .common import generate_env_file
 from .common import get_build_type
 from .common import get_cached_recursive_build_depends_in_workspace
 from .common import is_tty
@@ -176,6 +175,83 @@ def determine_packages_to_be_built(packages, context):
     else:
         packages_to_be_built = ordered_packages
     return packages_to_be_built, packages_to_be_built_deps
+
+
+def _create_unmerged_devel_setup(packages, context):
+    if not packages:
+        workspace_packages = find_packages(context.source_space, exclude_subspaces=True)
+        workspace_packages = dict([(p.name, p) for pth, p in workspace_packages.items()])
+        dependencies = set([])
+        for name, pkg in workspace_packages.items():
+            dependencies.update([d.name for d in pkg.buildtool_depends + pkg.build_depends + pkg.run_depends])
+        leaf_packages = []
+        for name, pkg in workspace_packages.items():
+            if pkg.name not in dependencies:
+                leaf_packages.append(pkg.name)
+        packages = leaf_packages
+    sources = []
+    for pkg_name in packages:
+        sources.append('. {0}'.format(os.path.join(context.devel_space, pkg_name, 'setup.sh')))
+    # Create the setup.sh file
+    setup_sh_path = os.path.join(context.devel_space, 'setup.sh')
+    env_file = """\
+#!/usr/bin/env sh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+# save original args for later
+_ARGS=$@
+# remove all passed in args, resetting $@, $*, $#, $n
+shift $#
+# set the args for the sourced scripts
+set -- $@ "--extend"
+# source setup.sh with implicit --extend argument for each direct build depend in the workspace
+{sources}
+""".format(sources='\n'.join(sources))
+    with open(setup_sh_path, 'w') as f:
+        f.write(env_file)
+    # Make this file executable
+    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    # Create the setup.bash file
+    setup_bash_path = os.path.join(context.devel_space, 'setup.bash')
+    with open(setup_bash_path, 'w') as f:
+        f.write("""\
+#!/usr/bin/env bash
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+CATKIN_SHELL=bash
+
+# source setup.sh from same directory as this file
+_BUILD_SETUP_DIR=$(builtin cd "`dirname "${BASH_SOURCE[0]}"`" && pwd)
+. "$_BUILD_SETUP_DIR/setup.sh"
+""")
+    # Make this file executable
+    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    setup_zsh_path = os.path.join(context.devel_space, 'setup.zsh')
+    with open(setup_zsh_path, 'w') as f:
+        f.write("""\
+#!/usr/bin/env zsh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+CATKIN_SHELL=zsh
+_BUILD_SETUP_DIR=$(builtin cd "`dirname "$0"`" && pwd)
+emulate sh # emulate POSIX
+. "$_BUILD_SETUP_DIR/setup.sh"
+emulate zsh # back to zsh mode
+""")
+    # Make this file executable
+    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+
+def _create_unmerged_devel_setup_for_install(context):
+    for path in [os.path.join(context.devel_space, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
+        with open(path, 'w') as f:
+            f.write("""\
+#!/usr/bin/env sh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+echo "Error: This workspace was build with the '--install' option."
+echo "       You should source the setup files in the install space instead."
+""")
 
 
 def build_isolated_workspace(
@@ -430,6 +506,11 @@ def build_isolated_workspace(
     # All executors have shutdown
     sys.stdout.write("\x1b]2;\x07")
     if not errors:
+        if not context.merge_devel:
+            if not context.install:
+                _create_unmerged_devel_setup(packages, context)
+            else:
+                _create_unmerged_devel_setup_for_install(context)
         wide_log("[build] Finished.")
         return 0
     else:
