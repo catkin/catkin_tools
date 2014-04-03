@@ -45,8 +45,6 @@ from .common import disable_wide_log
 from .common import FakeLock
 from .common import format_time_delta
 from .common import format_time_delta_short
-from .common import generate_bash_and_zsh_files
-from .common import generate_env_file
 from .common import get_build_type
 from .common import get_cached_recursive_build_depends_in_workspace
 from .common import is_tty
