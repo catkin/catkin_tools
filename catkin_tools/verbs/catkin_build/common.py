@@ -314,7 +314,7 @@ def get_python_install_dir():
     python_install_dir = os.path.join(python_install_dir, python_packages_dir)
     return python_install_dir
 
-__recursive_depends_cache = {}
+__recursive_build_depends_cache = {}
 
 
 def get_cached_recursive_build_depends_in_workspace(package, workspace_packages):
@@ -334,13 +334,13 @@ def get_cached_recursive_build_depends_in_workspace(package, workspace_packages)
     :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
     """
     workspace_key = ','.join([pkg.name for pth, pkg in workspace_packages])
-    if workspace_key not in __recursive_depends_cache:
-        __recursive_depends_cache[workspace_key] = {}
-    cache = __recursive_depends_cache[workspace_key]
+    if workspace_key not in __recursive_build_depends_cache:
+        __recursive_build_depends_cache[workspace_key] = {}
+    cache = __recursive_build_depends_cache[workspace_key]
     if package.name not in cache:
         cache[package.name] = get_recursive_build_depends_in_workspace(package, workspace_packages)
-    __recursive_depends_cache[workspace_key] = cache
-    return __recursive_depends_cache[workspace_key][package.name]
+    __recursive_build_depends_cache[workspace_key] = cache
+    return __recursive_build_depends_cache[workspace_key][package.name]
 
 
 def get_recursive_build_depends_in_workspace(package, ordered_packages):
@@ -373,6 +373,43 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
         dep_pth, dep_pkg = workspace_packages_by_name[dep]
         dep_depends = dep_pkg.build_depends + dep_pkg.buildtool_depends + dep_pkg.run_depends
         depends.update(set([d.name for d in dep_depends]))
+        # Add this package to the list of recursive dependencies for this package
+        recursive_depends.append((dep_pth, dep_pkg))
+    return recursive_depends
+
+
+def get_recursive_run_depends_in_workspace(packages, ordered_packages):
+    """Calculates the recursive run depends of a set of packages which are also in the ordered_packages
+    but excluding packages which are build depended on by another package in the list
+
+    :param packages: packages for which the recursive depends should be calculated
+    :type packages: list of :py:class:`catkin_pkg.package.Package`
+    :param workspace_packages: packages in the workspace, keyed by name, with
+        value being a tuple of package path and package object
+    :type workspace_packages: dict(package_name, tuple(package path,
+        :py:class:`catkin_pkg.package.Package`))
+    :returns: list of package path, package object tuples which are the
+        recursive run depends for the given package
+    :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    """
+    workspace_packages_by_name = dict([(pkg.name, (pth, pkg)) for pth, pkg in ordered_packages])
+    workspace_package_names = [pkg.name for pth, pkg in ordered_packages]
+    recursive_depends = []
+    depends = set([dep.name for package in packages for dep in package.run_depends])
+    checked_depends = set()
+    while len(depends - checked_depends) > 0:
+        # Get a dep
+        dep = list(depends - checked_depends).pop()
+        # Add the dep to the checked list
+        checked_depends.add(dep)
+        # If it is not in the workspace, continue
+        if dep not in workspace_package_names:
+            continue
+        # Add the run depends of this dep to the list to be checked
+        dep_pth, dep_pkg = workspace_packages_by_name[dep]
+        depends.update(set([d.name for d in dep_pkg.run_depends]))
+        # Also update the checked_depends with its build depends
+        checked_depends.update(set([d.name for d in (dep_pkg.buildtool_depends + dep_pkg.build_depends)]))
         # Add this package to the list of recursive dependencies for this package
         recursive_depends.append((dep_pth, dep_pkg))
     return recursive_depends
