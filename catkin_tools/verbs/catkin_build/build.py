@@ -233,7 +233,9 @@ _BUILD_SETUP_DIR=$(builtin cd "`dirname "${BASH_SOURCE[0]}"`" && pwd)
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
 CATKIN_SHELL=zsh
-_BUILD_SETUP_DIR=$(builtin cd "`dirname "$0"`" && pwd)
+
+# source setup.sh from same directory as this file
+_BUILD_SETUP_DIR=$(builtin cd -q "`dirname "$0"`" && pwd)
 emulate sh # emulate POSIX
 . "$_BUILD_SETUP_DIR/setup.sh"
 emulate zsh # back to zsh mode
