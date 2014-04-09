@@ -480,7 +480,7 @@ def build_isolated_workspace(
                         'name': name,
                         'run_time': format_time_delta_short(time.time() - start_time)
                     })
-                msg = "[build - {run_time}] ".format(run_time=format_time_delta_short(time.time() - start))
+                msg = clr("[build - {run_time}] ").format(run_time=format_time_delta_short(time.time() - start))
                 # If errors post those
                 if errors:
                     for error in errors:
