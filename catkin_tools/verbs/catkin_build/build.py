@@ -15,6 +15,7 @@
 """This modules implements the engine for building packages in parallel"""
 
 import os
+import stat
 import sys
 import time
 
@@ -47,6 +48,7 @@ from .common import format_time_delta
 from .common import format_time_delta_short
 from .common import get_build_type
 from .common import get_cached_recursive_build_depends_in_workspace
+from .common import get_recursive_run_depends_in_workspace
 from .common import is_tty
 from .common import log
 from .common import wide_log
@@ -174,6 +176,110 @@ def determine_packages_to_be_built(packages, context):
     else:
         packages_to_be_built = ordered_packages
     return packages_to_be_built, packages_to_be_built_deps
+
+
+def _create_unmerged_devel_setup(context):
+    # Find all of the leaf packages in the workspace
+    # where leaf means that nothing in the workspace depends on it
+    workspace_packages = find_packages(context.source_space, exclude_subspaces=True)
+    ordered_packages = topological_order_packages(workspace_packages)
+    workspace_packages = dict([(p.name, p) for pth, p in workspace_packages.items()])
+    dependencies = set([])
+    for name, pkg in workspace_packages.items():
+        dependencies.update([d.name for d in pkg.buildtool_depends + pkg.build_depends + pkg.run_depends])
+    leaf_packages = []
+    for name, pkg in workspace_packages.items():
+        if pkg.name not in dependencies:
+            leaf_packages.append(pkg.name)
+    assert leaf_packages, leaf_packages  # Defensive, there should always be at least one leaf
+    leaf_sources = []
+    for pkg_name in leaf_packages:
+        source_path = os.path.join(context.devel_space, pkg_name, 'setup.sh')
+        if os.path.isfile(source_path):
+            leaf_sources.append('. {0}'.format(source_path))
+    # In addition to the leaf packages, we need to source the recursive run depends of the leaf packages
+    run_depends = get_recursive_run_depends_in_workspace([workspace_packages[p] for p in leaf_packages], ordered_packages)
+    run_depends_sources = []
+    for run_dep_name in [p.name for pth, p in run_depends]:
+        source_path = os.path.join(context.devel_space, run_dep_name, 'setup.sh')
+        if os.path.isfile(source_path):
+            run_depends_sources.append('. {0}'.format(source_path))
+    # Create the setup.sh file
+    setup_sh_path = os.path.join(context.devel_space, 'setup.sh')
+    env_file = """\
+#!/usr/bin/env sh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+# This file is aggregates the many setup.sh files in the various
+# unmerged devel spaces in this folder.
+# This is occomplished by sourcing each leaf package and all the
+# recursive run dependencies of those leaf packages
+
+# Source the first package's setup.sh without the --extend option
+{first_source}
+
+# remove all passed in args, resetting $@, $*, $#, $n
+shift $#
+# set the --extend arg for rest of the packages setup.sh's
+set -- $@ "--extend"
+# source setup.sh for each of the leaf packages in the workspace
+{leaf_sources}
+
+# And now the setup.sh for each of their recursive run dependencies
+{run_depends_sources}
+""".format(
+        first_source=leaf_sources[0],
+        leaf_sources='\n'.join(leaf_sources[1:]),
+        run_depends_sources='\n'.join(run_depends_sources)
+    )
+    with open(setup_sh_path, 'w') as f:
+        f.write(env_file)
+    # Make this file executable
+    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    # Create the setup.bash file
+    setup_bash_path = os.path.join(context.devel_space, 'setup.bash')
+    with open(setup_bash_path, 'w') as f:
+        f.write("""\
+#!/usr/bin/env bash
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+CATKIN_SHELL=bash
+
+# source setup.sh from same directory as this file
+_BUILD_SETUP_DIR=$(builtin cd "`dirname "${BASH_SOURCE[0]}"`" && pwd)
+. "$_BUILD_SETUP_DIR/setup.sh"
+""")
+    # Make this file executable
+    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+    setup_zsh_path = os.path.join(context.devel_space, 'setup.zsh')
+    with open(setup_zsh_path, 'w') as f:
+        f.write("""\
+#!/usr/bin/env zsh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+CATKIN_SHELL=zsh
+
+# source setup.sh from same directory as this file
+_BUILD_SETUP_DIR=$(builtin cd -q "`dirname "$0"`" && pwd)
+emulate sh # emulate POSIX
+. "$_BUILD_SETUP_DIR/setup.sh"
+emulate zsh # back to zsh mode
+""")
+    # Make this file executable
+    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+
+def _create_unmerged_devel_setup_for_install(context):
+    for path in [os.path.join(context.devel_space, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
+        with open(path, 'w') as f:
+            f.write("""\
+#!/usr/bin/env sh
+# generated from within catkin_tools/verbs/catkin_build/build.py
+
+echo "Error: This workspace was built with the '--install' option."
+echo "       You should source the setup files in the install space instead."
+echo "       Your environment has not been changed."
+""")
 
 
 def build_isolated_workspace(
@@ -400,7 +506,7 @@ def build_isolated_workspace(
                         'name': name,
                         'run_time': format_time_delta_short(time.time() - start_time)
                     })
-                msg = "[build - {run_time}] ".format(run_time=format_time_delta_short(time.time() - start))
+                msg = clr("[build - {run_time}] ").format(run_time=format_time_delta_short(time.time() - start))
                 # If errors post those
                 if errors:
                     for error in errors:
@@ -428,6 +534,11 @@ def build_isolated_workspace(
     # All executors have shutdown
     sys.stdout.write("\x1b]2;\x07")
     if not errors:
+        if not context.merge_devel:
+            if not context.install:
+                _create_unmerged_devel_setup(context)
+            else:
+                _create_unmerged_devel_setup_for_install(context)
         wide_log("[build] Finished.")
         return 0
     else:

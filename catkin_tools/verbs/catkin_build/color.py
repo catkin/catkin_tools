@@ -46,6 +46,9 @@ _color_translation_map = {
     "} [ {time} ]":
     fmt("}@| [ @{yf}{time}@| ]"),
 
+    "[build - {run_time}] ":
+    fmt("[@{pf}build@| - @{yf}{run_time}@|] "),
+
     "[{name} - {run_time}] ":
     fmt("[@{cf}{name}@| - @{yf}{run_time}@|] "),
 
