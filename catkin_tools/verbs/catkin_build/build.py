@@ -198,7 +198,9 @@ def _create_unmerged_devel_setup(context):
         if os.path.isfile(source_path):
             leaf_sources.append('. {0}'.format(source_path))
     # In addition to the leaf packages, we need to source the recursive run depends of the leaf packages
-    run_depends = get_recursive_run_depends_in_workspace([workspace_packages[p] for p in leaf_packages], ordered_packages)
+    run_depends = get_recursive_run_depends_in_workspace(
+        [workspace_packages[p] for p in leaf_packages],
+        ordered_packages)
     run_depends_sources = []
     for run_dep_name in [p.name for pth, p in run_depends]:
         source_path = os.path.join(context.devel_space, run_dep_name, 'setup.sh')
