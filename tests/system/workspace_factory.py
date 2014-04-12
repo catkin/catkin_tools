@@ -62,8 +62,6 @@ class WorkspaceFactory(object):
   <maintainer email="person@email.com">Firstname Lastname</maintainer>
   <license>MIT</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-
 """
                 pkg_xml += '\n'.join(
                     ['  <build_depend>{0}</build_depend>'.format(x) for x in pkg.build_depends] +
@@ -72,6 +70,7 @@ class WorkspaceFactory(object):
                 )
                 pkg_xml += """
   <export>
+    <build_type>cmake</build_type>
   </export>
 </package>
 """
@@ -82,9 +81,8 @@ class WorkspaceFactory(object):
 cmake_minimum_required(VERSION 2.8.3)
 project({name})
 
-find_package(catkin REQUIRED COMPONENTS {find_package})
+add_custom_target(install)
 
-catkin_package()
 """
                 with open(cmakelists_txt_path, 'w') as f:
                     f.write(cmakelists_txt.format(name=name, find_package=' '.join(pkg.build_depends)))

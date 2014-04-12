@@ -43,17 +43,18 @@ if [ $# -eq 0 ] ; then
   exit 1
 fi
 
-# save original args for later
-_ARGS=$@
-# remove all passed in args, resetting $@, $*, $#, $n
-shift $#
-# set the args for the sourced scripts
-set -- $@ "--extend"
+# Save the first argument for later
+_FIRST_ARG=$1
+# Change the first argument to "--extend"
+set -- "--extend" "${{@:2}}"
 # source setup.sh with implicit --extend argument for each direct build depend in the workspace
 {sources}
 
-# execute given args
-exec $_ARGS
+# Restore the first argument
+set -- "$_FIRST_ARG" "${{@:2}}"
+
+# exec the original arguments
+exec "$@"
 """
 
 

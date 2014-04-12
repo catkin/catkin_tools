@@ -99,7 +99,7 @@ class Job(object):
 
 def create_env_file(package, context):
     sources = []
-    source_snippet = ". {source_path}"
+    source_snippet = '. "{source_path}"'
     # If installing to isolated folders or not installing, but devel spaces are not merged
     if (context.install and context.isolate_install) or (not context.install and not context.merge_devel):
         # Source each package's install or devel space

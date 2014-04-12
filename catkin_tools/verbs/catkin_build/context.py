@@ -82,10 +82,15 @@ class Context(object):
         # Validation is done on assignment
         # Handle *space assignment and defaults
         self.workspace = '.' if workspace is None else workspace
+        self.workspace = os.path.abspath(self.workspace)
         self.source_space = os.path.join(self.workspace, 'src') if source_space is None else source_space
+        self.source_space = os.path.abspath(self.source_space)
         self.build_space = os.path.join(self.workspace, 'build' + ss) if build_space is None else build_space
+        self.build_space = os.path.abspath(self.build_space)
         self.devel_space = os.path.join(self.workspace, 'devel' + ss) if devel_space is None else devel_space
+        self.devel_space = os.path.abspath(self.devel_space)
         self.install_space = os.path.join(self.workspace, 'install' + ss) if install_space is None else install_space
+        self.install_space = os.path.abspath(self.install_space)
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
         # Handle build options
         self.merge_devel = merge_devel
