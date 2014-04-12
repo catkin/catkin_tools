@@ -18,4 +18,7 @@ def test_catkin_build_with_whitespace_in_paths():
             ret = main(cmd)
         except SystemExit as exc:
             ret = exc.code
+            if ret != 0:
+                import traceback
+                traceback.print_exc()
         assert ret == 0, cmd
