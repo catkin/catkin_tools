@@ -82,7 +82,7 @@ def get_ready_packages(packages, running_jobs, completed):
     ready_packages = []
     workspace_packages = [(path, pkg) for path, pkg in packages]
     for path, package in packages:
-        if package.name in (running_jobs.keys() + completed):
+        if package.name in (list(running_jobs.keys()) + completed):
             continue
         # Collect build and buildtool depends, plus recursive build, buildtool, and run depends,
         # Excluding depends which are not in the workspace or which are completed
