@@ -25,21 +25,21 @@ from subprocess import STDOUT
 def run_command(cmd, cwd=None):
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 
-    left_over = b''
+    left_over = ''
 
     while p.poll() is None:
         incomming = left_over
         rlist, wlist, xlist = select.select([p.stdout], [], [])
         if rlist:
-            incomming += os.read(p.stdout, 1024)
+            incomming += os.read(p.stdout.fileno(), 1024).decode('utf-8')
             lines = incomming.splitlines(True)  # keepends=True
             if not lines:
                 continue
             if lines[-1].endswith('\n'):
-                data = b''.join(lines)
-                left_over = b''
+                data = ''.join(lines)
+                left_over = ''
             else:
-                data = b''.join(lines[-1])
+                data = ''.join(lines[-1])
                 left_over = lines[-1]
             yield data
     # Done

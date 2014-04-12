@@ -28,10 +28,10 @@ def process_incomming_lines(lines, left_over):
     if not lines:
         return None, left_over
     if lines[-1].endswith('\n'):
-        data = b''.join(lines)
-        left_over = b''
+        data = ''.join(lines)
+        left_over = ''
     else:
-        data = b''.join(lines[:-1])
+        data = ''.join(lines[:-1])
         left_over = lines[-1]
     return data, left_over
 
@@ -52,14 +52,14 @@ def run_command(cmd, cwd=None):
     if sys.platform.startswith('darwin'):
         os.close(slave)  # This causes the below select to exit when the subprocess closes
 
-    left_over = b''
+    left_over = ''
 
     # Read data until the process is finished
     while p.poll() is None:
         incomming = left_over
         rlist, wlist, xlist = select.select([master], [], [], 0.1)
         if rlist:
-            incomming += os.read(master, 1024)
+            incomming += os.read(master, 1024).decode('utf-8')
             lines = incomming.splitlines(True)  # keepends=True
             data, left_over = process_incomming_lines(lines, left_over)
             if data is None:

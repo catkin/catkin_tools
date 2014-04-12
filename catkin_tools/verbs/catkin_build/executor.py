@@ -121,8 +121,8 @@ class Executor(Thread):
                         self.command_started(command, command.location)
                         # Receive lines from the running command
                         for line in run_command(command.cmd, cwd=command.location):
-                            # If it is a string, log it
-                            if isinstance(line, str):
+                            # If it is not an int, log it
+                            if not isinstance(line, int):
                                 # Ensure it is not just ansi escape characters
                                 if remove_ansi_escape(line).strip():
                                     for sub_line in line.splitlines(True):  # keepends=True

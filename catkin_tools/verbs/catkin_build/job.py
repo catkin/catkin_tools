@@ -194,7 +194,7 @@ class CMakeJob(Job):
             dir=setup_file_directory,
             prefix=os.path.basename(setup_file_path) + '.')
         # Write the fulfilled template to the file
-        os.write(tmp_dst_handle, """\
+        data = """\
 #!/usr/bin/env sh
 # generated from catkin_tools.verbs.catkin_build.job python module
 
@@ -220,7 +220,8 @@ fi
 export PATH="{path}$PATH"
 export PKG_CONFIG_PATH="{pkgcfg_path}$PKG_CONFIG_PATH"
 export PYTHONPATH="{pythonpath}$PYTHONPATH"
-""".format(**subs))
+""".format(**subs)
+        os.write(tmp_dst_handle, data.encode('utf-8'))
         os.close(tmp_dst_handle)
         # Do an atomic rename with os.rename
         os.rename(tmp_dst_path, setup_file_path)
