@@ -33,7 +33,7 @@ from .color import clr
 run_command = run.run_command
 
 env_file_template = """\
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # generated from within catkin_tools/verbs/catkin_build/common.py
 
 if [ $# -eq 0 ] ; then
