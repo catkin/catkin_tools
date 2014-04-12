@@ -6,6 +6,7 @@ install:
   - pip install argparse catkin-pkg distribute PyYAML
   - pip install nose coverage pep8
 script:
+  - python setup.py develop
   - python setup.py nosetests -s
 notifications:
   email: false
