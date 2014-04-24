@@ -14,20 +14,38 @@
 
 """This modules provides a portable, failsafe notification function"""
 
+import os
+import platform
+import subprocess
+
 from catkin_tools.verbs.catkin_build.common import which
+
+this_dir = os.path.dirname(__file__)
 
 
 def _notify_osx(title, msg):
-    import os
-    import subprocess
-
-    this_dir = os.path.dirname(__file__)
     app_path = os.path.join(this_dir, 'resources', 'osx', 'catkin build.app')
     open_exec = which('open')
+    if open_exec is None:
+        return
     subprocess.Popen([open_exec, app_path, '--args', title, msg],
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
 
 
+def _notify_linux(title, msg):
+    icon_path = os.path.join(this_dir, 'resources', 'linux', 'catkin_icon.png')
+    notify_send_exec = which('notify-send')
+    if notify_send_exec is None:
+        return
+    subprocess.Popen([notify_send_exec, '-i', icon_path, '-t', '2000', title, msg],
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
+
+
 def notify(title, msg):
-    return _notify_osx(title, msg)
+    if platform.system() == 'Darwin':
+        return _notify_osx(title, msg)
+    if platform.system() == 'Linux':
+        return _notify_linux(title, msg)
+
