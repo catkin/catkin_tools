@@ -18,7 +18,7 @@ import os
 import platform
 import subprocess
 
-from catkin_tools.verbs.catkin_build.common import which
+from catkin_tools.utils import which
 
 this_dir = os.path.dirname(__file__)
 
