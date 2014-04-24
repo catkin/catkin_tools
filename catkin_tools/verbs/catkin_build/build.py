@@ -40,6 +40,8 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
+from catkin_tools.notifications import notify
+
 from .color import clr
 
 from .common import disable_wide_log
@@ -540,9 +542,11 @@ def build_isolated_workspace(
             else:
                 _create_unmerged_devel_setup_for_install(context)
         wide_log("[build] Finished.")
+        notify("Build Finished", "{0} packages built".format(total_packages))
         return 0
     else:
         wide_log(clr("[build] There were @!@{rf}errors@|:"))
+        notify("Build Failed", "there were {0} errors".format(len(errors)))
         for error in errors:
             if error.event_type == 'exit':
                 wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
