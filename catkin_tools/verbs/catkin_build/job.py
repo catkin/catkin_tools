@@ -17,12 +17,13 @@ from __future__ import print_function
 import os
 import tempfile
 
+from catkin_tools.utils import which
+
 from .common import create_build_space
 from .common import generate_env_file
 from .common import get_cached_recursive_build_depends_in_workspace
 from .common import get_python_install_dir
 from .common import handle_make_arguments
-from .common import which
 
 CMAKE_EXEC = which('cmake')
 if CMAKE_EXEC is None:
