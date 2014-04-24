@@ -43,4 +43,7 @@ setup(
             'list = catkin_tools.verbs.catkin_list:description',
         ],
     },
+    package_data={
+        'catkin_tools': [
+            'notifications/resources/linux/*.png'] },
 )
