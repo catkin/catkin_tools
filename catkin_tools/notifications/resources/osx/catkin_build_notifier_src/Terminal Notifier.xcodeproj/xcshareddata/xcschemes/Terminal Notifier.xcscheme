@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5199791315B1F92B003AFC57"
-               BuildableName = "terminal-notifier.app"
+               BuildableName = "catkin build.app"
                BlueprintName = "catkin build"
                ReferencedContainer = "container:Terminal Notifier.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5199791315B1F92B003AFC57"
-            BuildableName = "terminal-notifier.app"
+            BuildableName = "catkin build.app"
             BlueprintName = "catkin build"
             ReferencedContainer = "container:Terminal Notifier.xcodeproj">
          </BuildableReference>
@@ -52,7 +52,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5199791315B1F92B003AFC57"
-            BuildableName = "terminal-notifier.app"
+            BuildableName = "catkin build.app"
             BlueprintName = "catkin build"
             ReferencedContainer = "container:Terminal Notifier.xcodeproj">
          </BuildableReference>
@@ -124,7 +124,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5199791315B1F92B003AFC57"
-            BuildableName = "terminal-notifier.app"
+            BuildableName = "catkin build.app"
             BlueprintName = "catkin build"
             ReferencedContainer = "container:Terminal Notifier.xcodeproj">
          </BuildableReference>
