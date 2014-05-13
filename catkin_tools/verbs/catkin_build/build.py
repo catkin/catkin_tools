@@ -369,10 +369,17 @@ def build_isolated_workspace(
     install_lock = Lock() if lock_install else FakeLock()
     # Determine the number of executors
     try:
-        jobs = cpu_count() if jobs is None else int(jobs)
+        if jobs:
+            jobs = int(jobs)
+            if jobs < 1:
+                sys.exit("Specified number of jobs '{0}' is not positive.".format(jobs))
+    except ValueError:
+        sys.exit("Specified number of jobs '{0}' is no integer.".format(jobs))
+    try:
+        jobs = cpu_count() if jobs is None else jobs
     except NotImplementedError:
         log('Failed to determine the cpu_count, falling back to 1 jobs as the default.')
-        jobs = 1 if jobs is None else int(jobs)
+        jobs = 1 if jobs is None else jobs
     # If only one set of jobs, turn on interleaving to get more responsive feedback
     if jobs == 1:
         # TODO: make the system more intelligent so that it can automatically switch to streaming output
