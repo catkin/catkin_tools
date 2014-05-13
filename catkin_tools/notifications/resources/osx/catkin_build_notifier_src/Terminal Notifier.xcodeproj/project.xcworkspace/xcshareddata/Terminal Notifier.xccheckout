@@ -5,36 +5,36 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>42CBD63D-6A03-42D9-A0C4-09D71A10F80F</string>
+	<string>8E18BD4D-A900-420F-8E14-B3E5136FC8F5</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Terminal Notifier</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>37384B0B-5201-4111-94D4-2C5ABCEB0D52</key>
-		<string>https://github.com/wjwwood/terminal-notifier.git</string>
+		<key>1248FE46-581E-4245-A915-F87E980A87F0</key>
+		<string>https://github.com/catkin/catkin_tools.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>Terminal Notifier.xcodeproj/project.xcworkspace</string>
+	<string>catkin_tools/notifications/resources/osx/catkin_build_notifier_src/Terminal Notifier.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>37384B0B-5201-4111-94D4-2C5ABCEB0D52</key>
-		<string>../..</string>
+		<key>1248FE46-581E-4245-A915-F87E980A87F0</key>
+		<string>../../../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/wjwwood/terminal-notifier.git</string>
+	<string>https://github.com/catkin/catkin_tools.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>37384B0B-5201-4111-94D4-2C5ABCEB0D52</string>
+	<string>1248FE46-581E-4245-A915-F87E980A87F0</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>37384B0B-5201-4111-94D4-2C5ABCEB0D52</string>
+			<string>1248FE46-581E-4245-A915-F87E980A87F0</string>
 			<key>IDESourceControlWCCName</key>
-			<string>terminal-notifier</string>
+			<string>catkin_tools</string>
 		</dict>
 	</array>
 </dict>

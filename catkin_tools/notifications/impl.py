@@ -28,7 +28,13 @@ def _notify_osx(title, msg):
     open_exec = which('open')
     if open_exec is None:
         return
-    subprocess.Popen([open_exec, app_path, '--args', title, msg],
+    command = [open_exec, app_path, '--args', title, msg]
+    terminal = os.environ['TERM_PROGRAM']
+    if terminal == "Apple_Terminal":
+        command += ["-activate", "com.apple.Terminal"]
+    elif terminal == "iTerm.app":
+        command += ["-activate", "com.googlecode.iterm2"]
+    subprocess.Popen(command,
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
 
