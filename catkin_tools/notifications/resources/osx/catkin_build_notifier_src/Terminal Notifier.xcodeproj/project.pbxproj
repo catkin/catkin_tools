@@ -16,6 +16,7 @@
 		5199792C15B1F92B003AFC57 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5199792B15B1F92B003AFC57 /* AppDelegate.m */; };
 		5199792F15B1F92B003AFC57 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5199792D15B1F92B003AFC57 /* MainMenu.xib */; };
 		5199794215B2F908003AFC57 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5199794115B2F908003AFC57 /* ScriptingBridge.framework */; };
+		A024420A1922DD3300B8933B /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = A02442091922DD3300B8933B /* AppIcon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		5199792B15B1F92B003AFC57 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5199792E15B1F92B003AFC57 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5199794115B2F908003AFC57 /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
+		A02442091922DD3300B8933B /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 			children = (
 				3DD6F6901908C00600E8CD42 /* Images.xcassets */,
 				3DD6F68E1908BFFE00E8CD42 /* catkin_blue_logo_only.icns */,
+				A02442091922DD3300B8933B /* AppIcon.icns */,
 				5199794115B2F908003AFC57 /* ScriptingBridge.framework */,
 				5199791E15B1F92B003AFC57 /* Terminal Notifier */,
 				5199791715B1F92B003AFC57 /* Frameworks */,
@@ -166,6 +169,7 @@
 				5199792315B1F92B003AFC57 /* InfoPlist.strings in Resources */,
 				5199792915B1F92B003AFC57 /* Credits.rtf in Resources */,
 				5199792F15B1F92B003AFC57 /* MainMenu.xib in Resources */,
+				A024420A1922DD3300B8933B /* AppIcon.icns in Resources */,
 				3DD6F6911908C00600E8CD42 /* Images.xcassets in Resources */,
 				3DD6F68F1908BFFE00E8CD42 /* catkin_blue_logo_only.icns in Resources */,
 			);
