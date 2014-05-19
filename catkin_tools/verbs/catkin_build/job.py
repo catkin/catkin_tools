@@ -102,7 +102,7 @@ def create_env_file(package, context):
     sources = []
     source_snippet = '. "{source_path}"'
     # If installing to isolated folders or not installing, but devel spaces are not merged
-    if (context.install and context.isolate_install) or (not context.install and not context.merge_devel):
+    if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
         space = context.install_space if context.install else context.devel_space
         # Get the recursive dependcies
@@ -134,10 +134,10 @@ class CMakeJob(Job):
         # Setup build variables
         pkg_dir = os.path.join(self.context.source_space, self.package_path)
         build_space = create_build_space(self.context.build_space, self.package.name)
-        if self.context.merge_devel:
-            devel_space = self.context.devel_space
-        else:
+        if self.context.isolate_devel:
             devel_space = os.path.join(self.context.devel_space, self.package.name)
+        else:
+            devel_space = self.context.devel_space
         if self.context.isolate_install:
             install_space = os.path.join(self.context.install_space, self.package.name)
         else:
@@ -175,7 +175,7 @@ class CMakeJob(Job):
                 return commands
         else:  # Create it in the devel space
             setup_file_path = os.path.join(devel_space, 'setup.sh')
-            if self.context.merge_devel and os.path.exists(setup_file_path):
+            if not self.context.isolate_devel and os.path.exists(setup_file_path):
                 # Do not replace existing setup.sh if devel space is merged
                 return commands
         # Create the setup file other packages will source when depending on this package
@@ -240,10 +240,10 @@ class CatkinJob(Job):
         # Setup build variables
         pkg_dir = os.path.join(self.context.source_space, self.package_path)
         build_space = create_build_space(self.context.build_space, self.package.name)
-        if self.context.merge_devel:
-            devel_space = self.context.devel_space
-        else:
+        if self.context.isolate_devel:
             devel_space = os.path.join(self.context.devel_space, self.package.name)
+        else:
+            devel_space = self.context.devel_space
         if self.context.isolate_install:
             install_space = os.path.join(self.context.install_space, self.package.name)
         else:

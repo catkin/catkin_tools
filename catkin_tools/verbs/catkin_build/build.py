@@ -600,7 +600,7 @@ def build_isolated_workspace(
     # All executors have shutdown
     sys.stdout.write("\x1b]2;\x07")
     if not errors:
-        if not context.merge_devel:
+        if context.isolate_devel:
             if not context.install:
                 _create_unmerged_devel_setup(context)
             else:
