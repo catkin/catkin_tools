@@ -74,8 +74,8 @@ def prepare_arguments(parser):
         help='The path to the build space (default "build")')
     add('--devel', '--devel-space', default=None,
         help='Sets the target devel space (default "devel")')
-    add('--merge-devel', action='store_true', default=False,
-        help='Build each catkin package into a common devel space.')
+    add('--isolate-devel', action='store_true', default=False,
+        help='Build products from each catkin package into isolated devel spaces.')
     add('--install-space', dest='install_space', default=None,
         help='Sets the target install space (default "install")')
     add('--install', action='store_true', default=False,
@@ -153,7 +153,7 @@ def main(opts):
         source_space=opts.source,
         build_space=opts.build,
         devel_space=opts.devel,
-        merge_devel=opts.merge_devel,
+        isolate_devel=opts.isolate_devel,
         install_space=opts.install_space,
         install=opts.install,
         isolate_install=opts.isolate_install,

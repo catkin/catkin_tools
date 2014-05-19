@@ -82,12 +82,12 @@ def test_get_verb_aliases():
     base_path = os.path.join(test_folder, 'verb_aliases')
     with open(os.path.join(base_path, '01-my-custom-aliases.yml'), 'w') as f:
         f.write("""\
-b: build --merge-devel
+b: build --isolate-devel
 ls: null
 """)
     aliases = config.get_verb_aliases(test_folder)
     assert 'b' in aliases
-    assert aliases['b'] == 'build --merge-devel', aliases['b']
+    assert aliases['b'] == 'build --isolate-devel', aliases['b']
     assert 'ls' not in aliases
     # Test a bad alias files
     bad_path = os.path.join(base_path, '02-bad.yaml')
