@@ -459,7 +459,7 @@ def build_isolated_workspace(
                 out.command_started(event.package, event.data['cmd'], event.data['location'])
 
             if event.event_type == 'command_log':
-                out.command_log(event.package, event.data['message'])
+                out.command_log(event.package, event.data['message'], event.data['source'])
 
             if event.event_type == 'command_failed':
                 out.command_failed(event.package, event.data['cmd'], event.data['location'], event.data['retcode'])

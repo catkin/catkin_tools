@@ -22,6 +22,8 @@ from .color import clr
 from .common import remove_ansi_escape
 from .common import wide_log
 
+from .run_common import SOURCE_STDOUT, SOURCE_STDERR
+
 
 class FileBackedLogCache(object):
     def __init__(self, package_name, log_dir, color):
@@ -35,13 +37,19 @@ class FileBackedLogCache(object):
         self.current_cmd = None
         self.last_command_line = None
         self.current_line = 0
+        self.got_stderr = False
 
     def start_command(self, cmd, msg):
         self.last_command_line = self.current_line
         self.current_cmd = cmd
         self.append(msg.rstrip('\n') + '\n')
+        self.got_stderr = False
 
-    def append(self, msg):
+    def append(self, msg, source=SOURCE_STDOUT):
+        if source == SOURCE_STDERR:
+            self.got_stderr = True
+            if self.color:
+                msg = ansi('yellow') + msg + ansi('reset')
         self.file_handle.write(msg)
         self.file_handle.flush()
         self.current_line += 1
@@ -95,14 +103,14 @@ class OutputController(object):
         if not self.quiet and self.interleave:
             wide_log(msg)
 
-    def command_log(self, package, msg):
+    def command_log(self, package, msg, source):
         if package not in self.__command_log:
             raise RuntimeError("Command log received for package '{0}' before package job started: '{1}'"
                                .format(package, msg))
         if self.__command_log[package].current_cmd is None:
             raise RuntimeError("Command log received for package '{0}' before command started: '{1}'"
                                .format(package, msg))
-        self.__command_log[package].append(msg)
+        self.__command_log[package].append(msg, source)
         if not self.color:
             msg = remove_ansi_escape(msg)
         if not self.quiet and self.interleave:
@@ -142,10 +150,13 @@ class OutputController(object):
                 .format(package, cmd.pretty, location, retcode))
         msg = clr("[{package}] <== '{cmd.cmd_str}' finished with return code '{retcode}'").format(**locals())
         self.__command_log[package].finish_command(msg)
+
         if not self.quiet and not self.interleave:
             self.__command_log[package].print_last_command_log()
         elif not self.quiet:
             wide_log(msg)
+        elif self.__command_log[package].got_stderr:
+            self.__command_log[package].print_last_command_log()
 
     def job_finished(self, package, time):
         self.__command_log[package].close()

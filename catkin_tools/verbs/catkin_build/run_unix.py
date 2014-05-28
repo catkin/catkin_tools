@@ -21,8 +21,9 @@ import sys
 import time
 
 from subprocess import Popen
-from subprocess import STDOUT
+from subprocess import STDOUT, PIPE
 
+from run_common import SOURCE_STDOUT, SOURCE_STDERR
 
 def process_incomming_lines(lines, left_over):
     if not lines:
@@ -42,7 +43,7 @@ def run_command(cmd, cwd=None):
     p = None
     while p is None:
         try:
-            p = Popen(cmd, stdin=slave, stdout=slave, stderr=STDOUT, cwd=cwd)
+            p = Popen(cmd, stdin=slave, stdout=slave, stderr=PIPE, cwd=cwd)
         except OSError as exc:
             if 'Text file busy' in str(exc):
                 # This is a transient error, try again shortly
@@ -53,18 +54,26 @@ def run_command(cmd, cwd=None):
         os.close(slave)  # This causes the below select to exit when the subprocess closes
 
     left_over = b''
+    left_over_stderr = b''
 
     # Read data until the process is finished
     while p.poll() is None:
         incomming = left_over
-        rlist, wlist, xlist = select.select([master], [], [], 0.1)
-        if rlist:
+        incomming_stderr = left_over_stderr
+        rlist, wlist, xlist = select.select([master, p.stderr], [], [], 0.1)
+        if p.stderr in rlist:
+            incomming_stderr += os.read(p.stderr.fileno(), 1024)
+            lines = incomming_stderr.splitlines(True)  # keepends=True
+            data, left_over_stderr = process_incomming_lines(lines, left_over_stderr)
+            if not data is None:
+                yield SOURCE_STDERR, data
+        if master in rlist:
             incomming += os.read(master, 1024)
             lines = incomming.splitlines(True)  # keepends=True
             data, left_over = process_incomming_lines(lines, left_over)
-            if data is None:
-                continue
-            yield data
+            if not data is None:
+                yield SOURCE_STDOUT, data
+
 
     # Done
     os.close(master)
