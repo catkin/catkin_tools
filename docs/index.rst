@@ -86,6 +86,10 @@ Installing
 
 You can install the ``catkin_tools`` package as a binary through a package manager like ``pip`` or ``apt-get``, or from source.
 
+.. note::
+
+    This project is still in beta and has not been released yet, please install from source.
+
 Installing on Ubuntu with apt-get
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
