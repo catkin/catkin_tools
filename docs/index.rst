@@ -41,7 +41,7 @@ For example, the ``install: build --install`` alias exists in the default file, 
 
 .. code-block:: yaml
 
-    install: build --install 
+    install: build --install
 
 You can also nullify or unset aliases by setting their values to ``null``.
 So, for example, the ``ls: list`` alias is defined in the default aliases, you can override it with this entry in a custom file:
@@ -90,7 +90,7 @@ You can install the ``catkin_tools`` package as a binary through a package manag
 
     This project is still in beta and has not been released yet, please install from source. 
     In particular, interface and behaviour are still subject to incompatible changes. 
-    If you reply on a stable environment, please use ``catkin_make`` instead of this tool.
+    If you rely on a stable environment, please use ``catkin_make`` instead of this tool.
 
 Installing on Ubuntu with apt-get
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
