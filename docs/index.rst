@@ -41,7 +41,7 @@ For example, the ``install: build --install`` alias exists in the default file, 
 
 .. code-block:: yaml
 
-    install: build --install --merge-devel
+    install: build --install 
 
 You can also nullify or unset aliases by setting their values to ``null``.
 So, for example, the ``ls: list`` alias is defined in the default aliases, you can override it with this entry in a custom file:

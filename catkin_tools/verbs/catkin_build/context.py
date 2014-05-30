@@ -41,7 +41,7 @@ class Context(object):
         build_space=None,
         devel_space=None,
         install_space=None,
-        merge_devel=False,
+        isolate_devel=False,
         install=False,
         isolate_install=False,
         cmake_args=None,
@@ -61,8 +61,8 @@ class Context(object):
         :type devel_space: str
         :param install_space: target location of install space, defaults to '<workspace>/install'
         :type install_space: str
-        :param merge_devel: devel space will be shared for all packages if True, default is False
-        :type merge_devel: bool
+        :param isolate_devel: each package will have its own develspace if True, default is False
+        :type isolate_devel: bool
         :param install: packages will be installed by invoking ``make install``, defaults to False
         :type install: bool
         :param isolate_install: packages will be installed to separate folders if True, defaults to False
@@ -88,7 +88,7 @@ class Context(object):
         self.install_space = os.path.join(self.workspace, 'install' + ss) if install_space is None else install_space
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
         # Handle build options
-        self.merge_devel = merge_devel
+        self.isolate_devel = isolate_devel
         self.install = install
         self.isolate_install = isolate_install
         # Handle additional cmake and make arguments
@@ -108,7 +108,7 @@ class Context(object):
                 clr("@{cf}DESTDIR:@|                     @{yf}{_Context__destdir}@|"),
             ],
             [
-                clr("@{cf}Merge Develspaces:@|           @{yf}{_Context__merge_devel}@|"),
+                clr("@{cf}Isolate Develspaces:@|         @{yf}{_Context__isolate_devel}@|"),
                 clr("@{cf}Install Packages:@|            @{yf}{_Context__install}@|"),
                 clr("@{cf}Isolate Installs:@|            @{yf}{_Context__isolate_install}@|"),
             ],
@@ -204,14 +204,14 @@ class Context(object):
         self.__destdir = value
 
     @property
-    def merge_devel(self):
-        return self.__merge_devel
+    def isolate_devel(self):
+        return self.__isolate_devel
 
-    @merge_devel.setter
-    def merge_devel(self, value):
+    @isolate_devel.setter
+    def isolate_devel(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__merge_devel = value
+        self.__isolate_devel = value
 
     @property
     def install(self):
