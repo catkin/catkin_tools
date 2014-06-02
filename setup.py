@@ -5,15 +5,16 @@ from setuptools import setup
 from setuptools import find_packages
 
 
+# Setup installation dependencies
 install_requires = [
     'catkin-pkg >= 0.2.8',
     'setuptools',
     'PyYAML',
 ]
-
 if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
     install_requires.append('argparse')
 
+# Figure out the resources that need to be installed
 this_dir = os.path.abspath(os.path.dirname(__file__))
 osx_resources_path = os.path.join(
     this_dir,
@@ -29,6 +30,21 @@ src_path = os.path.join(this_dir, 'catkin_tools')
 osx_notification_resources = [os.path.relpath(x, src_path)
                               for x in osx_notification_resources]
 
+# Figure out where to install the data_files
+data_files = []
+import argparse
+parser = argparse.ArgumentParser(description="shouldn't see this")
+parser.add_argument('--prefix')
+opts, _ = parser.parse_known_args(list(sys.argv))
+if opts.prefix and opts.prefix == '/usr':
+    data_files.append((
+        '/etc/bash_completion.d',
+        ['catkin_tools-completion.sh']))
+else:
+    data_files.append((
+        os.path.join(sys.prefix, 'etc/bash_completion.d'),
+        ['catkin_tools-completion.sh']))
+
 setup(
     name='catkin_tools',
     version='0.2.2',
@@ -38,6 +54,7 @@ setup(
             'notifications/resources/linux/catkin_icon.png',
         ] + osx_notification_resources
     },
+    data_files=data_files,
     install_requires=install_requires,
     author='William Woodall',
     author_email='william@osrfoundation.org',
