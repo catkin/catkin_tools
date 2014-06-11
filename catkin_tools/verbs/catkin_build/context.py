@@ -17,11 +17,13 @@
 from __future__ import print_function
 
 import os
+import re
 
 from .color import clr
 
 from .common import remove_ansi_escape
 
+from .build import get_resultspace_environment
 
 # TODO: extend builtin prototype to handle locking
 class Context(object):
@@ -98,9 +100,39 @@ class Context(object):
         # List of packages in the workspace is set externally
         self.packages = []
 
+        # Load and update mirror of 'sticky' CMake information
+        sticky_env = get_resultspace_environment(self.devel_space, quiet=True)
+
+        if 'CMAKE_PREFIX_PATH' in sticky_env:
+            last_cmake_prefix_path = sticky_env['CMAKE_PREFIX_PATH'].rpartition(':')[0]
+        else:
+            last_cmake_prefix_path = ''
+
+        # Get the current CMAKE_PREFIX_PATH
+        if 'CMAKE_PREFIX_PATH' in os.environ:
+            env_cmake_prefix_path = os.environ['CMAKE_PREFIX_PATH']
+        else:
+            env_cmake_prefix_path = ''
+
+        # Check for CMAKE_PREFIX_PATH in manual cmake args
+        manual_cmake_prefix_path = ''
+        for cmake_arg in self.cmake_args:
+            prefix_path_match = re.findall('-DCMAKE_PREFIX_PATH.*?=(.+)', cmake_arg)
+            if len(prefix_path_match) > 0:
+                manual_cmake_prefix_path = prefix_path_match[0]
+
+        # Check if prefix path is different from the environment prefix path
+        if manual_cmake_prefix_path:
+            self.cmake_prefix_path = manual_cmake_prefix_path
+        elif last_cmake_prefix_path:
+            self.cmake_prefix_path = last_cmake_prefix_path
+        else:
+            self.cmake_prefix_path = env_cmake_prefix_path
+
     def summary(self):
         summary = [
             [
+                clr("@{cf}CMAKE_PREFIX_PATH:@|           @{yf}{cmake_prefix_path}@|"),
                 clr("@{cf}Workspace:@|                   @{yf}{_Context__workspace}@|"),
                 clr("@{cf}Buildspace:@|                  @{yf}{_Context__build_space}@|"),
                 clr("@{cf}Develspace:@|                  @{yf}{_Context__devel_space}@|"),
@@ -119,6 +151,7 @@ class Context(object):
             ]
         ]
         subs = {
+            'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
             'cmake_args': ', '.join(self.__cmake_args or ['None']),
             'make_args': ', '.join(self.__make_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None'])
