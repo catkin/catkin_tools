@@ -404,6 +404,17 @@ This ends up being pretty confusing, so when interleaved output is used ``catkin
 
 When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
+Running tests with ``catkin build``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To run catkin tests for catkin packages, use the following:
+
+.. code-block:: bash
+
+    % catkin build [...] --catkin-make-args run_tests
+
+This feature is currently being discussed [here](https://github.com/catkin/catkin_tools/issues/72#issuecomment-46656025)
+
 Debugging with ``catkin build``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
