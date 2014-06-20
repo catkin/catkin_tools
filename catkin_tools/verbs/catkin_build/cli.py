@@ -33,6 +33,7 @@ from .context import Context
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
 from .build import topological_order_packages
+from .build import verify_start_with_option
 
 
 def argument_preprocessor(args):
@@ -120,7 +121,9 @@ def list_only(context, packages, no_deps, start_with):
     # Print Summary
     log(context.summary())
     # Find list of packages in the workspace
-    packages_to_be_built, packages_to_be_built_deps = determine_packages_to_be_built(packages, context)
+    packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(packages, context)
+    # Assert start_with package is in the workspace
+    verify_start_with_option(start_with, packages, all_packages, packages_to_be_built + packages_to_be_built_deps)
     if not no_deps:
         # Extend packages to be built to include their deps
         packages_to_be_built.extend(packages_to_be_built_deps)

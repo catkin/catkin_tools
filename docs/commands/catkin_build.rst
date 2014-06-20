@@ -9,18 +9,18 @@ Understanding a catkin workspace
 A standard catkin workspace, as defined by `REP-0128 <http://www.ros.org/reps/rep-0128.html>`_, is a folder with a prescribed set "spaces", each in a folders within the workspace.
 
 The ``source space`` is where the code for your packages resides and normally is in the folder ``/path/to/workspace/src``.
-The ``source space`` is considered to be read-only, in that during a build no files or folders should be created in that folder.
+The build command considers ``source space`` to be read-only, in that during a build no files or folders should be created or modified in that folder.
 Therefore catkin workspaces are said to be built "out of source", which simply means that the folder in which you build your code is not under or part of the folder with contains the source code.
 
-Temporary build files are put into the "build space", which by default is in the ``/path/to/workspace/build`` folder.
-The "build space" is the working directory in which commands like ``cmake`` and ``make`` are run.
+Temporary build files are put into the ``build space``, which by default is in the ``/path/to/workspace/build`` folder.
+The ``build space`` is the working directory in which commands like ``cmake`` and ``make`` are run.
 
 Generated files, like executables, libraries, pkg-config files, CMake config files, or message code, are placed in the "devel space".
-By convention the "devel space" is located as a peer to the "source space" and "build space" in the ``/path/to/workspace/devel`` folder.
-The layout of the "devel space" is intended to mimic the root of a FHS filesystem, with folders like ``lib``, ``bin``, or ``share``.
+By convention the ``devel space`` is located as a peer to the ``source space`` and ``build space`` in the ``/path/to/workspace/devel`` folder.
+The layout of the ``devel space`` is intended to mimic the root of a `FHS filesystem <https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard>`_, with folders like ``include``, ``lib``, ``bin``, and ``share``.
 
-In addition to the FHS folders, some setup scripts are generated in the "devel space", e.g. ``setup.bash`` or ``setup.zsh``.
-These setup scripts are intended to make it easier to use the resulting "devel space" for building on top of the packages that were just built or for running programs built by those packages.
+In addition to the FHS folders, some setup scripts are generated in the ``devel space``, e.g. ``setup.bash`` or ``setup.zsh``.
+These setup scripts are intended to make it easier to use the resulting ``devel space`` for building on top of the packages that were just built or for running programs built by those packages.
 The setup script can be used like this in ``bash``:
 
 .. code-block:: bash
@@ -53,7 +53,7 @@ Though there are conventions for the layout and location of the workspace's vari
 Understanding the build process
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, a bit of history, there is a command called ``catkin_make`` which is provided by the ``catkin`` package and was designed to automated what we will call the merged build process.
+First, a bit of history, there is a command called ``catkin_make`` which is provided by the ``catkin`` package and was designed to automated what we will call the "merged" build process.
 The merged build process worked by adding all of the catkin packages in the workspace into one large CMake project and was configured with one invocation of ``cmake`` and built with one invocation of ``make``.
 The command basically automated the standard CMake work flow while setting some sane defaults, essentially boiling down to these commands:
 
@@ -66,26 +66,26 @@ The command basically automated the standard CMake work flow while setting some 
 
 In the ``../src`` folder there would be a boiler-plate "top-level" ``CMakeLists.txt`` which did the work of adding all the catkin projects below it to the single large CMake project.
 The advantage of this is that the total configuration time is smaller than configuring each package in turn and that the Make targets can be parallelized even amongst dependent packages.
-The disadvantage is that there is no fault isolation, e.g. an error in a leaf package will prevent all packages from configuring, or two packages might have colliding target names.
+The disadvantage is that there is no fault isolation, e.g. an error in a leaf package will prevent all packages from configuring, or two packages might have colliding target names. The merged build process can even cause CMake errors to go undetected, and can depend on the order in which independent packages are built. 
 
-The other disadvantage is that this build process can only work on a homogeneous workspace of only catkin packages.
+Another disadvantage of the merged build process is that it can only work on a homogeneous workspace consisting only of catkin packages.
 Other types of packages like plain CMake packages and autotools packages cannot be integrated into a single configuration and a single build step.
 Because of this limitation the ``catkin_make_isolated`` command was created.
-The ``catkin_make_isolated`` command uses an isolated build process, where each package is configured, built, and the results sourced in turn.
+The ``catkin_make_isolated`` command uses an isolated build process, wherein each package is configured, built, and the results sourced in turn.
 This way each package is built in isolation and the next packages are built on the result of the current one, which also allows for automation of other work flows like the plain CMake work flow.
-There were, however, some problems with ``catkin_make_isolated``, like the fact that you could not parallelize the building of packages which do not depend on each other and the fact that it was not robust to changes in the list of packages in the workspace.
-These faults lead to the development of a parallel catkin make isolated, or ``pcmi``, as part of `Project Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
-``pcmi`` later became the ``catkin build`` command.
+There are, however, some problems with ``catkin_make_isolated``, including the inability to parallelize the building of packages which do not depend on each other and a lack of robustness to changes in the list of packages in the workspace.
+These limitations lead to the development of a parallel version of catkin make isolated, or ``pcmi``, as part of `Project Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
+``pcmi`` later became the ``build`` verb of the ``catkin`` command.
 
-Therefore, the build process for this verb is an isolated build which can be parallelized and works by building each package in topological order; composing an environment for each package's build based on the packages on which it depends.
-Other conceptual improvements over ``catkin_make_isolated`` include the ability to build part of a workspace, or robustly adapt a build when packages are added to or removed from a workspace.
+Therefore, the principle behavior of the ``build`` verb is to build each package in isolation and in topological order; composing an environment for each package's build based on the packages on which it depends.
+Other conceptual improvements over ``catkin_make_isolated`` include the ability to build part of a workspace, or robustly adapt a build when packages are added to or removed from a workspace. See the following sections for other features specific to this verb.
 
 Understanding workspace packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A workspace's packages consist of any packages found in the "source space".
+A workspace's packages consist of any packages found in the ``source space``.
 A package is any folder which contains a ``package.xml`` as defined in `REP-0127 <http://www.ros.org/reps/rep-0127.html>`_.
-The ``catkin build`` command uses the ``build_depend``, ``run_depend``, and ``build_type`` tags in the ``package.xml``.
+The ``catkin build`` command uses the ``depend``, ``build_depend``, ``run_depend``, and ``build_type`` tags in the ``package.xml``.
 The ``*_depend`` tags are used to determine the topological build order of the packages.
 The ``build_type`` tag is used to determine which build work flow to use on the package.
 Packages without an explicitly defined ``build_type`` tag are assumed to be catkin packages, but plain CMake packages can be built by adding a ``package.xml`` file to the root of their source tree with the ``build_type`` flag set to ``cmake`` and appropriate ``build_depend`` and ``run_depend`` tags set, as described in `REP-0136 <http://www.ros.org/reps/rep-0136.html>`_.
@@ -116,7 +116,7 @@ The typical work flow for using ``catkin build`` is to execute it in the root of
     Installspace:                /path/to/my_catkin_ws/install
     DESTDIR:                     None
     ----------------------------------------------------------------
-    Merge Develspaces:           False
+    Isolate Develspaces:           False
     Install Packages:            False
     Isolate Installs:            False
     ----------------------------------------------------------------
@@ -165,7 +165,7 @@ The typical work flow for using ``catkin build`` is to execute it in the root of
     Total packages: 36
 
 In this example, we have setup a workspace with a few packages (actually its all the packages needed to build the ``ros_tutorials``).
-We start with only the "source space" and then use the ``--list`` option (short for ``--list-only``) to have the ``build`` verb figure out what packages it would build, and in what order, but then only list that information out and not actually build anything.
+We start with only the ``source space`` and then use the ``--list`` option (short for ``--list-only``) to have the ``build`` verb figure out what packages it would build, and in what order, but then only list that information out and not actually build anything.
 
 You can use the ``--list`` option to preview the behavior of ``catkin build`` will be with various options.
 For example, you can see what will happen when you specify a single package to build:
@@ -237,9 +237,9 @@ You could use the ``--start-with`` option along with the ``--list`` option to pr
     ------ roscpp_tutorials     (catkin)
     Total packages: 23
 
-However, you should be careful when using the ``--start-with`` option, as ``catkin build`` will assume that all dependencies leading up to that package have been successfully built.
+However, you should be careful when using the ``--start-with`` option, as ``catkin build`` will assume that all dependencies leading up to that package have already been successfully built.
 
-At this point the workspace has not been touched, but once we tell the ``build`` verb to actually build the workspace then a "build space" and a "devel space" will be created:
+At this point the workspace has not been modified, but once we tell the ``build`` verb to actually build the workspace then directories for a ``build space`` and a ``devel space`` will be created:
 
 .. code-block:: bash
 
@@ -252,7 +252,7 @@ At this point the workspace has not been touched, but once we tell the ``build``
     Installspace:                /path/to/my_catkin_ws/install
     DESTDIR:                     None
     ----------------------------------------------------------------
-    Merge Develspaces:           False
+    Isolate Develspaces:         False
     Install Packages:            False
     Isolate Installs:            False
     ----------------------------------------------------------------
@@ -284,16 +284,8 @@ At this point the workspace has not been touched, but once we tell the ``build``
     rosmaster            rospy_tutorials      std_srvs
 
     ./devel:
-    catkin               genmsg               ros_tutorials
-    roscpp_serialization roslang              rospack              rostime
-    xmlrpcpp             console_bridge       genpy                rosbuild
-    roscpp_traits        roslaunch            rosparam             rosunit
-    cpp_common           geometry_msgs        rosclean
-    roscpp_tutorials     roslib               rospy                std_msgs
-    gencpp               message_generation   rosconsole           rosgraph
-    rosmaster            rospy_tutorials      std_srvs             genlisp
-    message_runtime      roscpp               rosgraph_msgs        rosout
-    rostest              turtlesim
+    _setup_util.py bin            env.sh         etc            include
+    lib            setup.bash     setup.sh       setup.zsh      share
 
     ./src:
     catkin             console_bridge     genlisp            genpy
@@ -302,12 +294,11 @@ At this point the workspace has not been touched, but once we tell the ``build``
     ros                ros_tutorials      rospack
 
 Since we didn't give any packages as arguments ``catkin build`` tried to build all of the packages in the workspace.
-And as you can see, after the build finishes, we now have a "build space" with a folder for each package and a "devel space" which also has a folder for each package.
-This would differ from ``catkin_make``, for example, which would have a combined "build space" and a single "devel space".
+And as you can see, after the build finishes, we now have a ``build space`` with a folder for each package and a ``devel space`` with an FHS layout into which all the build products have been written.
+This differs from the behavior of ``catkin_make``, for example, which would have all of the build files and intermediate build products in a combined ``build space`` or ``catkin_make_isolated`` which would have an insolated FHS directory for each package in the ``devel space``.
 
 Without any additional arguments, the packages are not installed.
-If we providing ``catkin build`` with the ``--install`` option, an "install space" will be created containing the installed packages.
-Afterwards, the workspace will also have an install folder in it:
+If we provide ``catkin build`` with the ``--install`` option, an ``install space`` will be created containing the results of the install targets from all of the built packages in an aditional FHS tree. The contents of the ``install space``, which, by default, is located in a directory named ``install`` will look like the following:
 
 .. code-block:: none
 
@@ -455,7 +446,7 @@ Then the ``catkin build`` command waits for the rest of the packages to finish (
 
     Exited with return code: -2
 
-If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``build_logs`` folder in the "build space":
+If you don't want to scroll back up to find the error amongst the other output, you can ``cat`` the whole build log out of the ``build_logs`` folder in the ``build space``:
 
 .. code-block:: bash
 

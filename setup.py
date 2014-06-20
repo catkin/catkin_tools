@@ -31,7 +31,7 @@ osx_notification_resources = [os.path.relpath(x, src_path)
 
 setup(
     name='catkin_tools',
-    version='0.0.0',
+    version='0.1.0',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
@@ -48,7 +48,7 @@ setup(
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache 2.0',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
     ],
     description="Command line tools for working with catkin.",

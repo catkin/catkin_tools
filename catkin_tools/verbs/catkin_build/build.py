@@ -177,7 +177,7 @@ def determine_packages_to_be_built(packages, context):
                 packages_to_be_built_deps.extend(pkg_deps)
     else:
         packages_to_be_built = ordered_packages
-    return packages_to_be_built, packages_to_be_built_deps
+    return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
 
 def _create_unmerged_devel_setup(context):
@@ -284,6 +284,16 @@ echo "       Your environment has not been changed."
 """)
 
 
+def verify_start_with_option(start_with, packages, all_packages, packages_to_be_built):
+    if start_with is not None:
+        if start_with not in [pkg.name for pth, pkg in all_packages]:
+            sys.exit("Package given for --start-with, '{0}', is not in the workspace.".format(start_with))
+        elif start_with not in [pkg.name for pth, pkg in packages_to_be_built]:
+            sys.exit("Package given for --start-with, '{0}', "
+                     "is in the workspace but would not be built with given package arguments: '{1}'"
+                     .format(start_with, ' '.join(packages)))
+
+
 def build_isolated_workspace(
     context,
     packages=None,
@@ -347,7 +357,7 @@ def build_isolated_workspace(
     log(context.summary())
 
     # Find list of packages in the workspace
-    packages_to_be_built, packages_to_be_built_deps = determine_packages_to_be_built(packages, context)
+    packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(packages, context)
     completed_packages = []
     if no_deps:
         # Consider deps as "completed"
@@ -358,6 +368,8 @@ def build_isolated_workspace(
     # Also resort
     packages_to_be_built = topological_order_packages(dict(packages_to_be_built))
     max_package_name_length = max([len(pkg.name) for pth, pkg in packages_to_be_built])
+    # Assert start_with package is in the workspace
+    verify_start_with_option(start_with, packages, all_packages, packages_to_be_built + packages_to_be_built_deps)
 
     # Setup pool of executors
     executors = {}
