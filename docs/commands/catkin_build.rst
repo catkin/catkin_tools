@@ -405,15 +405,44 @@ This ends up being pretty confusing, so when interleaved output is used ``catkin
 When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
 Running tests with ``catkin build``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Running tests for a given package typically is done by invoking a special ``make`` target like ``test`` or ``run_tests``.
+catkin packages all define the ``run_tests`` target which aggregates all types of tests and runs them together.
+So in order to get tests to build and run for your packages you need to pass them this additional ``run_tests`` or ``test`` target as a command line option to ``make``.
 
 To run catkin tests for catkin packages, use the following:
 
 .. code-block:: bash
 
-    % catkin build [...] --catkin-make-args run_tests
+    $ catkin build [...] --catkin-make-args run_tests
 
-This feature is currently being discussed [here](https://github.com/catkin/catkin_tools/issues/72#issuecomment-46656025)
+For non-catkin packages which define a ``test`` target, you can do this:
+
+.. code-block:: bash
+
+    $ catkin build [...] --make-args test
+
+If you want to run tests for just one package, then you should build that package and this narrow down the build to just that package with the additional make argument:
+
+.. code-block:: bash
+
+    $ # First build the package
+    $ catkin build package
+    ...
+    $ # Then run its tests
+    $ catkin build package --no-deps --catkin-make-args run_tests
+    $ # Or for non-catkin packages
+    $ catkin build package --no-deps --make-args test
+
+For catkin packages and the ``run_tests`` target, failing tests will not result in an non-zero exit code.
+So if you want to check for failing tests, use the ``catkin_test_results`` command like this:
+
+.. code-block:: bash
+
+    $ catkin_test_results build/<package name>
+
+The result code will be non-zero unless all tests passed.
 
 Debugging with ``catkin build``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
