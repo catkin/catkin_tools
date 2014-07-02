@@ -39,16 +39,16 @@
 #
 #   Current Limitations:
 #
-# - You don't mind formatting of your package.xml being messed up.
-# - You don't mind the deps being added to the bottom of package.xml
 # - 'find_package(catkin REQUIRED COMPONENTS' is on the same line
+# - Does not check for already existing deps in CMakeLists.txt (but it does in package.xml)
+# - Assumes you have at least one <build_depend> and <run_depend> already added, does not error if not 
 
 from __future__ import print_function
 
 import os
 import sys
 import re
-from lxml import etree
+import xml.etree.ElementTree as ET
 
 def prepare_arguments(parser):
    add = parser.add_argument
@@ -61,35 +61,49 @@ def prepare_arguments(parser):
 def main(opts):
    deps = opts.dependencies
    for dep_name in deps:
-      print('Adding dependency: ' + dep_name)
- 
+      print('\nAdding dependency: ' + dep_name)
+
    # package.xml ----------------------------------------------------------------------------
+   # we use xml parser to check if the dependency already exists, and a string replacement to add it if needed
 
    # Add dep to package manifest
-   parser = etree.XMLParser(remove_blank_text=False)
    package_file_name = os.getcwd() + "/package.xml"
-   #print ' - Found package.xml at '+ package_file_name
-   package_xml = etree.parse(package_file_name, parser)
+
+   if not os.path.exists(package_file_name):
+      print( '\nERROR: can\'t find package.xml file at \'' + package_file_name + '\'\n')
+      sys.exit(-1)
+
+   # Read for xml
+   tree = ET.parse(package_file_name)
+
+   # Read for string replace
+   template_file_data = open(package_file_name, 'r')
+   template_text = template_file_data.read()
 
    # Make sure at least all required dependencies are in the depends lists
    build_deps = deps
    run_deps   = deps
 
-   def update_deps(reqd_deps, req_type, e_parent):
+   def update_deps(reqd_deps, req_type, e_parent, template_text):
       curr_deps = [e.text for e in e_parent.findall(req_type)]
       missing_deps = set(reqd_deps) - set(curr_deps)
-      for d in missing_deps:
-         etree.SubElement(e_parent, req_type).text = d
-      return missing_deps
+      for dep_name in missing_deps:
+         # add dependency
+         template_text = search_file('<'+req_type+'>',
+                                     '<'+req_type+'>'+dep_name+'</'+req_type+'>\n  <'+req_type+'>',
+                                     template_text)
+      return template_text
 
    # empty sets evaluate to false
-   modified_pkg  = update_deps(build_deps, "build_depend", package_xml.getroot())
-   modified_pkg |= update_deps(run_deps, "run_depend", package_xml.getroot())
+   template_text = update_deps(build_deps, "build_depend", tree.getroot(), template_text)
+   template_text = update_deps(run_deps, "run_depend", tree.getroot(), template_text)
 
-   if modified_pkg:
-      with open(package_file_name,"w") as f:
-         package_xml.write(f, xml_declaration=True, pretty_print=True)      
-      print(" - Modified package.xml")
+   # Save changes
+   with open(package_file_name,'w') as f:
+      f.write(template_text)
+   print( ' - Modified package.xml file at \'' + package_file_name + '\'')
+
+
 
 
    # CMakeLists.txt ----------------------------------------------------------------------------
@@ -102,25 +116,15 @@ def main(opts):
 
    # Add dep to CMakeLists.txt
    template_file_data = open(cmake_file, 'r')
-   template_text = template_file_data.read() 
-
-   def search_cmake(search_string,replace_string,template_text):         
-      (template_text, num_subs_made) = re.subn(search_string, replace_string, template_text)
-                                           
-      if not num_subs_made:
-      	print( '\nERROR: can\'t find the string "' + search_string + '"\n')
-        print( 'Unable to modify CMakeLists.txt')
-        sys.exit(-1)
-        
-      return template_text
+   template_text = template_file_data.read()
 
    for dep_name in deps:
       # run two modifications to CMakeLists
-      template_text = search_cmake('find_package\(catkin REQUIRED COMPONENTS',
+      template_text = search_file('find_package\(catkin REQUIRED COMPONENTS',
                                    'find_package(catkin REQUIRED COMPONENTS\n  '+dep_name,
                                    template_text)
-      template_text = search_cmake('CATKIN_DEPENDS', 
-                                   'CATKIN_DEPENDS\n    '+dep_name, 
+      template_text = search_file('CATKIN_DEPENDS',
+                                   'CATKIN_DEPENDS\n    '+dep_name,
                                    template_text)
 
    # Save changes
@@ -129,4 +133,16 @@ def main(opts):
    print( ' - Modified CMakeLists file at \'' + cmake_file + '\'')
 
    print( '\n')
+
+
+# Generic find and replace
+def search_file(search_string,replace_string,template_text):
+   (template_text, num_subs_made) = re.subn(search_string, replace_string, template_text, count=1)
+
+   if not num_subs_made:
+     print( '\nERROR: can\'t find the string "' + search_string + '"\n')
+     print( 'Unable to modify file')
+     sys.exit(-1)
+
+   return template_text
 
