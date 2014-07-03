@@ -17,6 +17,7 @@ from __future__ import print_function
 import os
 
 from catkin_pkg.packages import find_packages
+from catkin_pkg.package import InvalidPackage
 
 
 def prepare_arguments(parser):
@@ -34,12 +35,16 @@ def prepare_arguments(parser):
 
 def main(opts):
     folders = opts.folders or [os.getcwd()]
-    for folder in folders:
-        for pkg_pth, pkg in find_packages(folder).items():
-            if not opts.depends_on or not [x for x in opts.depends_on if x not in [d.name for d in pkg.build_depends]]:
-                print(pkg.name)
-                if opts.deps:
-                    for dep in pkg.build_depends:
-                        print('  build: ' + dep.name)
-                    for dep in pkg.run_depends:
-                        print('  run:   ' + dep.name)
+    try:
+        for folder in folders:
+            for pkg_pth, pkg in find_packages(folder).items():
+                if not opts.depends_on or not [x for x in opts.depends_on if x not in [d.name for d in pkg.build_depends]]:
+                    print(pkg.name)
+                    if opts.deps:
+                        for dep in pkg.build_depends:
+                            print('  build: ' + dep.name)
+                        for dep in pkg.run_depends:
+                            print('  run:   ' + dep.name)
+    except InvalidPackage as ex:
+        message = '\n'.join(ex.args)
+        print("Error: The directory %s contains an invalid package. See below for details:\n\n%s" % (folder, message))
