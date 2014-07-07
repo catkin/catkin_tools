@@ -62,6 +62,7 @@ setup(
         'catkin_tools.commands.catkin.verbs': [
             'build = catkin_tools.verbs.catkin_build:description',
             'list = catkin_tools.verbs.catkin_list:description',
+            'init = catkin_tools.verbs.catkin_init:description',
         ],
     },
 )
