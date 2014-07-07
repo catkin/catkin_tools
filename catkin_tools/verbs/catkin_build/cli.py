@@ -37,6 +37,8 @@ from .build import load_resultspace_environment
 from .build import topological_order_packages
 from .build import verify_start_with_option
 
+from catkin_tools import metadata
+
 
 def argument_preprocessor(args):
     """Processes the arguments for the build verb, before being passed to argparse"""
@@ -167,11 +169,19 @@ def main(opts):
                   (opts.extend_path, exc.message))
             return 1
 
+    # Try to find a metadata file to get context defaults
+    metadata_file_path = metadata.find_metadata_file(os.getcwd())
+    if metadata_file_path:
+        build_metadata = metadata.get_metadata(metadata_file_path)['build']
+        (marked_workspace,_) = os.path.split(metadata_file_path)
+    else:
+        marked_workspace = None
+
     context = Context(
-        workspace=opts.workspace,
-        source_space=opts.source,
-        build_space=opts.build,
-        devel_space=opts.devel,
+        workspace=opts.workspace or marked_workspace,
+        source_space=opts.source or os.path.join(marked_workspace,build_metadata['source_space']),
+        build_space=opts.build or os.path.join(marked_workspace,build_metadata['build_space']),
+        devel_space=opts.devel or os.path.join(marked_workspace,build_metadata['devel_space']),
         isolate_devel=opts.isolate_devel,
         install_space=opts.install_space,
         install=opts.install,
@@ -185,6 +195,17 @@ def main(opts):
     if opts.list_only:
         list_only(context, opts.packages, opts.no_deps, opts.start_with)
         return
+
+    # After successfully constructing a context, update the metadata file
+    if not metadata_file_path:
+        metadata_file_path = metadata.init_metadata_file(os.getcwd())
+
+    (workspace_path,_) = os.path.split(metadata_file_path)
+    metadata.update_metadata(metadata_file_path, 'build', \
+            {   'source_space': os.path.relpath(context.source_space,workspace_path),
+                'build_space': os.path.relpath(context.build_space,workspace_path),
+                'devel_space': os.path.relpath(context.devel_space,workspace_path)
+                })
 
     start = time.time()
     try:
