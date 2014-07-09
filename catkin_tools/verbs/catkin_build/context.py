@@ -25,6 +25,7 @@ from .common import remove_ansi_escape
 
 from .build import get_resultspace_environment
 
+
 # TODO: extend builtin prototype to handle locking
 class Context(object):
     """Encapsulates a catkin workspace's settings which affect build results.
