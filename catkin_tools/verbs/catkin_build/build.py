@@ -141,7 +141,7 @@ def get_resultspace_environment(result_space_path, quiet=False):
 def load_resultspace_environment(result_space_path):
     """Load the environemt variables which result from sourcing another
     workspace path into this process's environment.
-    
+
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     """
     env_dict = get_resultspace_environment(result_space_path)
