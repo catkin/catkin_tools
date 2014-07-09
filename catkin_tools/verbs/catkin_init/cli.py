@@ -21,15 +21,30 @@ from catkin_tools import metadata
 
 def prepare_arguments(parser):
     add = parser.add_argument
-    # What packages to build
-    add('-f','--force', action='store_true', default=False,
-            help='Overwite an existing catkin_tools metadata file if it exists.')
+
     add('workspace', nargs='?', default=os.getcwd(),
-            help='The path to initialize as a catkin workspace. Default: current directory')
+            help='The path to initialize as a catkin workspace. Default: current working directory')
+    add('--reset', action='store_true', default=False,
+            help='Reset (delete) the metadata for the given workspace.')
 
     return parser
 
 def main(opts):
-    metadata.init_metadata_file(
-            opts.workspace,
-            opts.force)
+    try:
+        # Check if the workspace is initialized
+        marked_workspace = metadata.find_enclosing_workspace(opts.workspace)
+
+        # Initialize the workspace if necessary
+        if marked_workspace == opts.workspace and not opts.reset:
+            print('Catkin workspace %s is already initialized.' % (opts.workspace))
+        else:
+            # initialize the workspace
+            metadata.init_metadata_dir(
+                    opts.workspace,
+                    opts.reset)
+    except IOError as exc:
+        # Usually happens if workspace is already underneath another catkin_tools workspace
+        print('error: could not initialize catkin workspace: %s' % exc.message)
+        return 1
+
+    return 0

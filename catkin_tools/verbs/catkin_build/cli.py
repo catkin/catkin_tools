@@ -169,19 +169,24 @@ def main(opts):
                   (opts.extend_path, exc.message))
             return 1
 
-    # Try to find a metadata file to get context defaults
-    metadata_file_path = metadata.find_metadata_file(os.getcwd())
-    if metadata_file_path:
-        build_metadata = metadata.get_metadata(metadata_file_path)['build']
-        (marked_workspace,_) = os.path.split(metadata_file_path)
-    else:
-        marked_workspace = None
+    # Try to find a metadata directory to get context defaults
+    marked_workspace = metadata.find_enclosing_workspace(os.getcwd())
+    build_metadata = metadata.get_metadata(marked_workspace, 'build')
+    context_args = {}
 
-    context = Context(
-        workspace=opts.workspace or marked_workspace,
-        source_space=opts.source or os.path.join(marked_workspace,build_metadata['source_space']),
-        build_space=opts.build or os.path.join(marked_workspace,build_metadata['build_space']),
-        devel_space=opts.devel or os.path.join(marked_workspace,build_metadata['devel_space']),
+    if marked_workspace:
+        context_args['workspace'] = marked_workspace
+    if build_metadata:
+        context_args['source_space'] = os.path.join(marked_workspace,build_metadata['source_space'])
+        context_args['build_space'] = os.path.join(marked_workspace,build_metadata['build_space'])
+        context_args['devel_space'] = os.path.join(marked_workspace,build_metadata['devel_space'])
+
+    # User-supplied args override stored args
+    user_context_args = dict(
+        workspace=opts.workspace,
+        source_space=opts.source,
+        build_space=opts.build,
+        devel_space=opts.devel,
         isolate_devel=opts.isolate_devel,
         install_space=opts.install_space,
         install=opts.install,
@@ -189,23 +194,26 @@ def main(opts):
         cmake_args=opts.cmake_args,
         make_args=opts.make_args,
         catkin_make_args=opts.catkin_make_args,
-        space_suffix=opts.space_suffix
-    )
+        space_suffix=opts.space_suffix)
 
+    # Only update context args with given context args
+    context_args.update(dict([(k, v) for (k, v) in user_context_args.items() if v != [] and v is not None]))
+
+    # Create the build context
+    context = Context(**context_args)
+
+    # Display list and leave the filesystem untouched
     if opts.list_only:
         list_only(context, opts.packages, opts.no_deps, opts.start_with)
         return
 
-    # After successfully constructing a context, update the metadata file
-    if not metadata_file_path:
-        metadata_file_path = metadata.init_metadata_file(os.getcwd())
-
-    (workspace_path,_) = os.path.split(metadata_file_path)
-    metadata.update_metadata(metadata_file_path, 'build', \
-            {   'source_space': os.path.relpath(context.source_space,workspace_path),
-                'build_space': os.path.relpath(context.build_space,workspace_path),
-                'devel_space': os.path.relpath(context.devel_space,workspace_path)
-                })
+    # After successfully constructing a context, write the build metadata
+    metadata.update_metadata(
+        context.workspace,
+        'build',
+        { 'source_space': os.path.relpath(context.source_space,context.workspace),
+          'build_space': os.path.relpath(context.build_space,context.workspace),
+          'devel_space': os.path.relpath(context.devel_space,context.workspace)})
 
     start = time.time()
     try:
