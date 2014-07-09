@@ -163,7 +163,8 @@ def main(opts):
             if 'CMAKE_PREFIX_PATH' in os.environ:
                 opts.cmake_args.append('-DCMAKE_PREFIX_PATH="%s"' % os.environ['CMAKE_PREFIX_PATH'])
         except IOError as exc:
-            print("catkin build: error: argument --extend: Unable to extend workspace from \"%s\": %s" % (opts.extend_path, exc.message))
+            print("catkin build: error: argument --extend: Unable to extend workspace from \"%s\": %s" %
+                  (opts.extend_path, exc.message))
             return 1
 
     context = Context(

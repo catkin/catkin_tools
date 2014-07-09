@@ -54,4 +54,3 @@ def notify(title, msg):
         return _notify_osx(title, msg)
     if platform.system() == 'Linux':
         return _notify_linux(title, msg)
-
