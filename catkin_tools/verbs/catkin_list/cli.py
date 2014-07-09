@@ -38,7 +38,8 @@ def main(opts):
     try:
         for folder in folders:
             for pkg_pth, pkg in find_packages(folder).items():
-                if not opts.depends_on or not [x for x in opts.depends_on if x not in [d.name for d in pkg.build_depends]]:
+                build_depend_names = [d.name for d in pkg.build_depends]
+                if not opts.depends_on or not [x for x in opts.depends_on if x not in build_depend_names]:
                     print(pkg.name)
                     if opts.deps:
                         for dep in pkg.build_depends:

@@ -475,7 +475,7 @@ def terminal_width_windows():
     csbi = create_string_buffer(22)
     res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
 
-    #return default size if actual size can't be determined
+    # return default size if actual size can't be determined
     if not res:
         return 80
 
