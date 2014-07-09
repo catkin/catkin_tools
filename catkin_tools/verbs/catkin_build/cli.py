@@ -171,11 +171,13 @@ def main(opts):
 
     # Try to find a metadata directory to get context defaults
     marked_workspace = metadata.find_enclosing_workspace(os.getcwd())
-    build_metadata = metadata.get_metadata(marked_workspace, 'build')
+    build_metadata = {}
     context_args = {}
 
     if marked_workspace:
         context_args['workspace'] = marked_workspace
+        build_metadata = metadata.get_metadata(marked_workspace, 'build')
+
     if build_metadata:
         context_args['source_space'] = os.path.join(marked_workspace,build_metadata['source_space'])
         context_args['build_space'] = os.path.join(marked_workspace,build_metadata['build_space'])
