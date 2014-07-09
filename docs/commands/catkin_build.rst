@@ -404,6 +404,44 @@ This ends up being pretty confusing, so when interleaved output is used ``catkin
 
 When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 
+Explicitly Specifying the Environment with ``catkin build``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Normally, a catkin workspace automatically "extends" the other workspaces that
+have previously been sourced in your environment. Each time you source a catkin
+setup file from a result-space (devel-space or install-space), it sets the
+``$CMAKE_PREFIX_PATH`` in your environment, and this is used to build the next
+workspace. This is also sometimes referred to as "workspace chaining" and
+sometimes the extended workspace is referred to as a "parent" workspace.
+
+With ``catkin build``, you can explicitly set the workspace you want to extend,
+using the ``--extend`` argument. This is equivalent to sourcing a setup file,
+building, and then reverting to the environment before sourcing the setup file. 
+
+Note that in case the desired parent workspace is different from one already
+being used, using the ``--extend`` argument also enables the ``--force-cmake``
+argument.
+
+For example, regardless of your current environment variable settings (like
+``$CMAKE_PREFIX_PATH``), this will build your workspace against the
+``/opt/ros/hydro`` install space.
+
+.. code-block:: bash
+
+    $ pwd
+    /path/to/my_catkin_ws
+
+    $ echo $CMAKE_PREFIX_PATH
+    /path/to/other_ws:/opt/ros/hydro
+
+    $ catkin build --extend /opt/ros/hydro
+    ...
+
+    $ source devel/setup.bash
+
+    $ echo $CMAKE_PREFIX_PATH
+    /path/to/my_catkin_ws:/opt/ros/hydro
+
 Running tests with ``catkin build``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

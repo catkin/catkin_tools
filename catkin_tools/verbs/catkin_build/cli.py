@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 
+import os
 import re
 import sys
 import time
@@ -32,6 +33,7 @@ from .context import Context
 
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
+from .build import load_resultspace_environment
 from .build import topological_order_packages
 from .build import verify_start_with_option
 
@@ -85,6 +87,9 @@ def prepare_arguments(parser):
         help='Install each catkin package into a separate install space.')
     add('--space-suffix',
         help='suffix for build, devel, and install space if they are not otherwise explicitly set')
+    add('--extend', dest='extend_path', type=str,
+        help='Explicitly extend the devel- or install-space of another catkin workspace. '
+             'Note that calling this will also invoke the --force-cmake option.')
     # Build options
     add('--parallel-jobs', '--parallel', '-p', default=None,
         help='Maximum number of packages which could be built in parallel (default is cpu count)')
@@ -150,6 +155,16 @@ def main(opts):
 
     if not opts.force_color and not is_tty(sys.stdout):
         set_color(False)
+
+    if opts.extend_path is not None:
+        try:
+            opts.force_cmake = True
+            load_resultspace_environment(opts.extend_path)
+            if 'CMAKE_PREFIX_PATH' in os.environ:
+                opts.cmake_args.append('-DCMAKE_PREFIX_PATH="%s"' % os.environ['CMAKE_PREFIX_PATH'])
+        except IOError as exc:
+            print("catkin build: error: argument --extend: Unable to extend workspace from \"%s\": %s" % (opts.extend_path, exc.message))
+            return 1
 
     context = Context(
         workspace=opts.workspace,
