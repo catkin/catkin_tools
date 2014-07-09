@@ -4,7 +4,7 @@ python:
   - "3.3"
 install:
   - pip install argparse catkin-pkg distribute PyYAML
-  - pip install nose coverage pep8
+  - pip install nose coverage flake8
 script:
   - python setup.py nosetests -s
 notifications:
