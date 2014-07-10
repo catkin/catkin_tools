@@ -19,15 +19,17 @@ import os
 from catkin_pkg.packages import find_packages
 from catkin_tools import metadata
 
+
 def prepare_arguments(parser):
     add = parser.add_argument
 
     add('workspace', nargs='?', default=os.getcwd(),
-            help='The path to initialize as a catkin workspace. Default: current working directory')
+        help='The path to initialize as a catkin workspace. Default: current working directory')
     add('--reset', action='store_true', default=False,
-            help='Reset (delete) the metadata for the given workspace.')
+        help='Reset (delete) the metadata for the given workspace.')
 
     return parser
+
 
 def main(opts):
     try:
@@ -40,8 +42,8 @@ def main(opts):
         else:
             # initialize the workspace
             metadata.init_metadata_dir(
-                    opts.workspace,
-                    opts.reset)
+                opts.workspace,
+                opts.reset)
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
         print('error: could not initialize catkin workspace: %s' % exc.message)

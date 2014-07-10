@@ -14,7 +14,7 @@
 
 # This set of functions define the interactions with the catkin_tools metadata
 # file, `.catkin_tools.yml`. This file can be used by each verb to store
-# verb-specific information 
+# verb-specific information
 
 from __future__ import print_function
 
@@ -33,6 +33,7 @@ configuration information used by the `catkin` command and its sub-commands.
 Please see the catkin_tools documentation before editing any files in this
 directory.
 """
+
 
 def get_paths(workspace_path, verb=None):
     """Get the path to a metadata directory and verb-specific metadata file.
@@ -54,7 +55,7 @@ def find_enclosing_workspace(search_start_path):
     metadata directory starting in the path given by search_path and traversing
     each parent directory until either finding such a directory or getting to
     the root of the filesystem.
-    
+
     :search_start_path: Directory which either is a catkin workspace or is
     contained in a catkin workspace
 
@@ -64,7 +65,7 @@ def find_enclosing_workspace(search_start_path):
         # Check if marker file exists
         (candidate_path, _) = get_paths(search_start_path)
         if os.path.exists(candidate_path) and os.path.isdir(candidate_path):
-            return search_start_path 
+            return search_start_path
 
         # Update search path or end
         (search_start_path, child_dir) = os.path.split(search_start_path)
@@ -73,26 +74,29 @@ def find_enclosing_workspace(search_start_path):
 
     return None
 
+
 def init_metadata_dir(workspace_path, reset=False):
     """Create or reset a catkin_tools metadata directory with no content in a given path.
 
     :workspace_path: The path to the root of a catkin workspace
-    :reset: If true, clear the metadata directory of all information 
+    :reset: If true, clear the metadata directory of all information
     """
-    
+
     # Make sure the directory
     if not os.path.exists(workspace_path):
-        raise IOError("Can't initialize Catkin workspace in path %s "
-            "because it does not exist." % (workspace_path))
+        raise IOError(
+            "Can't initialize Catkin workspace in path %s because it does "
+            "not exist." % (workspace_path))
 
     # Check if the desired workspace is enclosed in another workspace
     marked_workspace = find_enclosing_workspace(workspace_path)
 
     if marked_workspace and marked_workspace != workspace_path:
-        raise IOError("Can't initialize Catkin workspace in path %s "
-            "because it is already contained in another workspace: %s." %
+        raise IOError(
+            "Can't initialize Catkin workspace in path %s because it is "
+            "already contained in another workspace: %s." %
             (workspace_path, marked_workspace))
-        
+
     # Construct the full path to the metadata directory
     (metadata_dir, _) = get_paths(workspace_path)
 
@@ -108,8 +112,9 @@ def init_metadata_dir(workspace_path, reset=False):
         os.mkdir(metadata_dir)
 
     # Write the README file describing the directory
-    with open(os.path.join(metadata_dir,'README'),'w') as metadata_readme:
+    with open(os.path.join(metadata_dir, 'README'), 'w') as metadata_readme:
         metadata_readme.write(METADATA_README_TEXT)
+
 
 def get_metadata(workspace_path, verb):
     """Get a python structure representing the metadata for a given verb.
@@ -126,10 +131,11 @@ def get_metadata(workspace_path, verb):
     if not os.path.exists(metadata_file_path):
         return {}
 
-    with open(metadata_file_path,'r') as metadata_file:
+    with open(metadata_file_path, 'r') as metadata_file:
         return yaml.load(metadata_file)
 
-def update_metadata(workspace_path, verb, new_data = {}):
+
+def update_metadata(workspace_path, verb, new_data={}):
     """Update the catkin_tools metadata file corresponding to a given verb.
 
     :workspace_path: The path to the root of a catkin workspace
@@ -147,6 +153,5 @@ def update_metadata(workspace_path, verb, new_data = {}):
 
     # Update the metadata for this verb
     data.update(new_data)
-    with open(metadata_file_path,'w') as metadata_file:
+    with open(metadata_file_path, 'w') as metadata_file:
         yaml.dump(data, metadata_file, default_flow_style=False)
-
