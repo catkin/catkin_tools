@@ -18,7 +18,8 @@ from .cli import prepare_arguments
 # This describes this command to the loader
 description = dict(
     verb='clean',
-    description="Deletes build, devel, and configuration data from a workspace. See command-line options for more details.",
+    description="Deletes build, devel, and configuration data from a workspace. "
+    "See command-line options for more details.",
     main=main,
     prepare_arguments=prepare_arguments,
 )

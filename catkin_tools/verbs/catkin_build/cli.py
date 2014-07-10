@@ -179,9 +179,9 @@ def main(opts):
         build_metadata = metadata.get_metadata(marked_workspace, 'build')
 
     if build_metadata:
-        context_args['source_space'] = os.path.join(marked_workspace,build_metadata['source_space'])
-        context_args['build_space'] = os.path.join(marked_workspace,build_metadata['build_space'])
-        context_args['devel_space'] = os.path.join(marked_workspace,build_metadata['devel_space'])
+        context_args['source_space'] = os.path.join(marked_workspace, build_metadata['source_space'])
+        context_args['build_space'] = os.path.join(marked_workspace, build_metadata['build_space'])
+        context_args['devel_space'] = os.path.join(marked_workspace, build_metadata['devel_space'])
 
     # User-supplied args override stored args
     user_context_args = dict(
@@ -213,9 +213,9 @@ def main(opts):
     metadata.update_metadata(
         context.workspace,
         'build',
-        { 'source_space': os.path.relpath(context.source_space,context.workspace),
-          'build_space': os.path.relpath(context.build_space,context.workspace),
-          'devel_space': os.path.relpath(context.devel_space,context.workspace)})
+        {'source_space': os.path.relpath(context.source_space, context.workspace),
+         'build_space': os.path.relpath(context.build_space, context.workspace),
+         'devel_space': os.path.relpath(context.devel_space, context.workspace)})
 
     start = time.time()
     try:
