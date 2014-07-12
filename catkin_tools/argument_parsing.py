@@ -22,6 +22,8 @@ from multiprocessing import cpu_count
 
 from catkin_tools.common import wide_log
 
+from catkin_tools.make_jobserver import MakeJobServer
+
 
 def add_context_args(parser):
     """Add common workspace and profile args to an argparse parser.
@@ -208,12 +210,16 @@ def handle_make_arguments(input_make_args, force_single_threaded_when_running_te
             wide_log('Forcing "-j1" for running unit tests.')
             make_args.append('-j1')
 
+    jobserver = MakeJobServer.get_instance()
+
     # If no -j/--jobs/-l/--load-average flags are in make_args
     if not extract_jobs_flags(' '.join(make_args)):
         # If -j/--jobs/-l/--load-average are in MAKEFLAGS
         if 'MAKEFLAGS' in os.environ and extract_jobs_flags(os.environ['MAKEFLAGS']):
             # Do not extend make arguments, let MAKEFLAGS set things
             pass
+        elif jobserver.supported:
+            make_args += jobserver.make_arguments()
         else:
             # Else extend the make_arguments to include some jobs flags
             # Use the number of CPU cores
