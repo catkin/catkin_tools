@@ -44,7 +44,7 @@ def _notify_linux(title, msg):
     notify_send_exec = which('notify-send')
     if notify_send_exec is None:
         return
-    subprocess.Popen([notify_send_exec, '-i', icon_path, '-t', '2000', title, msg],
+    subprocess.Popen([notify_send_exec, '-i', icon_path, '-t', '2000', '--hint', 'int:transient:1', title, msg],
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
 
