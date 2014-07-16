@@ -179,9 +179,13 @@ def main(opts):
         build_metadata = metadata.get_metadata(marked_workspace, 'build')
 
     if build_metadata:
-        context_args['source_space'] = os.path.join(marked_workspace, build_metadata['source_space'])
-        context_args['build_space'] = os.path.join(marked_workspace, build_metadata['build_space'])
-        context_args['devel_space'] = os.path.join(marked_workspace, build_metadata['devel_space'])
+        # Convert paths to absolute
+        for (k, v) in build_metadata.items():
+            if k in ['source_space','build_space','devel_space','install_space']:
+                build_metadata[k] = os.path.join(marked_workspace, v)
+
+        # Update context args with stored values as defaults
+        context_args.update(build_metadata)
 
     # User-supplied args override stored args
     user_context_args = dict(
@@ -215,7 +219,10 @@ def main(opts):
         'build',
         {'source_space': os.path.relpath(context.source_space, context.workspace),
          'build_space': os.path.relpath(context.build_space, context.workspace),
-         'devel_space': os.path.relpath(context.devel_space, context.workspace)})
+         'devel_space': os.path.relpath(context.devel_space, context.workspace),
+         'install_space': os.path.relpath(context.install_space, context.workspace),
+         'isolate_devel': context.isolate_devel,
+         'isolate_install': context.isolate_install})
 
     start = time.time()
     try:

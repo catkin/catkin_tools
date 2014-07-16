@@ -86,9 +86,9 @@ class Context(object):
         # Handle *space assignment and defaults
         self.workspace = '.' if workspace is None else workspace
         self.source_space = os.path.join(self.workspace, 'src') if source_space is None else source_space
-        self.build_space = os.path.join(self.workspace, 'build' + ss) if build_space is None else build_space
-        self.devel_space = os.path.join(self.workspace, 'devel' + ss) if devel_space is None else devel_space
-        self.install_space = os.path.join(self.workspace, 'install' + ss) if install_space is None else install_space
+        self.build_space = os.path.join(self.workspace, 'build' + ss) if ss or build_space is None else build_space
+        self.devel_space = os.path.join(self.workspace, 'devel' + ss) if ss or devel_space is None else devel_space
+        self.install_space = os.path.join(self.workspace, 'install' + ss) if ss or install_space is None else install_space
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
         # Handle build options
         self.isolate_devel = isolate_devel
@@ -105,7 +105,7 @@ class Context(object):
         sticky_env = get_resultspace_environment(self.devel_space, quiet=True)
 
         if 'CMAKE_PREFIX_PATH' in sticky_env:
-            last_cmake_prefix_path = sticky_env['CMAKE_PREFIX_PATH'].rpartition(':')[0]
+            last_cmake_prefix_path = sticky_env['CMAKE_PREFIX_PATH']
         else:
             last_cmake_prefix_path = ''
 
