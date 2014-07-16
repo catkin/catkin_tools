@@ -34,7 +34,6 @@ Please see the catkin_tools documentation before editing any files in this
 directory.
 """
 
-
 def get_paths(workspace_path, verb=None):
     """Get the path to a metadata directory and verb-specific metadata file.
 

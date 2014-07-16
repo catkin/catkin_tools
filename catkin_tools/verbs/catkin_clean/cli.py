@@ -54,6 +54,9 @@ def prepare_arguments(parser):
     oadd('-d', '--devel-only', action='store_true', default=False,
          help='Only remove the develspace (this might require --force-cmake '
          'on the next build)')
+    oadd('-i', '--install-only', action='store_true', default=False,
+         help='Only remove the installspace (this might require --force-cmake '
+         'on the next build)')
 
     return parser
 
@@ -92,6 +95,7 @@ def main(opts):
     build_space = os.path.join(marked_workspace, build_metadata['build_space'])
     devel_space = os.path.join(marked_workspace, build_metadata['devel_space'])
     source_space = os.path.join(marked_workspace, build_metadata['source_space'])
+    install_space = os.path.join(marked_workspace, build_metadata['install_space'])
 
     # Only group (destruction-limiting)
     if opts.ccache_only:
@@ -144,6 +148,10 @@ def main(opts):
         if os.path.exists(devel_space):
             print("Removing develspace: %s" % devel_space)
             shutil.rmtree(devel_space)
+    elif opts.install_only:
+        if os.path.exists(install_space):
+            print("Removing installspace: %s" % install_space)
+            shutil.rmtree(install_space)
     else:
         # Remove the buildspace and develspace
         if os.path.exists(build_space):
@@ -152,5 +160,8 @@ def main(opts):
         if os.path.exists(devel_space):
             print("Removing develspace: %s" % devel_space)
             shutil.rmtree(devel_space)
+        if os.path.exists(install_space):
+            print("Removing installspace: %s" % install_space)
+            shutil.rmtree(install_space)
 
     return 0
