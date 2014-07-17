@@ -181,7 +181,7 @@ def main(opts):
     if build_metadata:
         # Convert paths to absolute
         for (k, v) in build_metadata.items():
-            if k in ['source_space','build_space','devel_space','install_space']:
+            if k in ['source_space', 'build_space', 'devel_space', 'install_space']:
                 build_metadata[k] = os.path.join(marked_workspace, v)
 
         # Update context args with stored values as defaults
