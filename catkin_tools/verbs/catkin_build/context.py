@@ -92,7 +92,10 @@ class Context(object):
         self.build_space = os.path.abspath(self.build_space)
         self.devel_space = os.path.join(self.workspace, 'devel' + ss) if ss or devel_space is None else devel_space
         self.devel_space = os.path.abspath(self.devel_space)
-        self.install_space = os.path.join(self.workspace, 'install' + ss) if ss or install_space is None else install_space
+        if ss or install_space is None:
+            self.install_space = os.path.join(self.workspace, 'install' + ss)
+        else:
+            self.install_space = install_space
         self.install_space = os.path.abspath(self.install_space)
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
         # Handle build options

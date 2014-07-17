@@ -34,9 +34,9 @@ def prepare_arguments(parser):
     oadd = only_group.add_argument
 
     # Non-mutually-exclusive args
-    add('workspace', nargs='?', default=os.getcwd(),
+    add('--workspace', '-w', default=None,
         help='The path to the catkin workspace to clean. Default: the workspace'
-        'containing current working directory')
+        ' containing current working directory')
 
     # Metadata group
     madd('-m', '--metadata', action='store_true', default=False,
@@ -63,6 +63,8 @@ def prepare_arguments(parser):
 
 def main(opts):
     # Get the workspace
+    if not opts.workspace:
+        opts.workspace = os.getcwd()
     marked_workspace = metadata.find_enclosing_workspace(opts.workspace)
     if not marked_workspace:
         print("catkin clean: error: Could not clean workspace \"%s\" because it "

@@ -23,7 +23,7 @@ from catkin_tools import metadata
 def prepare_arguments(parser):
     add = parser.add_argument
 
-    add('workspace', nargs='?', default=os.getcwd(),
+    add('--workspace', '-w', default=None,
         help='The path to initialize as a catkin workspace. Default: current working directory')
     add('--reset', action='store_true', default=False,
         help='Reset (delete) the metadata for the given workspace.')
@@ -34,6 +34,8 @@ def prepare_arguments(parser):
 def main(opts):
     try:
         # Check if the workspace is initialized
+        if not opts.workspace:
+            opts.workspace = os.getcwd()
         marked_workspace = metadata.find_enclosing_workspace(opts.workspace)
 
         # Initialize the workspace if necessary
