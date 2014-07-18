@@ -18,152 +18,174 @@ import os
 import shutil
 
 from catkin_pkg.packages import find_packages
-from catkin_tools import metadata
+
+from catkin_tools.argument_parsing import add_context_args
+
+from catkin_tools.context import Context
+
+from catkin_tools.metadata import find_enclosing_workspace
+from catkin_tools.metadata import get_active_profile
+from catkin_tools.metadata import get_metadata
+from catkin_tools.metadata import update_metadata
+
+from catkin_tools.terminal_color import ColorMapper
+
+color_mapper = ColorMapper()
+clr = color_mapper.clr
 
 # Exempt build directories
 # See https://github.com/catkin/catkin_tools/issues/82
-exempt_build_dirs = ['build_logs']
+exempt_build_files = ['build_logs', '.catkin_tools.yaml']
+
+setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_setup_util.py']
 
 
 def prepare_arguments(parser):
-    metadata_group = parser.add_mutually_exclusive_group()
-    only_group = parser.add_mutually_exclusive_group()
+    # Workspace / profile args
+    add_context_args(parser)
 
-    add = parser.add_argument
-    madd = metadata_group.add_argument
-    oadd = only_group.add_argument
+    # Basic group
+    basic_group = parser.add_argument_group('Basic', 'Clean workspace subdirectories.')
+    add = basic_group.add_argument
+    add('-a', '--all', action='store_true', default=False,
+        help='Remove all of the *spaces associated with the given or active'
+        ' profile. This will remove everything but the source space and the'
+        ' hidden .catkin_tools directory.')
+    add('-b', '--build', action='store_true', default=False,
+        help='Remove the buildspace.')
+    add('-d', '--devel', action='store_true', default=False,
+        help='Remove the develspace.')
+    add('-i', '--install', action='store_true', default=False,
+        help='Remove the installspace.')
 
-    # Non-mutually-exclusive args
-    add('--workspace', '-w', default=None,
-        help='The path to the catkin workspace to clean. Default: the workspace'
-        ' containing current working directory')
+    # Advanced group
+    advanced_group = parser.add_argument_group(
+        'Advanced',
+        "Clean only specific parts of the workspace. These options will "
+        "automatically enable the --force-cmake option for the next build "
+        "invocation.")
+    add = advanced_group.add_argument
+    add('-c', '--cmake-cache', action='store_true', default=False,
+        help='Clear the CMakeCache for each package, but leave build and devel spaces.')
 
-    # Metadata group
-    madd('-m', '--metadata', action='store_true', default=False,
-         help='Delete the metadata for the given workspace')
-    madd('--metadata-dir', action='store_true', default=False,
-         help='Delete the metadata for the given workspace, including the .catkin_tools marker directory')
+    add('-s', '--setup-files', action='store_true', default=False,
+        help='Clear the catkin-generated files in order to rebase onto another workspace.')
 
-    # Only group
-    oadd('-c', '--ccache-only', action='store_true', default=False,
-         help='Only clear the CMakeCache for each package, but leave build and devel spaces.')
-    oadd('-o', '--orphans-only', action='store_true', default=False,
-         help='Remove the develspace but only remove build directories whose '
-         'source packages are no longer enabled or in the source space (this '
-         'might require --force-cmake on the next build)')
-    oadd('-d', '--devel-only', action='store_true', default=False,
-         help='Only remove the develspace (this might require --force-cmake '
-         'on the next build)')
-    oadd('-i', '--install-only', action='store_true', default=False,
-         help='Only remove the installspace (this might require --force-cmake '
-         'on the next build)')
+    add('-o', '--orphans', action='store_true', default=False,
+        help='Remove only build directories whose source packages are no'
+        ' longer enabled or in the source space. This might require'
+        ' --force-cmake on the next build.')
 
     return parser
 
 
 def main(opts):
-    # Get the workspace
-    if not opts.workspace:
-        opts.workspace = os.getcwd()
-    marked_workspace = metadata.find_enclosing_workspace(opts.workspace)
-    if not marked_workspace:
-        print("catkin clean: error: Could not clean workspace \"%s\" because it "
-              "either does not exist or it has no catkin_tools metadata." %
-              opts.workspace)
-        return 1
+    actions = ['all', 'build', 'devel', 'install', 'cmake_cache', 'orphans', 'setup_files']
+    if not any([v for (k, v) in vars(opts).items() if k in actions]):
+        print("[clean] No actions performed. See `catkin clean -h` for usage.")
+        return 0
 
-    # Get the catkin build spaces
-    build_metadata = metadata.get_metadata(marked_workspace, 'build')
+    needs_force = False
 
-    # Metadata group
-    if opts.metadata:
-        # Delete the metadata
-        metadata.init_metadata_dir(
-            marked_workspace,
-            reset=True)
-    elif opts.metadata_dir:
-        # Delete the metadata directory
-        (metadata_dir, _) = metadata.get_paths(marked_workspace)
-        print("Deleting metadata directory: %s" % metadata_dir)
-        shutil.rmtree(metadata_dir)
+    # Load the context
+    ctx = Context.Load(opts.workspace, opts.profile, opts, strict=True)
 
-    # Check the build metadata
-    if not build_metadata:
-        print("catkin clean: error: Could not clean workspace \"%s\" because it "
-              "it is missing the catkin build metadata." % marked_workspace)
-        return 1
-
-    # Remove the build and develspaces
-    build_space = os.path.join(marked_workspace, build_metadata['build_space'])
-    devel_space = os.path.join(marked_workspace, build_metadata['devel_space'])
-    source_space = os.path.join(marked_workspace, build_metadata['source_space'])
-    install_space = os.path.join(marked_workspace, build_metadata['install_space'])
-
-    # Only group (destruction-limiting)
-    if opts.ccache_only:
-        # Clear the CMakeCache for each package
-        if not os.path.exists(build_space):
-            print("No buildspace exists, no CMake caches to clear.")
-            return 0
-
-        # Remove CMakeCaches
-        print("Removing CMakeCache.txt files from %s" % build_space)
-        for pkg_build_name in os.listdir(build_space):
-            if pkg_build_name not in exempt_build_dirs:
-                pkg_build_path = os.path.join(build_space, pkg_build_name)
-                ccache_path = os.path.join(pkg_build_path, 'CMakeCache.txt')
-
-                if os.path.exists(ccache_path):
-                    print(" - Removing %s" % ccache_path)
-                    os.remove(ccache_path)
-
-    elif opts.orphans_only:
-        if not os.path.exists(build_space):
-            print("No buildspace exists, no potential for orphans.")
-            return 0
-
-        # TODO: Check for merged build and report error
-        # Get all enabled packages in source space
-        found_source_packages = [pkg.name for (path, pkg) in find_packages(source_space).items()]
-
-        # Iterate over all packages with build dirs
-        print("Removing orphaned build directories from %s" % build_space)
-        no_orphans = True
-        for pkg_build_name in os.listdir(build_space):
-            if pkg_build_name not in exempt_build_dirs:
-                pkg_build_path = os.path.join(build_space, pkg_build_name)
-                # Remove package build dir if not found
-                if pkg_build_name not in found_source_packages:
-                    no_orphans = False
-                    print(" - Removing %s" % pkg_build_path)
-                    shutil.rmtree(pkg_build_path)
-
-        if no_orphans:
-            print(" - No orphans found, nothing removed from buildspace.")
+    if not ctx:
+        if not opts.workspace:
+            print(
+                "catkin clean: error: The current or desired workspace could not be "
+                "determined. Please run `catkin clean` from within a catkin "
+                "workspace or specify the workspace explicitly with the "
+                "`--workspace` option.")
         else:
-            # Remove the develspace
-            # TODO: For isolated devel, this could just remove individual packages
-            if os.path.exists(devel_space):
-                print("Removing develspace: %s" % devel_space)
-                shutil.rmtree(devel_space)
-    elif opts.devel_only:
-        if os.path.exists(devel_space):
-            print("Removing develspace: %s" % devel_space)
-            shutil.rmtree(devel_space)
-    elif opts.install_only:
-        if os.path.exists(install_space):
-            print("Removing installspace: %s" % install_space)
-            shutil.rmtree(install_space)
+            print(
+                "catkin clean: error: Could not clean workspace \"%s\" because it "
+                "either does not exist or it has no catkin_tools metadata." %
+                opts.workspace)
+        return 1
+
+    # Remove the requested spaces
+    if opts.all:
+        opts.build = opts.devel = opts.install = True
+
+    if opts.build:
+        if os.path.exists(ctx.build_space_abs):
+            print("[clean] Removing buildspace: %s" % ctx.build_space_abs)
+            shutil.rmtree(ctx.build_space_abs)
     else:
-        # Remove the buildspace and develspace
-        if os.path.exists(build_space):
-            print("Removing buildspace: %s" % build_space)
-            shutil.rmtree(build_space)
-        if os.path.exists(devel_space):
-            print("Removing develspace: %s" % devel_space)
-            shutil.rmtree(devel_space)
-        if os.path.exists(install_space):
-            print("Removing installspace: %s" % install_space)
-            shutil.rmtree(install_space)
+        # Orphan removal
+        if opts.orphans:
+            if os.path.exists(ctx.build_space_abs):
+                # TODO: Check for merged build and report error
+                # Get all enabled packages in source space
+                found_source_packages = [pkg.name for (path, pkg) in find_packages(ctx.source_space_abs).items()]
+
+                # Iterate over all packages with build dirs
+                print("[clean] Removing orphaned build directories from %s" % ctx.build_space_abs)
+                no_orphans = True
+                for pkg_build_name in os.listdir(ctx.build_space_abs):
+                    if pkg_build_name not in exempt_build_files:
+                        pkg_build_path = os.path.join(ctx.build_space_abs, pkg_build_name)
+                        # Remove package build dir if not found
+                        if pkg_build_name not in found_source_packages:
+                            no_orphans = False
+                            print(" - Removing %s" % pkg_build_path)
+                            shutil.rmtree(pkg_build_path)
+
+                if no_orphans:
+                    print("[clean] No orphans found, nothing removed from buildspace.")
+                else:
+                    # Remove the develspace
+                    # TODO: For isolated devel, this could just remove individual packages
+                    if os.path.exists(ctx.devel_space_abs):
+                        print("Removing develspace: %s" % ctx.devel_space_abs)
+                        shutil.rmtree(ctx.devel_space_abs)
+                        needs_force = True
+            else:
+                print("[clean] No buildspace exists, no potential for orphans.")
+                return 0
+
+        # CMake Cache removal
+        if opts.cmake_cache:
+            # Clear the CMakeCache for each package
+            if os.path.exists(ctx.build_space_abs):
+                # Remove CMakeCaches
+                print("[clean] Removing CMakeCache.txt files from %s" % ctx.build_space_abs)
+                for pkg_build_name in os.listdir(ctx.build_space_abs):
+                    if pkg_build_name not in exempt_build_files:
+                        pkg_build_path = os.path.join(ctx.build_space_abs, pkg_build_name)
+                        ccache_path = os.path.join(pkg_build_path, 'CMakeCache.txt')
+
+                        if os.path.exists(ccache_path):
+                            print(" - Removing %s" % ccache_path)
+                            os.remove(ccache_path)
+                            needs_force = True
+            else:
+                print("[clean] No buildspace exists, no CMake caches to clear.")
+
+    if opts.devel:
+        if os.path.exists(ctx.devel_space_abs):
+            print("[clean] Removing develspace: %s" % ctx.devel_space_abs)
+            shutil.rmtree(ctx.devel_space_abs)
+    else:
+        if opts.setup_files:
+            print("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
+            for filename in setup_files:
+                full_path = os.path.join(ctx.devel_space_abs, filename)
+                if os.path.exists(full_path):
+                    print(" - Removing %s" % full_path)
+                    os.remove(full_path)
+                    needs_force = True
+
+    if opts.install:
+        if os.path.exists(ctx.install_space_abs):
+            print("[clean] Removing installspace: %s" % ctx.install_space_abs)
+            shutil.rmtree(ctx.install_space_abs)
+
+    if needs_force:
+        print(
+            "NOTE: Parts of the workspace have been cleaned which will "
+            "necessitate re-configuring CMake on the next build.")
+        update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': True})
 
     return 0

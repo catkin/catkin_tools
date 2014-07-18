@@ -17,35 +17,45 @@ from __future__ import print_function
 import os
 
 from catkin_pkg.packages import find_packages
-from catkin_tools import metadata
+
+from catkin_tools.argument_parsing import add_workspace_arg
+
+from catkin_tools.context import Context
+
+from catkin_tools.metadata import find_enclosing_workspace
+from catkin_tools.metadata import init_metadata_root
 
 
 def prepare_arguments(parser):
+    # Workspace / profile args
+    add_workspace_arg(parser)
+
     add = parser.add_argument
 
-    add('--workspace', '-w', default=None,
-        help='The path to initialize as a catkin workspace. Default: current working directory')
     add('--reset', action='store_true', default=False,
-        help='Reset (delete) the metadata for the given workspace.')
+        help='Reset (delete) all of the metadata for the given workspace.')
 
     return parser
 
 
 def main(opts):
     try:
-        # Check if the workspace is initialized
-        if not opts.workspace:
-            opts.workspace = os.getcwd()
-        marked_workspace = metadata.find_enclosing_workspace(opts.workspace)
+        # Load a context with initialization
+        ctx = Context.Load(opts.workspace, opts.profile, strict=True)
 
         # Initialize the workspace if necessary
-        if marked_workspace == opts.workspace and not opts.reset:
-            print('Catkin workspace %s is already initialized.' % (opts.workspace))
+        if ctx:
+            print('Catkin workspace `%s` is already initialized. No action taken.' % (ctx.workspace))
         else:
+            print('Initializing catkin workspace in `%s`.' % (opts.workspace or os.getcwd()))
             # initialize the workspace
-            metadata.init_metadata_dir(
-                opts.workspace,
+            init_metadata_root(
+                opts.workspace or os.getcwd(),
                 opts.reset)
+
+        ctx = Context.Load(opts.workspace, opts.profile)
+        print(ctx.summary())
+
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
         print('error: could not initialize catkin workspace: %s' % exc.message)

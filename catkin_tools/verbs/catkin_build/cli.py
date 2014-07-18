@@ -19,96 +19,84 @@ import re
 import sys
 import time
 
+from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
+
+from catkin_tools.common import format_time_delta
+from catkin_tools.common import is_tty
+from catkin_tools.common import log
+from catkin_tools.common import find_enclosing_package
+
+from catkin_tools.context import Context
+
+from catkin_tools.terminal_color import set_color
+
+from catkin_tools.metadata import get_metadata
+from catkin_tools.metadata import update_metadata
+
+from catkin_tools.resultspace import load_resultspace_environment
+
 from .color import clr
-from .color import set_color
 
-from .common import extract_cmake_and_make_and_catkin_make_arguments
-from .common import extract_jobs_flags
-from .common import format_time_delta
 from .common import get_build_type
-from .common import is_tty
-from .common import log
-
-from .context import Context
 
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
-from .build import load_resultspace_environment
 from .build import topological_order_packages
 from .build import verify_start_with_option
 
-from catkin_tools import metadata
-
-
-def argument_preprocessor(args):
-    """Processes the arguments for the build verb, before being passed to argparse"""
-    # CMake/make pass-through flags collect dashed options. They require special
-    # handling or argparse will complain about unrecognized options.
-    args = sys.argv[1:] if args is None else args
-    extract_make_args = extract_cmake_and_make_and_catkin_make_arguments
-    args, cmake_args, make_args, catkin_make_args = extract_make_args(args)
-    # Extract make jobs flags.
-    jobs_flags = extract_jobs_flags(' '.join(args))
-    if jobs_flags:
-        args = re.sub(jobs_flags, '', ' '.join(args)).split()
-        jobs_flags = jobs_flags.split()
-    extras = {
-        'cmake_args': cmake_args,
-        'make_args': make_args + (jobs_flags or []),
-        'catkin_make_args': catkin_make_args,
-    }
-    return args, extras
-
 
 def prepare_arguments(parser):
+
+    parser.description = "Build one or more packages in a catkin workspace.\
+    This invokes `CMake`, `make`, and optionally `make install` for either all\
+    or the specified packages in a catkin workspace.\
+    \
+    Arguments passed to this verb can temporarily override persistent options\
+    stored in the catkin profile config. If you want to save these options, use\
+    the --save-config argument. To see the current config, use the\
+    `catkin config` command."
+
+    # Workspace / profile args
+    add_context_args(parser)
+    # Sub-commands
     add = parser.add_argument
+    add('--dry-run', '-d', action='store_true', default=False,
+        help='List the packages which will be built with the given arguments without building them.')
     # What packages to build
-    add('packages', nargs='*',
+    pkg_group = parser.add_argument_group('Packages', 'Control which packages get built.')
+    add = pkg_group.add_argument
+    add('packages', metavar='PKGNAME', nargs='*',
         help='Workspace packages to build, package dependencies are built as well unless --no-deps is used. '
              'If no packages are given, then all the packages are built.')
+    add('--this', dest='build_this', action='store_true', default=False,
+        help='Build the package containing the current working directory.')
     add('--no-deps', action='store_true', default=False,
         help='Only build specified packages, not their dependencies.')
-    add('--start-with', metavar='PKGNAME',
-        help='Start building with this package, skipping any before it.')
-    # Context options
-    add('--workspace', '-w', default=None,
-        help='The base path of the workspace (default ".")')
-    add('--source', '--source-space', default=None,
-        help='The path to the source space (default "src")')
-    add('--build', '--build-space', default=None,
-        help='The path to the build space (default "build")')
-    add('--devel', '--devel-space', default=None,
-        help='Sets the target devel space (default "devel")')
-    add('--isolate-devel', action='store_true', default=False,
-        help='Build products from each catkin package into isolated devel spaces.')
-    add('--install-space', dest='install_space', default=None,
-        help='Sets the target install space (default "install")')
-    add('--install', action='store_true', default=False,
-        help='Causes each catkin package to be installed.')
-    add('--isolate-install', action='store_true', default=False,
-        help='Install each catkin package into a separate install space.')
-    add('--space-suffix',
-        help='suffix for build, devel, and install space if they are not otherwise explicitly set')
-    add('--extend', dest='extend_path', type=str,
-        help='Explicitly extend the devel- or install-space of another catkin workspace. '
-             'Note that calling this will also invoke the --force-cmake option.')
+    start_with_group = pkg_group.add_mutually_exclusive_group()
+    add = start_with_group.add_argument
+    add('--start-with', metavar='PKGNAME', type=str,
+        help='Build a given package and those which depend on it, skipping any before it.')
+    add('--start-with-this', action='store_true', default=False,
+        help='Similar to --start-with, starting with the package containing the current directory.')
+
     # Build options
-    add('--parallel-jobs', '--parallel', '-p', default=None,
-        help='Maximum number of packages which could be built in parallel (default is cpu count)')
-    add('--force-cmake', action='store_true', default=False,
+    build_group = parser.add_argument_group('Build', 'Control the build behaiovr.')
+    add = build_group.add_argument
+    add('--force-cmake', action='store_true', default=None,
         help='Runs cmake explicitly for each catkin package.')
-    add('--no-install-lock', action='store_true', default=False,
+    add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
-    add('--cmake-args', dest='cmake_args', nargs='*', type=str,
-        help='Arbitrary arguments which are passes to CMake. '
-             'It must be passed after other arguments since it collects all following options.')
-    add('--make-args', dest='make_args', nargs='*', type=str,
-        help='Arbitrary arguments which are passes to make.'
-             'It must be passed after other arguments since it collects all following options.')
-    add('--catkin-make-args', dest='catkin_make_args', nargs='*', type=str,
-        help='Arbitrary arguments which are passes to make but only for catkin packages.'
-             'It must be passed after other arguments since it collects all following options.')
+
+    config_group = parser.add_argument_group('Config', 'Parameters for the underlying buildsystem.')
+    add = config_group.add_argument
+    add('--save-config', action='store_true', default=False,
+        help='Save any configuration options in this section for the next build invocation.')
+    add_cmake_and_make_and_catkin_make_args(config_group)
+
     # Behavior
+    behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
+    add = behavior_group.add_argument
     add('--force-color', action='store_true', default=False,
         help='Forces catkin build to ouput in color, even when the terminal does not appear to support it.')
     add('--verbose', '-v', action='store_true', default=False,
@@ -117,14 +105,13 @@ def prepare_arguments(parser):
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
-    # Commands
-    add('--list-only', '--list', action='store_true', default=False,
-        help='List packages in topological order, then exit.')
+    add('--no-notify', action='store_true', default=False,
+        help='Suppresses system popup notification.')
 
     return parser
 
 
-def list_only(context, packages, no_deps, start_with):
+def dry_run(context, packages, no_deps, start_with):
     # Print Summary
     log(context.summary())
     # Find list of packages in the workspace
@@ -152,82 +139,73 @@ def list_only(context, packages, no_deps, start_with):
 
 
 def main(opts):
+
+    # Context-aware args
+    if opts.build_this or opts.start_with_this:
+        # Determine the enclosing package
+        try:
+            this_package = find_enclosing_package()
+        except catkin_pkg.package.InvalidPackage as ex:
+            pass
+
+        # Handle context-based package building
+        if opts.build_this:
+            if this_package:
+                opts.packages += [this_package]
+            else:
+                sys.exit("catkin build: --this was specified, but this directory is not contained by a catkin package.")
+
+        # If --start--with was used without any packages and --this was specified, start with this package
+        if opts.start_with_this:
+            if this_package:
+                opts.start_with = this_package
+            else:
+                sys.exit("catkin build: --this was specified, but this directory is not contained by a catkin package.")
+
     if opts.no_deps and not opts.packages:
         sys.exit("With --no-deps, you must specify packages to build.")
 
     if not opts.force_color and not is_tty(sys.stdout):
         set_color(False)
 
-    if opts.extend_path is not None:
+    # Load the context
+    ctx = Context.Load(opts.workspace, opts.profile, opts)
+
+    # Load the environment of the workspace to extend
+    if ctx.extend_path is not None:
         try:
-            opts.force_cmake = True
-            load_resultspace_environment(opts.extend_path)
-            if 'CMAKE_PREFIX_PATH' in os.environ:
-                opts.cmake_args.append('-DCMAKE_PREFIX_PATH="%s"' % os.environ['CMAKE_PREFIX_PATH'])
+            load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            print("catkin build: error: argument --extend: Unable to extend workspace from \"%s\": %s" %
-                  (opts.extend_path, exc.message))
+            log(clr("@!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
+                    (ctx.extend_path, exc.message)))
             return 1
 
-    # Try to find a metadata directory to get context defaults
-    marked_workspace = metadata.find_enclosing_workspace(os.getcwd())
-    build_metadata = {}
-    context_args = {}
-
-    if marked_workspace:
-        context_args['workspace'] = marked_workspace
-        build_metadata = metadata.get_metadata(marked_workspace, 'build')
-
-    if build_metadata:
-        # Convert paths to absolute
-        for (k, v) in build_metadata.items():
-            if k in ['source_space', 'build_space', 'devel_space', 'install_space']:
-                build_metadata[k] = os.path.join(marked_workspace, v)
-
-        # Update context args with stored values as defaults
-        context_args.update(build_metadata)
-
-    # User-supplied args override stored args
-    user_context_args = dict(
-        workspace=opts.workspace,
-        source_space=opts.source,
-        build_space=opts.build,
-        devel_space=opts.devel,
-        isolate_devel=opts.isolate_devel,
-        install_space=opts.install_space,
-        install=opts.install,
-        isolate_install=opts.isolate_install,
-        cmake_args=opts.cmake_args,
-        make_args=opts.make_args,
-        catkin_make_args=opts.catkin_make_args,
-        space_suffix=opts.space_suffix)
-
-    # Only update context args with given context args
-    context_args.update(dict([(k, v) for (k, v) in user_context_args.items() if v != [] and v is not None]))
-
-    # Create the build context
-    context = Context(**context_args)
-
     # Display list and leave the filesystem untouched
-    if opts.list_only:
-        list_only(context, opts.packages, opts.no_deps, opts.start_with)
+    if opts.dry_run:
+        dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
 
-    # After successfully constructing a context, write the build metadata
-    metadata.update_metadata(
-        context.workspace,
-        'build',
-        {'source_space': os.path.relpath(context.source_space, context.workspace),
-         'build_space': os.path.relpath(context.build_space, context.workspace),
-         'devel_space': os.path.relpath(context.devel_space, context.workspace),
-         'install_space': os.path.relpath(context.install_space, context.workspace),
-         'isolate_devel': context.isolate_devel,
-         'isolate_install': context.isolate_install})
+    # Check if the context is valid before writing any metadata
+    if not ctx.source_space_exists():
+        print("catkin build: error: Unable to find source space `%s`" % ctx.source_space_abs)
+        return 1
+
+    # Always save the last context under the build verb
+    update_metadata(ctx.workspace, ctx.profile, 'build', ctx.get_stored_dict())
+
+    build_metadata = get_metadata(ctx.workspace, ctx.profile, 'build')
+    if build_metadata.get('needs_force', False):
+        opts.force_cmake = True
+        update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': False})
+
+    # Save the context as the configuration
+    if opts.save_config:
+        Context.Save(ctx)
 
     start = time.time()
     try:
         return build_isolated_workspace(
-            context,
+            ctx,
             packages=opts.packages,
             start_with=opts.start_with,
             no_deps=opts.no_deps,
@@ -237,7 +215,8 @@ def main(opts):
             quiet=not opts.verbose,
             interleave_output=opts.interleave_output,
             no_status=opts.no_status,
-            lock_install=not opts.no_install_lock
+            lock_install=not opts.no_install_lock,
+            no_notify=opts.no_notify
         )
     finally:
         log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))

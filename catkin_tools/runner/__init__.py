@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .cli import main
-from .cli import prepare_arguments
+import os
 
-# This describes this command to the loader
-description = dict(
-    verb='clean',
-    description="Deletes various products of the build verb.",
-    main=main,
-    prepare_arguments=prepare_arguments,
-)
+if os.name == 'nt':
+    from . import run_windows as run
+else:
+    from . import run_unix as run
+
+run_command = run.run_command

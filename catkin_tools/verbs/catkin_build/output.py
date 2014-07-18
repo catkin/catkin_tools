@@ -16,14 +16,16 @@ from __future__ import print_function
 
 import os
 
-from .color import ansi
-from .color import clr
+from catkin_tools.terminal_color import ansi
 
-from .common import remove_ansi_escape
-from .common import wide_log
+from catkin_tools.common import remove_ansi_escape
+from catkin_tools.common import wide_log
+
+from .color import clr
 
 
 class FileBackedLogCache(object):
+
     def __init__(self, package_name, log_dir, color):
         self.package = package_name
         self.log_dir = log_dir
@@ -73,6 +75,7 @@ class FileBackedLogCache(object):
 
 
 class OutputController(object):
+
     def __init__(self, log_dir, quiet, interleave_output, color, max_package_name_length, prefix_output=False):
         self.log_dir = log_dir
         self.quiet = quiet

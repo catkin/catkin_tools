@@ -80,7 +80,7 @@ def test_get_verb_aliases():
     assert aliases['b'] == 'build'
     # Test a custom file
     base_path = os.path.join(test_folder, 'verb_aliases')
-    with open(os.path.join(base_path, '01-my-custom-aliases.yml'), 'w') as f:
+    with open(os.path.join(base_path, '01-my-custom-aliases.yaml'), 'w') as f:
         f.write("""\
 b: build --isolate-devel
 ls: null

@@ -57,7 +57,7 @@ def run_command(cmd, cwd=None):
     # Read data until the process is finished
     while p.poll() is None:
         incomming = left_over
-        rlist, wlist, xlist = select.select([master], [], [], 0.1)
+        rlist, wlist, xlist = select.select([master], [], [], 0.01)
         if rlist:
             incomming += os.read(master, 1024)
             lines = incomming.splitlines(True)  # keepends=True
