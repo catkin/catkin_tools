@@ -20,17 +20,19 @@ from threading import Thread
 
 from .color import colorize_cmake
 
-from .common import remove_ansi_escape
-from .common import run_command
+from catkin_tools.common import remove_ansi_escape
+from catkin_tools.runner import run_command
 
 
 class ExecutorEvent(object):
+
     """This is returned by the Executor when an event occurs
 
     Events can be jobs starting/finishing, commands starting/failing/finishing,
     commands producing output (each line is an event), or when the executor
     quits or failes.
     """
+
     def __init__(self, executor_id, event_type, data, package):
         self.executor_id = executor_id
         self.event_type = event_type
@@ -39,6 +41,7 @@ class ExecutorEvent(object):
 
 
 class Executor(Thread):
+
     """Threaded executor for the parallel catkin build jobs"""
     name_prefix = 'build'
 

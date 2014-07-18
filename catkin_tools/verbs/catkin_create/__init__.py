@@ -1,3 +1,4 @@
+
 # Copyright 2014 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from catkin_tools.argument_parsing import argument_preprocessor
+
 from .cli import main
 from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    verb='clean',
-    description="Deletes various products of the build verb.",
+    verb='create',
+    description="Creates catkin workspace resources like packages.",
     main=main,
     prepare_arguments=prepare_arguments,
 )

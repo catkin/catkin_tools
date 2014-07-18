@@ -81,10 +81,32 @@ def disable_ANSI_colors():
     for key in _ansi:
         _ansi[key] = ''
 
+
 # Default to ansi colors on
 enable_ANSI_colors()
 if os.name in ['nt']:
     disable_ANSI_colors()
+
+# TODO: Is this needed in addition to enable_/disable_ functions?
+_color_on = True
+
+
+def set_color(state):
+    """Sets the global colorization setting.
+
+    Setting this to False will cause all ansi colorization sequences to get
+    replaced with empty strings.
+
+    :parma state: colorization On or Off, True or False respectively
+    :type state: bool
+    """
+    global _color_on
+    if state:
+        enable_ANSI_colors()
+        _color_on = True
+    else:
+        disable_ANSI_colors()
+        _color_on = False
 
 
 class ColorTemplate(string.Template):
@@ -126,3 +148,42 @@ def test_colors():
     cprint("| @{pf}Purple     @|| @!@{pf}Purple Bold")
     cprint("| @{cf}Cyan       @|| @!@{cf}Cyan Bold")
     cprint("| White      | @!White Bold")
+
+
+class ColorMapper(object):
+
+    """This class encapsulates a set of human-readable format strings and the
+    functionality to convert them into colorized version.
+    """
+
+    # This map translates more human reable format strings into colorized versions
+    default_color_translation_map = {
+        # 'output': 'colorized_output'
+        '': fmt('@!' + sanitize('') + '@|')
+    }
+
+    def __init__(self, color_map={}):
+        """Create a color mapper with a given map.
+
+        :param color_map: A dictionary of format strings and colorized verisons
+        :type color_map: dict
+        """
+        self.color_map = ColorMapper.default_color_translation_map
+        self.color_map.update(color_map)
+
+    def clr(self, key):
+        """Returns a colorized version of the string given.
+
+        This is occomplished by either returning a hit from the color translation
+        map or by calling :py:func:`fmt` on the string and returning it.
+
+        :param key: string to be colorized
+        :type key: str
+        """
+        global _color_on
+        if not _color_on:
+            return fmt(key)
+        val = self.color_map.get(key, None)
+        if val is None:
+            return fmt(key)
+        return val

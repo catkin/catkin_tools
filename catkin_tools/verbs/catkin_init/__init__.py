@@ -18,7 +18,7 @@ from .cli import prepare_arguments
 # This describes this command to the loader
 description = dict(
     verb='init',
-    description="Initializes a given folder as a catkin workspace",
+    description="Initializes a given folder as a catkin workspace.",
     main=main,
     prepare_arguments=prepare_arguments,
 )

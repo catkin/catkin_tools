@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This set of functions define the interactions with the catkin_tools metadata
-# file, `.catkin_tools.yml`. This file can be used by each verb to store
-# verb-specific information
-
 from __future__ import print_function
 
 import os
@@ -32,7 +28,7 @@ configuration information used by the `catkin` command and its sub-commands.
 
 Each subdirectory contains a set of persistent configuration options for
 separate "profiles." The default profile is called `default`. If another
-profile is desired, it can be described in the `profiles.yml` file in this
+profile is desired, it can be described in the `profiles.yaml` file in this
 directory.
 
 Please see the catkin_tools documentation before editing any files in this
@@ -40,87 +36,25 @@ directory. Most actions can be perfomred with the `catkin` command-line
 program.
 """
 
-PROFILES_YML_FILE_NAME = 'profiles.yml'
+PROFILES_YML_FILE_NAME = 'profiles.yaml'
 
 DEFAULT_PROFILE_NAME = 'default'
 
 
-def init_profile(workspace_path, profile_name, reset=False):
-    """Initialize a profile directory"""
+def get_metadata_root_path(workspace_path):
+    """Construct the path to a root metadata directory.
 
-    (profile_path, _) = get_paths(workspace_path, profile_name)
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
 
-    # Check if a profile directory already exists
-    if os.path.exists(profile_path):
-        # Reset the directory if requested
-        if reset:
-            print("Deleting existing profile from catkin_tools profile profile directory: %s" % (profile_path))
-            shutil.rmtree(profile_path)
-            os.mkdir(profile_path)
-    else:
-        # Create a new .catkin_tools directory
-        os.mkdir(profile_path)
-
-
-def get_profile_names(workspace_path):
-    """Get a list of profile names available to a given workspace."""
-
-    metadata_root_path = get_metadata_root_path(workspace_path)
-
-    if os.path.exists(metadata_root_path):
-        directories = os.walk(metadata_root_path).next()[1]
-
-    return directories
-
-
-def remove_profile(workspace_path, profile_name):
-    """Remove a profile by name."""
-
-    (profile_path, _) = get_paths(workspace_path, profile_name)
-
-    if os.path.exists(profile_path):
-        shutil.rmtree(profile_path)
-
-
-def set_active_profile(workspace_path, profile_name):
-    """Set a profile in a given workspace to be active."""
-
-    profiles_data = get_profiles_data(workspace_path)
-    profiles_data['active'] = profile_name
-
-    metadata_root_path = get_metadata_root_path(workspace_path)
-    profiles_yml_file_path = os.path.join(metadata_root_path, PROFILES_YML_FILE_NAME)
-    with open(profiles_yml_file_path, 'w') as profiles_file:
-        yaml.dump(profiles_data, profiles_file, default_flow_style=False)
-
-
-def get_active_profile(workspace_path):
-    """Get the active profile name from a workspace path."""
-
-    profiles_data = get_profiles_data(workspace_path)
-    if 'active' in profiles_data:
-        return profiles_data['active']
-
-    return DEFAULT_PROFILE_NAME
-
-
-def get_profiles_data(workspace_path):
-    """Get the contents of the profiles file.
-
-    This file contains information such as the currently active profile.
+    :returns: The path to the metadata root directory or None if workspace_path isn't a string
+    :rtype: str or None
     """
 
-    metadata_root_path = get_metadata_root_path(workspace_path)
-    profiles_yml_file_path = os.path.join(metadata_root_path, PROFILES_YML_FILE_NAME)
-    if os.path.exists(profiles_yml_file_path):
-        with open(profiles_yml_file_path, 'r') as profiles_file:
-            return yaml.load(profiles_file)
+    # TODO: Should calling this without a string just be a fatal error?
+    if workspace_path is None:
+        return None
 
-    return {}
-
-
-def get_metadata_root_path(workspace_path):
-    """Get the path to a root metadata directory."""
     return os.path.join(workspace_path, METADATA_DIR_NAME)
 
 
@@ -130,9 +64,11 @@ def get_paths(workspace_path, profile_name, verb=None):
     Note: these paths are not guaranteed to exist. This function simply serves
     to standardize where these files should be located.
 
-    :workspace_path: The path to the root of a catkin workspace
-    :profile_name: The catkin_tools metadata profile name
-    :verb: (optional) The catkin_tools verb with which this information is associated.
+    :param workspace_path: The path to the root of a catkin workspace
+    :type workspace_path: str
+    :param profile_name: The catkin_tools metadata profile name
+    :type profile_name: str
+    :param verb: (optional) The catkin_tools verb with which this information is associated.
 
     :returns: A tuple of the metadata directory and the verb-specific file path, if given
     """
@@ -144,7 +80,7 @@ def get_paths(workspace_path, profile_name, verb=None):
     metadata_path = os.path.join(metadata_root_path, profile_name) if profile_name else None
 
     # Get the metadata for this verb
-    metadata_file_path = os.path.join(metadata_path, '%s.yml' % verb) if profile_name and verb else None
+    metadata_file_path = os.path.join(metadata_path, '%s.yaml' % verb) if profile_name and verb else None
 
     return (metadata_path, metadata_file_path)
 
@@ -160,7 +96,7 @@ def find_enclosing_workspace(search_start_path):
 
     :returns: Path to the workspace if found, `None` if not found.
     """
-    while True:
+    while search_start_path:
         # Check if marker file exists
         candidate_path = get_metadata_root_path(search_start_path)
         if os.path.exists(candidate_path) and os.path.isdir(candidate_path):
@@ -177,8 +113,10 @@ def find_enclosing_workspace(search_start_path):
 def init_metadata_root(workspace_path, reset=False):
     """Create or reset a catkin_tools metadata directory with no content in a given path.
 
-    :workspace_path: The path to the root of a catkin workspace
-    :reset: If true, clear the metadata directory of all information
+    :param workspace_path: The exact path to the root of a catkin workspace
+    :type workspace_path: str
+    :param reset: If true, clear the metadata directory of all information
+    :type reset: bool
     """
 
     # Make sure the directory
@@ -215,18 +153,137 @@ def init_metadata_root(workspace_path, reset=False):
         metadata_readme.write(METADATA_README_TEXT)
 
 
-def get_metadata(workspace_path, verb):
+def init_profile(workspace_path, profile_name, reset=False):
+    """Initialize a profile directory in a given workspace.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+    :param profile_name: The catkin_tools metadata profile name to initialize
+    :type profile_name: str
+    """
+
+    (profile_path, _) = get_paths(workspace_path, profile_name)
+
+    # Check if a profile directory already exists
+    if os.path.exists(profile_path):
+        # Reset the directory if requested
+        if reset:
+            print("Deleting existing profile from catkin_tools profile profile directory: %s" % (profile_path))
+            shutil.rmtree(profile_path)
+            os.mkdir(profile_path)
+    else:
+        # Create a new .catkin_tools directory
+        os.mkdir(profile_path)
+
+
+def get_profile_names(workspace_path):
+    """Get a list of profile names available to a given workspace.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+
+    :returns: A list of the available profile names in the given workspace
+    :rtype: list
+    """
+
+    metadata_root_path = get_metadata_root_path(workspace_path)
+
+    if os.path.exists(metadata_root_path):
+        directories = os.walk(metadata_root_path).next()[1]
+
+        return directories
+
+    return []
+
+
+def remove_profile(workspace_path, profile_name):
+    """Remove a profile by name.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+    :param profile_name: The catkin_tools metadata profile name to delete
+    :type profile_name: str
+    """
+
+    (profile_path, _) = get_paths(workspace_path, profile_name)
+
+    if os.path.exists(profile_path):
+        shutil.rmtree(profile_path)
+
+
+def set_active_profile(workspace_path, profile_name):
+    """Set a profile in a given workspace to be active.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+    :param profile_name: The catkin_tools metadata profile name to activate
+    :type profile_name: str
+    """
+
+    profiles_data = get_profiles_data(workspace_path)
+    profiles_data['active'] = profile_name
+
+    metadata_root_path = get_metadata_root_path(workspace_path)
+    profiles_yaml_file_path = os.path.join(metadata_root_path, PROFILES_YML_FILE_NAME)
+    with open(profiles_yaml_file_path, 'w') as profiles_file:
+        yaml.dump(profiles_data, profiles_file, default_flow_style=False)
+
+
+def get_active_profile(workspace_path):
+    """Get the active profile name from a workspace path.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+
+    :returns: The active profile name
+    :rtype: str
+    """
+
+    profiles_data = get_profiles_data(workspace_path)
+    if 'active' in profiles_data:
+        return profiles_data['active']
+
+    return DEFAULT_PROFILE_NAME
+
+
+def get_profiles_data(workspace_path):
+    """Get the contents of the profiles file.
+
+    This file contains information such as the currently active profile.
+
+    :param workspace_path: The exact path to the root of a catkin_tools workspace
+    :type workspace_path: str
+
+    :returns: The contents of the root profiles file if it exists
+    :rtype: dict
+    """
+
+    if workspace_path is not None:
+        metadata_root_path = get_metadata_root_path(workspace_path)
+        profiles_yaml_file_path = os.path.join(metadata_root_path, PROFILES_YML_FILE_NAME)
+        if os.path.exists(profiles_yaml_file_path):
+            with open(profiles_yaml_file_path, 'r') as profiles_file:
+                return yaml.load(profiles_file)
+
+    return {}
+
+
+def get_metadata(workspace_path, profile, verb):
     """Get a python structure representing the metadata for a given verb.
 
-    :workspace_path: The path to the root of a catkin workspace
-    :verb: The catkin_tools verb with which this information is associated
+    :param workspace_path: The exact path to the root of a catkin workspace
+    :type workspace_path: str
+    :param profile: The catkin_tools metadata profile name
+    :type profile: str
+    :param verb: The catkin_tools verb with which this information is associated
+    :type verb: str
 
     :returns: A python structure representing the YAML file contents (empty
     dict if the file does not exist)
+    :rtype: dict
     """
 
-    active_profile = get_active_profile(workspace_path)
-    (metadata_path, metadata_file_path) = get_paths(workspace_path, active_profile, verb)
+    (metadata_path, metadata_file_path) = get_paths(workspace_path, profile, verb)
 
     if not os.path.exists(metadata_file_path):
         return {}
@@ -235,25 +292,60 @@ def get_metadata(workspace_path, verb):
         return yaml.load(metadata_file)
 
 
-def update_metadata(workspace_path, verb, new_data={}):
-    """Update the catkin_tools metadata file corresponding to a given verb.
+def update_metadata(workspace_path, profile, verb, new_data={}):
+    """Update the catkin_tools verb metadata for a given profile.
 
-    :workspace_path: The path to the root of a catkin workspace
-    :verb: The catkin_tools verb with which this information is associated
-    :new_data: A python dictionary or array to write to the metadata file
+    :param workspace_path: The path to the root of a catkin workspace
+    :type workspace_path: str
+    :param profile: The catkin_tools metadata profile name
+    :type profile: str
+    :param verb: The catkin_tools verb with which this information is associated
+    :type verb: str
+    :param new_data: A python dictionary or array to write to the metadata file
+    :type new_data: dict
     """
 
-    active_profile = get_active_profile(workspace_path)
-    (metadata_path, metadata_file_path) = get_paths(workspace_path, active_profile, verb)
+    (metadata_path, metadata_file_path) = get_paths(workspace_path, profile, verb)
 
     # Make sure the metadata directory exists
     init_metadata_root(workspace_path)
-    init_profile(workspace_path, active_profile)
+    init_profile(workspace_path, profile)
 
     # Get the curent metadata for this verb
-    data = get_metadata(metadata_path, verb) or dict()
+    data = get_metadata(workspace_path, profile, verb) or dict()
 
     # Update the metadata for this verb
     data.update(new_data)
     with open(metadata_file_path, 'w') as metadata_file:
         yaml.dump(data, metadata_file, default_flow_style=False)
+
+
+def get_active_metadata(workspace_path, verb):
+    """Get a python structure representing the metadata for a given verb.
+    :param workspace_path: The exact path to the root of a catkin workspace
+    :type workspace_path: str
+    :param verb: The catkin_tools verb with which this information is associated
+    :type verb: str
+
+    :returns: A python structure representing the YAML file contents (empty
+    dict if the file does not exist)
+    :rtype: dict
+    """
+
+    active_profile = get_active_profile(workspace_path)
+    get_metadata(workspace_path, active_profile, verb)
+
+
+def update_active_metadata(workspace_path, verb, new_data={}):
+    """Update the catkin_tools verb metadata for the active profile.
+
+    :param workspace_path: The path to the root of a catkin workspace
+    :type workspace_path: str
+    :param verb: The catkin_tools verb with which this information is associated
+    :type verb: str
+    :param new_data: A python dictionary or array to write to the metadata file
+    :type new_data: dict
+    """
+
+    active_profile = get_active_profile(workspace_path)
+    update_active_metadata(workspace_path, active_profile, verb, new_data)

@@ -18,7 +18,7 @@ from .cli import prepare_arguments
 # This describes this command to the loader
 description = dict(
     verb='profile',
-    description="Manage metadata profiles for a catkin workspace",
+    description="Manage config profiles for a catkin workspace.",
     main=main,
     prepare_arguments=prepare_arguments,
 )

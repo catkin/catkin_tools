@@ -19,16 +19,21 @@ import os
 from catkin_pkg.packages import find_packages
 from catkin_pkg.package import InvalidPackage
 
+from catkin_tools.terminal_color import ColorMapper
+
+color_mapper = ColorMapper()
+clr = color_mapper.clr
+
 
 def prepare_arguments(parser):
     add = parser.add_argument
     # What packages to build
     add('folders', nargs='*',
-        help='Folders in which to find packages')
+        help='Folders in which to find packages. (default: cwd)')
     add('--deps', '--dependencies', default=False, action='store_true',
-        help="list deps of each package")
+        help="List dependencies of each package.")
     add('--depends-on', nargs='*',
-        help="one or more dependencies a package must have to be listed")
+        help="One or more dependencies a package must have to be listed.")
 
     return parser
 
@@ -40,12 +45,16 @@ def main(opts):
             for pkg_pth, pkg in find_packages(folder).items():
                 build_depend_names = [d.name for d in pkg.build_depends]
                 if not opts.depends_on or not [x for x in opts.depends_on if x not in build_depend_names]:
-                    print(pkg.name)
+                    print(clr("@{pf}-@| @{cf}%s@|" % pkg.name))
                     if opts.deps:
-                        for dep in pkg.build_depends:
-                            print('  build: ' + dep.name)
-                        for dep in pkg.run_depends:
-                            print('  run:   ' + dep.name)
+                        if len(pkg.build_depends) > 0:
+                            print(clr('  @{yf}build_depend:@|'))
+                            for dep in pkg.build_depends:
+                                print(clr('  @{pf}-@| %s' % dep.name))
+                        if len(pkg.build_depends) > 0:
+                            print(clr('  @{yf}run_depend:@|'))
+                            for dep in pkg.run_depends:
+                                print(clr('  @{pf}-@| %s' % dep.name))
     except InvalidPackage as ex:
         message = '\n'.join(ex.args)
         print("Error: The directory %s contains an invalid package. See below for details:\n\n%s" % (folder, message))

@@ -30,6 +30,7 @@ def assert_raises_regex(exception_classes, expected_regex, callable_obj=None, *a
 
 
 class AssertRaisesContext(object):
+
     def __init__(self, expected, expected_regex=None):
         self.expected = expected
         self.expected_regex = expected_regex
@@ -61,6 +62,7 @@ class AssertRaisesContext(object):
 
 
 class redirected_stdio(object):
+
     def __enter__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
@@ -74,6 +76,7 @@ class redirected_stdio(object):
 
 
 class temporary_directory(object):
+
     def __init__(self, prefix=''):
         self.prefix = prefix
 
