@@ -595,12 +595,13 @@ def build_isolated_workspace(
                     # Print them in order of started number
                     for job_msg_args in sorted(executing_jobs, key=lambda args: args['number']):
                         msg += clr("[{name} - {run_time}] ").format(**job_msg_args)
-                    msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed | make: {4}]").format(
+                    msg_rhs = clr("[{0}/{1} Jobs][{2}/{3} Active Packages][{4}/{5} Completed]").format(
+                        MakeJobServer.get_instance().num_running_jobs(),
+                        MakeJobServer.get_instance().num_jobs,
                         len(executing_jobs),
                         len(executors),
                         len(packages) if no_deps else len(completed_packages),
-                        total_packages,
-                        MakeJobServer.get_instance().num_running_jobs()
+                        total_packages
                     )
                     # Update title bar
                     sys.stdout.write("\x1b]2;[build] {0}/{1}\x07".format(
@@ -648,4 +649,3 @@ def build_isolated_workspace(
         # Ensure executors go down
         for x in range(jobs):
             job_queue.put(None)
-
