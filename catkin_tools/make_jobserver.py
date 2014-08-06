@@ -72,7 +72,7 @@ all:
 ''')
         close(fd)
 
-        ret = call(['make', '-f', makefile, '-j2'])
+        ret = call(['make', '-f', makefile, '-j2'], stdout=PIPE, stderr=PIPE)
 
         unlink(makefile)
         return (ret == 0)
