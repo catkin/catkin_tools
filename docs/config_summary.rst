@@ -2,7 +2,7 @@ Configuration Summary
 =====================
 
 Contents of the Config Summary
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most ``catkin`` comands which modify the a workspace's configuration will
 display the standard configuration summary, as shown below:

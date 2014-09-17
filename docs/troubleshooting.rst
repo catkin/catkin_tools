@@ -27,7 +27,7 @@ Dependency Resolution
 ^^^^^^^^^^^^^^^^^^^^^
 
 A package can't find certain resources
--------------------------------------
+--------------------------------------
 
 A package doesn't find the right version of a dependency
 --------------------------------------------------------
