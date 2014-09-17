@@ -19,8 +19,11 @@ Catkin Command Line Tools
    verbs/catkin_list
    verbs/catkin_profile
    Advanced: Verb Aliasing <advanced/verb_customization>
-   Advanced: Workspace Chaining <advanced/workspace_chaining>
+   Advanced: Profiles <advanced/profiles>
    Advanced: Contributing Verbs <development/extending_the_catkin_command>
+
+.. This document doesn't seem to exist.
+.. Advanced: Workspace Chaining <advanced/workspace_chaining>
 
 This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces.
 
