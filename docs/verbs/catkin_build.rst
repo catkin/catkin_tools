@@ -11,7 +11,7 @@ Workspaces can also be built from arbitrary working directories if the user spec
 .. note::
 
     To set up the workspace and clone the repositories used in the following
-    examples, you can use `rosinstall_generator <http://wiki.ros.org/rosinstall_generator>`_ and `wstool <http://wiki.ros.org/wstool>`_. This 
+    examples, you can use `rosinstall_generator <http://wiki.ros.org/rosinstall_generator>`_ and `wstool <http://wiki.ros.org/wstool>`_. This
     clones all of the ROS packages necessary for building the introductory
     ROS tutorials:
 
@@ -166,7 +166,7 @@ Skipping Packages
 -----------------
 
 Suppose you built every package up to ``roscpp_tutorials``, but that package
-had a build error. 
+had a build error.
 After fixing the error, you could run the same build command again, but the
 ``build`` verb provides an option to save time in this situation.
 If re-started from the beginning, none of the products of the dependencies of
@@ -300,7 +300,7 @@ been written.
     common_msgs        gencpp             genmsg             message_generation
     ros                ros_tutorials      rospack
 
-.. note:: 
+.. note::
 
     The products of ``catkin build`` differ significantly from the behavior of
     ``catkin_make``, for example, which would have all of the build files and
@@ -333,13 +333,13 @@ Status Line
 -----------
 
 While running ``catkin build`` with default options, you would have seen the
-"live" status lines similar to the following: 
+"live" status lines similar to the following:
 
 .. code-block:: none
 
     [build - 5.9] [genmsg - 1.3] [message_runtime - 0.7] ...        [4/4 Active | 3/36 Completed]
 
-This status line stays at the bottom of the screen and displays the continuously-updated progress 
+This status line stays at the bottom of the screen and displays the continuously-updated progress
 of the entire build as well as the active build jobs which are still running. It is composed
 of the following information:
 
@@ -422,15 +422,15 @@ well as the output of each build command in a block, once it finishes:
 
     Finished <== catkin [ 3.4 seconds ]
 
-.. note:: 
-    
+.. note::
+
     The printing of these command outputs maybe be interleaved with commands
     from other package builds if more than one package is being built at the
     same time.
 
 By default ``catkin build`` will build up to ``N`` packages in parallel and
 pass ``-jN -lN`` to ``make`` where ``N`` is the number of cores in your
-computer.  
+computer.
 
 You can change the number of packages allowed to build in parallel
 by using the ``-p`` or ``--parallel-jobs`` option and you can change the jobs
@@ -464,7 +464,7 @@ when interleaved output is used ``catkin build`` prefixes each line with
     [rosclean]: -- The CXX compiler identification is Clang 5.0.0
     [rosclean]: -- Check for working C compiler: /usr/bin/cc
 
-.. note:: 
+.. note::
 
     When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
 

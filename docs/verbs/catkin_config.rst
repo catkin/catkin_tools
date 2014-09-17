@@ -7,10 +7,10 @@ configuration summary.
 
 By default, the ``config`` verb gets and sets options for a workspace's
 *active* profile. If no profiles have been specified for a wotkspace, this is a
-default profile named ``default``. 
+default profile named ``default``.
 
 .. note::
-  
+
   Calling ``catkin config`` on an uninitialied workspace will not automatically
   initialize it unless it is used with the ``--init`` option.
 
@@ -23,7 +23,7 @@ the root of the workspace. Doing so will not modify your workspace. The
 ``catkin`` command is context-sensitive, so it will determine which workspace
 contains the current working directory.
 
-Installing Packages 
+Installing Packages
 ^^^^^^^^^^^^^^^^^^^
 
 Without any additional arguments, packages are not "installed" using the
@@ -51,7 +51,7 @@ sometimes the extended workspace is referred to as a "parent" workspace.
 
 With ``catkin config``, you can explicitly set the workspace you want to extend,
 using the ``--extend`` argument. This is equivalent to sourcing a setup file,
-building, and then reverting to the environment before sourcing the setup file. 
+building, and then reverting to the environment before sourcing the setup file.
 
 Note that in case the desired parent workspace is different from one already
 being used, using the ``--extend`` argument also necessitates cleaning the
@@ -67,7 +67,7 @@ source a workspace:
 .. code-block:: bash
 
     $ echo $CMAKE_PREFIX_PATH
-    
+
     $ mkdir -p /tmp/path/to/my_catkin_ws/src
     $ cd /tmp/path/to/my_catkin_ws
     $ catkin init
@@ -80,7 +80,7 @@ source a workspace:
     Workspace configuration appears valid.
     --------------------------------------------------------------
 
-    $ cd /tmp/path/to/my_catkin_ws 
+    $ cd /tmp/path/to/my_catkin_ws
     $ catkin create pkg aaa
     $ catkin create pkg bbb
     $ catkin create pkg ccc
@@ -108,7 +108,7 @@ workspace. Suppose you wanted to extend a standard ROS system install like
 
 .. code-block:: bash
 
-    
+
     $ catkin config --extend /opt/ros/hydro
     --------------------------------------------------------------
     Profile:                     default
