@@ -14,10 +14,6 @@
 
 from __future__ import print_function
 
-import os
-
-from catkin_pkg.packages import find_packages
-
 from catkin_tools.context import Context
 
 from catkin_tools.metadata import get_active_profile

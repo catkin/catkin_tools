@@ -17,15 +17,9 @@ from __future__ import print_function
 import datetime
 import os
 import re
-import stat
-import sys
-
-from multiprocessing import cpu_count
 
 from catkin_pkg.packages import find_packages
-from catkin_pkg.package import InvalidPackage
 
-from .runner import run_command
 from .terminal_color import ColorMapper
 
 color_mapper = ColorMapper()
