@@ -15,22 +15,8 @@
 from __future__ import print_function
 
 import os
-import shutil
 
-from catkin_pkg.package import Export
-from catkin_pkg.packages import find_packages
 from catkin_pkg.package_templates import create_package_files, PackageTemplate
-
-from catkin_tools.argument_parsing import add_context_args
-
-from catkin_tools.context import Context
-
-from catkin_tools.runner import run_command
-
-from catkin_tools.metadata import find_enclosing_workspace
-from catkin_tools.metadata import get_active_profile
-from catkin_tools.metadata import get_metadata
-from catkin_tools.metadata import update_metadata
 
 # Exempt build directories
 # See https://github.com/catkin/catkin_tools/issues/82

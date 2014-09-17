@@ -14,10 +14,8 @@
 
 from __future__ import print_function
 
-import datetime
 import os
 import re
-import stat
 import sys
 
 from multiprocessing import cpu_count

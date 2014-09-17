@@ -1,42 +1,7 @@
 
 import os
-import stat
-import sys
-import time
 import re
-from copy import copy
 
-from multiprocessing import cpu_count
-from threading import Lock
-try:
-    # Python3
-    from queue import Queue
-    from queue import Empty
-except ImportError:
-    # Python2
-    from Queue import Queue
-    from Queue import Empty
-
-try:
-    from catkin_pkg.packages import find_packages
-    from catkin_pkg.topological_order import topological_order_packages
-except ImportError as e:
-    sys.exit(
-        'ImportError: "from catkin_pkg.topological_order import '
-        'topological_order" failed: %s\nMake sure that you have installed '
-        '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
-    )
-
-
-from .common import disable_wide_log
-from .common import FakeLock
-from .common import format_time_delta
-from .common import format_time_delta_short
-from .common import get_cached_recursive_build_depends_in_workspace
-from .common import get_recursive_run_depends_in_workspace
-from .common import is_tty
-from .common import log
-from .common import wide_log
 from .common import run_command
 
 

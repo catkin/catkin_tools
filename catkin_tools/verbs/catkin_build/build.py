@@ -18,7 +18,6 @@ import os
 import stat
 import sys
 import time
-import re
 import yaml
 
 from multiprocessing import cpu_count
@@ -43,8 +42,6 @@ except ImportError as e:
     )
 
 from catkin_tools.notifications import notify
-
-from catkin_tools.runner import run_command
 
 from catkin_tools.common import disable_wide_log
 from catkin_tools.common import FakeLock
