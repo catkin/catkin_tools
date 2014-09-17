@@ -20,6 +20,8 @@ import sys
 
 from multiprocessing import cpu_count
 
+from catkin_tools.common import wide_log
+
 
 def add_context_args(parser):
     """Add common workspace and profile args to an argparse parser.

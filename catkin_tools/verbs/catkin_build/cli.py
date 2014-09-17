@@ -17,6 +17,8 @@ from __future__ import print_function
 import sys
 import time
 
+from catkin_pkg.package import InvalidPackage
+
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 
@@ -143,7 +145,7 @@ def main(opts):
         # Determine the enclosing package
         try:
             this_package = find_enclosing_package()
-        except catkin_pkg.package.InvalidPackage as ex:
+        except InvalidPackage:
             pass
 
         # Handle context-based package building
