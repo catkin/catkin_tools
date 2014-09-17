@@ -41,6 +41,9 @@ def prepare_arguments(parser):
     add('--workspace', '-w', default=None,
         help='The path to the catkin workspace. Default: current working directory')
 
+    add = parser_list.add_argument
+    # Nothing to do here yet
+
     add = parser_set.add_argument
     add('name', type=str,
         help='The profile to activate.')
