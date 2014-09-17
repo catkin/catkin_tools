@@ -81,7 +81,7 @@ Hidden Marker / Config Directory
 In addition to the standard workspace structure, ``catkin_tools`` also adds a
 marker directory called ``.catkin_tools`` at the root of the workspace. This
 directory both acts as a marker for the root of the workspace and contains
-persistent configuration information. 
+persistent configuration information.
 
 This directory contains subdirectories representing different configuration
 profiles, and inside of each profile directory are YAML files which contain
@@ -194,8 +194,8 @@ subsequently targets would be built with one or more invocations of ``make``:
 In order to help automate the merged build process, Catkin was distributed
 with a command-line tool called ``catkin_make``.
 This command automated the above CMake work flow while setting some
-variables according to standard conventions. 
-These defaults would result in the execution of the following commands: 
+variables according to standard conventions.
+These defaults would result in the execution of the following commands:
 
 .. code-block:: bash
 
@@ -224,7 +224,7 @@ dependencies on some targets inside of their dependencies.
 Another disadvantage of the merged build process is that it can only work on a
 homogeneous workspace consisting only of Catkin CMake packages.
 Other types of packages like plain CMake packages and autotools packages cannot
-be integrated into a single configuration and a single build step. 
+be integrated into a single configuration and a single build step.
 
 Isolated Catkin Workflow
 ------------------------
@@ -288,14 +288,14 @@ Above, it's mentioned that the Catkin setup files export numerous environment
 variables, including ``CMAKE_PREFIX_PATH``. Since CMake 2.6.0, the
 ``CMAKE_PREFIX_PATH`` is used when searching for include files, binaries, or
 libraries using the ``FIND_PACKAGE()``, ``FIND_PATH()``, ``FIND_PROGRAM()``, or
-``FIND_LIBRARY()`` CMake commands. 
+``FIND_LIBRARY()`` CMake commands.
 
 As such, this is also the primary way that Catkin "chains" workspaces together.
 When you build a Catkin workspace for the first time, it will automatically use
 ``CMAKE_PREFIX_PATH`` to find dependencies. After that compilation, the value
 will be cached internally by each project as well as the Catkin setup files and
 they will ignore any changes to your ``CMAKE_PREFIX_PATH`` environment variable
-until they are cleaned. 
+until they are cleaned.
 
 .. note::
 
@@ -304,8 +304,8 @@ until they are cleaned.
   relationship between two such chained workspaces, ``A`` and ``B``, it is said
   that workspace ``B`` **extends** workspace ``A`` and workspace ``A`` is
   ***extended by** workspace ``B``. This concept is also sometimes referred to
-  as "overlaying" or "inheriting" a workspace. 
-  
+  as "overlaying" or "inheriting" a workspace.
+
 Similarly, when you ``source`` a Catkin workspace's setup file from a
 workspace's **devel space** or **install space**, it prepends the path
 containing that setup file to the ``CMAKE_PREFIX_PATH`` environment variable.
@@ -316,16 +316,16 @@ On one hand, this makes it easy and automatic to chain workspaces. At the same
 time, however, previous tools like ``catkin_make`` and ``catkin_make_isolated``
 had no easy mechanism for either making it obvious which workspace was being
 extended, nor did they provide features to explicitly extend a given workspace.
-This means that for users unaware of Catkin's use of ``CMAKE_PREFIX_PATH`` 
+This means that for users unaware of Catkin's use of ``CMAKE_PREFIX_PATH``
 
 Since it's not expected that 100% of users will read this section of the
 documentation, the ``catkin`` program adds both configuration consistency
 checking for the value of ``CMAKE_PREFIX_PATH`` and  makes it obvious on each
 invocation which workspace is being extended.  Furthermore, the ``catkin``
 command adds an explicit extension interface to override the value of
-``$CMAKE_PREFIX_PATH`` with the ``catkin config --extend`` command. 
+``$CMAKE_PREFIX_PATH`` with the ``catkin config --extend`` command.
 
-.. note:: 
+.. note::
 
   While workspaces can be chained together to add search paths, invoking a
   build in one workspace will not cause products in any other workspace to be

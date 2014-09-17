@@ -6,7 +6,7 @@ Configuration Summary Warnings
 
 The ``catkin`` tool is capable of detecting some issues or inconsistencies with
 the build configuration automatically. In these cases, it will often describe
-the problem as well as how to resolve it. The ``catkin`` tool will detect the 
+the problem as well as how to resolve it. The ``catkin`` tool will detect the
 following issues automatically.
 
 Missing Workspace Components

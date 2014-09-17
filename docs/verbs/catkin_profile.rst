@@ -3,11 +3,11 @@
 
 Many verbs contain a ``--profile`` option, which selects which configuration
 profile to use, without which it will use the "active" profile. The ``profile``
-verb enables you to manager the available profiles as well as set the "active" 
+verb enables you to manager the available profiles as well as set the "active"
 profile when using other verbs.
 
 Even without using the ``profile`` verb, any use of the ``catkin`` command
-which changes the workspace is impliclty using a configuration profile called 
+which changes the workspace is impliclty using a configuration profile called
 "default".
 
 The ``profile`` verb has several sub-commands for profile management. These include
@@ -99,7 +99,7 @@ options:
     - default (active)
 
 Note that while the profile named ``alternate`` has been configured, it is
-still not *active*, so any calls to catkin-verbs without an explicit 
+still not *active*, so any calls to catkin-verbs without an explicit
 ``--profile alternate`` option will still use the profile named ``default``.
 
 Explicitly Creating Profiles
