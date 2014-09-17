@@ -69,7 +69,6 @@ def get_resultspace_environment(result_space_path, quiet=False):
     env_regex = re.compile('(.+?)=(.*)$', re.M)
     env_dict = {}
 
-    captured_lines = []
     for line in run_command(command, cwd=os.getcwd()):
         if isinstance(line, str):
             matches = env_regex.findall(line)
