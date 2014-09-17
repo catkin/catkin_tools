@@ -39,6 +39,7 @@ To see these effects, you can run ``catkin config`` to write a default
 configuration to the workspace:
 
 .. code-block:: bash
+
     $ cd /tmp/path/to/my_catkin_ws
     $ catkin config
     --------------------------------------------------------------
