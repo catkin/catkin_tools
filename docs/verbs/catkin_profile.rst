@@ -232,7 +232,7 @@ Full Command-Line Interface
       --copy-active        Copy the settings from the active profile.
 
 ``catkin profile rename``
------------------------
+-------------------------
 
 .. code-block:: text
 
@@ -247,7 +247,7 @@ Full Command-Line Interface
       -f, --force   Overwrite an existing profile.
 
 ``catkin profile remove``
------------------------
+-------------------------
 
 .. code-block:: text
 
