@@ -66,7 +66,7 @@ Overview Section
           Extending:        [explicit] /opt/ros/hydro
 
 - **[* Space]** -- Lists the paths to each of the catkin "spaces" and whether or not they exist
-- **DESTDIR** -- An alternative way to specify the **install space**
+- **DESTDIR** -- An optional prefix to the **install space** as defined by `GNU Standards <https://www.gnu.org/prep/standards/html_node/DESTDIR.html/>`_
 - **Isolate Develspaces** -- Builds products (like libraries and binaries) into individual FHS subdirectories in the **devel space**, instead of a single FHS directory
 - **Install Packages** -- Enable creating and installation into the **install space**
 - **Isolate Installs** -- Installs products into individual FHS subdirectories in the **install space**
