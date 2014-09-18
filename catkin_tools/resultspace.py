@@ -2,7 +2,7 @@
 import os
 import re
 
-from .common import run_command
+from .runner import run_command
 
 
 def get_resultspace_environment(result_space_path, quiet=False):
