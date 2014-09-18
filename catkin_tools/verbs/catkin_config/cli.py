@@ -16,14 +16,10 @@ from __future__ import print_function
 
 import os
 
-from catkin_pkg.packages import find_packages
-
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import add_context_args
 
 from catkin_tools.context import Context
-
-from catkin_tools.terminal_color import fmt
 
 
 def prepare_arguments(parser):

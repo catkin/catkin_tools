@@ -23,9 +23,6 @@ from catkin_tools.argument_parsing import add_context_args
 
 from catkin_tools.context import Context
 
-from catkin_tools.metadata import find_enclosing_workspace
-from catkin_tools.metadata import get_active_profile
-from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
 
 from catkin_tools.terminal_color import ColorMapper

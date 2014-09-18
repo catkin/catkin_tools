@@ -14,17 +14,9 @@
 
 from __future__ import print_function
 
-import datetime
 import os
-import re
 import stat
 import sys
-
-from multiprocessing import cpu_count
-
-from catkin_tools.runner import run_command
-
-from .color import clr
 
 env_file_template = """\
 #!/usr/bin/env sh

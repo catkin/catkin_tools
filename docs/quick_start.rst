@@ -14,15 +14,15 @@ The following is an example workflow and sequence of commands using default
 settings:
 
 .. code-block:: bash
-    
+
     $ mkdir -p /tmp/path/to/my_catkin_ws/src      # Make a new workspace and source space
     $ cd /tmp/path/to/my_catkin_ws                # Navigate to the workspace root
     $ catkin init                                 # Initialize it with a hidden marker file
     $ cd /tmp/path/to/my_catkin_ws/src            # Navigate to the source space
     $ catkin create pkg pkg_a                     # Populate the source space with packages...
-    $ catkin create pkg pkg_b                 
-    $ catkin create pkg pkg_c --catkin-deps pkg_a                 
-    $ catkin create pkg pkg_d --catkin-deps pkg_a pkg_b                
+    $ catkin create pkg pkg_b
+    $ catkin create pkg pkg_c --catkin-deps pkg_a
+    $ catkin create pkg pkg_d --catkin-deps pkg_a pkg_b
     $ catkin build                                # Build all packages in the workspace
     $ source ../devel/setup.bash                  # Load the workspace's environment
     $ catkin clean --all                          # Clean the build products
@@ -40,7 +40,7 @@ This is done by simply creating a new workspace with an empty **source space**
 (named ``src`` by default) and calling ``catkin init`` from the workspace root:
 
 .. code-block:: bash
-    
+
     $ mkdir -p /tmp/path/to/my_catkin_ws/src
     $ cd /tmp/path/to/my_catkin_ws
     $ catkin init
@@ -110,7 +110,7 @@ For more information on Catkin packages see :doc:`workspace mechanics
 trivial packages: ``pkg_a``, ``pkg_b``, and ``another_one``:
 
 .. code-block:: bash
-    
+
     $ cd /tmp/path/to/my_catkin_ws/src
     $ catkin_create_pkg pkg_a
     Created file pkg_a/CMakeLists.txt
@@ -125,7 +125,7 @@ trivial packages: ``pkg_a``, ``pkg_b``, and ``another_one``:
     Created file another_one/package.xml
     Successfully created files in /tmp/path/to/my_catkin_ws/src/another_one. Please adjust the values in package.xml.
 
-After these operations, your workspace's local directory structure would look like 
+After these operations, your workspace's local directory structure would look like
 the followng (to two levels deep):
 
 .. code-block:: bash
@@ -182,16 +182,16 @@ and build each of them.
     Additional catkin Make Args: None
     --------------------------------------------------------------
     Workspace configuration appears valid.
-    -------------------------------------------------------------- 
-    Found '3' packages in 0.0 seconds. 
-    Starting ==> another_one                             
-    Starting ==> pkg_a                                   
-    Starting ==> pkg_b                                   
-    Finished <== pkg_b       [ 2.0 seconds ]             
-    Finished <== another_one [ 2.0 seconds ]             
-    Finished <== pkg_a       [ 3.4 seconds ]             
-    [build] Finished.                                    
-    [build] Runtime: 3.4 seconds 
+    --------------------------------------------------------------
+    Found '3' packages in 0.0 seconds.
+    Starting ==> another_one
+    Starting ==> pkg_a
+    Starting ==> pkg_b
+    Finished <== pkg_b       [ 2.0 seconds ]
+    Finished <== another_one [ 2.0 seconds ]
+    Finished <== pkg_a       [ 3.4 seconds ]
+    [build] Finished.
+    [build] Runtime: 3.4 seconds
 
 Calling ``catkin build`` will generate ``build`` and ``devel`` directories (as
 described in the config summary above) and result in a directory structure like
@@ -228,7 +228,7 @@ spaces**. In the default build configuration, only the **devel space** is
 generated. You can load the environment for your respective shell like so:
 
 .. code-block:: bash
-    
+
     $ source /tmp/path/to/my_catkin_ws/devel/setup.bash
 
 At this point you should be able to use products built by any of the packages
@@ -255,7 +255,7 @@ Cleaning Workspace Products
 
 Instead of using dangerous commands like ``rm -rf build devel`` in your
 workspace when cleaning build products, you can use the ``catkin clean --all``
-command. Just like the other verbs, ``catkin clean`` is context-aware, so it 
+command. Just like the other verbs, ``catkin clean`` is context-aware, so it
 only needs to be called from a directory under the workspace root.
 
 In order to clean the **build space** and **devel space** for the workspace,

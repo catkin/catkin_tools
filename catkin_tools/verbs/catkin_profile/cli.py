@@ -14,10 +14,6 @@
 
 from __future__ import print_function
 
-import os
-
-from catkin_pkg.packages import find_packages
-
 from catkin_tools.context import Context
 
 from catkin_tools.metadata import get_active_profile
@@ -44,6 +40,9 @@ def prepare_arguments(parser):
     add = parser.add_argument
     add('--workspace', '-w', default=None,
         help='The path to the catkin workspace. Default: current working directory')
+
+    add = parser_list.add_argument
+    # Nothing to do here yet
 
     add = parser_set.add_argument
     add('name', type=str,

@@ -2,13 +2,13 @@ Configuration Summary
 =====================
 
 Contents of the Config Summary
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most ``catkin`` comands which modify the a workspace's configuration will
 display the standard configuration summary, as shown below:
 
 .. code-block:: bash
-    
+
     $ cd /tmp/path/to/my_catkin_ws
     $ catkin config
     --------------------------------------------------------------
@@ -47,22 +47,22 @@ Overview Section
   - *No Chaining*
 
     .. code-block:: bash
-        
+
           Extending:                   None
 
   - *Implicit Chaining* -- Derived from the ``CMAKE_PREFIX_PATH`` environment or cache variable.
 
     .. code-block:: bash
-        
+
           Extending:             [env] /opt/ros/hydro
     .. code-block:: bash
-        
+
           Extending:          [cached] /opt/ros/hydro
 
   - *Explicit Chaining* -- Specified by ``catkin config --extend``
 
     .. code-block:: bash
-        
+
           Extending:        [explicit] /opt/ros/hydro
 
 - **[* Space]** -- Lists the paths to each of the catkin "spaces" and whether or not they exist
@@ -85,7 +85,7 @@ Warnings Section
 ----------------
 
 If something is wrong with your configuration such as a missing source space,
-an additional secion will appear at the bottom of the summary with details on 
+an additional secion will appear at the bottom of the summary with details on
 what is wrong and how you can fix it.
 
 Workspace Chaining Mode
@@ -110,7 +110,7 @@ neither explicitly specified a workspace to extend, and the
 ``CMAKE_PREFIX_PATH`` environment variable is empty:
 
 .. code-block:: bash
-    
+
       Extending:                   None
 
 Implicit Chaining via ``CMAKE_PREFIX_PATH`` Environment or Cache Variable
@@ -127,19 +127,19 @@ calling something similar to ``source /opt/ros/hydro/setup.bash`` will
 normally see an ``Extending`` value such as:
 
 .. code-block:: bash
-    
+
       Extending:             [env] /opt/ros/hydro
 
 If you don't want to extend the given workspace, unsetting the
 ``CMAKE_PREFIX_PATH`` environment variable will change it back to none. You can
-also alternatively 
+also alternatively
 
 Once you have built your workspace once, this ``CMAKE_PREFIX_PATH`` will be
 cached by the underlying CMake buildsystem. As such, the ``Extending`` status
 will subsequently describe this as the "cached" extension path:
 
 .. code-block:: bash
-    
+
       Extending:          [cached] /opt/ros/hydro
 
 Once the extension mode is cached like this, you must use ``catkin clean`` to
@@ -155,6 +155,6 @@ which the other workspace extends, recursively.  This can be set with the
 ``CMAKE_PREFIX_PATH`` and persist between builds.
 
 .. code-block:: bash
-    
+
       Extending:        [explicit] /tmp/path/to/other_ws
 

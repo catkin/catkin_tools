@@ -14,13 +14,13 @@
 
 from __future__ import print_function
 
-import datetime
 import os
 import re
-import stat
 import sys
 
 from multiprocessing import cpu_count
+
+from catkin_tools.common import wide_log
 
 
 def add_context_args(parser):
@@ -74,7 +74,8 @@ def add_cmake_and_make_and_catkin_make_args(parser):
         help='Pass no additional arguments to make (does not affect --catkin-make-args).')
 
     add = parser.add_mutually_exclusive_group().add_argument
-    add('--catkin-make-args', metavar='ARG', dest='catkin_make_args', nargs='+', required=False, type=str, default=None,
+    add('--catkin-make-args', metavar='ARG', dest='catkin_make_args',
+        nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to make but only for catkin packages.'
              'It must be passed after other arguments since it collects all following options.')
     add('--no-catkin-make-args', dest='catkin_make_args', action='store_const', const=[], default=None,

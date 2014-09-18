@@ -45,7 +45,7 @@ value of the ``CMAKE_PREFIX_PATH`` environment variable, and instead *extends*
 one or another ROS install spaces could be defined as follows:
 
 .. code-block:: yaml
-  
+
   # ~/.config/catkin/verb_aliases/10-ros-distro-aliases.yaml
   extend-sys: config --profile sys --extend /opt/ros/hydro -x _sys
   extend-overlay: config --profile overlay --extend ~/ros/hydro/install -x _overlay
@@ -73,7 +73,7 @@ Alias Precedence and Overriding Aliases
 Verb alias files in the ``verb_aliases`` directory are processed in
 alphabetical order, so files which start with larger numbers will override
 files with smaller numbers.      In this way you can override the built-in
-aliases using a file which starts with a number higher than ``00-``. 
+aliases using a file which starts with a number higher than ``00-``.
 
 For example, the ``bt: build --this`` alias exists in the default alias file,
 ``00-default-aliases.yaml``, but you can create a file to override it with an

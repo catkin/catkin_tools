@@ -18,7 +18,6 @@ import os
 import stat
 import sys
 import time
-import re
 import yaml
 
 from multiprocessing import cpu_count
@@ -43,8 +42,6 @@ except ImportError as e:
     )
 
 from catkin_tools.notifications import notify
-
-from catkin_tools.runner import run_command
 
 from catkin_tools.common import disable_wide_log
 from catkin_tools.common import FakeLock
@@ -578,7 +575,7 @@ def build_isolated_workspace(
                 # Update the status bar on the screen
                 executing_jobs = []
                 for name, value in running_jobs.items():
-                    number, job, start_time = value['package_number'], value['job'], value['start_time']
+                    number, start_time = value['package_number'], value['start_time']
                     if number is None or start_time is None:
                         continue
                     executing_jobs.append({

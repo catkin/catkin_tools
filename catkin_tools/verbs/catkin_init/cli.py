@@ -16,13 +16,10 @@ from __future__ import print_function
 
 import os
 
-from catkin_pkg.packages import find_packages
-
 from catkin_tools.argument_parsing import add_workspace_arg
 
 from catkin_tools.context import Context
 
-from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import init_metadata_root
 
 

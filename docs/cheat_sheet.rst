@@ -2,8 +2,8 @@ Cheat Sheet
 ===========
 
 This is a non-exhaustive list of some common and useful invocations of the ``catkin`` command.
-All of the commands which do not explicitly specify a workspace path (with ``--workspace``) 
-are assumed to be run from within a directory contained by the target workspace. For thorough 
+All of the commands which do not explicitly specify a workspace path (with ``--workspace``)
+are assumed to be run from within a directory contained by the target workspace. For thorough
 documentation, please see the chapters on each verb.
 
 Initializing Workspaces
@@ -57,19 +57,19 @@ Build a specific package and its dependencies:
 
 ... or ignore its dependencies:
   - ``catkin build my_package --no-deps``
-  
+
 Build the package containing the current working directory:
   - ``catkin build --this``
 
 ... but don't rebuild its dependencies:
   - ``catkin build --this --no-deps``
-  
+
 Build packages with aditional CMake args:
   - ``catkin build --cmake-args -DCMAKE_BUILD_TYPE=Debug``
 
 ... and save them to be used for the next build:
   - ``catkin build --save-config --cmake-args -DCMAKE_BUILD_TYPE=Debug``
-  
+
 Cleaning Build Products
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -78,7 +78,7 @@ Blow away the build, devel, and install spaces (if they exist):
 
 ... or just the **build space**:
   - ``catkin clean --build``
-  
+
 ... or just delete the `CMakeCache.txt` files for each package:
   - ``catkin clean --cmake-cache``
 
@@ -108,12 +108,12 @@ Manipulating Workspace Chaining
 
 Change from implicit to explicit chaining:
   .. code-block:: bash
-    
+
     catkin clean -a
     catkin config --extend /opt/ros/hydro
 
 Change from explicit to implicit chaining:
   .. code-block:: bash
-    
+
     catkin clean -a
     catkin config --no-extend
