@@ -237,10 +237,18 @@ built, and loaded into the environment.
 
 This way, each package is built in isolation and the next packages are built on
 the atomic result of the current one. This resolves the issues with target
-collisions, dependency management, and other undesirable cross-talk between
-projects.
+collisions, target dependency management, and other undesirable cross-talk 
+between projects.
 This also allows for the homogeneous automation of other buildtools like the
 plain CMake or autotools.
+
+The isolated workflow also enabled the following features:
+
+- Allowing building of *part* of a workspace
+- Building Catkin and non-Catkin projects into a single **devel space**
+- Building packages without re-configuring or re-building their dependencies
+- Removing the requirement that all packages in the workspace are free
+  of CMake errors before any packages can be built 
 
 There are, however, still some problems with ``catkin_make_isolated``. First,
 it is dramatically slower than ``catkin_make`` since it cannot parallelize the
@@ -252,8 +260,9 @@ requirements.
 Parallel Isolated Catkin Workflow and ``catkin build``
 ------------------------------------------------------
 
-The limitations of ``catkin_make_isolated`` lead to the development of a
-parallel version of catkin make isolated, or ``pcmi``, as part of `Project
+The limitations of ``catkin_make_isolated`` and the need for additional
+high-level build tools lead to the development of a parallel version of 
+catkin make isolated, or ``pcmi``, as part of `Project
 Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
 ``pcmi`` later became the ``build`` verb of the ``catkin`` command included
 in this project.
@@ -262,24 +271,19 @@ As such, the principle behavior of the ``build`` verb is to build each
 package in isolation and in topological order while parallelizing the
 building of packages which do not depend on each other.
 
-Other functional improvements over ``catkin_make_isolated`` include the
-following:
+Other functional improvements over ``catkin_make`` and ``catkin_make_isolated``
+include the following:
 
-- The use of sub-command "verbs" for building and build-related functions
-- Allowing building of *part* of a workspace,
-- Building Catkin and non-Catkin projects into a single **devel space**
+- The use of sub-command "verbs" for better organization of build options and 
+  build-related functions
 - Robustly adapting a build when packages are added to or removed from the
   **source space**
+- Context-aware building of a given package based on the working directory
 - Utilization of persistent build metadata which catches common errors
 - Support for different build "profiles" in a single workspace
 - Explicit control of workspace chaining
+- Additional error-checking for common environment configuration errors
 - Numerous other command-line user-interface improvements
-
-Furthermore, additional features were motivated by use patterns of Catkin's
-predecessor, ``rosbuild``, including the following:
-
-- Context-aware building of a given package based on the working directory
-- Building one package without dependencies
 
 Workspace Chaining and the Importance of CMAKE_PREFIX_PATH
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
