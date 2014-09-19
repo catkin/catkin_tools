@@ -23,6 +23,7 @@ from .color import colorize_cmake
 from .common import remove_ansi_escape
 from .common import run_command
 
+from .run_common import SOURCE_STDOUT, SOURCE_STDERR
 
 class ExecutorEvent(object):
     """This is returned by the Executor when an event occurs
@@ -63,9 +64,12 @@ class Executor(Thread):
         }
         self.queue.put(ExecutorEvent(self.executor_id, 'command_started', data, package_name))
 
-    def command_log(self, msg):
+    def command_log(self, msg, source):
         package_name = '' if self.current_job is None else self.current_job.package.name
-        data = {'message': msg}
+        data = {
+            'message': msg,
+            'source': source
+        }
         self.queue.put(ExecutorEvent(self.executor_id, 'command_log', data, package_name))
 
     def command_failed(self, cmd, location, retcode):
@@ -120,19 +124,20 @@ class Executor(Thread):
                         # Log that the command being run
                         self.command_started(command, command.location)
                         # Receive lines from the running command
-                        for line in run_command(command.cmd, cwd=command.location):
+                        for event in run_command(command.cmd, cwd=command.location):
                             # If it is a string, log it
-                            if isinstance(line, str):
+                            if isinstance(event, tuple):
+                                source, line = event
                                 # Ensure it is not just ansi escape characters
                                 if remove_ansi_escape(line).strip():
                                     for sub_line in line.splitlines(True):  # keepends=True
                                         if sub_line:
                                             if command.stage_name == 'cmake':
                                                 sub_line = colorize_cmake(sub_line)
-                                            self.command_log(sub_line)
+                                            self.command_log(sub_line, source)
                             else:
                                 # Otherwise it is a return code
-                                retcode = line
+                                retcode = event
                                 # If the return code is not zero
                                 if retcode != 0:
                                     # Log the failure (the build loop will dispatch None's)
