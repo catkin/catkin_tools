@@ -38,7 +38,7 @@ def prepare_arguments(parser):
 def main(opts):
     try:
         # Load a context with initialization
-        ctx = Context.Load(opts.workspace, opts.profile, strict=True)
+        ctx = Context.Load(opts.workspace, strict=True)
 
         # Initialize the workspace if necessary
         if ctx:
@@ -50,7 +50,7 @@ def main(opts):
                 opts.workspace or os.getcwd(),
                 opts.reset)
 
-        ctx = Context.Load(opts.workspace, opts.profile)
+        ctx = Context.Load(opts.workspace)
         print(ctx.summary())
 
     except IOError as exc:
