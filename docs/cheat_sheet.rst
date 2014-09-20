@@ -83,7 +83,7 @@ Blow away the build, devel, and install spaces (if they exist):
   - ``catkin clean --cmake-cache``
 
 ... or just delete the build directories for packages which have been disabled or removed:
-  - ``catkin clean --orpahns``
+  - ``catkin clean --orphans``
 
 Profile Cookbook
 ^^^^^^^^^^^^^^^^
