@@ -38,9 +38,12 @@ def prepare_arguments(parser):
 
     add = parser_pkg.add_argument
 
-    add('name', metavar='PKGNAME', nargs=1,
-        help='The name of the package to create. This name should be completely '
-        'lower-case with individual words separated by undercores.')
+    add('name', metavar='PKG_NAME', nargs='+',
+        help='The name of one or more packages to create. This name should be '
+        'completely lower-case with individual words separated by undercores.')
+
+    add('-p', '--path', required=False, default=None,
+        help='The path into which the package should be generated.')
 
     # TODO: Make this possible
     # add('--manifest-only', action='store_true', default=False,
@@ -112,37 +115,39 @@ def prepare_arguments(parser):
 def main(opts):
 
     try:
-        package_name = opts.name[0]
-        target_path = os.path.join(os.getcwd(), package_name)
-        package_template = PackageTemplate._create_package_template(
-            package_name=package_name,
-            description=opts.description,
-            licenses=opts.license or [],
-            maintainer_names=[m[0] for m in opts.maintainers] if opts.maintainers else [],
-            author_names=[a[0] for a in opts.authors] if opts.authors else [],
-            version=opts.version,
-            catkin_deps=opts.catkin_deps,
-            system_deps=opts.system_deps,
-            boost_comps=opts.boost_components)
+        package_dest_path = opts.path or os.getcwd()
+        for package_name in opts.name:
+            print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
+            target_path = os.path.join(package_dest_path, package_name)
+            package_template = PackageTemplate._create_package_template(
+                package_name=package_name,
+                description=opts.description,
+                licenses=opts.license or [],
+                maintainer_names=[m[0] for m in opts.maintainers] if opts.maintainers else [],
+                author_names=[a[0] for a in opts.authors] if opts.authors else [],
+                version=opts.version,
+                catkin_deps=opts.catkin_deps,
+                system_deps=opts.system_deps,
+                boost_comps=opts.boost_components)
 
-        # Add maintainer and author e-mails
-        if opts.maintainers:
-            for (pm, om) in zip(package_template.maintainers, opts.maintainers):
-                pm.email = om[1]
-        if opts.authors:
-            for (pa, oa) in zip(package_template.authors, opts.authors):
-                pa.email = oa[1]
+            # Add maintainer and author e-mails
+            if opts.maintainers:
+                for (pm, om) in zip(package_template.maintainers, opts.maintainers):
+                    pm.email = om[1]
+            if opts.authors:
+                for (pa, oa) in zip(package_template.authors, opts.authors):
+                    pa.email = oa[1]
 
-        # Add build type export
-        # if opts.build_type and opts.build_type != 'catkin':
-        #     build_type = Export('build_type', content=opts.build_type)
-        #     package_template.exports.append(build_type)
+            # Add build type export
+            # if opts.build_type and opts.build_type != 'catkin':
+            #     build_type = Export('build_type', content=opts.build_type)
+            #     package_template.exports.append(build_type)
 
-        create_package_files(target_path=target_path,
-                             package_template=package_template,
-                             rosdistro=opts.rosdistro,
-                             newfiles={})
-        print('Successfully created package files in %s.' % target_path)
+            create_package_files(target_path=target_path,
+                                 package_template=package_template,
+                                 rosdistro=opts.rosdistro,
+                                 newfiles={})
+            print('Successfully created package files in %s.' % target_path)
     except ValueError as vae:
         print(str(vae))
         return 1
