@@ -124,17 +124,8 @@ class Executor(Thread):
                         self.command_started(command, command.location)
                         # Receive lines from the running command
                         for line in run_command(command.cmd, cwd=command.location):
-                            # If it is not an int, log it
-                            if not isinstance(line, int):
-                                # Ensure it is not just ansi escape characters
-                                if remove_ansi_escape(line).strip():
-                                    for sub_line in line.splitlines(True):  # keepends=True
-                                        if sub_line:
-                                            if command.stage_name == 'cmake':
-                                                sub_line = colorize_cmake(sub_line)
-                                            self.command_log(sub_line)
-                            else:
-                                # Otherwise it is a return code
+                            # If it is an integer, it corresponds to the command's return code
+                            if isinstance(line, int):
                                 retcode = line
                                 # If the return code is not zero
                                 if retcode != 0:
@@ -148,6 +139,15 @@ class Executor(Thread):
                                     return
                                 else:
                                     self.command_finished(command, command.location, retcode)
+                            else:
+                                # Otherwise it is some sort of string data
+                                # Ensure that the data is not just ansi escape characters
+                                if remove_ansi_escape(line).strip():
+                                    for sub_line in line.splitlines(True):  # keepends=True
+                                        if sub_line:
+                                            if command.stage_name == 'cmake':
+                                                sub_line = colorize_cmake(sub_line)
+                                            self.command_log(sub_line)
                     finally:
                         if install_space_locked:
                             self.install_space_lock.release()

@@ -42,7 +42,7 @@ def run_command(cmd, cwd=None):
     p = None
     while p is None:
         try:
-            p = Popen(cmd, stdin=slave, stdout=slave, stderr=STDOUT, cwd=cwd)
+            p = Popen(cmd, stdin=slave, stdout=slave, stderr=STDOUT, cwd=cwd, universal_newlines=True)
         except OSError as exc:
             if 'Text file busy' in str(exc):
                 # This is a transient error, try again shortly
@@ -64,7 +64,7 @@ def run_command(cmd, cwd=None):
             data, left_over = process_incomming_lines(lines, left_over)
             if data is None:
                 continue
-            yield str(data)
+            yield data.decode('utf-8')
 
     # Done
     os.close(master)
