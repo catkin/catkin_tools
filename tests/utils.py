@@ -93,6 +93,7 @@ class temporary_directory(object):
 
     def __init__(self, prefix=''):
         self.prefix = prefix
+        self.delete = False
 
     def __enter__(self):
         self.original_cwd = os.getcwd()
@@ -101,7 +102,8 @@ class temporary_directory(object):
         return self.temp_path
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.temp_path and os.path.exists(self.temp_path):
+        if self.delete and self.temp_path and os.path.exists(self.temp_path):
+            print('Deleting temporary testind directory: %s' % self.temp_path)
             shutil.rmtree(self.temp_path)
         if self.original_cwd and os.path.exists(self.original_cwd):
             os.chdir(self.original_cwd)
@@ -139,22 +141,16 @@ def run(args, **kwargs):
     Call to Popen, returns (errcode, stdout, stderr)
     """
     print("run:", args)
-    with tempfile.NamedTemporaryFile(mode='w+') as temp_buffer:
-        p = subprocess.Popen(
-            args,
-            stdout=temp_buffer,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            cwd=kwargs.get('cwd', os.getcwd()))
-        print("P==", p.__dict__)
-        print("Dumping stdout to: "+ temp_buffer.name)
-        p.wait()
-        temp_buffer.seek(0)
-        stdout = temp_buffer.read()
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        cwd=kwargs.get('cwd', os.getcwd()))
+    print("P==", p.__dict__)
+    (stdout, stderr) = p.communicate()
 
-        return (p.returncode, stdout, '')
-
-    return (None, None, None)
+    return (p.returncode, stdout, stderr)
 
 
 def assert_cmd_success(cmd, **kwargs):
