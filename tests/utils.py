@@ -139,15 +139,15 @@ def run(args, **kwargs):
     Call to Popen, returns (errcode, stdout, stderr)
     """
     print("run:", args)
-    with tempfile.TemporaryFile(mode='w+b') as temp_buffer:
+    with tempfile.NamedTemporaryFile(mode='w+') as temp_buffer:
         p = subprocess.Popen(
             args,
-            bufsize=1,
             stdout=temp_buffer,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
             cwd=kwargs.get('cwd', os.getcwd()))
         print("P==", p.__dict__)
+        print("Dumping stdout to: "+ temp_buffer.name)
         p.wait()
         temp_buffer.seek(0)
         stdout = temp_buffer.read()

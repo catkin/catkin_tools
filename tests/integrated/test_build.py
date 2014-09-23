@@ -38,7 +38,7 @@ def test_build_auto_init_one_pkg():
     print("Creating source directory: %s" % source_space)
     os.mkdir(source_space)
     assert_cmd_success(['catkin', 'create', 'pkg', '--rosdistro', 'hydro', '-p', source_space, 'pkg_a'])
-    out = assert_cmd_success(['catkin', 'build'])
+    out = assert_cmd_success(['catkin', 'build', '--no-notify', '--no-status', '--verbose'])
     assert_no_warnings(out)
     assert_workspace_initialized('.')
 
