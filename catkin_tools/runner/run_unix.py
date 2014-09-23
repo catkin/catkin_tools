@@ -27,7 +27,7 @@ from subprocess import STDOUT
 def process_incomming_lines(lines, left_over):
     if not lines:
         return None, left_over
-    if lines[-1].endswith('\n'):
+    if lines[-1].rstrip() != lines[-1]:
         data = b''.join(lines)
         left_over = b''
     else:

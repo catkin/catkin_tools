@@ -42,7 +42,7 @@ def prepare_arguments(parser):
         help='The name of one or more packages to create. This name should be '
         'completely lower-case with individual words separated by undercores.')
 
-    add('-p', '--path', required=False, default=None,
+    add('-p', '--path', action='store', default=os.getcwd(),
         help='The path into which the package should be generated.')
 
     # TODO: Make this possible
@@ -115,7 +115,8 @@ def prepare_arguments(parser):
 def main(opts):
 
     try:
-        package_dest_path = opts.path or os.getcwd()
+        package_dest_path = opts.path
+        print('path: '+str(opts.path))
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
             target_path = os.path.join(package_dest_path, package_name)
