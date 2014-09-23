@@ -15,10 +15,9 @@
 """This module implements many of the colorization functions used by catkin build"""
 
 from catkin_tools.terminal_color import ansi
-from catkin_tools.terminal_color import enable_ANSI_colors
-from catkin_tools.terminal_color import disable_ANSI_colors
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import sanitize
+from catkin_tools.terminal_color import ColorMapper
 
 # This map translates more human reable format strings into colorized versions
 _color_translation_map = {
@@ -59,6 +58,10 @@ _color_translation_map = {
     fmt("[@!@{rf}!@|@{cf}{package}@|] "),
 }
 
+color_mapper = ColorMapper(_color_translation_map)
+
+clr = color_mapper.clr
+
 
 def colorize_cmake(line):
     """Colorizes output from CMake
@@ -89,41 +92,3 @@ def colorize_cmake(line):
         cline = cline.replace('Call Stack (most recent call first):',
                               '@{cf}@_Call Stack (most recent call first):@|')
     return fmt(cline)
-
-_color_on = True
-
-
-def set_color(state):
-    """Sets the global colorization setting.
-
-    Setting this to False will cause all ansi colorization sequences to get
-    replaced with empty strings.
-
-    :parma state: colorization On or Off, True or False respectively
-    :type state: bool
-    """
-    global _color_on
-    if state:
-        enable_ANSI_colors()
-        _color_on = True
-    else:
-        disable_ANSI_colors()
-        _color_on = False
-
-
-def clr(key):
-    """Returns a colorized version of the string given.
-
-    This is occomplished by either returning a hit from the color translation
-    map or by calling :py:func:`fmt` on the string and returning it.
-
-    :param key: string to be colorized
-    :type key: str
-    """
-    global _color_translation_map, _color_on
-    if not _color_on:
-        return fmt(key)
-    val = _color_translation_map.get(key, None)
-    if val is None:
-        return fmt(key)
-    return val

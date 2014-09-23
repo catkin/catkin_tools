@@ -19,8 +19,8 @@ from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    verb='build',
-    description="Builds a catkin workspace.",
+    verb='config',
+    description="Configures a catkin workspace's context.",
     main=main,
     prepare_arguments=prepare_arguments,
     argument_preprocessor=argument_preprocessor,

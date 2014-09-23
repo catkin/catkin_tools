@@ -1,3 +1,4 @@
+
 # Copyright 2014 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +20,8 @@ from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    verb='build',
-    description="Builds a catkin workspace.",
+    verb='create',
+    description="Creates catkin workspace resources like packages.",
     main=main,
     prepare_arguments=prepare_arguments,
-    argument_preprocessor=argument_preprocessor,
 )

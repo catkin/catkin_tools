@@ -28,9 +28,10 @@ builtin_verb_aliases_content = """\
 ### Files in this folder which end with `.yaml` are evaluated in sorted order
 
 b: build
+bt: b --this
 ls: list
-i: install
-install: build --install
+install: config --install
+p: create pkg
 """
 
 
@@ -82,7 +83,7 @@ def get_verb_aliases(path=catkin_config_path):
             .format(verb_aliases_path))
     verb_aliases = {}
     for file_name in sorted(os.listdir(verb_aliases_path)):
-        if file_name.endswith('.yaml') or file_name.endswith('.yml'):
+        if file_name.endswith('.yaml') or file_name.endswith('.yaml'):
             full_path = os.path.join(verb_aliases_path, file_name)
             with open(full_path, 'r') as f:
                 yaml_dict = yaml.load(f)

@@ -1,9 +1,15 @@
+
+from __future__ import print_function
+
 import functools
 import os
 import re
 import shutil
 import sys
 import tempfile
+
+import subprocess
+import unittest
 
 try:
     # Python2
@@ -12,6 +18,14 @@ except ImportError:
     # Python3
     from io import StringIO
 
+try:
+    from subprocess import TimeoutExpired
+except ImportError:
+    class TimeoutExpired(object):
+        pass
+
+TESTS_DIR = os.path.dirname(__file__)
+MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
 
 def assert_raises(exception_classes, callable_obj=None, *args, **kwargs):
     context = AssertRaisesContext(exception_classes)
@@ -30,6 +44,7 @@ def assert_raises_regex(exception_classes, expected_regex, callable_obj=None, *a
 
 
 class AssertRaisesContext(object):
+
     def __init__(self, expected, expected_regex=None):
         self.expected = expected
         self.expected_regex = expected_regex
@@ -61,6 +76,7 @@ class AssertRaisesContext(object):
 
 
 class redirected_stdio(object):
+
     def __enter__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
@@ -74,8 +90,10 @@ class redirected_stdio(object):
 
 
 class temporary_directory(object):
+
     def __init__(self, prefix=''):
         self.prefix = prefix
+        self.delete = False
 
     def __enter__(self):
         self.original_cwd = os.getcwd()
@@ -84,7 +102,8 @@ class temporary_directory(object):
         return self.temp_path
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.temp_path and os.path.exists(self.temp_path):
+        if self.delete and self.temp_path and os.path.exists(self.temp_path):
+            print('Deleting temporary testind directory: %s' % self.temp_path)
             shutil.rmtree(self.temp_path)
         if self.original_cwd and os.path.exists(self.original_cwd):
             os.chdir(self.original_cwd)
@@ -102,3 +121,68 @@ def in_temporary_directory(f):
             return f(*args, **kwds)
     decorated.__name__ = f.__name__
     return decorated
+
+
+def rosinstall(pth, specfile):
+    '''
+    calls rosinstall in pth with given specfile,
+    then replaces CMakelists with catkin's toplevel.cmake'
+    '''
+    assert os.path.exists(specfile), specfile
+    # to save testing time, we do not invoke rosinstall when we
+    # already have a .rosinstall file
+    if not os.path.exists(os.path.join(pth, '.rosinstall')):
+        succeed(["rosinstall", "-j8", "--catkin", "-n",
+                 pth, specfile, '--continue-on-error'], cwd=TESTS_DIR)
+
+
+def run(args, **kwargs):
+    """
+    Call to Popen, returns (errcode, stdout, stderr)
+    """
+    print("run:", args)
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        cwd=kwargs.get('cwd', os.getcwd()))
+    print("P==", p.__dict__)
+    (stdout, stderr) = p.communicate()
+
+    return (p.returncode, stdout, stderr)
+
+
+def assert_cmd_success(cmd, **kwargs):
+    """
+    Asserts that running a command returns zero.
+
+    returns: stdout
+    """
+    print(">>>", cmd, kwargs)
+    (r, out, err) = run(cmd, **kwargs)
+    print("<<<", str(out))
+    assert r == 0, "cmd failed with result %s:\n %s " % (r, str(cmd))
+    return out
+
+
+def assert_cmd_failure(cmd, **kwargs):
+    """
+    Asserts that running a command returns non-zero.
+
+    returns: stdout
+    """
+    print(">>>", cmd, kwargs)
+    (r, out, err) = run(cmd, withexitstatus=True, **kwargs)
+    print("<<<", str(out))
+    assert 0 != r, """cmd succeeded, though should fail: %s result=%u\noutput=\n%s""" % (cmd, r, out)
+    return out
+
+def assert_files_exist(prefix, files):
+    """
+    Assert that all files exist in the prefix.
+    """
+    for f in files:
+        p = os.path.join(prefix, f)
+        print("Checking for", p)
+        assert os.path.exists(p), "%s doesn't exist" % p

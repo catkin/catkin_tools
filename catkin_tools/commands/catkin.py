@@ -47,11 +47,17 @@ def default_argument_preprocessor(args):
 
 
 def create_subparsers(parser, verbs):
-    metavar = '[' + ' | '.join(verbs) + ']'
+    verbs = sorted(verbs)
+    verb_array_str = '[' + ' | '.join(verbs) + ']'
+    verb_list_str = 'Call `catkin VERB -h` for help on each verb listed below:\n'
+    for verb in verbs:
+        desc = load_verb_description(verb)
+        verb_list_str += '\n  %s\t%s' % (desc['verb'], desc['description'])
+
     subparser = parser.add_subparsers(
         title='catkin command',
-        metavar=metavar,
-        description='Call `catkin {0} -h` for help on a each verb.'.format(metavar),
+        metavar=verb_array_str,
+        description=verb_list_str,
         dest='verb'
     )
 
@@ -80,7 +86,7 @@ def main(sysargs=None):
         sys.exit("Failed to initialize config: {0}".format(exc))
 
     # Create a top level parser
-    parser = argparse.ArgumentParser(description="catkin command")
+    parser = argparse.ArgumentParser(description="catkin command", formatter_class=argparse.RawDescriptionHelpFormatter)
     add = parser.add_argument
     add('-a', '--list-aliases', action="store_true", default=False,
         help="lists the current verb aliases and then quits, all other arguments are ignored")

@@ -27,7 +27,7 @@ from subprocess import STDOUT
 def process_incomming_lines(lines, left_over):
     if not lines:
         return None, left_over
-    if lines[-1].endswith('\n'):
+    if str(lines[-1]).endswith('\n'):
         data = b''.join(lines)
         left_over = b''
     else:
@@ -57,15 +57,15 @@ def run_command(cmd, cwd=None):
     # Read data until the process is finished
     while p.poll() is None:
         incomming = left_over
-        rlist, wlist, xlist = select.select([master], [], [], 0.1)
+        rlist, wlist, xlist = select.select([master], [], [], 0.01)
         if rlist:
             incomming += os.read(master, 1024)
             lines = incomming.splitlines(True)  # keepends=True
             data, left_over = process_incomming_lines(lines, left_over)
             if data is None:
                 continue
-            yield data
+            yield str(data)
 
     # Done
     os.close(master)
-    yield p.returncode
+    yield int(p.returncode)

@@ -34,6 +34,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
+    #'sphinxcontrib.programoutput',
+    #'sphinxcontrib.ansi',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -266,3 +268,6 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+# programoutput options
+#programoutput_use_ansi = True

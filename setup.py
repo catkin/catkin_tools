@@ -31,7 +31,7 @@ osx_notification_resources = [os.path.relpath(x, src_path)
 
 setup(
     name='catkin_tools',
-    version='0.1.0',
+    version='0.2.0',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
@@ -61,7 +61,12 @@ setup(
         ],
         'catkin_tools.commands.catkin.verbs': [
             'build = catkin_tools.verbs.catkin_build:description',
+            'clean = catkin_tools.verbs.catkin_clean:description',
+            'config = catkin_tools.verbs.catkin_config:description',
+            'create = catkin_tools.verbs.catkin_create:description',
+            'init = catkin_tools.verbs.catkin_init:description',
             'list = catkin_tools.verbs.catkin_list:description',
+            'profile = catkin_tools.verbs.catkin_profile:description',
         ],
     },
 )
