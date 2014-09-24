@@ -149,12 +149,15 @@ def find_vanilla_cmake_packages(base_path):
     """
 
     vanilla_cmake_packages = {}
+    ignore_files = ['CATKIN_IGNORE', 'package.xml', 'manifest.xml', 'stack.xml']
 
     for root, dirs, files in os.walk(base_path):
-        if 'CMakeLists.txt' in files and 'package.xml' not in files and 'CATKIN_IGNORE' not in files:
+        if [f for f in ignore_files if f in files]:
+            del dirs[:]
+        elif 'CMakeLists.txt' in files and 'package.xml' not in files:
             name = os.path.split(root)[-1]
             path = os.path.relpath(root, base_path)
-            vanilla_package = Package(name=name)
+            vanilla_package = Package(filename=path, name=name)
             vanilla_package.exports.append(Export('build_type', 'cmake'))
             vanilla_cmake_packages[path] = vanilla_package
             del dirs[:]

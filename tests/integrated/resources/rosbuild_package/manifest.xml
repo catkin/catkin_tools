@@ -1,0 +1,14 @@
+<package>
+  <description brief="rosbuild_package">
+
+     rosbuild_package
+
+  </description>
+  <author>Jonathan Bohren</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/rosbuild_package</url>
+
+</package>
+
+
