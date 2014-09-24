@@ -32,6 +32,7 @@ except ImportError:
     from Queue import Empty
 
 try:
+    from catkin_pkg.package import Package, Export
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -137,6 +138,30 @@ def queue_ready_packages(ready_packages, running_jobs, job_queue, context, force
     return running_jobs
 
 
+def find_vanilla_cmake_packages(base_path):
+    """Returns a list of paths to vanilla CMake projects.
+
+    These are determined as directories in the source space which
+    contain a top-level CMakeLists.txt file and no package.xml file.
+
+    Directories with `CATKIN_IGNORE` files will be excluded from
+    this list.
+    """
+
+    vanilla_cmake_packages = {}
+
+    for root, dirs, files in os.walk(base_path):
+        if 'CMakeLists.txt' in files and 'package.xml' not in files and 'CATKIN_IGNORE' not in files:
+            name = os.path.split(root)[-1]
+            path = os.path.relpath(root, base_path)
+            vanilla_package = Package(name=name)
+            vanilla_package.exports.append(Export('build_type', 'cmake'))
+            vanilla_cmake_packages[path] = vanilla_package
+            del dirs[:]
+
+    return vanilla_cmake_packages
+
+
 def determine_packages_to_be_built(packages, context):
     """Returns list of packages which should be built, and those package's deps.
 
@@ -148,7 +173,14 @@ def determine_packages_to_be_built(packages, context):
     :rtype: tuple
     """
     start = time.time()
+
+    # Find vanilla CMake packages
+    vanilla_cmake_packages = find_vanilla_cmake_packages(context.source_space_abs)
+
+    # Find catkin packages
     workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True)
+    workspace_packages.update(vanilla_cmake_packages)
+
     # If there are no packages raise
     if not workspace_packages:
         sys.exit("No packages were found in the source space '{0}'".format(context.source_space_abs))
@@ -159,7 +191,7 @@ def determine_packages_to_be_built(packages, context):
     ordered_packages = topological_order_packages(workspace_packages)
     # Set the packages in the workspace for the context
     context.packages = ordered_packages
-    # Determin the packages which should be built
+    # Determine the packages which should be built
     packages_to_be_built = []
     packages_to_be_built_deps = []
     if packages:

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+  <name>dep_on_vanilla</name>
+  <version>0.0.0</version>
+  <description>The dep_on_vanilla package</description>
+  <maintainer email="jbohren@todo.todo">jbohren</maintainer>
+  <license>NONE</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>vanilla-cmake-package</build_depend>
+</package>
