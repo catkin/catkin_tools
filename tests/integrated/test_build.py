@@ -44,6 +44,8 @@ def test_build_auto_init_one_pkg():
 
 @in_temporary_directory
 def test_build_eclipse():
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
     assert_cmd_success(['catkin', 'create', 'pkg', '--rosdistro', 'hydro', '-p', source_space, 'pkg_a'])
     out = assert_cmd_success(['catkin', 'build', '--no-notify',
                               '--no-status', '--verbose', '--cmake-args', '-GEclipse CDT4 - Unix Makefiles'])
