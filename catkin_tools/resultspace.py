@@ -3,6 +3,7 @@ import os
 import re
 
 from .runner import run_command
+from .common import string_type
 
 
 def get_resultspace_environment(result_space_path, quiet=False):
@@ -70,7 +71,7 @@ def get_resultspace_environment(result_space_path, quiet=False):
     env_dict = {}
 
     for line in run_command(command, cwd=os.getcwd()):
-        if isinstance(line, str):
+        if isinstance(line, string_type):
             matches = env_regex.findall(line)
             for (key, value) in matches:
                 value = value.rstrip()

@@ -25,6 +25,11 @@ from .terminal_color import ColorMapper
 color_mapper = ColorMapper()
 clr = color_mapper.clr
 
+try:
+    string_type = basestring
+except NameError:
+    string_type = str
+
 
 class FakeLock(object):
 
