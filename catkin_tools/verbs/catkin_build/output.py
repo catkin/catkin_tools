@@ -105,7 +105,7 @@ class OutputController(object):
         if self.__command_log[package].current_cmd is None:
             raise RuntimeError("Command log received for package '{0}' before command started: '{1}'"
                                .format(package, msg))
-        self.__command_log[package].append(msg)
+        self.__command_log[package].append(msg.decode())
         if not self.color:
             msg = remove_ansi_escape(msg)
         if not self.quiet and self.interleave:
