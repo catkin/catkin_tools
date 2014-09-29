@@ -27,7 +27,7 @@ from subprocess import STDOUT
 def process_incomming_lines(lines, left_over):
     if not lines:
         return None, left_over
-    if str(lines[-1]).endswith('\n'):
+    if lines[-1].endswith(b'\n'):
         data = b''.join(lines)
         left_over = b''
     else:
@@ -64,7 +64,10 @@ def run_command(cmd, cwd=None):
             data, left_over = process_incomming_lines(lines, left_over)
             if data is None:
                 continue
-            yield data.decode('utf-8')
+            try:
+                yield data.decode()
+            except UnicodeDecodeError as exc:
+                yield unicode(data, errors='ignore')
 
     # Done
     os.close(master)
