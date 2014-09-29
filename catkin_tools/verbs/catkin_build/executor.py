@@ -68,7 +68,7 @@ class Executor(Thread):
 
     def command_log(self, msg):
         package_name = '' if self.current_job is None else self.current_job.package.name
-        data = {'message': msg.encode()}
+        data = {'message': msg}
         self.queue.put(ExecutorEvent(self.executor_id, 'command_log', data, package_name))
 
     def command_failed(self, cmd, location, retcode):
