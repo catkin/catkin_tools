@@ -27,3 +27,8 @@ def test_init_local_empty_src():
     assert_no_warnings(out)
     assert_workspace_initialized('.')
 
+@in_temporary_directory
+def test_config_non_bare():
+    out = assert_cmd_success(['catkin', 'config', '--install'])
+    assert_workspace_initialized('.')
+    assert_warning_message(out, 'Source space .+ does not yet exist')
