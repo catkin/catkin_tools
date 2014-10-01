@@ -61,7 +61,7 @@ def prepare_arguments(parser):
     add_context_args(parser)
     # Sub-commands
     add = parser.add_argument
-    add('--dry-run', '-d', action='store_true', default=False,
+    add('--dry-run', '-n', action='store_true', default=False,
         help='List the packages which will be built with the given arguments without building them.')
     # What packages to build
     pkg_group = parser.add_argument_group('Packages', 'Control which packages get built.')
