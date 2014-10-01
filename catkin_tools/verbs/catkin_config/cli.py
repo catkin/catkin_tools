@@ -21,6 +21,11 @@ from catkin_tools.argument_parsing import add_context_args
 
 from catkin_tools.context import Context
 
+from catkin_tools.terminal_color import ColorMapper
+
+color_mapper = ColorMapper()
+clr = color_mapper.clr
+
 
 def prepare_arguments(parser):
 
@@ -105,17 +110,29 @@ def prepare_arguments(parser):
 
 def main(opts):
     try:
+        # Determine if the user is trying to perform some action, in which
+        # case, the workspace should be automatically initialized
+        ignored_opts = ['main', 'verb']
+        actions = [v for k, v in vars(opts).items() if k not in ignored_opts]
+        no_action = not any(actions)
+
         # Try to find a metadata directory to get context defaults
         # Otherwise use the specified directory
         context = Context.Load(opts.workspace, opts.profile, opts)
 
-        if context.initialized() or opts.init:
+        do_init = opts.init or not no_action
+        summary_notes = []
+
+        if not context.initialized() and do_init:
+            summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `%s`@|' % context.workspace))
+
+        if context.initialized() or do_init:
             Context.Save(context)
 
         if opts.mkdirs and not context.source_space_exists():
             os.makedirs(context.source_space_abs)
 
-        print(context.summary())
+        print(context.summary(notes=summary_notes))
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
