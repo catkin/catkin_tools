@@ -59,14 +59,14 @@ def run_command(cmd, cwd=None):
         incomming = left_over
         rlist, wlist, xlist = select.select([master], [], [], 0.01)
         if rlist:
-            incomming += os.read(master, 1024).decode('utf-8')
+            incomming += os.read(master, 1024)
             lines = incomming.splitlines(True)  # keepends=True
             data, left_over = process_incomming_lines(lines, left_over)
             if data is None:
                 continue
             try:
                 yield data.decode()
-            except (UnicodeEncodeError, UnicodeDecodeError) as exc:
+            except UnicodeDecodeError as exc:
                 yield unicode(data, errors='ignore')
 
     # Done
