@@ -153,7 +153,16 @@ Design Considerations
 ---------------------
 
 - You can no longer access variables defined in other Catkin projects.
-- You no longer need to define target dependencies on messages built in other
-  packages. All targets in a dependency are guaranteed to have been built before
-  the current package.
+- You no longer need to define target dependencies on ROS messages built in
+  other packages. All targets in a dependency are guaranteed to have been built
+  before the current package.
+
+Stricter CMake Treatment
+------------------------
+
+- It is critical for Catkin-based packages to call ``catkin_package()`` before
+  **any** targets are defined. Otherwise your targets will not be built into the
+  **devel space**. Previously with ``catkin_make``, as long as some package
+  called ``catkin_package()`` before your package was configured, the appropriate
+  target destinations were defined.
 
