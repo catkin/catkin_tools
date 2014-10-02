@@ -603,7 +603,7 @@ Full Command-Line Interface
                             contained within it (default: ".")
       --profile PROFILE     The name of a config profile to use (default: active
                             profile)
-      --dry-run, -d         List the packages which will be built with the given
+      --dry-run, -n         List the packages which will be built with the given
                             arguments without building them.
 
     Packages:
