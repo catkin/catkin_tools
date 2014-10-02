@@ -608,89 +608,41 @@ def build_isolated_workspace(
                     # Update status bar
                     wide_log(msg, rhs=msg_rhs, end='\r')
                     sys.stdout.flush()
-                ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
-                running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
-                # Make sure there are jobs to be/being processed, otherwise kill the executors
-                if not running_jobs:
-                    # Kill the executors by sending a None to the job queue for each of them
-                    for x in range(jobs):
-                        job_queue.put(None)
+            except KeyboardInterrupt:
+                wide_log("[build] User interrupted, stopping.")
+                set_error_state(error_state)
+        # All executors have shutdown
+        sys.stdout.write("\x1b]2;\x07")
+        if not errors:
+            if context.isolate_devel:
+                if not context.install:
+                    _create_unmerged_devel_setup(context)
+                else:
+                    _create_unmerged_devel_setup_for_install(context)
+            wide_log("[build] Finished.")
+            if not no_notify:
+                notify("Build Finished", "{0} packages built".format(total_packages))
+            return 0
+        else:
+            wide_log(clr("[build] There were @!@{rf}errors@|:"))
+            if not no_notify:
+                notify("Build Failed", "there were {0} errors".format(len(errors)))
+            for error in errors:
+                if error.event_type == 'exit':
+                    wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
 
-            # If an executor exit event, join it and remove it from the executors list
-            if event.event_type == 'exit':
-                # If an executor has an exception, set the error state
-                if event.data['reason'] == 'exception':
-                    set_error_state(error_state)
-                    errors.append(event)
-                # Join and remove it
-                executors[event.executor_id].join()
-                del executors[event.executor_id]
+    {data[exc]}
+    """.format(exec_id=error.executor_id + 1, **error.__dict__))
+                else:
+                    wide_log(clr("""
+    @{rf}Failed@| to build package '@{cf}{package}@|' because the following command:
 
-            if not no_status:
-                # Update the status bar on the screen
-                executing_jobs = []
-                for name, value in running_jobs.items():
-                    number, start_time = value['package_number'], value['start_time']
-                    if number is None or start_time is None:
-                        continue
-                    executing_jobs.append({
-                        'number': number,
-                        'name': name,
-                        'run_time': format_time_delta_short(time.time() - start_time)
-                    })
-                msg = clr("[build - {run_time}] ").format(run_time=format_time_delta_short(time.time() - start))
-                # If errors post those
-                if errors:
-                    for error in errors:
-                        msg += clr("[!{package}] ").format(package=error.package)
-                # Print them in order of started number
-                for job_msg_args in sorted(executing_jobs, key=lambda args: args['number']):
-                    msg += clr("[{name} - {run_time}] ").format(**job_msg_args)
-                msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed]").format(
-                    len(executing_jobs),
-                    len(executors),
-                    len(packages) if no_deps else len(completed_packages),
-                    total_packages
-                )
-                # Update title bar
-                sys.stdout.write("\x1b]2;[build] {0}/{1}\x07".format(
-                    len(packages) if no_deps else len(completed_packages),
-                    total_packages
-                ))
-                # Update status bar
-                wide_log(msg, rhs=msg_rhs, end='\r')
-                sys.stdout.flush()
-        except KeyboardInterrupt:
-            wide_log("[build] User interrupted, stopping.")
-            set_error_state(error_state)
-    # All executors have shutdown
-    sys.stdout.write("\x1b]2;\x07")
-    if not errors:
-        if context.isolate_devel:
-            if not context.install:
-                _create_unmerged_devel_setup(context)
-            else:
-                _create_unmerged_devel_setup_for_install(context)
-        wide_log("[build] Finished.")
-        if not no_notify:
-            notify("Build Finished", "{0} packages built".format(total_packages))
-        return 0
-    else:
-        wide_log(clr("[build] There were @!@{rf}errors@|:"))
-        if not no_notify:
-            notify("Build Failed", "there were {0} errors".format(len(errors)))
-        for error in errors:
-            if error.event_type == 'exit':
-                wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
+        @!@{kf}# Command run in directory: @|{location}
+        {cmd.cmd_str}
 
-{data[exc]}
-""".format(exec_id=error.executor_id + 1, **error.__dict__))
-            else:
-                wide_log(clr("""
-@{rf}Failed@| to build package '@{cf}{package}@|' because the following command:
-
-    @!@{kf}# Command run in directory: @|{location}
-    {cmd.cmd_str}
-
-@{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package, **error.data))
-        sys.exit(1)
+    @{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package, **error.data))
+            sys.exit(1)
+    finally:
+        # Ensure executors go down
+        for x in range(jobs):
+            job_queue.put(None)

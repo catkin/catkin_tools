@@ -31,7 +31,7 @@ def process_incomming_lines(lines, left_over):
         data = b''.join(lines)
         left_over = b''
     else:
-        data = ''.join(lines[:-1])
+        data = b''.join(lines[:-1])
         left_over = lines[-1]
     return data, left_over
 
@@ -52,7 +52,7 @@ def run_command(cmd, cwd=None):
     if sys.platform.startswith('darwin'):
         os.close(slave)  # This causes the below select to exit when the subprocess closes
 
-    left_over = ''
+    left_over = b''
 
     # Read data until the process is finished
     while p.poll() is None:
@@ -66,7 +66,7 @@ def run_command(cmd, cwd=None):
                 continue
             try:
                 yield data.decode()
-            except UnicodeDecodeError as exc:
+            except (UnicodeEncodeError, UnicodeDecodeError) as exc:
                 yield unicode(data, errors='ignore')
 
     # Done
