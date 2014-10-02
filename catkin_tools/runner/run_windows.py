@@ -31,7 +31,7 @@ def run_command(cmd, cwd=None):
         incomming = left_over
         rlist, wlist, xlist = select.select([p.stdout], [], [])
         if rlist:
-            incomming += os.read(p.stdout, 1024)
+            incomming += os.read(p.stdout.fileno(), 1024)
             lines = incomming.splitlines(True)  # keepends=True
             if not lines:
                 continue
@@ -41,6 +41,9 @@ def run_command(cmd, cwd=None):
             else:
                 data = b''.join(lines[-1])
                 left_over = lines[-1]
-            yield data
+            try:
+                yield data.decode()
+            except UnicodeDecodeError as exc:
+                yield unicode(data, errors='ignore')
     # Done
     yield p.returncode

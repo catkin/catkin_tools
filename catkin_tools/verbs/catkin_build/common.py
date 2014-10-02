@@ -18,6 +18,23 @@ import os
 import stat
 import sys
 
+from multiprocessing import cpu_count
+
+from catkin_tools.runner import run_command
+
+from .color import clr
+
+# Due to portability issues, it uses only POSIX-compliant shell features.
+# This means that there is no support for BASH-like arrays, and special
+# care needs to be taken in order to preserve argument atomicity when
+# passing along to the `exec` instruction at the end.
+#
+# This involves forming a string called `_ARGS` which is composed of
+# tokens like `"$_Ai"` for i=0..N-1 for N arguments so that with N=3
+# arguments, for example, `_ARGS` would look like `"$_A0" "$_A1" "$_A2"`.
+# The double-quotes are necessary because they define the argument
+# boundaries when the variables are expanded by calling `eval`.
+
 env_file_template = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/common.py
@@ -30,7 +47,32 @@ if [ $# -eq 0 ] ; then
 fi
 
 # save original args for later
-_ARGS=$@
+_ARGS=
+_ARGI=0
+for arg in "$@"; do
+  # Define placeholder variable
+  eval "_A$_ARGI=\$arg"
+  # Add placeholder variable to arg list
+  _ARGS="$_ARGS \\"\$_A$_ARGI\\""
+  # Increment arg index
+  _ARGI=`expr $_ARGI + 1`
+
+  #######################
+  ## Uncomment for debug:
+  #_escaped="$(echo "$arg" | sed -e 's@ @ @g')"
+  #echo "$_escaped"
+  #eval "echo '$_ARGI \$_A$_ARGI'"
+  #######################
+done
+
+#######################
+## Uncomment for debug:
+#echo "exec args:"
+#echo "$_ARGS"
+#for arg in $_ARGS; do eval echo $arg; done
+#echo "-----------"
+#####################
+
 # remove all passed in args, resetting $@, $*, $#, $n
 shift $#
 # set the args for the sourced scripts
@@ -39,7 +81,7 @@ set -- $@ "--extend"
 {sources}
 
 # execute given args
-exec $_ARGS
+eval exec $_ARGS
 """
 
 

@@ -104,7 +104,7 @@ class Job(object):
 
 def create_env_file(package, context):
     sources = []
-    source_snippet = ". {source_path}"
+    source_snippet = '. "{source_path}"'
     # If installing to isolated folders or not installing, but devel spaces are not merged
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
@@ -203,7 +203,7 @@ class CMakeJob(Job):
             dir=setup_file_directory,
             prefix=os.path.basename(setup_file_path) + '.')
         # Write the fulfilled template to the file
-        os.write(tmp_dst_handle, """\
+        data = """\
 #!/usr/bin/env sh
 # generated from catkin_tools.verbs.catkin_build.job python module
 
@@ -229,7 +229,8 @@ fi
 export PATH="{path}$PATH"
 export PKG_CONFIG_PATH="{pkgcfg_path}$PKG_CONFIG_PATH"
 export PYTHONPATH="{pythonpath}$PYTHONPATH"
-""".format(**subs))
+""".format(**subs)
+        os.write(tmp_dst_handle, data.encode('utf-8'))
         os.close(tmp_dst_handle)
         # Do an atomic rename with os.rename
         os.rename(tmp_dst_path, setup_file_path)
