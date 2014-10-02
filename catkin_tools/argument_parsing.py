@@ -238,7 +238,7 @@ def argument_preprocessor(args):
     extract_make_args = extract_cmake_and_make_and_catkin_make_arguments
     args, cmake_args, make_args, catkin_make_args = extract_make_args(args)
     # Extract make jobs flags.
-    jobs_flags = extract_jobs_flags(' '.join(args))
+    jobs_flags = extract_jobs_flags(' '.join(args)) or []
     if jobs_flags:
         args = re.sub(jobs_flags, '', ' '.join(args)).split()
         jobs_flags = jobs_flags.split()

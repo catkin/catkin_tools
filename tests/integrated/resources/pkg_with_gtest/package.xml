@@ -1,0 +1,12 @@
+<package>
+  <name>pkg_with_gtest</name>
+  <version>0.1.0</version>
+  <license>BSD</license>
+  <maintainer email="todo@todo.com">todo</maintainer>
+  <description>Nothing to see here</description>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>google-mock</build_depend>
+  <run_depend>google-mock</run_depend>
+</package>
+
