@@ -54,16 +54,17 @@ def test_build_eclipse():
     assert_workspace_initialized('.')
     assert_files_exist(os.path.join(cwd, 'build', 'pkg_a'), ['.project', '.cproject'])
 
+@in_temporary_directory
 def test_build_pkg_unit_tests():
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
     print("Creating source directory: %s" % source_space)
     shutil.copytree(RESOURCES_DIR, source_space)
-    out1 = assert_cmd_success(['catkin', 'build', '--no-notify', '--no-status',
-        '--verbose', '--no-deps', 'pkg_with_gtest', '--make-args',
+    assert_cmd_success(['catkin', 'build', '--no-notify', '--no-status',
+        '--verbose', '--no-deps', 'pkg_with_test', '--make-args',
         'run_tests'])
-    assert_cmd_success(['catkin_test_results', 'build/pkg_with_gtest'])
-    out2 = assert_cmd_success(['catkin', 'build', '--no-notify', '--no-status',
-        '--verbose', '--no-deps', 'pkg_with_broken_gtest', '--make-args',
+    assert_cmd_success(['catkin_test_results', 'build/pkg_with_test'])
+    assert_cmd_success(['catkin', 'build', '--no-notify', '--no-status',
+        '--verbose', '--no-deps', 'pkg_with_broken_test', '--make-args',
         'run_tests'])
-    assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_gtest'])
+    assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])

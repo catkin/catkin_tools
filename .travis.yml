@@ -6,7 +6,6 @@ install:
   - pip install argparse catkin-pkg distribute PyYAML
   - pip install nose coverage flake8 --upgrade
 before_script:
-  - sudo apt-get install -qq google-mock
   - sudo apt-get install cmake python-setuptools libgtest-dev build-essential
   - pip install empy --upgrade
   - git clone https://github.com/ros/catkin.git /tmp/catkin_source
