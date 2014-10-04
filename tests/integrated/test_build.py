@@ -68,3 +68,16 @@ def test_build_pkg_unit_tests():
         '--verbose', '--no-deps', 'pkg_with_broken_test', '--make-args',
         'run_tests'])
     assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
+
+@in_temporary_directory
+def test_build_pkg_unit_tests_alias():
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    print("Creating source directory: %s" % source_space)
+    shutil.copytree(RESOURCES_DIR, source_space)
+    assert_cmd_success(['catkin', 'run_tests', 'pkg_with_test', '--no-deps',
+        '--no-notify', '--no-status'])
+    assert_cmd_success(['catkin_test_results', 'build/pkg_with_test'])
+    assert_cmd_success(['catkin', 'run_tests', 'pkg_with_broken_test', '--no-deps',
+        '--no-notify', '--no-status'])
+    assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
