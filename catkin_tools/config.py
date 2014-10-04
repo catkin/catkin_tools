@@ -34,6 +34,7 @@ bt: b --this
 ls: list
 install: config --install
 p: create pkg
+test: build --verbose --make-args test --
 run_tests: build --verbose --catkin-make-args run_tests --
 """
 

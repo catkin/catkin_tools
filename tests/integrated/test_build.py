@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import shutil
 
 from ..utils import in_temporary_directory
 from ..utils import assert_cmd_success, assert_cmd_failure
@@ -75,9 +76,11 @@ def test_build_pkg_unit_tests_alias():
     source_space = os.path.join(cwd, 'src')
     print("Creating source directory: %s" % source_space)
     shutil.copytree(RESOURCES_DIR, source_space)
+
     assert_cmd_success(['catkin', 'run_tests', 'pkg_with_test', '--no-deps',
         '--no-notify', '--no-status'])
     assert_cmd_success(['catkin_test_results', 'build/pkg_with_test'])
+
     assert_cmd_success(['catkin', 'run_tests', 'pkg_with_broken_test', '--no-deps',
         '--no-notify', '--no-status'])
     assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
