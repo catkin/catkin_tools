@@ -257,7 +257,7 @@ class Context(object):
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
             self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '')
             if not self.env_cmake_prefix_path:
-                print(clr("@!@{rf}Error:@| Could not load environment from workspace: %s" % self.extend_path))
+                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
                 print(extended_env)
                 exit(1)
         else:
@@ -447,7 +447,7 @@ class Context(object):
                 get_resultspace_environment(value)
             self.__extend_path = value
         except IOError as exc:
-            raise ValueError("Unable to extend workspace from \"%s\": %s" % (opts.extend_path, exc.message))
+            raise ValueError("Unable to extend workspace from \"%s\": %s" % (value, exc.message))
 
     @property
     def source_space_abs(self):
