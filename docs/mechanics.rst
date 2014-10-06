@@ -51,9 +51,11 @@ Generated files, like executables, libraries, pkg-config files, CMake config
 files, or message code, are placed in the **devel space**.
 By convention the **devel space** is located as a peer to the **source
 space** and **build space** in the ``/path/to/workspace/devel`` folder.
-The layout of the **devel space** is intended to mimic the root of a `FHS
+The layout of the **devel space** is intended to mimic the root of an `FHS
 filesystem <https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard>`_,
-with folders like ``include``, ``lib``, ``bin``, and ``share``.
+with folders like ``include``, ``lib``, ``bin``, and ``share``. Running code is
+possible from **devel space** because references to the **source space** are
+created.
 
 install space
 -------------
@@ -62,13 +64,13 @@ Finally, if the packages in the workspace are setup for installing, the
 ``--install`` option can be invoked to install the packages to the
 ``CMAKE_INSTALL_PREFIX``, which in `REP-0128
 <http://www.ros.org/reps/rep-0128.html>`_ terms is the **install space**.
-The **install space**, like the **devel space**, has a FHS layout along with
+The **install space**, like the **devel space**, has an FHS layout along with
 some generated setup files.
 The **install space** is set to ``/path/to/workspace/install`` by changing
 the ``CMAKE_INSTALL_PREFIX`` by default.
 This is done to prevent users from accidentally trying to install to the
 normal ``CMAKE_INSTALL_PREFIX`` path, ``/usr/local``.
-Unlike the **devel space**, the **install space** is completely stand alone
+Unlike the **devel space**, the **install space** is completely standalone
 and does not require the **source space** or **build space** to function, and
 is suitable for packaging.
 
@@ -307,7 +309,7 @@ until they are cleaned.
   ``A`` in the search scope of another workspace ``B``. When describing the
   relationship between two such chained workspaces, ``A`` and ``B``, it is said
   that workspace ``B`` **extends** workspace ``A`` and workspace ``A`` is
-  ***extended by** workspace ``B``. This concept is also sometimes referred to
+  **extended by** workspace ``B``. This concept is also sometimes referred to
   as "overlaying" or "inheriting" a workspace.
 
 Similarly, when you ``source`` a Catkin workspace's setup file from a
