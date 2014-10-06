@@ -199,12 +199,13 @@ class Context(object):
         :raises: ValueError if workspace or source space does not exist
         """
         self.__locked = False
-        self.extend_path = extend_path if extend_path else None
-        ss = '' if space_suffix is None else space_suffix
 
         # Validation is done on assignment
         # Handle *space assignment and defaults
         self.workspace = workspace
+
+        self.extend_path = extend_path if extend_path else None
+        ss = '' if space_suffix is None else space_suffix
 
         self.profile = profile
 
@@ -257,7 +258,7 @@ class Context(object):
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
             self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '')
             if not self.env_cmake_prefix_path:
-                print(clr("@!@{rf}Error:@| Could not load environment from workspace: %s" % self.extend_path))
+                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
                 print(extended_env)
                 exit(1)
         else:
@@ -444,10 +445,12 @@ class Context(object):
     def extend_path(self, value):
         try:
             if value is not None:
+                if not os.path.isabs(value):
+                    value = os.path.join(self.workspace, value)
                 get_resultspace_environment(value)
             self.__extend_path = value
         except IOError as exc:
-            raise ValueError("Unable to extend workspace from \"%s\": %s" % (opts.extend_path, exc.message))
+            raise ValueError("Unable to extend workspace from \"%s\": %s" % (value, exc.message))
 
     @property
     def source_space_abs(self):

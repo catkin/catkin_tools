@@ -154,7 +154,7 @@ Now that there are some packages in the workspace, Catkin has something to build
 Building the Workspace
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Since the catkin workspace has already been initializes, you can call ``catkin
+Since the catkin workspace has already been initialized, you can call ``catkin
 build`` from any directory contained within it. If it had not been initialized,
 then ``cakin build`` would need to be called from the workspace root. Based on
 the default configuration, it will locate the packages in the **source space**
