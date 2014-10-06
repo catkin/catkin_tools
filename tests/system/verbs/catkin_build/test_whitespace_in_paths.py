@@ -23,7 +23,7 @@ def test_catkin_build_with_whitespace_in_paths():
                 traceback.print_exc()
         assert ret == 0, cmd
 
-        cmd = ['build', '--no-status', '--verbose']
+        cmd = ['build', '--no-status', '--no-notify', '--verbose']
         try:
             ret = main(cmd)
         except SystemExit as exc:
