@@ -19,11 +19,8 @@ from __future__ import print_function
 import os
 import re
 
-from textwrap import fill
-
 from . import metadata
 
-from .common import log
 from .common import remove_ansi_escape
 from .common import printed_fill
 
