@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import os
 import re
+import sys
 
 from . import metadata
 
@@ -257,7 +258,7 @@ class Context(object):
             if not self.env_cmake_prefix_path:
                 print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
                 print(extended_env)
-                exit(1)
+                sys.exit(1)
         else:
             # Get the current CMAKE_PREFIX_PATH
             if 'CMAKE_PREFIX_PATH' in os.environ:
