@@ -199,12 +199,13 @@ class Context(object):
         :raises: ValueError if workspace or source space does not exist
         """
         self.__locked = False
-        self.extend_path = extend_path if extend_path else None
-        ss = '' if space_suffix is None else space_suffix
 
         # Validation is done on assignment
         # Handle *space assignment and defaults
         self.workspace = workspace
+
+        self.extend_path = extend_path if extend_path else None
+        ss = '' if space_suffix is None else space_suffix
 
         self.profile = profile
 
@@ -444,6 +445,8 @@ class Context(object):
     def extend_path(self, value):
         try:
             if value is not None:
+                if not os.path.isabs(value):
+                    value = os.path.join(self.workspace, value)
                 get_resultspace_environment(value)
             self.__extend_path = value
         except IOError as exc:
