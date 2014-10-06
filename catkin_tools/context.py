@@ -256,7 +256,8 @@ class Context(object):
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
             self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '')
             if not self.env_cmake_prefix_path:
-                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
+                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', "
+                          "target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
                 print(extended_env)
                 sys.exit(1)
         else:
