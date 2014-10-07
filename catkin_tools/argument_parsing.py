@@ -62,14 +62,14 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     add = parser.add_mutually_exclusive_group().add_argument
     add('--cmake-args', metavar='ARG', dest='cmake_args', nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to CMake. '
-             'It must be passed after other arguments since it collects all following options.')
+             'It collects all of following arguments until a "--" is read.')
     add('--no-cmake-args', dest='cmake_args', action='store_const', const='A', default=None,
         help='Pass no additional arguments to CMake.')
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--make-args', metavar='ARG', dest='make_args', nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to make.'
-             'It must be passed after other arguments since it collects all following options.')
+             'It collects all of following arguments until a "--" is read.')
     add('--no-make-args', dest='make_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to make (does not affect --catkin-make-args).')
 
@@ -77,7 +77,7 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     add('--catkin-make-args', metavar='ARG', dest='catkin_make_args',
         nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to make but only for catkin packages.'
-             'It must be passed after other arguments since it collects all following options.')
+             'It collects all of following arguments until a "--" is read.')
     add('--no-catkin-make-args', dest='catkin_make_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to make for catkin packages (does not affect --make-args).')
 
@@ -105,16 +105,23 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
     if extract_catkin_make and '--no-catkin_make_args' not in args:
         arg_types['--catkin-make-args'] = catkin_make_args
 
+    # Determine where each arg type starts
+    # Map from arg indices to arg types
     arg_indexes = {}
-    for k in arg_types.keys():
-        if k in args:
-            arg_indexes[args.index(k)] = k
+    for arg_type in arg_types.keys():
+        if arg_type in args:
+            arg_indexes[args.index(arg_type)] = arg_type
 
     def split_arguments(args, splitter_name):
         if splitter_name not in args:
             return args, None
-        index = args.index(splitter_name)
-        return args[0:index], args[index + 1:]
+        start_index = args.index(splitter_name)
+        end_index = args.index('--', start_index + 1) if '--' in args else None
+
+        if end_index:
+            return args[0:index] + args[end_index + 1:], args[index + 1:end_index]
+        else:
+            return args[0:index], args[index + 1:]
 
     for index in reversed(sorted(arg_indexes.keys())):
         arg_type = arg_indexes[index]
@@ -238,7 +245,7 @@ def argument_preprocessor(args):
     extract_make_args = extract_cmake_and_make_and_catkin_make_arguments
     args, cmake_args, make_args, catkin_make_args = extract_make_args(args)
     # Extract make jobs flags.
-    jobs_flags = extract_jobs_flags(' '.join(args))
+    jobs_flags = extract_jobs_flags(' '.join(args)) or []
     if jobs_flags:
         args = re.sub(jobs_flags, '', ' '.join(args)).split()
         jobs_flags = jobs_flags.split()
