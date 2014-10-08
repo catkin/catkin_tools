@@ -144,9 +144,9 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
 
     :param package: package for which the recursive depends should be calculated
     :type package: :py:class:`catkin_pkg.package.Package`
-    :param workspace_packages: packages in the workspace, keyed by name, with
-        value being a tuple of package path and package object
-    :type workspace_packages: dict(package_name, tuple(package path,
+    :param ordered_packages: packages in the workspace, ordered topologically,
+        stored as a list of tuples of package path and package object
+    :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
     :returns: list of package path, package object tuples which are the
         recursive build depends for the given package
@@ -181,9 +181,9 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
 
     :param packages: packages for which the recursive depends should be calculated
     :type packages: list of :py:class:`catkin_pkg.package.Package`
-    :param workspace_packages: packages in the workspace, keyed by name, with
-        value being a tuple of package path and package object
-    :type workspace_packages: dict(package_name, tuple(package path,
+    :param ordered_packages: packages in the workspace, ordered topologically,
+        stored as a list of tuples of package path and package object
+    :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
     :returns: list of package path, package object tuples which are the
         recursive run depends for the given package
