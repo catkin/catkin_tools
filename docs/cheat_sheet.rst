@@ -117,3 +117,52 @@ Change from explicit to implicit chaining:
 
     catkin clean -a
     catkin config --no-extend
+    
+Migrating from ``catkin_make`` or ``catkin_make_isolated``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Space Options
+-------------
+
+Previously, you could specify the layout of a catkin workspace with arguments
+such as ``--source``, ``--build``, and ``--devel``. These have been removed
+from the ``catkin build`` verb since they are considered properties of the
+workspace configuration. As such, if you wish to use a different **source
+space**, or change defaults for other spaces, you should use the appropriate
+``catkin config`` calls.
+
+  .. code-block:: bash
+    
+    catkin_make_isolated --cmake-args -DCMAKE_BUILD_TYPE=Debug --build build_dbg --devel devel_dbg
+
+  .. code-block:: bash
+    
+    catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug --build build_dbg --devel devel_dbg
+    catkin build
+
+Migrating from ``catkin_make``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Workspace Structure
+-------------------
+
+- There is no longer a "top-level" ``CMakeLists.txt`` file. The **source
+  space** simply contains a collection of packages.
+
+Design Considerations
+---------------------
+
+- You can no longer access variables defined in other Catkin projects.
+- You no longer need to define target dependencies on ROS messages built in
+  other packages. All targets in a dependency are guaranteed to have been built
+  before the current package.
+
+Stricter CMake Treatment
+------------------------
+
+- It is critical for Catkin-based packages to call ``catkin_package()`` before
+  **any** targets are defined. Otherwise your targets will not be built into the
+  **devel space**. Previously with ``catkin_make``, as long as some package
+  called ``catkin_package()`` before your package was configured, the appropriate
+  target destinations were defined.
+
