@@ -155,7 +155,8 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
     workspace_packages_by_name = dict([(pkg.name, (pth, pkg)) for pth, pkg in ordered_packages])
     workspace_package_names = [pkg.name for pth, pkg in ordered_packages]
     recursive_depends = []
-    depends = set([dep.name for dep in (package.build_depends + package.buildtool_depends)])
+    deps = package.build_depends + package.buildtool_depends + package.test_depends
+    depends = set([dep.name for dep in deps])
     checked_depends = set()
     while list(depends - checked_depends):
         # Get a dep
