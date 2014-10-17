@@ -31,7 +31,7 @@ osx_notification_resources = [os.path.relpath(x, src_path)
 
 setup(
     name='catkin_tools',
-    version='0.1.0',
+    version='0.2.0',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
