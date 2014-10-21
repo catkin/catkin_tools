@@ -34,6 +34,13 @@ from .terminal_color import ColorMapper
 color_mapper = ColorMapper()
 clr = color_mapper.clr
 
+def get_tty_width():
+    tty_size = os.popen('stty size', 'r').read().split()
+    if len(tty_size) != 2:
+        return 80
+    _, width = tty_size
+    return width
+
 # TODO: extend builtin prototype to handle locking
 
 
@@ -393,7 +400,7 @@ class Context(object):
         }
         subs.update(**self.__dict__)
         # Get the width of the shell
-        _, term_cols = os.popen('stty size', 'r').read().split()
+        term_cols = get_tty_width()
         term_cols = int(term_cols)
         max_length = 0
         groups = []
