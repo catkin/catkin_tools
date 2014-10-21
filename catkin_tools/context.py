@@ -34,6 +34,7 @@ from .terminal_color import ColorMapper
 color_mapper = ColorMapper()
 clr = color_mapper.clr
 
+
 def get_tty_width():
     tty_size = os.popen('stty size', 'r').read().split()
     if len(tty_size) != 2:
