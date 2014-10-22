@@ -22,8 +22,9 @@ import sys
 
 from . import metadata
 
-from .common import remove_ansi_escape
 from .common import printed_fill
+from .common import remove_ansi_escape
+from .common import terminal_width
 
 from .metadata import find_enclosing_workspace
 
@@ -33,8 +34,6 @@ from .terminal_color import ColorMapper
 
 color_mapper = ColorMapper()
 clr = color_mapper.clr
-
-# TODO: extend builtin prototype to handle locking
 
 
 class Context(object):
@@ -393,14 +392,13 @@ class Context(object):
         }
         subs.update(**self.__dict__)
         # Get the width of the shell
-        _, term_cols = os.popen('stty size', 'r').read().split()
-        term_cols = int(term_cols)
+        width = terminal_width()
         max_length = 0
         groups = []
         for group in summary:
             for index, line in enumerate(group):
                 group[index] = line.format(**subs)
-                max_length = min(term_cols, max(max_length, len(remove_ansi_escape(group[index]))))
+                max_length = min(width, max(max_length, len(remove_ansi_escape(group[index]))))
             groups.append("\n".join(group))
         divider = clr('@{pf}' + ('-' * max_length) + '@|')
         warning_divider = clr('@{rf}' + ('-' * max_length) + '@|')
