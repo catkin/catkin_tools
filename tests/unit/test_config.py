@@ -4,7 +4,7 @@ import mock
 
 from catkin_tools import config
 
-from ..utils import assert_raises_regex
+from nose.tools import assert_raises_regexp
 from ..utils import in_temporary_directory
 from ..utils import redirected_stdio
 
@@ -24,7 +24,7 @@ def test_config_initialization(patched_func):
     # Test failure with file for target config path
     with open(test_folder, 'w') as f:
         f.write('this will cause a RuntimeError')
-    with assert_raises_regex(RuntimeError, "The catkin config directory"):
+    with assert_raises_regexp(RuntimeError, "The catkin config directory"):
         config.initialize_config(test_folder)
 
 
@@ -33,7 +33,7 @@ def test_verb_alias_config_initialization():
     cwd = os.getcwd()
     test_folder = os.path.join(cwd, 'test')
     # Test target directory does not exist failure
-    with assert_raises_regex(RuntimeError, "Cannot initialize verb aliases because catkin configuration path"):
+    with assert_raises_regexp(RuntimeError, "Cannot initialize verb aliases because catkin configuration path"):
         config.initialize_verb_aliases(test_folder)
     # Test normal case
     os.makedirs(test_folder)
@@ -55,7 +55,7 @@ def test_verb_alias_config_initialization():
     os.makedirs(test_folder)
     with open(os.path.join(test_folder, 'verb_aliases'), 'w') as f:
         f.write("this will cause a RuntimeError")
-    with assert_raises_regex(RuntimeError, "The catkin verb aliases config directory"):
+    with assert_raises_regexp(RuntimeError, "The catkin verb aliases config directory"):
         config.initialize_verb_aliases(test_folder)
     shutil.rmtree(test_folder)
 
@@ -65,12 +65,12 @@ def test_get_verb_aliases():
     cwd = os.getcwd()
     test_folder = os.path.join(cwd, 'test')
     # Test failure case where config folder does not exist
-    with assert_raises_regex(RuntimeError, "Cannot get verb aliases because the catkin config path"):
+    with assert_raises_regexp(RuntimeError, "Cannot get verb aliases because the catkin config path"):
         config.get_verb_aliases(test_folder)
     # Test failure case where aliases folder does not exist
     with mock.patch('catkin_tools.config.initialize_verb_aliases'):
         config.initialize_config(test_folder)
-    with assert_raises_regex(RuntimeError, "Cannot get verb aliases because the verb aliases config path"):
+    with assert_raises_regexp(RuntimeError, "Cannot get verb aliases because the verb aliases config path"):
         config.get_verb_aliases(test_folder)
     shutil.rmtree(test_folder)
     # Test the normal case
@@ -96,21 +96,21 @@ ls: null
 - foo
 - bar
 """)
-    with assert_raises_regex(RuntimeError, "Invalid alias file"):
+    with assert_raises_regexp(RuntimeError, "Invalid alias file"):
         config.get_verb_aliases(test_folder)
     os.remove(bad_path)
     with open(bad_path, 'w') as f:
         f.write("""\
 null: foo
 """)
-    with assert_raises_regex(RuntimeError, "Invalid alias in file"):
+    with assert_raises_regexp(RuntimeError, "Invalid alias in file"):
         config.get_verb_aliases(test_folder)
     os.remove(bad_path)
     with open(bad_path, 'w') as f:
         f.write("""\
 foo: 13.4
 """)
-    with assert_raises_regex(RuntimeError, "Invalid alias expansion in file"):
+    with assert_raises_regexp(RuntimeError, "Invalid alias expansion in file"):
         config.get_verb_aliases(test_folder)
     os.remove(bad_path)
     # Test with an empty custom file

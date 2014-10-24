@@ -27,22 +27,6 @@ TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
 
 
-def assert_raises(exception_classes, callable_obj=None, *args, **kwargs):
-    context = AssertRaisesContext(exception_classes)
-    if callable_obj is None:
-        return context
-    with context:
-        callable_obj(*args, **kwargs)
-
-
-def assert_raises_regex(exception_classes, expected_regex, callable_obj=None, *args, **kwargs):
-    context = AssertRaisesContext(exception_classes, expected_regex)
-    if callable_obj is None:
-        return context
-    with context:
-        callable_obj(*args, **kwargs)
-
-
 class AssertRaisesContext(object):
 
     def __init__(self, expected, expected_regex=None):
