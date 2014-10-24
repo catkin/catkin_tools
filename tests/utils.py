@@ -9,7 +9,6 @@ import sys
 import tempfile
 
 import subprocess
-import unittest
 
 try:
     # Python2
@@ -26,21 +25,6 @@ except ImportError:
 
 TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
-
-def assert_raises(exception_classes, callable_obj=None, *args, **kwargs):
-    context = AssertRaisesContext(exception_classes)
-    if callable_obj is None:
-        return context
-    with context:
-        callable_obj(*args, **kwargs)
-
-
-def assert_raises_regex(exception_classes, expected_regex, callable_obj=None, *args, **kwargs):
-    context = AssertRaisesContext(exception_classes, expected_regex)
-    if callable_obj is None:
-        return context
-    with context:
-        callable_obj(*args, **kwargs)
 
 
 class AssertRaisesContext(object):
@@ -123,19 +107,6 @@ def in_temporary_directory(f):
     return decorated
 
 
-def rosinstall(pth, specfile):
-    '''
-    calls rosinstall in pth with given specfile,
-    then replaces CMakelists with catkin's toplevel.cmake'
-    '''
-    assert os.path.exists(specfile), specfile
-    # to save testing time, we do not invoke rosinstall when we
-    # already have a .rosinstall file
-    if not os.path.exists(os.path.join(pth, '.rosinstall')):
-        succeed(["rosinstall", "-j8", "--catkin", "-n",
-                 pth, specfile, '--continue-on-error'], cwd=TESTS_DIR)
-
-
 def run(args, **kwargs):
     """
     Call to Popen, returns (errcode, stdout, stderr)
@@ -175,8 +146,9 @@ def assert_cmd_failure(cmd, **kwargs):
     print(">>>", cmd, kwargs)
     (r, out, err) = run(cmd, withexitstatus=True, **kwargs)
     print("<<<", str(out))
-    assert 0 != r, """cmd succeeded, though should fail: %s result=%u\noutput=\n%s""" % (cmd, r, out)
+    assert 0 != r, "cmd succeeded, but it should fail: %s result=%u\noutput=\n%s" % (cmd, r, out)
     return out
+
 
 def assert_files_exist(prefix, files):
     """

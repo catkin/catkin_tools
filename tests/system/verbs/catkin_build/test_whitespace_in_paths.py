@@ -13,7 +13,9 @@ def test_catkin_build_with_whitespace_in_paths():
         print('Workspace: {0}'.format(wf.workspace))
         assert os.path.isdir(wf.workspace)
         cmd = ['config', '--source', wf.source_space,
-               '--devel', 'devel space', '--build', 'build space', '--install-space', 'install space']
+               '--devel', 'devel space',
+               '--build', 'build space',
+               '--install-space', 'install space']
         try:
             main(cmd)
         except SystemExit as exc:
