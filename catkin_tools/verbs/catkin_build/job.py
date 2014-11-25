@@ -25,12 +25,8 @@ from .common import create_build_space
 from .common import generate_env_file
 from .common import get_python_install_dir
 
-CMAKE_EXEC = which('cmake')
-if CMAKE_EXEC is None:
-    raise RuntimeError("Executable 'cmake' could not be found in PATH.")
 MAKE_EXEC = which('make')
-if MAKE_EXEC is None:
-    raise RuntimeError("Executable 'make' could not be found in PATH.")
+CMAKE_EXEC = which('cmake')
 
 
 class Command(object):
@@ -56,12 +52,18 @@ class MakeCommand(Command):
     def __init__(self, env_loader, cmd, location):
         super(MakeCommand, self).__init__(env_loader, cmd, location)
 
+        if MAKE_EXEC is None:
+            raise RuntimeError("Executable 'make' could not be found in PATH.")
+
 
 class CMakeCommand(Command):
     stage_name = 'cmake'
 
     def __init__(self, env_loader, cmd, location):
         super(CMakeCommand, self).__init__(env_loader, cmd, location)
+
+        if CMAKE_EXEC is None:
+            raise RuntimeError("Executable 'cmake' could not be found in PATH.")
 
 
 class InstallCommand(MakeCommand):
