@@ -362,20 +362,20 @@ class Context(object):
         # Construct string for extend value
         if self.extend_path:
             extend_value = self.extend_path
-            extend_mode = clr('@{rf}[explicit]@|')
+            extend_mode = clr('@{gf}[explicit]@|')
         elif self.cached_cmake_prefix_path:
             extend_value = self.cmake_prefix_path
-            extend_mode = clr('  @{rf}[cached]@|')
+            extend_mode = clr('  @{gf}[cached]@|')
         elif (self.env_cmake_prefix_path and
                 self.env_cmake_prefix_path != self.devel_space_abs and
                 self.env_cmake_prefix_path != self.install_space_abs):
             extend_value = self.cmake_prefix_path
-            extend_mode = clr('     @{rf}[env]@|')
+            extend_mode = clr('     @{gf}[env]@|')
         else:
             extend_value = 'None'
             extend_mode = clr('          ')
 
-        existence_str = lambda path: clr(' @{rf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
+        existence_str = lambda path: clr(' @{gf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
 
         subs = {
             'profile': self.profile,
