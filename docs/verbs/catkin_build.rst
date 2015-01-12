@@ -480,7 +480,19 @@ To run catkin tests for catkin packages, use the following:
 
 .. code-block:: bash
 
+    $ catkin run_tests --verbose -i
+
+Or the longer version:
+
+.. code-block:: bash
+
     $ catkin build [...] --catkin-make-args run_tests
+
+To run a catkin test for a specific catkin package:
+
+.. code-block:: bash
+
+    $ catkin run_tests PACKAGE_NAME --no-deps --verbose -i
 
 For non-catkin packages which define a ``test`` target, you can do this:
 
@@ -667,5 +679,3 @@ Full Command-Line Interface
       --no-status           Suppresses status line, useful in situations where
                             carriage return is not properly supported.
       --no-notify           Suppresses system popup notification.
-
-
