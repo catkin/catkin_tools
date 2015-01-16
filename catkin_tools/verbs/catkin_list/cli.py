@@ -33,28 +33,35 @@ def prepare_arguments(parser):
     add('--deps', '--dependencies', default=False, action='store_true',
         help="List dependencies of each package.")
     add('--depends-on', nargs='*',
-        help="One or more dependencies a package must have to be listed.")
+        help="List all packages that depend on supplied argument package(s).")
 
     return parser
 
 
 def main(opts):
     folders = opts.folders or [os.getcwd()]
+    opts.depends_on = set(opts.depends_on) if opts.depends_on else set()
     try:
         for folder in folders:
             for pkg_pth, pkg in find_packages(folder).items():
                 build_depend_names = [d.name for d in pkg.build_depends]
-                if not opts.depends_on or not [x for x in opts.depends_on if x not in build_depend_names]:
+                is_build_dep = opts.depends_on.intersection(
+                    build_depend_names)
+                run_depend_names = [d.name for d in pkg.run_depends]
+                is_run_dep = opts.depends_on.intersection(
+                    run_depend_names)
+                if not opts.depends_on or is_build_dep or is_run_dep:
                     print(clr("@{pf}-@| @{cf}%s@|" % pkg.name))
                     if opts.deps:
-                        if len(pkg.build_depends) > 0:
+                        if build_depend_names:
                             print(clr('  @{yf}build_depend:@|'))
-                            for dep in pkg.build_depends:
-                                print(clr('  @{pf}-@| %s' % dep.name))
-                        if len(pkg.build_depends) > 0:
+                            for dep in build_depend_names:
+                                print(clr('  @{pf}-@| %s' % dep))
+                        if run_depend_names:
                             print(clr('  @{yf}run_depend:@|'))
-                            for dep in pkg.run_depends:
-                                print(clr('  @{pf}-@| %s' % dep.name))
+                            for dep in run_depend_names:
+                                print(clr('  @{pf}-@| %s' % dep))
     except InvalidPackage as ex:
         message = '\n'.join(ex.args)
-        print("Error: The directory %s contains an invalid package. See below for details:\n\n%s" % (folder, message))
+        print(clr("@{rf}Error:@| The directory %s contains an invalid package."
+              " See below for details:\n\n%s" % (folder, message)))
