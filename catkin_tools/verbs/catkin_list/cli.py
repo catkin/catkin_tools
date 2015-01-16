@@ -51,7 +51,7 @@ def main(opts):
                             print(clr('  @{yf}build_depend:@|'))
                             for dep in pkg.build_depends:
                                 print(clr('  @{pf}-@| %s' % dep.name))
-                        if len(pkg.build_depends) > 0:
+                        if len(pkg.run_depends) > 0:
                             print(clr('  @{yf}run_depend:@|'))
                             for dep in pkg.run_depends:
                                 print(clr('  @{pf}-@| %s' % dep.name))
