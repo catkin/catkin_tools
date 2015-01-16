@@ -14,13 +14,13 @@ Full Command-Line Interface
     Lists catkin packages in a given folder
 
     positional arguments:
-      folders               Folders in which to find packages
+      folders               Folders in which to find packages. (default: cwd)
 
     optional arguments:
       -h, --help            show this help message and exit
       --deps, --dependencies
-                            list deps of each package
+                            List dependencies of each package.
       --depends-on [DEPENDS_ON [DEPENDS_ON ...]]
-                            one or more dependencies a package must have to be
-                            listed
+                            List all packages that depend on supplied argument
+                            package(s).
 
