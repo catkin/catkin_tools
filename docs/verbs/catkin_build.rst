@@ -476,11 +476,23 @@ Running tests for a given package typically is done by invoking a special ``make
 catkin packages all define the ``run_tests`` target which aggregates all types of tests and runs them together.
 So in order to get tests to build and run for your packages you need to pass them this additional ``run_tests`` or ``test`` target as a command line option to ``make``.
 
-To run catkin tests for catkin packages, use the following:
+To run catkin tests for all catkin packages in the workspace, use the following:
+
+.. code-block:: bash
+
+    $ catkin run_tests
+
+Or the longer version:
 
 .. code-block:: bash
 
     $ catkin build [...] --catkin-make-args run_tests
+
+To run a catkin test for a specific catkin package, from a directory within that package:
+
+.. code-block:: bash
+
+    $ catkin run_tests --no-deps --this
 
 For non-catkin packages which define a ``test`` target, you can do this:
 
@@ -667,5 +679,3 @@ Full Command-Line Interface
       --no-status           Suppresses status line, useful in situations where
                             carriage return is not properly supported.
       --no-notify           Suppresses system popup notification.
-
-
