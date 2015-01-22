@@ -566,7 +566,8 @@ def build_isolated_workspace(
                     if not no_status:
                         wide_log('[build] Calculating new jobs...', end='\r')
                         sys.stdout.flush()
-                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages, failed_packages)
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages,
+                                                        failed_packages)
                     running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
                     # Make sure there are jobs to be/being processed, otherwise kill the executors
                     if not running_jobs:
@@ -589,7 +590,8 @@ def build_isolated_workspace(
                     if not no_status:
                         wide_log('[build] Calculating new jobs...', end='\r')
                         sys.stdout.flush()
-                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages, failed_packages)
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages,
+                                                        failed_packages)
                     running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
                     # Make sure there are jobs to be/being processed, otherwise kill the executors
                     if not running_jobs:
