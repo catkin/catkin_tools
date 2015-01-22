@@ -70,7 +70,7 @@ BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
 
 
-def get_ready_packages(packages, running_jobs, completed):
+def get_ready_packages(packages, running_jobs, completed, failed=[]):
     """Returns packages which have no pending depends and are ready to be built
 
     Iterates through the packages, seeing if any of the packages which
@@ -84,13 +84,15 @@ def get_ready_packages(packages, running_jobs, completed):
     :type running_jobs: dict
     :param completed: list of packages in the workspace which have been built
     :type completed: list
+    :param failed: list of packages in the workspace which failed to build
+    :type failed: list
     :returns: list of package_path, package tuples which should be built
     :rtype: list
     """
     ready_packages = []
     workspace_packages = [(path, pkg) for path, pkg in packages]
     for path, package in packages:
-        if package.name in (list(running_jobs.keys()) + completed):
+        if package.name in (list(running_jobs.keys()) + completed + failed):
             continue
         # Collect build and buildtool depends, plus recursive build, buildtool, and run depends,
         # Excluding depends which are not in the workspace or which are completed
@@ -313,7 +315,8 @@ def build_isolated_workspace(
     interleave_output=False,
     no_status=False,
     lock_install=False,
-    no_notify=False
+    no_notify=False,
+    robust=False
 ):
     """Builds a catkin workspace in isolation
 
@@ -347,6 +350,8 @@ def build_isolated_workspace(
     :type lock_install: bool
     :param no_notify: suppresses system notifications
     :type no_notify: bool
+    :param robust: do not stop building other jobs on error
+    :type robust: bool
 
     :raises: SystemExit if buildspace is a file or no packages were found in the source space
         or if the provided options are invalid
@@ -456,7 +461,7 @@ def build_isolated_workspace(
         interleave_output = True
     # Start the executors
     for x in range(jobs):
-        e = Executor(x, context, comm_queue, job_queue, install_lock)
+        e = Executor(x, context, comm_queue, job_queue, install_lock, robust)
         executors[x] = e
         e.start()
 
@@ -477,6 +482,7 @@ def build_isolated_workspace(
 
         # Prime the job_queue
         ready_packages = []
+        failed_packages = []
         if start_with is None:
             ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
         while start_with is not None:
@@ -535,10 +541,6 @@ def build_isolated_workspace(
                     out.command_failed(event.package, event.data['cmd'], event.data['location'], event.data['retcode'])
                     # Add to list of errors
                     errors.append(event)
-                    # Remove the command from the running jobs
-                    del running_jobs[event.package]
-                    # If it hasn't already been done, stop the executors
-                    set_error_state(error_state)
 
                 if event.event_type == 'command_finished':
                     out.command_finished(event.package, event.data['cmd'],
@@ -556,7 +558,30 @@ def build_isolated_workspace(
                     if not no_status:
                         wide_log('[build] Calculating new jobs...', end='\r')
                         sys.stdout.flush()
-                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages, failed_packages)
+                    running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
+                    # Make sure there are jobs to be/being processed, otherwise kill the executors
+                    if not running_jobs:
+                        # Kill the executors by sending a None to the job queue for each of them
+                        for x in range(jobs):
+                            job_queue.put(None)
+
+                if event.event_type == 'job_failed':
+                    failed_packages.append(event.package)
+                    run_time = format_time_delta(time.time() - running_jobs[event.package]['start_time'])
+                    out.job_failed(event.package, run_time)
+                    del running_jobs[event.package]
+                    # if the robust option was not given, stop the executors
+                    if not robust:
+                        set_error_state(error_state)
+                    # If shutting down, do not add new packages
+                    if error_state:
+                        continue
+                    # Calculate new packages
+                    if not no_status:
+                        wide_log('[build] Calculating new jobs...', end='\r')
+                        sys.stdout.flush()
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages, failed_packages)
                     running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
                     # Make sure there are jobs to be/being processed, otherwise kill the executors
                     if not running_jobs:

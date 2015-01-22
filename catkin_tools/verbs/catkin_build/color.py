@@ -42,6 +42,9 @@ _color_translation_map = {
     "Finished <== {package:<":
     fmt("@!@{kf}Finished@| @{gf}<==@| @{cf}{package:<").rstrip(ansi('reset')),
 
+    "Failed <== {package:<":
+    fmt("@!@{rf}Failed@|   @{gf}<==@| @{cf}{package:<").rstrip(ansi('reset')),
+
     "} [ {time} ]":
     fmt("}@| [ @{yf}{time}@| ]"),
 

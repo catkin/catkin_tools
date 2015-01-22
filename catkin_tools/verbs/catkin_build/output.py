@@ -127,12 +127,10 @@ class OutputController(object):
                 .format(package, cmd.pretty, location, retcode))
         msg = clr("[{package}] <== '{cmd.cmd_str}' failed with return code '{retcode}'").format(**locals())
         self.__command_log[package].finish_command(msg)
-        self.__command_log[package].close()
         if not self.interleave:
             self.__command_log[package].print_last_command_log()
         elif not self.quiet:
             wide_log(msg)
-        del self.__command_log[package]
 
     def command_finished(self, package, cmd, location, retcode):
         if package not in self.__command_log:
@@ -154,4 +152,10 @@ class OutputController(object):
         self.__command_log[package].close()
         del self.__command_log[package]
         msg = clr("Finished <== {package:<") + str(self.max_package_name_length) + clr("} [ {time} ]")
+        wide_log(msg.format(**locals()))
+
+    def job_failed(self, package, time):
+        self.__command_log[package].close()
+        del self.__command_log[package]
+        msg = clr("Failed <== {package:<") + str(self.max_package_name_length) + clr("} [ {time} ]")
         wide_log(msg.format(**locals()))
