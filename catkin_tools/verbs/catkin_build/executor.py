@@ -45,7 +45,7 @@ class Executor(Thread):
     """Threaded executor for the parallel catkin build jobs"""
     name_prefix = 'build'
 
-    def __init__(self, executor_id, context, comm_queue, job_queue, install_lock):
+    def __init__(self, executor_id, context, comm_queue, job_queue, install_lock, robust=False):
         super(Executor, self).__init__()
         self.name = self.name_prefix + '-' + str(executor_id + 1)
         self.executor_id = executor_id
@@ -54,6 +54,7 @@ class Executor(Thread):
         self.jobs = job_queue
         self.current_job = None
         self.install_space_lock = install_lock
+        self.shutdown_on_failure = not robust
 
     def job_started(self, job):
         self.queue.put(ExecutorEvent(self.executor_id, 'job_started', {}, job.package.name))
@@ -92,6 +93,9 @@ class Executor(Thread):
     def job_finished(self, job):
         self.queue.put(ExecutorEvent(self.executor_id, 'job_finished', {}, job.package.name))
 
+    def job_failed(self, job):
+        self.queue.put(ExecutorEvent(self.executor_id, 'job_failed', {}, job.package.name))
+
     def quit(self, exc=None):
         package_name = '' if self.current_job is None else self.current_job.package.name
         data = {
@@ -108,11 +112,12 @@ class Executor(Thread):
                 self.current_job = self.jobs.get()
                 # If the job is None, then we should shutdown
                 if self.current_job is None:
-                    # Notify shutfown
+                    # Notify shutdown
                     self.quit()
                     break
                 # Notify that a new job was started
                 self.job_started(self.current_job)
+                job_has_failed = False
                 # Execute each command in the job
                 for command in self.current_job:
                     install_space_locked = False
@@ -120,6 +125,9 @@ class Executor(Thread):
                         self.install_space_lock.acquire()
                         install_space_locked = True
                     try:
+                        # don't run further commands if previous one of this job failed
+                        if job_has_failed:
+                            break
                         # Log that the command being run
                         self.command_started(command, command.location)
                         # Receive lines from the running command
@@ -131,12 +139,8 @@ class Executor(Thread):
                                 if retcode != 0:
                                     # Log the failure (the build loop will dispatch None's)
                                     self.command_failed(command, command.location, retcode)
-                                    # Try to consume and throw away any and all remaining jobs in the queue
-                                    while self.jobs.get() is not None:
-                                        pass
-                                    # Once we get our None, quit
-                                    self.quit()
-                                    return
+                                    job_has_failed = True
+                                    break
                                 else:
                                     self.command_finished(command, command.location, retcode)
                             else:
@@ -151,7 +155,17 @@ class Executor(Thread):
                     finally:
                         if install_space_locked:
                             self.install_space_lock.release()
-                self.job_finished(self.current_job)
+                if job_has_failed:
+                    self.job_failed(self.current_job)
+                    if self.shutdown_on_failure:
+                        # Try to consume and throw away any and all remaining jobs in the queue
+                        while self.jobs.get() is not None:
+                            pass
+                        # Once we get our None, quit
+                        self.quit()
+                        return
+                else:
+                    self.job_finished(self.current_job)
         except KeyboardInterrupt:
             self.quit()
         except Exception as exc:
