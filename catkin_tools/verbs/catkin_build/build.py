@@ -649,12 +649,12 @@ def build_isolated_workspace(
                 notify("Build Finished", "{0} packages built".format(total_packages))
             return 0
         else:
-            wide_log(clr("[build] There were @!@{rf}errors@|:"))
+            wide_log(clr("[build] There were '" + str(len(errors)) + "' @!@{rf}errors@|:"))
             if not no_notify:
                 notify("Build Failed", "there were {0} errors".format(len(errors)))
             for error in errors:
                 if error.event_type == 'exit':
-                    wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
+                    wide_log("""Executor '{exec_id}' had an unhandled exception while processing package '{package}':
 
     {data[exc]}
     """.format(exec_id=error.executor_id + 1, **error.__dict__))
@@ -666,6 +666,15 @@ def build_isolated_workspace(
         {cmd.cmd_str}
 
     @{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package, **error.data))
+            wide_log("Build summary:")
+            for (_, pkg) in packages_to_be_built:
+                if pkg.name in completed_packages:
+                    wide_log(clr(" @!@{gf}Successful@| @{cf}{package}@|").format(package=pkg.name))
+                else:
+                    if pkg.name in failed_packages:
+                        wide_log(clr(" @!@{rf}Failed@|     @{cf}{package}@|").format(package=pkg.name))
+                    else:
+                        wide_log(clr(" @!@{kf}Not built@|  @{cf}{package}@|").format(package=pkg.name))
             sys.exit(1)
     finally:
         # Ensure executors go down
