@@ -80,8 +80,9 @@ def prepare_arguments(parser):
         help='Build a given package and those which depend on it, skipping any before it.')
     add('--start-with-this', action='store_true', default=False,
         help='Similar to --start-with, starting with the package containing the current directory.')
-    add('--robust', action='store_true', default=False,
-        help='Try to build all packages instead of stopping if one failed.')
+    add('--continue-on-failure', '-c', action='store_true', default=False, dest='robust',
+        help='Try to continue building packages whose dependencies built successfully even if some other requested '
+             'packages fail to build.')
 
     # Build options
     build_group = parser.add_argument_group('Build', 'Control the build behavior.')
