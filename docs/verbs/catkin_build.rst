@@ -215,7 +215,7 @@ have already been successfully built.
 
 If you're only interested in building a *single* package in a workspace, you
 can also use the ``--no-deps`` option along with a package name. This will
-skip all of the package's depdendencies, build the given package, and then exit.
+skip all of the package's dependencies, build the given package, and then exit.
 
 .. code-block:: bash
 
@@ -305,7 +305,7 @@ been written.
     The products of ``catkin build`` differ significantly from the behavior of
     ``catkin_make``, for example, which would have all of the build files and
     intermediate build products in a combined **build space** or
-    ``catkin_make_isolated`` which would have an insolated FHS directory for
+    ``catkin_make_isolated`` which would have an isolated FHS directory for
     each package in the **devel space**.
 
 Context-Aware Building
@@ -687,7 +687,7 @@ Full Command-Line Interface
     Interface:
       The behavior of the command-line interface.
 
-      --force-color         Forces catkin build to ouput in color, even when the
+      --force-color         Forces catkin build to output in color, even when the
                             terminal does not appear to support it.
       --verbose, -v         Print output from commands in ordered blocks once the
                             command finishes.
