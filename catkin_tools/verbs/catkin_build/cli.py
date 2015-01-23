@@ -102,7 +102,7 @@ def prepare_arguments(parser):
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
     add('--force-color', action='store_true', default=False,
-        help='Forces catkin build to ouput in color, even when the terminal does not appear to support it.')
+        help='Forces catkin build to output in color, even when the terminal does not appear to support it.')
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
