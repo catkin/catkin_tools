@@ -312,6 +312,7 @@ def build_isolated_workspace(
     quiet=False,
     interleave_output=False,
     no_status=False,
+    status_update_rate=False,
     lock_install=False,
     no_notify=False
 ):
@@ -343,6 +344,8 @@ def build_isolated_workspace(
     :type interleave_output: bool
     :param no_status: disables status bar
     :type no_status: bool
+    :param status_update_rate: states update rate
+    :type status_update_rate: float
     :param lock_install: causes executors to synchronize on access of install commands
     :type lock_install: bool
     :param no_notify: suppresses system notifications
@@ -466,6 +469,7 @@ def build_isolated_workspace(
         total_packages = len(packages_to_be_built)
         package_count = 0
         running_jobs = {}
+        last_status_update_time = 0
         log_dir = os.path.join(context.build_space_abs, 'build_logs')
         color = True
         if not force_color and not is_tty(sys.stdout):
@@ -606,8 +610,10 @@ def build_isolated_workspace(
                         total_packages
                     ))
                     # Update status bar
-                    wide_log(msg, rhs=msg_rhs, end='\r')
-                    sys.stdout.flush()
+                    if not status_update_rate or time.time() - last_status_update_time > (1.0 / status_update_rate):
+                        last_status_update_time = time.time()
+                        wide_log(msg, rhs=msg_rhs, end='\r')
+                        sys.stdout.flush()
             except KeyboardInterrupt:
                 wide_log("[build] User interrupted, stopping.")
                 set_error_state(error_state)
