@@ -615,7 +615,7 @@ def build_isolated_workspace(
                         total_packages
                     ))
                     # Update status bar
-                    if not status_update_rate or time.time() - last_status_update_time > (1.0 / status_update_rate):
+                    if status_update_rate is False or (time.time() - last_status_update_time) > (1.0 / status_update_rate):
                         last_status_update_time = time.time()
                         wide_log(msg, rhs=msg_rhs, end='\r')
                         sys.stdout.flush()
