@@ -106,7 +106,7 @@ def prepare_arguments(parser):
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
     add('--status-rate', action="store", dest="status_update_rate", default=False, type=float,
-        help='How fast to update the status bar in Hz.  Default: 5Hz.')
+        help='How fast to update the status bar in Hz.  Default: 10Hz.')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system popup notification.')
 
