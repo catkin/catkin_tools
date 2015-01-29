@@ -463,6 +463,11 @@ def build_isolated_workspace(
         executors[x] = e
         e.start()
 
+    # status_update_rate is positive, and non zero, also 10Hz is the fastest refresh rate
+    if not status_update_rate is False and (status_update_rate > 10.0 or 0 > status_update_rate):
+        log("Failed to set status_update_rate '{}', it must to be beteen 0.0 to 10.0, Force set to 10".format(status_update_rate))
+        status_update_rate = 10
+
     try:  # Finally close out now running executors
         # Variables for tracking running jobs and built/building packages
         start = time.time()
