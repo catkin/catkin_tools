@@ -105,6 +105,8 @@ def prepare_arguments(parser):
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
+    add('--status-rate', action="store", dest="status_update_rate", default=False, type=float,
+        help='How fast to update the status bar in Hz.  Default: 10Hz.')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system popup notification.')
 
@@ -215,6 +217,7 @@ def main(opts):
             quiet=not opts.verbose,
             interleave_output=opts.interleave_output,
             no_status=opts.no_status,
+            status_update_rate=opts.status_update_rate,
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify
         )
