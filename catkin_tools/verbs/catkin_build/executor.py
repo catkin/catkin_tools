@@ -45,7 +45,7 @@ class Executor(Thread):
     """Threaded executor for the parallel catkin build jobs"""
     name_prefix = 'build'
 
-    def __init__(self, executor_id, context, comm_queue, job_queue, install_lock, robust=False):
+    def __init__(self, executor_id, context, comm_queue, job_queue, install_lock, continue_on_failure=False):
         super(Executor, self).__init__()
         self.name = self.name_prefix + '-' + str(executor_id + 1)
         self.executor_id = executor_id
@@ -54,7 +54,7 @@ class Executor(Thread):
         self.jobs = job_queue
         self.current_job = None
         self.install_space_lock = install_lock
-        self.shutdown_on_failure = not robust
+        self.shutdown_on_failure = not continue_on_failure
 
     def job_started(self, job):
         self.queue.put(ExecutorEvent(self.executor_id, 'job_started', {}, job.package.name))

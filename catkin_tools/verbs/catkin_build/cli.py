@@ -79,7 +79,7 @@ def prepare_arguments(parser):
         help='Build a given package and those which depend on it, skipping any before it.')
     add('--start-with-this', action='store_true', default=False,
         help='Similar to --start-with, starting with the package containing the current directory.')
-    add('--continue-on-failure', '-c', action='store_true', default=False, dest='robust',
+    add('--continue-on-failure', '-c', action='store_true', default=False,
         help='Try to continue building packages whose dependencies built successfully even if some other requested '
              'packages fail to build.')
 
@@ -220,7 +220,7 @@ def main(opts):
             no_status=opts.no_status,
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify,
-            robust=opts.robust
+            continue_on_failure=opts.continue_on_failure
         )
     finally:
         log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))
