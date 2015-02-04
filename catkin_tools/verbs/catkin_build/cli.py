@@ -163,14 +163,14 @@ def main(opts):
             if this_package:
                 opts.packages += [this_package]
             else:
-                sys.exit("catkin build: --this was specified, but this directory is not contained by a catkin package.")
+                sys.exit("catkin build: --this was specified, but this directory is not in a catkin package.")
 
         # If --start--with was used without any packages and --this was specified, start with this package
         if opts.start_with_this:
             if this_package:
                 opts.start_with = this_package
             else:
-                sys.exit("catkin build: --this was specified, but this directory is not contained by a catkin package.")
+                sys.exit("catkin build: --this was specified, but this directory is not in a catkin package.")
 
     if opts.no_deps and not opts.packages:
         sys.exit("With --no-deps, you must specify packages to build.")
