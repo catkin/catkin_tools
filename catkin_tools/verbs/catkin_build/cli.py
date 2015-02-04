@@ -150,7 +150,6 @@ def dry_run(context, packages, no_deps, start_with):
 
 
 def main(opts):
-
     # Context-aware args
     if opts.build_this or opts.start_with_this:
         # Determine the enclosing package
