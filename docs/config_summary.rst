@@ -4,7 +4,7 @@ Configuration Summary
 Contents of the Config Summary
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Most ``catkin`` comands which modify the a workspace's configuration will
+Most ``catkin`` commands which modify the a workspace's configuration will
 display the standard configuration summary, as shown below:
 
 .. code-block:: bash
@@ -35,14 +35,14 @@ display the standard configuration summary, as shown below:
 This summary describes the layout of the workspace as well as other important
 settings which influence build and execution behavior. Each of these options
 can be modified either with the ``config`` verb's options described in the full
-command-line usage or by changing enviornment variables. The summary is
+command-line usage or by changing environment variables. The summary is
 composed of the following sections:
 
 Overview Section
 ----------------
 
 - **Profile** -- The name of this configuration
-- **Extending** -- Describes if your current configuration will extend another Catkin workspace, and thorugh which mechanism it determined the location of the extended workspace:
+- **Extending** -- Describes if your current configuration will extend another Catkin workspace, and through which mechanism it determined the location of the extended workspace:
 
   - *No Chaining*
 
@@ -66,7 +66,7 @@ Overview Section
           Extending:        [explicit] /opt/ros/hydro
 
 - **[* Space]** -- Lists the paths to each of the catkin "spaces" and whether or not they exist
-- **DESTDIR** -- An optional prefix to the **install space** as defined by `GNU Standards <https://www.gnu.org/prep/standards/html_node/DESTDIR.html/>`_
+- **DESTDIR** -- An optional prefix to the **install space** as defined by `GNU Standards <https://www.gnu.org/prep/standards/html_node/DESTDIR.html>`_
 - **Isolate Develspaces** -- Builds products (like libraries and binaries) into individual FHS subdirectories in the **devel space**, instead of a single FHS directory
 - **Install Packages** -- Enable creating and installation into the **install space**
 - **Isolate Installs** -- Installs products into individual FHS subdirectories in the **install space**
@@ -85,7 +85,7 @@ Warnings Section
 ----------------
 
 If something is wrong with your configuration such as a missing source space,
-an additional secion will appear at the bottom of the summary with details on
+an additional section will appear at the bottom of the summary with details on
 what is wrong and how you can fix it.
 
 Workspace Chaining Mode
