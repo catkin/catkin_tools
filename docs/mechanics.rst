@@ -315,7 +315,7 @@ until they are cleaned.
 Similarly, when you ``source`` a Catkin workspace's setup file from a
 workspace's **devel space** or **install space**, it prepends the path
 containing that setup file to the ``CMAKE_PREFIX_PATH`` environment variable.
-The next time you initialize a workspace, it will extend the workspcae that you
+The next time you initialize a workspace, it will extend the workspace that you
 previously sourced.
 
 On one hand, this makes it easy and automatic to chain workspaces. At the same

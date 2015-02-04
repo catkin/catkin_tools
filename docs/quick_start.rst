@@ -156,7 +156,7 @@ Building the Workspace
 
 Since the catkin workspace has already been initialized, you can call ``catkin
 build`` from any directory contained within it. If it had not been initialized,
-then ``cakin build`` would need to be called from the workspace root. Based on
+then ``catkin build`` would need to be called from the workspace root. Based on
 the default configuration, it will locate the packages in the **source space**
 and build each of them.
 
@@ -267,6 +267,6 @@ you can use any  following command:
     Removing buildspace: /tmp/path/to/my_catkin_ws/build
     Removing develspace: /tmp/path/to/my_catkin_ws/devel
 
-For more information on less agressive cleaning options see the :doc:`clean
+For more information on less aggressive cleaning options see the :doc:`clean
 verb <verbs/catkin_clean>` documentation.
 

@@ -30,10 +30,10 @@ Verb aliases are defined in the ``verb_aliases``
 subdirectory of the catkin config folder,
 ``~/.config/catkin/verb_aliases``. Any YAML files in that
 folder (files with a ``.yaml`` extension) will be processed as
-defintion files.
+definition files.
 
 These files are formatted as simple YAML dictionaries which map aliases to
-expanded expresisons, which must be composed of other ``catkin`` verbs,
+expanded expressions, which must be composed of other ``catkin`` verbs,
 options, or aliases:
 
 .. code-block:: yaml
@@ -63,7 +63,7 @@ options and build a given configuration profile.
 
   The ``catkin`` command will initialize the ``verb_aliases`` directory with a
   file named ``00-default-aliases.yaml`` containing the set of built-in
-  aliases.  These defaults can be overridden by adding additional defintion
+  aliases.  These defaults can be overridden by adding additional definition
   files, but the default alias file should not be modified since any changes to
   it will be over-written by invocations of the ``catkin`` command.
 
@@ -102,7 +102,7 @@ Recursive Alias Expansion
 Additionally, verb aliases can be recursive, for instance in the ``bt`` alias,
 the ``b`` alias expands to ``build`` so that ``b --this`` expands to ``build
 --this``. The ``catkin`` command shows the expansion of aliases when they are
-invokedaso that their behavior is more transparent:
+invoked so that their behavior is more transparent:
 
 .. code-block:: bash
 
