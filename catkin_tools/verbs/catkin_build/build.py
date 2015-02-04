@@ -312,7 +312,7 @@ def build_isolated_workspace(
     quiet=False,
     interleave_output=False,
     no_status=False,
-    status_update_rate=False,
+    limit_status_rate=0.0,
     lock_install=False,
     no_notify=False
 ):
@@ -344,8 +344,8 @@ def build_isolated_workspace(
     :type interleave_output: bool
     :param no_status: disables status bar
     :type no_status: bool
-    :param status_update_rate: states update rate
-    :type status_update_rate: float
+    :param limit_status_rate: rate to which status updates are limited; the default 0, places no limit.
+    :type limit_status_rate: float
     :param lock_install: causes executors to synchronize on access of install commands
     :type lock_install: bool
     :param no_notify: suppresses system notifications
@@ -354,6 +354,9 @@ def build_isolated_workspace(
     :raises: SystemExit if buildspace is a file or no packages were found in the source space
         or if the provided options are invalid
     """
+    # Assert that the limit_status_rate is valid
+    if limit_status_rate < 0:
+        sys.exit("The value of --status-rate must be greater than or equal to zero.")
     # If no_deps is given, ensure packages to build are provided
     if no_deps and packages is None:
         sys.exit("With --no-deps, you must specify packages to build.")
@@ -463,18 +466,14 @@ def build_isolated_workspace(
         executors[x] = e
         e.start()
 
-    # status_update_rate is positive, and non zero, also 10Hz is the fastest refresh rate
-    if status_update_rate is not False and (status_update_rate > 10.0 or 0 > status_update_rate):
-        log("Failed to set status_update_rate '{}', it must to be beteen 0 to 10.".format(status_update_rate))
-        status_update_rate = 10
-
     try:  # Finally close out now running executors
         # Variables for tracking running jobs and built/building packages
         start = time.time()
         total_packages = len(packages_to_be_built)
         package_count = 0
         running_jobs = {}
-        last_status_update_time = 0
+        last_status_update_time = time.time()
+        limit_status_period = (1.0 / limit_status_rate) if limit_status_rate else 0
         log_dir = os.path.join(context.build_space_abs, 'build_logs')
         color = True
         if not force_color and not is_tty(sys.stdout):
@@ -615,9 +614,15 @@ def build_isolated_workspace(
                         total_packages
                     ))
                     # Update status bar
-                    if status_update_rate is False or \
-                       (time.time() - last_status_update_time) > (1.0 / status_update_rate):
-                        last_status_update_time = time.time()
+                    # If the status_rate is zero, always do the status update
+                    do_status_update = (limit_status_rate == 0)
+                    # Otherwise calculate the time delta
+                    if not do_status_update:
+                        if (time.time() - last_status_update_time) >= limit_status_period:
+                            last_status_update_time = time.time()
+                            do_status_update = True
+                    # Conditionally do the status update
+                    if do_status_update:
                         wide_log(msg, rhs=msg_rhs, end='\r')
                         sys.stdout.flush()
             except KeyboardInterrupt:

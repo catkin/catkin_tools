@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 
+import argparse
 import sys
 import time
 
@@ -105,8 +106,16 @@ def prepare_arguments(parser):
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
-    add('--status-rate', action="store", dest="status_update_rate", default=False, type=float,
-        help='How fast to update the status bar in Hz.  Default: 10Hz.')
+
+    def status_rate_type(rate):
+        rate = float(rate)
+        if rate < 0:
+            raise argparse.ArgumentTypeError("must be greater than or equal to zero.")
+        return rate
+
+    add('--limit-status-rate', '--status-rate', type=status_rate_type, default=0.0,
+        help='Limit the update rate of the status bar to this frequency. Zero means unlimited. '
+             'Must be positive, default is 0.')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system popup notification.')
 
@@ -217,7 +226,7 @@ def main(opts):
             quiet=not opts.verbose,
             interleave_output=opts.interleave_output,
             no_status=opts.no_status,
-            status_update_rate=opts.status_update_rate,
+            limit_status_rate=opts.limit_status_rate,
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify
         )
