@@ -52,6 +52,7 @@ from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import wide_log
+from catkin_tools.make_jobserver import MakeJobServer
 
 from .common import get_build_type
 
@@ -602,7 +603,9 @@ def build_isolated_workspace(
                     # Print them in order of started number
                     for job_msg_args in sorted(executing_jobs, key=lambda args: args['number']):
                         msg += clr("[{name} - {run_time}] ").format(**job_msg_args)
-                    msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed]").format(
+                    msg_rhs = clr("[{0}/{1} Jobs][{2}/{3} Active Packages][{4}/{5} Completed]").format(
+                        MakeJobServer.get_instance().num_running_jobs(),
+                        MakeJobServer.get_instance().num_jobs,
                         len(executing_jobs),
                         len(executors),
                         len(packages) if no_deps else len(completed_packages),

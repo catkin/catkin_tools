@@ -37,6 +37,8 @@ from catkin_tools.metadata import update_metadata
 
 from catkin_tools.resultspace import load_resultspace_environment
 
+from catkin_tools.make_jobserver import MakeJobServer
+
 from .color import clr
 
 from .common import get_build_type
@@ -86,6 +88,8 @@ def prepare_arguments(parser):
     add = build_group.add_argument
     add('--force-cmake', action='store_true', default=None,
         help='Runs cmake explicitly for each catkin package.')
+    add('--jobserver-limit', default=None,
+        help='Limit parallel job count through the internal GNU make job server (default is cpu count)')
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
@@ -189,6 +193,8 @@ def main(opts):
             log(clr("@!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
                     (ctx.extend_path, exc.message)))
             return 1
+
+    jobserver = MakeJobServer(opts.jobserver_limit)
 
     # Display list and leave the filesystem untouched
     if opts.dry_run:

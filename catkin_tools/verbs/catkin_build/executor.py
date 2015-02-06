@@ -22,6 +22,7 @@ from .color import colorize_cmake
 
 from catkin_tools.common import remove_ansi_escape
 from catkin_tools.runner import run_command
+from catkin_tools.make_jobserver import MakeJobServer
 
 
 class ExecutorEvent(object):
@@ -101,6 +102,8 @@ class Executor(Thread):
         self.queue.put(ExecutorEvent(self.executor_id, 'exit', data, package_name))
 
     def run(self):
+        jobserver = MakeJobServer.get_instance()
+
         try:
             # Until exit
             while True:
@@ -113,44 +116,47 @@ class Executor(Thread):
                     break
                 # Notify that a new job was started
                 self.job_started(self.current_job)
+
                 # Execute each command in the job
-                for command in self.current_job:
-                    install_space_locked = False
-                    if command.lock_install_space:
-                        self.install_space_lock.acquire()
-                        install_space_locked = True
-                    try:
-                        # Log that the command being run
-                        self.command_started(command, command.location)
-                        # Receive lines from the running command
-                        for line in run_command(command.cmd, cwd=command.location):
-                            # If it is an integer, it corresponds to the command's return code
-                            if isinstance(line, int):
-                                retcode = line
-                                # If the return code is not zero
-                                if retcode != 0:
-                                    # Log the failure (the build loop will dispatch None's)
-                                    self.command_failed(command, command.location, retcode)
-                                    # Try to consume and throw away any and all remaining jobs in the queue
-                                    while self.jobs.get() is not None:
-                                        pass
-                                    # Once we get our None, quit
-                                    self.quit()
-                                    return
+                with jobserver:
+                    for command in self.current_job:
+                        install_space_locked = False
+                        if command.lock_install_space:
+                            self.install_space_lock.acquire()
+                            install_space_locked = True
+                        try:
+                            # Log that the command being run
+                            self.command_started(command, command.location)
+                            # Receive lines from the running command
+                            for line in run_command(command.cmd, cwd=command.location):
+                                # If it is an integer, it corresponds to the command's return code
+                                if isinstance(line, int):
+                                    retcode = line
+                                    # If the return code is not zero
+                                    if retcode != 0:
+                                        # Log the failure (the build loop will dispatch None's)
+                                        self.command_failed(command, command.location, retcode)
+                                        # Try to consume and throw away any and all remaining jobs in the queue
+                                        while self.jobs.get() is not None:
+                                            pass
+                                        # Once we get our None, quit
+                                        self.quit()
+                                        return
+                                    else:
+                                        self.command_finished(command, command.location, retcode)
                                 else:
-                                    self.command_finished(command, command.location, retcode)
-                            else:
-                                # Otherwise it is some sort of string data
-                                # Ensure that the data is not just ansi escape characters
-                                if remove_ansi_escape(line).strip():
-                                    for sub_line in line.splitlines(True):  # keepends=True
-                                        if sub_line:
-                                            if command.stage_name == 'cmake':
-                                                sub_line = colorize_cmake(sub_line)
-                                            self.command_log(sub_line)
-                    finally:
-                        if install_space_locked:
-                            self.install_space_lock.release()
+                                    # Otherwise it is some sort of string data
+                                    # Ensure that the data is not just ansi escape characters
+                                    if remove_ansi_escape(line).strip():
+                                        for sub_line in line.splitlines(True):  # keepends=True
+                                            if sub_line:
+                                                if command.stage_name == 'cmake':
+                                                    sub_line = colorize_cmake(sub_line)
+                                                self.command_log(sub_line)
+                        finally:
+                            if install_space_locked:
+                                self.install_space_lock.release()
+
                 self.job_finished(self.current_job)
         except KeyboardInterrupt:
             self.quit()
