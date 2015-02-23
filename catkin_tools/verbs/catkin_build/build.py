@@ -625,7 +625,7 @@ def build_isolated_workspace(
                     if do_status_update:
                         wide_log(msg, rhs=msg_rhs, end='\r')
                         sys.stdout.flush()
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, EOFError):
                 wide_log("[build] User interrupted, stopping.")
                 set_error_state(error_state)
         # All executors have shutdown
