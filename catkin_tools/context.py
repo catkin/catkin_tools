@@ -375,7 +375,8 @@ class Context(object):
             extend_value = 'None'
             extend_mode = clr('          ')
 
-        existence_str = lambda path: clr(' @{gf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
+        def existence_str(path):
+            return clr(' @{gf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
 
         subs = {
             'profile': self.profile,
