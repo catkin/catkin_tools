@@ -48,15 +48,16 @@ from .build import verify_start_with_option
 
 
 def prepare_arguments(parser):
+    parser.description = """\
+Build one or more packages in a catkin workspace.
+This invokes `CMake`, `make`, and optionally `make install` for either all
+or the specified packages in a catkin workspace.
 
-    parser.description = "Build one or more packages in a catkin workspace.\
-    This invokes `CMake`, `make`, and optionally `make install` for either all\
-    or the specified packages in a catkin workspace.\
-    \
-    Arguments passed to this verb can temporarily override persistent options\
-    stored in the catkin profile config. If you want to save these options, use\
-    the --save-config argument. To see the current config, use the\
-    `catkin config` command."
+Arguments passed to this verb can temporarily override persistent options
+stored in the catkin profile config. If you want to save these options, use
+the --save-config argument. To see the current config, use the
+`catkin config` command.\
+"""
 
     # Workspace / profile args
     add_context_args(parser)

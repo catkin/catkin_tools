@@ -273,11 +273,6 @@ class Context(object):
             else:
                 self.env_cmake_prefix_path = ''
 
-        # CMAKE_PREFIX_PATH debugging
-        # log('CMAKE_PREFIX_PATH (sticky): ' + )
-        # log('CMAKE_PREFIX_PATH (cache): ' + cached_cmake_prefix_path)
-        # log('CMAKE_PREFIX_PATH (env): ' + env_cmake_prefix_path)
-
         # Add warnings based on conflicing CMAKE_PREFIX_PATH
         if self.cached_cmake_prefix_path and self.extend_path:
             ep_not_in_lcpp = any([self.extend_path in p for p in self.cached_cmake_prefix_path.split(':')])
