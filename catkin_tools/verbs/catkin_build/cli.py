@@ -80,9 +80,12 @@ def prepare_arguments(parser):
         help='Build a given package and those which depend on it, skipping any before it.')
     add('--start-with-this', action='store_true', default=False,
         help='Similar to --start-with, starting with the package containing the current directory.')
+    add('--continue-on-failure', '-c', action='store_true', default=False,
+        help='Try to continue building packages whose dependencies built successfully even if some other requested '
+             'packages fail to build.')
 
     # Build options
-    build_group = parser.add_argument_group('Build', 'Control the build behaiovr.')
+    build_group = parser.add_argument_group('Build', 'Control the build behavior.')
     add = build_group.add_argument
     add('--force-cmake', action='store_true', default=None,
         help='Runs cmake explicitly for each catkin package.')
@@ -99,7 +102,7 @@ def prepare_arguments(parser):
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
     add('--force-color', action='store_true', default=False,
-        help='Forces catkin build to ouput in color, even when the terminal does not appear to support it.')
+        help='Forces catkin build to output in color, even when the terminal does not appear to support it.')
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
@@ -227,7 +230,8 @@ def main(opts):
             no_status=opts.no_status,
             limit_status_rate=opts.limit_status_rate,
             lock_install=not opts.no_install_lock,
-            no_notify=opts.no_notify
+            no_notify=opts.no_notify,
+            continue_on_failure=opts.continue_on_failure
         )
     finally:
         log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))

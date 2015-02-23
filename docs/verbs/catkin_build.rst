@@ -215,7 +215,7 @@ have already been successfully built.
 
 If you're only interested in building a *single* package in a workspace, you
 can also use the ``--no-deps`` option along with a package name. This will
-skip all of the package's depdendencies, build the given package, and then exit.
+skip all of the package's dependencies, build the given package, and then exit.
 
 .. code-block:: bash
 
@@ -305,7 +305,7 @@ been written.
     The products of ``catkin build`` differ significantly from the behavior of
     ``catkin_make``, for example, which would have all of the build files and
     intermediate build products in a combined **build space** or
-    ``catkin_make_isolated`` which would have an insolated FHS directory for
+    ``catkin_make_isolated`` which would have an isolated FHS directory for
     each package in the **devel space**.
 
 Context-Aware Building
@@ -547,12 +547,12 @@ issue by placing a ``!`` in front of it:
 
     [build - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
 
-Then the ``catkin build`` command waits for the rest of the packages to finish
+Then the ``catkin build`` command waits for the rest of the currently still building packages to finish
 (without starting new package builds) and then summarizes the errors for you:
 
 .. code-block:: none
 
-    [build] There were errors:
+    [build] There were '2' errors:
 
     Failed to build package 'cpp_common' because the following command:
 
@@ -567,6 +567,20 @@ Then the ``catkin build`` command waits for the rest of the packages to finish
         /path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4
 
     Exited with return code: -2
+    Build summary:
+     Successful catkin
+     Successful genmsg
+     ...
+     Failed     cpp_common
+     Failed     rospack
+     Not built  roscpp_serialization
+     Not built  roscpp
+     ...
+
+Packages marked as `Not built` were requested, but not yet built because catkin stopped due to failed packages.
+
+To try to build as many requested packages as possible (instead of stopping after the first package failed),
+you can pass the ``--continue-on-failure`` option. Then the ``catkin build`` command will then continue building packages whose dependencies built successfully
 
 If you don't want to scroll back up to find the error amongst the other output,
 you can ``cat`` the whole build log out of the ``build_logs`` folder in the
@@ -590,9 +604,9 @@ Full Command-Line Interface
 .. code-block:: text
 
     usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
-                        [--list-only] [--this] [--no-deps]
-                        [--start-with PKGNAME | --start-with-this] [--force-cmake]
-                        [--no-install-lock] [--save-config]
+                        [--dry-run] [--this] [--no-deps]
+                        [--start-with PKGNAME | --start-with-this | --continue-on-failure]
+                        [--force-cmake] [--no-install-lock] [--save-config]
                         [--parallel-jobs PARALLEL_JOBS]
                         [--cmake-args ARG [ARG ...] | --no-cmake-args]
                         [--make-args ARG [ARG ...] | --no-make-args]
@@ -631,9 +645,13 @@ Full Command-Line Interface
                             skipping any before it.
       --start-with-this     Similar to --start-with, starting with the package
                             containing the current directory.
+      --continue-on-failure, -c
+                            Try to continue building packages whose dependencies
+                            built successfully even if some other requested
+                            packages fail to build.
 
     Build:
-      Control the build behaiovr.
+      Control the build behavior.
 
       --force-cmake         Runs cmake explicitly for each catkin package.
       --no-install-lock     Prevents serialization of the install steps, which is
@@ -648,20 +666,20 @@ Full Command-Line Interface
                             Maximum number of packages which could be built in
                             parallel (default is cpu count)
       --cmake-args ARG [ARG ...]
-                            Arbitrary arguments which are passes to CMake. It must
-                            be passed after other arguments since it collects all
-                            following options.
+                            Arbitrary arguments which are passes to CMake. It
+                            collects all of following arguments until a "--" is
+                            read.
       --no-cmake-args       Pass no additional arguments to CMake.
       --make-args ARG [ARG ...]
-                            Arbitrary arguments which are passes to make.It must
-                            be passed after other arguments since it collects all
-                            following options.
+                            Arbitrary arguments which are passes to make.It
+                            collects all of following arguments until a "--" is
+                            read.
       --no-make-args        Pass no additional arguments to make (does not affect
                             --catkin-make-args).
       --catkin-make-args ARG [ARG ...]
                             Arbitrary arguments which are passes to make but only
-                            for catkin packages.It must be passed after other
-                            arguments since it collects all following options.
+                            for catkin packages.It collects all of following
+                            arguments until a "--" is read.
       --no-catkin-make-args
                             Pass no additional arguments to make for catkin
                             packages (does not affect --make-args).
@@ -669,7 +687,7 @@ Full Command-Line Interface
     Interface:
       The behavior of the command-line interface.
 
-      --force-color         Forces catkin build to ouput in color, even when the
+      --force-color         Forces catkin build to output in color, even when the
                             terminal does not appear to support it.
       --verbose, -v         Print output from commands in ordered blocks once the
                             command finishes.

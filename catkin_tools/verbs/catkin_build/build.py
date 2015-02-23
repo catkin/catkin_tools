@@ -14,6 +14,7 @@
 
 """This modules implements the engine for building packages in parallel"""
 
+import operator
 import os
 import stat
 import sys
@@ -51,6 +52,8 @@ from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
+from catkin_tools.common import remove_ansi_escape
+from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
 
 from .common import get_build_type
@@ -70,7 +73,7 @@ BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
 
 
-def get_ready_packages(packages, running_jobs, completed):
+def get_ready_packages(packages, running_jobs, completed, failed=[]):
     """Returns packages which have no pending depends and are ready to be built
 
     Iterates through the packages, seeing if any of the packages which
@@ -84,13 +87,15 @@ def get_ready_packages(packages, running_jobs, completed):
     :type running_jobs: dict
     :param completed: list of packages in the workspace which have been built
     :type completed: list
+    :param failed: list of packages in the workspace which failed to build
+    :type failed: list
     :returns: list of package_path, package tuples which should be built
     :rtype: list
     """
     ready_packages = []
     workspace_packages = [(path, pkg) for path, pkg in packages]
     for path, package in packages:
-        if package.name in (list(running_jobs.keys()) + completed):
+        if package.name in (list(running_jobs.keys()) + completed + failed):
             continue
         # Collect build and buildtool depends, plus recursive build, buildtool, and run depends,
         # Excluding depends which are not in the workspace or which are completed
@@ -301,6 +306,102 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
                      .format(start_with, ' '.join(packages)))
 
 
+def print_error_summary(errors, no_notify, log_dir):
+    wide_log(clr("[build] There were '" + str(len(errors)) + "' @!@{rf}errors@|:"))
+    if not no_notify:
+        notify("Build Failed", "there were {0} errors".format(len(errors)))
+    for error in errors:
+        if error.event_type == 'exit':
+            wide_log("""\
+Executor '{exec_id}' had an unhandled exception while processing package '{package}':
+
+{data[exc]}""".format(exec_id=error.executor_id + 1, **error.__dict__))
+        else:
+            wide_log(clr("""
+@{rf}Failed@| to build package '@{cf}{package}@|' because the following command:
+
+@!@{kf}# Command to reproduce:@|
+cd {location} && {cmd.cmd_str}; cd -
+
+@!@{kf}# Path to log:@|
+cat {log_dir}
+
+@{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package,
+                                                         log_dir=os.path.join(log_dir, error.package + '.log'),
+                                                         **error.data))
+
+
+def print_items_in_columns(items_in, number_of_columns):
+    number_of_items_in_line = 0
+    line_template = "{}" * number_of_columns
+    line_items = []
+    items = list(items_in)
+    while items:
+        line_items.append(items.pop(0))
+        number_of_items_in_line += 1
+        if number_of_items_in_line == number_of_columns:
+            wide_log(line_template.format(*line_items))
+            line_items = []
+            number_of_items_in_line = 0
+    if line_items:
+        wide_log(("{}" * len(line_items)).format(*line_items))
+
+
+def print_build_summary(packages_to_be_built, completed_packages, failed_packages):
+    # Calculate the longest package name
+    max_name_len = max([len(pkg.name) for _, pkg in packages_to_be_built])
+
+    def get_template(template_name, column_width):
+        templates = {
+            'successful': " @!@{gf}Successful@| @{cf}{package:<" + str(column_width) + "}@|",
+            'failed': " @!@{rf}Failed@|     @{cf}{package:<" + str(column_width) + "}@|",
+            'not_built': " @!@{kf}Not built@|  @{cf}{package:<" + str(column_width) + "}@|",
+        }
+        return templates[template_name]
+    # Setup templates for comparison
+    successful_template = get_template('successful', max_name_len)
+    failed_template = get_template('failed', max_name_len)
+    not_built_template = get_template('not_built', max_name_len)
+    # Calculate the maximum _printed_ length for each template
+    faux_package_name = ("x" * max_name_len)
+    templates = [
+        remove_ansi_escape(clr(successful_template).format(package=faux_package_name)),
+        remove_ansi_escape(clr(failed_template).format(package=faux_package_name)),
+        remove_ansi_escape(clr(not_built_template).format(package=faux_package_name)),
+    ]
+    # Calculate the longest column using the longest template
+    max_column_len = max([len(template) for template in templates])
+    # Calculate the number of columns
+    number_of_columns = (terminal_width() / max_column_len) or 1
+    successfuls = {}
+    faileds = {}
+    not_builts = {}
+    for (_, pkg) in packages_to_be_built:
+        if pkg.name in completed_packages:
+            successfuls[pkg.name] = clr(successful_template).format(package=pkg.name)
+        else:
+            if pkg.name in failed_packages:
+                faileds[pkg.name] = clr(failed_template).format(package=pkg.name)
+            else:
+                not_builts[pkg.name] = clr(not_built_template).format(package=pkg.name)
+    wide_log("Build summary:")
+    # Combine successfuls and not_builts, sort by key, only take values
+    combined = dict(successfuls)
+    combined.update(not_builts)
+    non_failed = [v for k, v in sorted(combined.items(), key=operator.itemgetter(0))]
+    print_items_in_columns(non_failed, number_of_columns)
+    wide_log("Failed packages:")
+    # Faileds only, sort by key, only take values
+    failed = [v for k, v in sorted(faileds.items(), key=operator.itemgetter(0))]
+    print_items_in_columns(failed, number_of_columns)
+    wide_log("")
+    wide_log(clr("[build] @!@{gf}Successfully@| built '@!@{cf}{0}@|' packages, "
+                 "@!@{rf}failed@| to build '@!@{cf}{1}@|' packages, "
+                 "and @!@{kf}did not try to build@| '@!@{cf}{2}@|' packages.").format(
+        len(successfuls), len(faileds), len(not_builts)
+    ))
+
+
 def build_isolated_workspace(
     context,
     packages=None,
@@ -314,7 +415,8 @@ def build_isolated_workspace(
     no_status=False,
     limit_status_rate=0.0,
     lock_install=False,
-    no_notify=False
+    no_notify=False,
+    continue_on_failure=False
 ):
     """Builds a catkin workspace in isolation
 
@@ -350,6 +452,8 @@ def build_isolated_workspace(
     :type lock_install: bool
     :param no_notify: suppresses system notifications
     :type no_notify: bool
+    :param continue_on_failure: do not stop building other jobs on error
+    :type continue_on_failure: bool
 
     :raises: SystemExit if buildspace is a file or no packages were found in the source space
         or if the provided options are invalid
@@ -462,7 +566,7 @@ def build_isolated_workspace(
         interleave_output = True
     # Start the executors
     for x in range(jobs):
-        e = Executor(x, context, comm_queue, job_queue, install_lock)
+        e = Executor(x, context, comm_queue, job_queue, install_lock, continue_on_failure)
         executors[x] = e
         e.start()
 
@@ -485,6 +589,7 @@ def build_isolated_workspace(
 
         # Prime the job_queue
         ready_packages = []
+        failed_packages = []
         if start_with is None:
             ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
         while start_with is not None:
@@ -543,10 +648,6 @@ def build_isolated_workspace(
                     out.command_failed(event.package, event.data['cmd'], event.data['location'], event.data['retcode'])
                     # Add to list of errors
                     errors.append(event)
-                    # Remove the command from the running jobs
-                    del running_jobs[event.package]
-                    # If it hasn't already been done, stop the executors
-                    set_error_state(error_state)
 
                 if event.event_type == 'command_finished':
                     out.command_finished(event.package, event.data['cmd'],
@@ -564,7 +665,32 @@ def build_isolated_workspace(
                     if not no_status:
                         wide_log('[build] Calculating new jobs...', end='\r')
                         sys.stdout.flush()
-                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages)
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages,
+                                                        failed_packages)
+                    running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
+                    # Make sure there are jobs to be/being processed, otherwise kill the executors
+                    if not running_jobs:
+                        # Kill the executors by sending a None to the job queue for each of them
+                        for x in range(jobs):
+                            job_queue.put(None)
+
+                if event.event_type == 'job_failed':
+                    failed_packages.append(event.package)
+                    run_time = format_time_delta(time.time() - running_jobs[event.package]['start_time'])
+                    out.job_failed(event.package, run_time)
+                    del running_jobs[event.package]
+                    # if the continue_on_failure option was not given, stop the executors
+                    if not continue_on_failure:
+                        set_error_state(error_state)
+                    # If shutting down, do not add new packages
+                    if error_state:
+                        continue
+                    # Calculate new packages
+                    if not no_status:
+                        wide_log('[build] Calculating new jobs...', end='\r')
+                        sys.stdout.flush()
+                    ready_packages = get_ready_packages(packages_to_be_built, running_jobs, completed_packages,
+                                                        failed_packages)
                     running_jobs = queue_ready_packages(ready_packages, running_jobs, job_queue, context, force_cmake)
                     # Make sure there are jobs to be/being processed, otherwise kill the executors
                     if not running_jobs:
@@ -640,25 +766,11 @@ def build_isolated_workspace(
             if not no_notify:
                 notify("Build Finished", "{0} packages built".format(total_packages))
             return 0
-        else:
-            wide_log(clr("[build] There were @!@{rf}errors@|:"))
-            if not no_notify:
-                notify("Build Failed", "there were {0} errors".format(len(errors)))
-            for error in errors:
-                if error.event_type == 'exit':
-                    wide_log("""Executor '{exec_id}' had an unhandle exception while processing package '{package}':
-
-    {data[exc]}
-    """.format(exec_id=error.executor_id + 1, **error.__dict__))
-                else:
-                    wide_log(clr("""
-    @{rf}Failed@| to build package '@{cf}{package}@|' because the following command:
-
-        @!@{kf}# Command run in directory: @|{location}
-        {cmd.cmd_str}
-
-    @{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package, **error.data))
-            sys.exit(1)
+        # Else, handle errors
+        print_error_summary(errors, no_notify, log_dir)
+        wide_log("")
+        print_build_summary(packages_to_be_built, completed_packages, failed_packages)
+        sys.exit(1)
     finally:
         # Ensure executors go down
         for x in range(jobs):
