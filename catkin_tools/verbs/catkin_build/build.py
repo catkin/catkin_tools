@@ -416,7 +416,8 @@ def build_isolated_workspace(
     limit_status_rate=0.0,
     lock_install=False,
     no_notify=False,
-    continue_on_failure=False
+    continue_on_failure=False,
+    summarize_build=None,
 ):
     """Builds a catkin workspace in isolation
 
@@ -454,6 +455,9 @@ def build_isolated_workspace(
     :type no_notify: bool
     :param continue_on_failure: do not stop building other jobs on error
     :type continue_on_failure: bool
+    :param summarize_build: if True summarizes the build at the end, if None and continue_on_failure is True and the
+        the build fails, then the build will be summarized, but if False it never will be summarized.
+    :type summarize_build: bool
 
     :raises: SystemExit if buildspace is a file or no packages were found in the source space
         or if the provided options are invalid
@@ -762,6 +766,8 @@ def build_isolated_workspace(
                     _create_unmerged_devel_setup(context)
                 else:
                     _create_unmerged_devel_setup_for_install(context)
+            if summarize_build:
+                print_build_summary(packages_to_be_built, completed_packages, failed_packages)
             wide_log("[build] Finished.")
             if not no_notify:
                 notify("Build Finished", "{0} packages built".format(total_packages))
@@ -769,7 +775,11 @@ def build_isolated_workspace(
         # Else, handle errors
         print_error_summary(errors, no_notify, log_dir)
         wide_log("")
-        print_build_summary(packages_to_be_built, completed_packages, failed_packages)
+        if summarize_build is True or summarize_build is not False and continue_on_failure is True:
+            # Always print summary if summarize_build is True
+            # Conditionally add summary on errors if summarize_build is not explicitly False and
+            # continue_on_failure is True.
+            print_build_summary(packages_to_be_built, completed_packages, failed_packages)
         sys.exit(1)
     finally:
         # Ensure executors go down

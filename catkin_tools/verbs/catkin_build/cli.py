@@ -109,6 +109,10 @@ def prepare_arguments(parser):
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
+    add('--summarize', '--summary', '-s', action='store_true', default=None,
+        help='Adds a build summary to the end of a build; defaults to on with --continue-on-failure, off otherwise')
+    add('--no-summarize', '--no-summary', action='store_false', dest='summarize',
+        help='explicitly disable the end of build summary')
 
     def status_rate_type(rate):
         rate = float(rate)
@@ -231,7 +235,8 @@ def main(opts):
             limit_status_rate=opts.limit_status_rate,
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify,
-            continue_on_failure=opts.continue_on_failure
+            continue_on_failure=opts.continue_on_failure,
+            summarize_build=opts.summarize  # Can be True, False, or None
         )
     finally:
         log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))
