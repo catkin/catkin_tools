@@ -187,7 +187,7 @@ def main(opts):
         set_color(False)
 
     # Load the context
-    ctx = Context.Load(opts.workspace, opts.profile, opts)
+    ctx = Context.Load(opts.workspace, opts.profile, opts, append=True)
 
     # Load the environment of the workspace to extend
     if ctx.extend_path is not None:
