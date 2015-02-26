@@ -46,6 +46,31 @@ from .build import determine_packages_to_be_built
 from .build import topological_order_packages
 from .build import verify_start_with_option
 
+#
+# Hack
+#
+
+# TODO(wjwwood): remove this, once it is no longer needed.
+# argparse may not support mutually exclusive groups inside other groups, see:
+#   http://bugs.python.org/issue10680
+
+# Backup the original constructor
+backup__ArgumentGroup___init__ = argparse._ArgumentGroup.__init__
+
+
+# Make a new constructor with the fix
+def fixed__ArgumentGroup___init__(self, container, title=None, description=None, **kwargs):
+    backup__ArgumentGroup___init__(self, container, title, description, **kwargs)
+    # Make sure this line is run, maybe redundant on versions which already have it
+    self._mutually_exclusive_groups = container._mutually_exclusive_groups
+
+# Monkey patch in the fixed constructor
+argparse._ArgumentGroup.__init__ = fixed__ArgumentGroup___init__
+
+#
+# End Hack
+#
+
 
 def prepare_arguments(parser):
     parser.description = """\
@@ -81,6 +106,7 @@ the --save-config argument. To see the current config, use the
         help='Build a given package and those which depend on it, skipping any before it.')
     add('--start-with-this', action='store_true', default=False,
         help='Similar to --start-with, starting with the package containing the current directory.')
+    add = pkg_group.add_argument
     add('--continue-on-failure', '-c', action='store_true', default=False,
         help='Try to continue building packages whose dependencies built successfully even if some other requested '
              'packages fail to build.')
@@ -93,7 +119,7 @@ the --save-config argument. To see the current config, use the
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
-    config_group = parser.add_argument_group('Config', 'Parameters for the underlying buildsystem.')
+    config_group = parser.add_argument_group('Config', 'Parameters for the underlying build system.')
     add = config_group.add_argument
     add('--save-config', action='store_true', default=False,
         help='Save any configuration options in this section for the next build invocation.')
@@ -101,9 +127,13 @@ the --save-config argument. To see the current config, use the
 
     # Behavior
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
-    add = behavior_group.add_argument
+    color_control_group = behavior_group.add_mutually_exclusive_group()
+    add = color_control_group.add_argument
     add('--force-color', action='store_true', default=False,
         help='Forces catkin build to output in color, even when the terminal does not appear to support it.')
+    add('--no-color', action='store_true', default=False,
+        help='Forces catkin build to not use color in the output, regardless of the detect terminal type.')
+    add = behavior_group.add_argument
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
@@ -125,7 +155,7 @@ the --save-config argument. To see the current config, use the
         help='Limit the update rate of the status bar to this frequency. Zero means unlimited. '
              'Must be positive, default is 0.')
     add('--no-notify', action='store_true', default=False,
-        help='Suppresses system popup notification.')
+        help='Suppresses system pop-up notification.')
 
     return parser
 
@@ -183,7 +213,7 @@ def main(opts):
     if opts.no_deps and not opts.packages:
         sys.exit("With --no-deps, you must specify packages to build.")
 
-    if not opts.force_color and not is_tty(sys.stdout):
+    if opts.no_color or not opts.force_color and not is_tty(sys.stdout):
         set_color(False)
 
     # Load the context
@@ -198,7 +228,7 @@ def main(opts):
                     (ctx.extend_path, exc.message)))
             return 1
 
-    # Display list and leave the filesystem untouched
+    # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return

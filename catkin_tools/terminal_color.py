@@ -87,7 +87,6 @@ enable_ANSI_colors()
 if os.name in ['nt']:
     disable_ANSI_colors()
 
-# TODO: Is this needed in addition to enable_/disable_ functions?
 _color_on = True
 
 
