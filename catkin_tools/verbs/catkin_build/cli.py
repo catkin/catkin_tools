@@ -93,7 +93,7 @@ the --save-config argument. To see the current config, use the
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
-    config_group = parser.add_argument_group('Config', 'Parameters for the underlying buildsystem.')
+    config_group = parser.add_argument_group('Config', 'Parameters for the underlying build system.')
     add = config_group.add_argument
     add('--save-config', action='store_true', default=False,
         help='Save any configuration options in this section for the next build invocation.')
@@ -125,7 +125,7 @@ the --save-config argument. To see the current config, use the
         help='Limit the update rate of the status bar to this frequency. Zero means unlimited. '
              'Must be positive, default is 0.')
     add('--no-notify', action='store_true', default=False,
-        help='Suppresses system popup notification.')
+        help='Suppresses system pop-up notification.')
 
     return parser
 
@@ -198,7 +198,7 @@ def main(opts):
                     (ctx.extend_path, exc.message)))
             return 1
 
-    # Display list and leave the filesystem untouched
+    # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
