@@ -101,9 +101,13 @@ the --save-config argument. To see the current config, use the
 
     # Behavior
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
-    add = behavior_group.add_argument
+    color_control_group = behavior_group.add_mutually_exclusive_group()
+    add = color_control_group.add_argument
     add('--force-color', action='store_true', default=False,
         help='Forces catkin build to output in color, even when the terminal does not appear to support it.')
+    add('--no-color', action='store_true', default=False,
+        help='Forces catkin build to not use color in the output, regardless of the detect terminal type.')
+    add = behavior_group.add_argument
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
@@ -183,7 +187,7 @@ def main(opts):
     if opts.no_deps and not opts.packages:
         sys.exit("With --no-deps, you must specify packages to build.")
 
-    if not opts.force_color and not is_tty(sys.stdout):
+    if opts.no_color or not opts.force_color and not is_tty(sys.stdout):
         set_color(False)
 
     # Load the context
