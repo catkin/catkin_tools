@@ -167,6 +167,14 @@ def determine_packages_to_be_built(packages, context):
     # Determin the packages which should be built
     packages_to_be_built = []
     packages_to_be_built_deps = []
+
+    # Only use whitelist when no other packages are specified
+    if not packages:
+        # Check whitelist
+        if len(context.whitelist) > 0:
+            packages = [p[0] for p in context.packages if (p[0] in context.whitelist)]
+
+    # Determine the packages to be built
     if packages:
         # First assert all of the packages given are in the workspace
         workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
@@ -188,6 +196,14 @@ def determine_packages_to_be_built(packages, context):
                 packages_to_be_built_deps.extend(pkg_deps)
     else:
         packages_to_be_built = ordered_packages
+
+    # Filter packages with blacklist
+    if len(context.blacklist) > 0:
+        packages_to_be_built = [p for p in packages_to_be_built if (p[0] not in context.blacklist or p[0] in packages)]
+        packages_to_be_built_deps = [
+            p for p in packages_to_be_built_deps if (p[0] not in context.blacklist or p[0] in packages)]
+        ordered_packages = ordered_packages
+
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
 
@@ -347,9 +363,9 @@ def print_items_in_columns(items_in, number_of_columns):
         wide_log(("{}" * len(line_items)).format(*line_items))
 
 
-def print_build_summary(packages_to_be_built, completed_packages, failed_packages):
+def print_build_summary(context, packages_to_be_built, completed_packages, failed_packages):
     # Calculate the longest package name
-    max_name_len = max([len(pkg.name) for _, pkg in packages_to_be_built])
+    max_name_len = max([len(pkg.name) for _, pkg in context.packages])
 
     def get_template(template_name, column_width):
         templates = {
@@ -358,6 +374,7 @@ def print_build_summary(packages_to_be_built, completed_packages, failed_package
             'not_built': " @!@{kf}Not built@|  @{cf}{package:<" + str(column_width) + "}@|",
         }
         return templates[template_name]
+
     # Setup templates for comparison
     successful_template = get_template('successful', max_name_len)
     failed_template = get_template('failed', max_name_len)
@@ -373,27 +390,58 @@ def print_build_summary(packages_to_be_built, completed_packages, failed_package
     max_column_len = max([len(template) for template in templates])
     # Calculate the number of columns
     number_of_columns = (terminal_width() / max_column_len) or 1
+
     successfuls = {}
     faileds = {}
     not_builts = {}
-    for (_, pkg) in packages_to_be_built:
-        if pkg.name in completed_packages:
+    non_whitelisted = {}
+    blacklisted = {}
+
+    for (_, pkg) in context.packages:
+        if pkg.name in context.blacklist:
+            blacklisted[pkg.name] = clr(not_built_template).format(package=pkg.name)
+        elif len(context.whitelist) > 0 and pkg.name not in context.whitelist:
+            non_whitelisted[pkg.name] = clr(not_built_template).format(package=pkg.name)
+        elif pkg.name in completed_packages:
             successfuls[pkg.name] = clr(successful_template).format(package=pkg.name)
         else:
             if pkg.name in failed_packages:
                 faileds[pkg.name] = clr(failed_template).format(package=pkg.name)
             else:
                 not_builts[pkg.name] = clr(not_built_template).format(package=pkg.name)
-    wide_log("Build summary:")
+
     # Combine successfuls and not_builts, sort by key, only take values
+    wide_log("")
+    wide_log("Build summary:")
     combined = dict(successfuls)
     combined.update(not_builts)
     non_failed = [v for k, v in sorted(combined.items(), key=operator.itemgetter(0))]
     print_items_in_columns(non_failed, number_of_columns)
-    wide_log("Failed packages:")
+
+    # Print out whitelisted packages
+    if len(non_whitelisted) > 0:
+        wide_log("")
+        wide_log("Non-Whitelisted Packages:")
+        non_whitelisted_list = [v for k, v in sorted(non_whitelisted.items(), key=operator.itemgetter(0))]
+        print_items_in_columns(non_whitelisted_list, number_of_columns)
+
+    # Print out blacklisted packages
+    if len(blacklisted) > 0:
+        wide_log("")
+        wide_log("Blacklisted Packages:")
+        blacklisted_list = [v for k, v in sorted(blacklisted.items(), key=operator.itemgetter(0))]
+        print_items_in_columns(blacklisted_list, number_of_columns)
+
     # Faileds only, sort by key, only take values
     failed = [v for k, v in sorted(faileds.items(), key=operator.itemgetter(0))]
-    print_items_in_columns(failed, number_of_columns)
+    if len(failed) > 0:
+        wide_log("")
+        wide_log("Failed packages:")
+        print_items_in_columns(failed, number_of_columns)
+    else:
+        wide_log("")
+        wide_log("All packages built successfully.")
+
     wide_log("")
     wide_log(clr("[build] @!@{gf}Successfully@| built '@!@{cf}{0}@|' packages, "
                  "@!@{rf}failed@| to build '@!@{cf}{1}@|' packages, "
@@ -767,7 +815,7 @@ def build_isolated_workspace(
                 else:
                     _create_unmerged_devel_setup_for_install(context)
             if summarize_build:
-                print_build_summary(packages_to_be_built, completed_packages, failed_packages)
+                print_build_summary(context, packages_to_be_built, completed_packages, failed_packages)
             wide_log("[build] Finished.")
             if not no_notify:
                 notify("Build Finished", "{0} packages built".format(total_packages))
@@ -779,7 +827,7 @@ def build_isolated_workspace(
             # Always print summary if summarize_build is True
             # Conditionally add summary on errors if summarize_build is not explicitly False and
             # continue_on_failure is True.
-            print_build_summary(packages_to_be_built, completed_packages, failed_packages)
+            print_build_summary(context, packages_to_be_built, completed_packages, failed_packages)
         sys.exit(1)
     finally:
         # Ensure executors go down

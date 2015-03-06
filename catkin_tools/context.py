@@ -63,7 +63,9 @@ class Context(object):
                    'isolate_install',
                    'cmake_args',
                    'make_args',
-                   'catkin_make_args']
+                   'catkin_make_args',
+                   'whitelist',
+                   'blacklist']
 
     KEYS = STORED_KEYS + [
         'workspace',
@@ -161,7 +163,9 @@ class Context(object):
         cmake_args=None,
         make_args=None,
         catkin_make_args=None,
-        space_suffix=None
+        space_suffix=None,
+        whitelist=None,
+        blacklist=None
     ):
         """Creates a new Context object, optionally initializing with parameters
 
@@ -193,6 +197,10 @@ class Context(object):
         :type catkin_make_args: list
         :param space_suffix: suffix for build, devel, and install spaces which are not explicitly set.
         :type space_suffix: str
+        :param whitelist: a list of packages to build by default
+        :type whitelist: list
+        :param blacklist: a list of packages to ignore by default
+        :type blacklist: list
         :raises: ValueError if workspace or source space does not exist
         """
         self.__locked = False
@@ -211,6 +219,10 @@ class Context(object):
         self.devel_space = Context.DEFAULT_DEVEL_SPACE + ss if ss or devel_space is None else devel_space
         self.install_space = Context.DEFAULT_INSTALL_SPACE + ss if ss or install_space is None else install_space
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
+
+        # Handle package whitelist/blacklist
+        self.whitelist = whitelist or []
+        self.blacklist = blacklist or []
 
         # Handle build options
         self.isolate_devel = isolate_devel
@@ -352,6 +364,10 @@ class Context(object):
                 clr("@{cf}Additional Make Args:@|        @{yf}{make_args}@|"),
                 clr("@{cf}Additional catkin Make Args:@| @{yf}{catkin_make_args}@|"),
             ],
+            [
+                clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
+                clr("@{cf}Blacklisted Packages:@|        @{yf}{blacklisted_packages}@|"),
+            ]
         ]
 
         # Construct string for extend value
@@ -385,6 +401,8 @@ class Context(object):
             'build_missing': existence_str(self.build_space_abs),
             'devel_missing': existence_str(self.devel_space_abs),
             'install_missing': existence_str(self.install_space_abs),
+            'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
+            'blacklisted_packages': ' '.join(self.__blacklist or ['None']),
         }
         subs.update(**self.__dict__)
         # Get the width of the shell
@@ -595,6 +613,22 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__packages = value
+
+    @property
+    def whitelist(self):
+        return self.__whitelist
+
+    @whitelist.setter
+    def whitelist(self, value):
+        self.__whitelist = value
+
+    @property
+    def blacklist(self):
+        return self.__blacklist
+
+    @blacklist.setter
+    def blacklist(self, value):
+        self.__blacklist = value
 
     def corrupted_by_catkin_make(self):
         for other_tool_name in ['catkin_make_isolated', 'catkin_make']:
