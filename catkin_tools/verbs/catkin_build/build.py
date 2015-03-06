@@ -485,7 +485,7 @@ def build_isolated_workspace(
             clr("@{rf}Error:@| Build space `{0}` exists but appears to have previously been "
                 "created by the `catkin_make` or `catkin_make_isolated` tool. "
                 "Please choose a different directory to use with `catkin build` "
-                "or clean the build space.".format(context.build_space_abs)))
+                "or clean the build space.").format(context.build_space_abs))
 
     # Declare a buildspace marker describing the build config for error checking
     buildspace_marker_data = {
