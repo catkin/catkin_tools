@@ -14,51 +14,83 @@
 
 from __future__ import print_function
 
-from os import pipe, write, close, unlink, read
 from multiprocessing import cpu_count
 from tempfile import mkstemp
-from subprocess import call, PIPE
 from termios import FIONREAD
 
-import fcntl
 import array
+import fcntl
+import os
+import psutil
+import subprocess
+import time
 
-# from .common import log
+from .common import log
 
-job_server_instance = None
+JOBSERVER_SUPPORT_MAKEFILE = b'''
+all:
+\techo $(MAKEFLAGS) | grep -- '--jobserver-fds'
+'''
 
 
 class MakeJobServer:
+
     """
     This class implements a GNU make job server.
+
+    TODO:
+     - use os.getloadavg() to maintain server load
     """
 
+    _singleton = None
+
     @staticmethod
-    def get_instance():
-        return job_server_instance
+    def get_instance(*args, **kwargs):
+        if not MakeJobServer._singleton:
+            MakeJobServer._singleton = MakeJobServer(*args, **kwargs)
+        elif len(args) > 0 or len(kwargs) > 0:
+            log('WARNING: Attempting to instantiate more than one jobserver!')
 
-    def __init__(self, num_jobs=None):
-        global job_server_instance
-        assert(not job_server_instance)
-        job_server_instance = self
+        return MakeJobServer._singleton
 
-        if not num_jobs:
-            try:
-                num_jobs = cpu_count()
-            except NotImplementedError:
-                # log('Failed to determine the cpu_count, falling back to 1 jobs as the default.')
-                num_jobs = 1
-        else:
-            num_jobs = int(num_jobs)
+    def __init__(self, num_jobs=None, max_load=None, max_mem=None, enable=True):
+        """
+        :param num_jobs: the maximum number of jobs available
+        :param max_load: do not dispatch additional jobs if this system load
+        value is exceeded
+        :param max_mem: do not dispatch additional jobs if system physical
+        memory usage exceeds this value
+        """
+        assert(MakeJobServer._singleton is None)
 
-        self.num_jobs = num_jobs
-        self.pipe = pipe()
+        if enable:
+            if not num_jobs:
+                try:
+                    num_jobs = cpu_count()
+                except NotImplementedError:
+                    log('@{yf}WARNING: Failed to determine the cpu_count, falling back to 1 jobs as the default.@|')
+                    num_jobs = 1
+            else:
+                num_jobs = int(num_jobs)
 
-        # Initialize the pipe with num_jobs tokens
-        for i in range(num_jobs):
-            write(self.pipe[1], b'+')
+            self.num_jobs = num_jobs
+            self.max_load = max_load
+            self.max_mem = max_mem
+            self.job_pipe = os.pipe()
 
-        self.supported = self._testSupport()
+            # Initialize the pipe with num_jobs tokens
+            for i in range(num_jobs):
+                os.write(self.job_pipe[1], b'+')
+
+            # Check if the jobserver is supported
+            self.supported = self._testSupport()
+
+        if not enable or not self.supported:
+            log('@{yf}WARNING: Failed to determine the cpu_count, falling back to 1 jobs as the default.@|')
+            self.num_jobs = 0
+            self.job_pipe = None
+            self.supported = False
+
 
     def _testSupport(self):
         """
@@ -66,15 +98,12 @@ class MakeJobServer:
         """
 
         fd, makefile = mkstemp()
-        write(fd, b'''
-all:
-\techo $(MAKEFLAGS) | grep -- '--jobserver-fds'
-''')
-        close(fd)
+        os.write(fd, JOBSERVER_SUPPORT_MAKEFILE)
+        os.close(fd)
 
-        ret = call(['make', '-f', makefile, '-j2'], stdout=PIPE, stderr=PIPE)
+        ret = subprocess.call(['make', '-f', makefile, '-j2'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        unlink(makefile)
+        os.unlink(makefile)
         return (ret == 0)
 
     def make_arguments(self):
@@ -82,16 +111,19 @@ all:
         Get required arguments for spawning child make processes
         """
 
-        return ["--jobserver-fds=%d,%d" % self.pipe, "-j"]
+        return ["--jobserver-fds=%d,%d" % self.job_pipe, "-j"] if self.supported else []
 
     def num_running_jobs(self):
         """
         Try to estimate the number of currently running jobs
         """
 
+        if not self.supported:
+            return '?'
+
         try:
             buf = array.array('i', [0])
-            if fcntl.ioctl(self.pipe[0], FIONREAD, buf) == 0:
+            if fcntl.ioctl(self.job_pipe[0], FIONREAD, buf) == 0:
                 return self.num_jobs - buf[0]
         except NotImplementedError:
             pass
@@ -107,13 +139,30 @@ all:
         """
 
         while True:
+            # make sure we're observing load maximums
+            if self.max_load is not None:
+                try:
+                    max_load = 8.0
+                    load = os.getloadavg()
+                    if self.num_running_jobs() > 0 and load[1] > self.max_load:
+                        time.sleep(0.01)
+                        continue
+                except NotImplementedError:
+                    pass
+
+            # make sure we're observing memory maximum
+            if self.max_mem is not None:
+                mem_usage = psutil.phymem_usage()
+                if self.num_running_jobs() > 0 and mem_usage.percent > self.max_mem:
+                    time.sleep(0.01)
+                    continue
+
+            # get a token from the job pipe
             try:
-                token = read(self.pipe[0], 1)
+                token = os.read(self.job_pipe[0], 1)
                 return token
             except OSError as e:
-                if e.errno == errno.EINTR:
-                    continue
-                else:
+                if e.errno != errno.EINTR:
                     raise
 
     def release(self):
@@ -121,7 +170,7 @@ all:
         Release a job server token.
         """
 
-        write(self.pipe[1], b'+')
+        os.write(self.job_pipe[1], b'+')
 
     def __enter__(self):
         if self.supported:

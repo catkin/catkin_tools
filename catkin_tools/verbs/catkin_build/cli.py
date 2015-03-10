@@ -23,6 +23,7 @@ from catkin_pkg.package import InvalidPackage
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
+from catkin_tools.argument_parsing import configure_make_args
 
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import log
@@ -117,8 +118,6 @@ the --save-config argument. To see the current config, use the
     add = build_group.add_argument
     add('--force-cmake', action='store_true', default=None,
         help='Runs cmake explicitly for each catkin package.')
-    add('--jobserver-limit', default=None,
-        help='Limit parallel job count through the internal GNU make job server (default is cpu count)')
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
@@ -224,6 +223,10 @@ def main(opts):
     # Load the context
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
 
+    # Initialize the build configuration
+    make_args, makeflags, cli_flags, jobserver = configure_make_args(ctx.make_args, ctx.internal_make_jobserver)
+    ctx.make_args = make_args
+
     # Load the environment of the workspace to extend
     if ctx.extend_path is not None:
         try:
@@ -233,10 +236,7 @@ def main(opts):
                     (ctx.extend_path, exc.message)))
             return 1
 
-    # Create a Make job server for limiting resource glut
-    jobserver = MakeJobServer(opts.jobserver_limit)
-
-    # Display list and leave the filesystem untouched
+    # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return

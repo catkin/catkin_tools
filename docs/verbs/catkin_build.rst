@@ -332,6 +332,28 @@ done by passing the ``--this`` option to ``catkin build`` like the following:
     - roscpp_tutorials     (catkin)
     Total packages: 1
 
+Controlling the Number of Build Jobs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default ``catkin build`` on a computer with ``N`` cores will build up to
+``N`` packages in parallel and will distribute ``N`` ``make`` jobs among them
+using an internal jobserver. If your platform doesn't support jobserver
+scheduling, ``catkin build`` will pass ``-jN -lN`` to ``make`` for each package.
+
+You can control the maximum number of packages allowed to build in parallel by
+using the ``-p`` or ``--parallel-packages`` option and you can change the
+number of ``make`` jobs available with the ``-j`` or ``--jobs`` option.
+
+By default, these jobs options aren't passed to the underlying ``make``
+command. To disable the jobserver, you can use the ``--no-jobserver`` option, and
+you can pass flags directly to ``make`` with the ``--make-args`` option.
+
+.. note::
+
+    Jobs flags (``-jN`` and/or ``-lN``) can be passed directly to ``make`` by
+    giving them to ``catkin build``, but other ``make`` arguments need to be
+    passed to the ``--make-args`` option.
+
 Controlling Command-Line Output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -433,22 +455,6 @@ well as the output of each build command in a block, once it finishes:
     The printing of these command outputs maybe be interleaved with commands
     from other package builds if more than one package is being built at the
     same time.
-
-By default ``catkin build`` will build up to ``N`` packages in parallel and
-pass ``-jN -lN`` to ``make`` where ``N`` is the number of cores in your
-computer.
-
-You can change the number of packages allowed to build in parallel
-by using the ``-p`` or ``--parallel-jobs`` option and you can change the jobs
-flags given to ``make`` by passing them directly to ``catkin build``, i.e.
-``catkin build -j1`` will result in ``make -j1 ...`` getting called to build
-the packages.
-
-.. note::
-
-    Jobs flags (``-jN`` and/or ``-lN``) can be passed directly to ``make`` by
-    giving them to ``catkin build``, but other ``make`` arguments need to be
-    passed to the ``--make-args`` option.
 
 If you want to see the output from commands streaming to the screen, then you
 can use the ``-i`` or ``--interleave`` option.  This option will cause the
