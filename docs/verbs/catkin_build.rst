@@ -611,8 +611,7 @@ Full Command-Line Interface
                         [--cmake-args ARG [ARG ...] | --no-cmake-args]
                         [--make-args ARG [ARG ...] | --no-make-args]
                         [--catkin-make-args ARG [ARG ...] | --no-catkin-make-args]
-                        [--force-color] [--verbose] [--interleave-output]
-                        [--no-status] [--no-notify]
+                        [--verbose] [--interleave-output] [--no-status] [--no-notify]
                         [PKGNAME [PKGNAME ...]]
 
     Build one or more packages in a catkin workspace. This invokes `CMake`,
@@ -687,8 +686,6 @@ Full Command-Line Interface
     Interface:
       The behavior of the command-line interface.
 
-      --force-color         Forces catkin build to output in color, even when the
-                            terminal does not appear to support it.
       --verbose, -v         Print output from commands in ordered blocks once the
                             command finishes.
       --interleave-output, -i

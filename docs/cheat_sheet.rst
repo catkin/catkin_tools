@@ -85,6 +85,15 @@ Blow away the build, devel, and install spaces (if they exist):
 ... or just delete the build directories for packages which have been disabled or removed:
   - ``catkin clean --orphans``
 
+Controlling Color Display
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Disable colors when building in a shell that doesn't support it (like IDEs):
+  - ``catkin --no-color build``
+
+... or enable it for shells that don't know they support it:
+  - ``catkin --force-color build``
+
 Profile Cookbook
 ^^^^^^^^^^^^^^^^
 
