@@ -15,6 +15,8 @@
 from __future__ import print_function
 
 import os
+import subprocess
+import sys
 import tempfile
 
 from catkin_tools.argument_parsing import handle_make_arguments
@@ -139,6 +141,32 @@ class CMakeJob(Job):
         Job.__init__(self, package, package_path, context, force_cmake)
         self.commands = self.get_commands()
 
+    def get_multiarch(self):
+        if not sys.platform.lower().startswith('linux'):
+            return ''
+        # this function returns the suffix for lib directories on supported systems or an empty string
+        # it uses two step approach to look for multiarch: first run gcc -print-multiarch and if
+        # failed try to run dpkg-architecture
+        error_thrown = False
+        try:
+            p = subprocess.Popen(
+                ['gcc', '-print-multiarch'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+        except (OSError, FileNotFoundError):
+            error_thrown = True
+        if error_thrown or p.returncode != 0:
+            try:
+                out, err = subprocess.Popen(
+                    ['dpkg-architecture', '-qDEB_HOST_MULTIARCH'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+            except (OSError, FileNotFoundError):
+                return ''
+        # be sure to return empty string or a valid multiarch tuple
+        decoded = out.decode().strip()
+        assert(not decoded or decoded.count('-') == 2)
+        return decoded
+
     def get_commands(self):
         commands = []
         # Setup build variables
@@ -189,14 +217,17 @@ class CMakeJob(Job):
                 # Do not replace existing setup.sh if devel space is merged
                 return commands
         # Create the setup file other packages will source when depending on this package
+        arch = self.get_multiarch()
         subs = {}
         subs['cmake_prefix_path'] = install_target + ":"
         subs['ld_path'] = os.path.join(install_target, 'lib') + ":"
         pythonpath = os.path.join(install_target, get_python_install_dir())
         subs['pythonpath'] = pythonpath + ':'
-        subs['pkgcfg_path'] = os.path.join(install_target, 'lib', 'pkgconfig')
-        subs['pkgcfg_path'] += ":"
+        subs['pkgcfg_path'] = os.path.join(install_target, 'lib', 'pkgconfig') + ":"
         subs['path'] = os.path.join(install_target, 'bin') + ":"
+        if arch:
+            subs['ld_path'] += os.path.join(install_target, 'lib', arch) + ":"
+            subs['pkgcfg_path'] += os.path.join(install_target, 'lib', arch, 'pkgconfig') + ":"
         setup_file_directory = os.path.dirname(setup_file_path)
         if not os.path.exists(setup_file_directory):
             os.makedirs(setup_file_directory)
