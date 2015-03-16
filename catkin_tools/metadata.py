@@ -32,7 +32,7 @@ profile is desired, it can be described in the `profiles.yaml` file in this
 directory.
 
 Please see the catkin_tools documentation before editing any files in this
-directory. Most actions can be perfomred with the `catkin` command-line
+directory. Most actions can be performed with the `catkin` command-line
 program.
 """
 
