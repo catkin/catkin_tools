@@ -23,4 +23,5 @@ Full Command-Line Interface
       --depends-on [DEPENDS_ON [DEPENDS_ON ...]]
                             List all packages that depend on supplied argument
                             package(s).
+      --quiet               Don't print out detected package warnings.
 

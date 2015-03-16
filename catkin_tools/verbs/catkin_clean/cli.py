@@ -114,8 +114,11 @@ def main(opts):
         if opts.orphans:
             if os.path.exists(ctx.build_space_abs):
                 # TODO: Check for merged build and report error
+
                 # Get all enabled packages in source space
-                found_source_packages = [pkg.name for (path, pkg) in find_packages(ctx.source_space_abs).items()]
+                # Suppress warnings since this is looking for packages which no longer exist
+                found_source_packages = [
+                    pkg.name for (path, pkg) in find_packages(ctx.source_space_abs, warnings=[]).items()]
 
                 # Iterate over all packages with build dirs
                 print("[clean] Removing orphaned build directories from %s" % ctx.build_space_abs)
