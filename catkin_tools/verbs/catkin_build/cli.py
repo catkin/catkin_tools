@@ -193,8 +193,8 @@ def main(opts):
         # Determine the enclosing package
         try:
             this_package = find_enclosing_package()
-        except InvalidPackage:
-            pass
+        except (InvalidPackage, RuntimeError):
+            this_package = None
 
         # Handle context-based package building
         if opts.build_this:
