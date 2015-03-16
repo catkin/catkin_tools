@@ -24,13 +24,10 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 
 from catkin_tools.common import format_time_delta
-from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 
 from catkin_tools.context import Context
-
-from catkin_tools.terminal_color import set_color
 
 from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
@@ -127,12 +124,6 @@ the --save-config argument. To see the current config, use the
 
     # Behavior
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
-    color_control_group = behavior_group.add_mutually_exclusive_group()
-    add = color_control_group.add_argument
-    add('--force-color', action='store_true', default=False,
-        help='Forces catkin build to output in color, even when the terminal does not appear to support it.')
-    add('--no-color', action='store_true', default=False,
-        help='Forces catkin build to not use color in the output, regardless of the detect terminal type.')
     add = behavior_group.add_argument
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
@@ -144,6 +135,10 @@ the --save-config argument. To see the current config, use the
         help='Adds a build summary to the end of a build; defaults to on with --continue-on-failure, off otherwise')
     add('--no-summarize', '--no-summary', action='store_false', dest='summarize',
         help='explicitly disable the end of build summary')
+
+    # Deprecated args now handled by main catkin command
+    add('--no-color', action='store_true', help=argparse.SUPPRESS)
+    add('--force-color', action='store_true', help=argparse.SUPPRESS)
 
     def status_rate_type(rate):
         rate = float(rate)
@@ -212,9 +207,6 @@ def main(opts):
 
     if opts.no_deps and not opts.packages:
         sys.exit("With --no-deps, you must specify packages to build.")
-
-    if opts.no_color or not opts.force_color and not is_tty(sys.stdout):
-        set_color(False)
 
     # Load the context
     ctx = Context.Load(opts.workspace, opts.profile, opts, append=True)

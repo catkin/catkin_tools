@@ -19,10 +19,13 @@ import os
 import pkg_resources
 import sys
 
+from catkin_tools.common import is_tty
+
 from catkin_tools.config import get_verb_aliases
 from catkin_tools.config import initialize_config
 
 from catkin_tools.terminal_color import fmt
+from catkin_tools.terminal_color import set_color
 from catkin_tools.terminal_color import test_colors
 
 CATKIN_COMMAND_VERB_GROUP = 'catkin_tools.commands.catkin.verbs'
@@ -89,9 +92,15 @@ def main(sysargs=None):
     parser = argparse.ArgumentParser(description="catkin command", formatter_class=argparse.RawDescriptionHelpFormatter)
     add = parser.add_argument
     add('-a', '--list-aliases', action="store_true", default=False,
-        help="lists the current verb aliases and then quits, all other arguments are ignored")
+        help="Lists the current verb aliases and then quits, all other arguments are ignored")
     add('--test-colors', action='store_true', default=False,
-        help="prints a color test pattern to the screen and then quits, all other arguments are ignored")
+        help="Prints a color test pattern to the screen and then quits, all other arguments are ignored")
+    color_control_group = parser.add_mutually_exclusive_group()
+    add = color_control_group.add_argument
+    add('--force-color', action='store_true', default=False,
+        help='Forces catkin to output in color, even when the terminal does not appear to support it.')
+    add('--no-color', action='store_true', default=False,
+        help='Forces catkin to not use color in the output, regardless of the detect terminal type.')
 
     # Generate a list of verbs available
     verbs = list_verbs()
@@ -105,6 +114,18 @@ def main(sysargs=None):
     # Setup sysargs
     sysargs = sys.argv[1:] if sysargs is None else sysargs
     cmd = os.path.basename(sys.argv[0])
+
+    # Get colors config
+    no_color = False
+    force_color = False
+    for arg in sysargs:
+        if arg == '--no-color':
+            no_color = True
+        if arg == '--force-color':
+            force_color = True
+
+    if no_color or not force_color and not is_tty(sys.stdout):
+        set_color(False)
 
     # Check for --test-colors
     for arg in sysargs:
