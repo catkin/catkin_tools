@@ -116,7 +116,7 @@ def main(opts):
 
     try:
         package_dest_path = opts.path
-        print('path: '+str(opts.path))
+        print('path: ' + str(opts.path))
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
             target_path = os.path.join(package_dest_path, package_name)

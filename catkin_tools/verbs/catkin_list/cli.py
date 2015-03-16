@@ -64,4 +64,4 @@ def main(opts):
     except InvalidPackage as ex:
         message = '\n'.join(ex.args)
         print(clr("@{rf}Error:@| The directory %s contains an invalid package."
-              " See below for details:\n\n%s" % (folder, message)))
+                  " See below for details:\n\n%s" % (folder, message)))

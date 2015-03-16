@@ -63,7 +63,7 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     add('--cmake-args', metavar='ARG', dest='cmake_args', nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to CMake. '
              'It collects all of following arguments until a "--" is read.')
-    add('--no-cmake-args', dest='cmake_args', action='store_const', const='A', default=None,
+    add('--no-cmake-args', dest='cmake_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to CMake.')
 
     add = parser.add_mutually_exclusive_group().add_argument
@@ -138,7 +138,7 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
         cmake_args = None
     if '--no-make-args' not in args and len(make_args) == 0:
         make_args = None
-    if extract_catkin_make and '--no-catkin_make_args' not in args and len(catkin_make_args) == 0:
+    if extract_catkin_make and '--no-catkin-make-args' not in args and len(catkin_make_args) == 0:
         catkin_make_args = None
 
     return args, cmake_args, make_args, catkin_make_args

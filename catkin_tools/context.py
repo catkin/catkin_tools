@@ -71,7 +71,7 @@ class Context(object):
         'space_suffix']
 
     @classmethod
-    def Load(cls, workspace_hint=None, profile=None, opts=None, strict=False):
+    def Load(cls, workspace_hint=None, profile=None, opts=None, strict=False, append=False):
         """Load a context from a given workspace and profile with optional modifications.
 
         This function will try to load a given context from the specified
@@ -93,6 +93,8 @@ class Context(object):
         :type opts: namespace
         :param strict: Causes this function to return None if a workspace isn't found
         :type strict: bool
+        :param append: Appends any list-type opts to existing opts
+        :type append: bool
 
         :returns: A potentially valid Context object constructed from the given arguments
         :rtype: Context
@@ -126,9 +128,12 @@ class Context(object):
 
         # User-supplied args are used to update stored args
         # Only update context args with given opts which are not none
-        context_args.update(dict([
-            (k, v) for (k, v) in opts_vars.items()
-            if k in Context.KEYS and v is not None]))
+        for (k, v) in opts_vars.items():
+            if k in Context.KEYS and v is not None:
+                if append and type(context_args.get(k, None)) is list and type(v) is list:
+                    context_args[k] += v
+                else:
+                    context_args[k] = v
 
         # Create the build context
         return Context(**context_args)
