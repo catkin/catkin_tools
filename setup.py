@@ -64,6 +64,7 @@ setup(
             'clean = catkin_tools.verbs.catkin_clean:description',
             'config = catkin_tools.verbs.catkin_config:description',
             'create = catkin_tools.verbs.catkin_create:description',
+            'find = catkin_tools.verbs.catkin_find:description',
             'init = catkin_tools.verbs.catkin_init:description',
             'list = catkin_tools.verbs.catkin_list:description',
             'profile = catkin_tools.verbs.catkin_profile:description',
