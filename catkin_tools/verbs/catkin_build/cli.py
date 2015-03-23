@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import argparse
+import os
 import sys
 import time
 
@@ -29,6 +30,7 @@ from catkin_tools.common import find_enclosing_package
 
 from catkin_tools.context import Context
 
+from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
 
@@ -187,7 +189,8 @@ def main(opts):
     if opts.build_this or opts.start_with_this:
         # Determine the enclosing package
         try:
-            this_package = find_enclosing_package()
+            ws_path = find_enclosing_workspace(os.getcwd())
+            this_package = find_enclosing_package(search_start_path=os.getcwd(), ws_path=ws_path)
         except (InvalidPackage, RuntimeError):
             this_package = None
 

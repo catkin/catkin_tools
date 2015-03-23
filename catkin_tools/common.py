@@ -403,7 +403,7 @@ def wide_log(msg, **kwargs):
     wide_log_fn(msg, **kwargs)
 
 
-def find_enclosing_package(search_start_path=None):
+def find_enclosing_package(search_start_path=None, ws_path=None):
     """Get the package containing the current directory."""
 
     search_start_path = search_start_path or os.getcwd()
@@ -418,7 +418,7 @@ def find_enclosing_package(search_start_path=None):
 
         # Update search path or end
         (search_start_path, child_path) = os.path.split(search_start_path)
-        if len(child_path) == 0:
+        if len(child_path) == 0 or search_start_path == ws_path:
             break
 
     return None
