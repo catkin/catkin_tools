@@ -69,6 +69,9 @@ packages ``catkin build`` will build, and in what order. This can be done with t
     Additional Make Args:        None
     Additional catkin Make Args: None
     --------------------------------------------------------------
+    Whitelisted Packages:        None
+    Blacklisted Packages:        None
+    --------------------------------------------------------------
     Workspace configuration appears valid.
     --------------------------------------------------------------
     Found '36' packages in 0.0 seconds.
@@ -254,6 +257,9 @@ space** and a **devel space** will be created:
     Additional CMake Args:       None
     Additional Make Args:        None
     Additional catkin Make Args: None
+    --------------------------------------------------------------
+    Whitelisted Packages:        None
+    Blacklisted Packages:        None
     --------------------------------------------------------------
     Workspace configuration appears valid.
     --------------------------------------------------------------

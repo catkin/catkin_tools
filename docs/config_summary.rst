@@ -29,6 +29,9 @@ display the standard configuration summary, as shown below:
     Additional Make Args:        None
     Additional catkin Make Args: None
     --------------------------------------------------------------
+    Whitelisted Packages:        None
+    Blacklisted Packages:        None
+    --------------------------------------------------------------
     Workspace configuration appears valid.
     --------------------------------------------------------------
 
@@ -73,6 +76,8 @@ Overview Section
 - **Additional CMake Args** -- Arguments to be passed to CMake during the *configuration* step for all packages to be built.
 - **Additional Make Args** -- Arguments to be passed to Make during the *build* step for all packages to be built.
 - **Additional catkin Make Args** -- Similar to **Additional Make Args** but only applies to Catkin packages.
+- **Package Whitelist** -- These are the packages that will be built with a bare call to ``catkin build``
+- **Package Blacklist** -- These are the packages that will *not* be built unless explicitly named
 
 Notes Section
 -------------

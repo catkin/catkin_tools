@@ -51,6 +51,20 @@ def prepare_arguments(parser):
     add('--mkdirs', action='store_true', default=False,
         help='Create directories required by the configuration (e.g. source space) if they do not already exist.')
 
+    lists_group = parser.add_argument_group(
+        'Package Build Defaults', 'Packages to include or exclude from default build behavior.')
+    add = lists_group.add_mutually_exclusive_group().add_argument
+    add('--whitelist', metavar="PKG", dest='whitelist', nargs="+", required=False, type=str, default=None,
+        help='If the whitelist is non-empty, only the packages on the whitelist are built with a bare call'
+             ' to `catkin build`.')
+    add('--clear-whitelist', dest='whitelist', action='store_const', const=[], default=None,
+        help='Clear all packages from the whitelist.')
+    add = lists_group.add_mutually_exclusive_group().add_argument
+    add('--blacklist', metavar="PKG", dest='blacklist', nargs="+", required=False, type=str, default=None,
+        help='Packages on the blacklist are not built with a bare call to `catkin build`.')
+    add('--clear-blacklist', dest='blacklist', action='store_const', const=[], default=None,
+        help='Clear all packages from the blacklist.')
+
     spaces_group = parser.add_argument_group('Spaces', 'Location of parts of the catkin workspace.')
     add = spaces_group.add_mutually_exclusive_group().add_argument
     add('-s', '--source-space', default=None,
