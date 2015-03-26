@@ -4,6 +4,10 @@ import re
 
 from .runner import run_command
 from .common import string_type
+from .utils import which
+
+CMAKE_EXEC = which('cmake')
+SORT_EXEC = which('sort')
 
 
 def get_resultspace_environment(result_space_path, quiet=False):
@@ -56,9 +60,17 @@ def get_resultspace_environment(result_space_path, quiet=False):
             "required setup file \"%s\" does not exist." % (result_space_path, setup_file_path)
         )
 
+    # Make sure we've found CMAKE and SORT executables
+    if CMAKE_EXEC is None:
+        print("WARNING: Failed to find 'cmake' executable.")
+        return {}
+    if SORT_EXEC is None:
+        print("WARNING: Failed to find 'sort' executable.")
+        return {}
+
     # Construct a command list which sources the setup file and prints the env to stdout
     norc_flags = {'bash': '--norc', 'zsh': '-f'}
-    subcommand = '%s cmake -E environment | sort' % (setup_file_path)
+    subcommand = '%s %s -E environment | %s' % (setup_file_path, CMAKE_EXEC, SORT_EXEC)
 
     command = [
         shell_path,
@@ -70,13 +82,17 @@ def get_resultspace_environment(result_space_path, quiet=False):
     env_regex = re.compile('(.+?)=(.*)$', re.M)
     env_dict = {}
 
-    for line in run_command(command, cwd=os.getcwd()):
-        if isinstance(line, string_type):
-            matches = env_regex.findall(line)
-            for (key, value) in matches:
-                value = value.rstrip()
-                if key not in blacklisted_keys and key not in env_dict:
-                    env_dict[key] = value
+    try:
+        for line in run_command(command, cwd=os.getcwd()):
+            if isinstance(line, string_type):
+                matches = env_regex.findall(line)
+                for (key, value) in matches:
+                    value = value.rstrip()
+                    if key not in blacklisted_keys and key not in env_dict:
+                        env_dict[key] = value
+    except IOError as err:
+        print("WARNING: Failed to extract environment from resultspace: %s: %s" % (result_space_path, str(err)))
+        return {}
 
     return env_dict
 
