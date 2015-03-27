@@ -172,7 +172,7 @@ def determine_packages_to_be_built(packages, context):
     if not packages:
         # Check whitelist
         if len(context.whitelist) > 0:
-            packages = [p[0] for p in context.packages if (p[0] in context.whitelist)]
+            packages = [p[1].name for p in context.packages if (p[1].name in context.whitelist)]
 
     # Determine the packages to be built
     if packages:
@@ -199,9 +199,10 @@ def determine_packages_to_be_built(packages, context):
 
     # Filter packages with blacklist
     if len(context.blacklist) > 0:
-        packages_to_be_built = [p for p in packages_to_be_built if (p[0] not in context.blacklist or p[0] in packages)]
+        packages_to_be_built = [
+            p for p in packages_to_be_built if (p[1].name not in context.blacklist or p[1].name in packages)]
         packages_to_be_built_deps = [
-            p for p in packages_to_be_built_deps if (p[0] not in context.blacklist or p[0] in packages)]
+            p for p in packages_to_be_built_deps if (p[1].name not in context.blacklist or p[1].name in packages)]
         ordered_packages = ordered_packages
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
