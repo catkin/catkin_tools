@@ -168,12 +168,6 @@ def determine_packages_to_be_built(packages, context):
     packages_to_be_built = []
     packages_to_be_built_deps = []
 
-    # Only use whitelist when no other packages are specified
-    if not packages:
-        # Check whitelist
-        if len(context.whitelist) > 0:
-            packages = [p[1].name for p in context.packages if (p[1].name in context.whitelist)]
-
     # Determine the packages to be built
     if packages:
         # First assert all of the packages given are in the workspace
@@ -195,14 +189,20 @@ def determine_packages_to_be_built(packages, context):
                 pkg_deps = get_cached_recursive_build_depends_in_workspace(package, ordered_packages)
                 packages_to_be_built_deps.extend(pkg_deps)
     else:
-        packages_to_be_built = ordered_packages
+        # Only use whitelist when no other packages are specified
+        if len(context.whitelist) > 0:
+            packages_to_be_built = [p for p in ordered_packages if (p[1].name in context.whitelist)]
+        else:
+            packages_to_be_built = ordered_packages
 
     # Filter packages with blacklist
     if len(context.blacklist) > 0:
         packages_to_be_built = [
-            p for p in packages_to_be_built if (p[1].name not in context.blacklist or p[1].name in packages)]
+            (path, pkg) for path, pkg in packages_to_be_built
+            if (pkg.name not in context.blacklist or pkg.name in packages)]
         packages_to_be_built_deps = [
-            p for p in packages_to_be_built_deps if (p[1].name not in context.blacklist or p[1].name in packages)]
+            (path, pkg) for path, pkg in packages_to_be_built_deps
+            if (pkg.name not in context.blacklist or pkg.name in packages)]
         ordered_packages = ordered_packages
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
@@ -586,7 +586,12 @@ def build_isolated_workspace(
         packages_to_be_built.extend(packages_to_be_built_deps)
     # Also resort
     packages_to_be_built = topological_order_packages(dict(packages_to_be_built))
-    max_package_name_length = max([len(pkg.name) for pth, pkg in packages_to_be_built])
+    # Check the number of packages to be built
+    if len(packages_to_be_built) == 0:
+        log(clr('[build] No packages to be built.'))
+        return
+
+    max_package_name_length = max([len(pkg.name) for pth, pkg in packages_to_be_built]) if packages_to_be_built else 0
     # Assert start_with package is in the workspace
     verify_start_with_option(start_with, packages, all_packages, packages_to_be_built + packages_to_be_built_deps)
 
