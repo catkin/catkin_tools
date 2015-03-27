@@ -31,13 +31,14 @@ from catkin_tools.common import find_enclosing_package
 
 from catkin_tools.context import Context
 
+from catkin_tools.make_jobserver import set_jobserver_max_mem
+
 from catkin_tools.metadata import find_enclosing_workspace
+
 from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
 
 from catkin_tools.resultspace import load_resultspace_environment
-
-from catkin_tools.make_jobserver import MakeJobServer
 
 from .color import clr
 
@@ -145,6 +146,9 @@ the --save-config argument. To see the current config, use the
     add('--no-color', action='store_true', help=argparse.SUPPRESS)
     add('--force-color', action='store_true', help=argparse.SUPPRESS)
 
+    # Experimental args
+    add('--mem-limit', default=None, help=argparse.SUPPRESS)
+
     def status_rate_type(rate):
         rate = float(rate)
         if rate < 0:
@@ -224,7 +228,13 @@ def main(opts):
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
 
     # Initialize the build configuration
-    make_args, makeflags, cli_flags, jobserver = configure_make_args(ctx.make_args, ctx.internal_make_jobserver)
+    make_args, makeflags, cli_flags, jobserver = configure_make_args(ctx.make_args, ctx.use_internal_make_jobserver)
+
+    # Set the jobserver memory limit
+    if jobserver and opts.mem_limit:
+        print(clr("@!@{pf}EXPERIMENTAL: limit memory to %s@|" % str(opts.mem_limit)))
+        set_jobserver_max_mem(opts.mem_limit)
+
     ctx.make_args = make_args
 
     # Load the environment of the workspace to extend

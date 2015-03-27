@@ -1,4 +1,5 @@
 pyyaml
+psutil
 catkin_pkg
 setuptools
 sphinxcontrib-ansi

@@ -22,7 +22,9 @@ from multiprocessing import cpu_count
 
 from catkin_tools.common import wide_log
 
-from catkin_tools.make_jobserver import MakeJobServer
+from catkin_tools.make_jobserver import initialize_jobserver
+from catkin_tools.make_jobserver import jobserver_arguments
+from catkin_tools.make_jobserver import jobserver_supported
 
 
 def add_context_args(parser):
@@ -64,10 +66,10 @@ def add_cmake_and_make_and_catkin_make_args(parser):
         help='Limit parallel job count through the internal GNU make job server. default is cpu count')
 
     add = parser.add_mutually_exclusive_group().add_argument
-    add('--jobserver', dest='internal_make_jobserver', default=None, action='store_true',
+    add('--jobserver', dest='use_internal_make_jobserver', default=None, action='store_true',
         help='Use the internal GNU Make job server which will limit the number '
              'of Make jobs across all active packages.')
-    add('--no-jobserver', dest='internal_make_jobserver', default=None, action='store_false',
+    add('--no-jobserver', dest='use_internal_make_jobserver', default=None, action='store_false',
         help='Disable the internal GNU Make job server, and use an external one (like distcc, for example).')
 
     add = parser.add_mutually_exclusive_group().add_argument
@@ -259,14 +261,14 @@ def handle_make_arguments(
     return make_args
 
 
-def configure_make_args(make_args, internal_make_jobserver):
+def configure_make_args(make_args, use_internal_make_jobserver):
     """Initialize the internal GNU Make jobserver or configure it as a pass-through
 
     :param make_args: arguments to be passed to GNU Make
     :type make_args: list
-    :param internal_make_jobserver: if true, use the internal jobserver
+    :param use_internal_make_jobserver: if true, use the internal jobserver
     :type make_args: bool
-    :rtype: tuple
+    :rtype: tuple (final make_args, using makeflags, using cliflags, using jobserver)
     """
 
     # Configure default jobs options: use all CPUs in each package
@@ -296,18 +298,18 @@ def configure_make_args(make_args, internal_make_jobserver):
         make_args = re.sub(cli_jobs_flags, '', ' '.join(make_args)).split()
 
     # Instantiate a jobserver
-    jobserver = MakeJobServer.get_instance(
-        num_jobs=jobs_flags.get('jobs', None),
-        enable=internal_make_jobserver)
+    if use_internal_make_jobserver:
+        initialize_jobserver(
+            num_jobs=jobs_flags.get('jobs', None),
+            max_load=jobs_flags.get('load-average', None))
 
-    # If the jobserver is supported and enabled, override the jobs flags
-    using_jobserver = jobserver.supported and internal_make_jobserver
-    if using_jobserver:
-        jobs_args = jobserver.make_arguments()
+    # If the jobserver is supported
+    if jobserver_supported():
+        jobs_args = jobserver_arguments()
     else:
         jobs_args = cli_jobs_flags.split()
 
-    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, using_jobserver
+    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, jobserver_supported()
 
 
 def argument_preprocessor(args):

@@ -22,7 +22,8 @@ from .color import colorize_cmake
 
 from catkin_tools.common import remove_ansi_escape
 from catkin_tools.runner import run_command
-from catkin_tools.make_jobserver import MakeJobServer
+
+from catkin_tools.make_jobserver import jobserver_job
 
 
 class ExecutorEvent(object):
@@ -106,8 +107,6 @@ class Executor(Thread):
         self.queue.put(ExecutorEvent(self.executor_id, 'exit', data, package_name))
 
     def run(self):
-        jobserver = MakeJobServer.get_instance()
-
         try:
             # Until exit
             while True:
@@ -125,7 +124,7 @@ class Executor(Thread):
                 job_has_failed = False
 
                 # Execute each command in the job
-                with jobserver:
+                with jobserver_job():
                     for command in self.current_job:
                         install_space_locked = False
                         if command.lock_install_space:
