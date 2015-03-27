@@ -63,7 +63,7 @@ class Context(object):
                    'isolate_install',
                    'cmake_args',
                    'make_args',
-                   'internal_make_jobserver',
+                   'use_internal_make_jobserver',
                    'catkin_make_args',
                    'whitelist',
                    'blacklist']
@@ -176,7 +176,7 @@ class Context(object):
         isolate_install=False,
         cmake_args=None,
         make_args=None,
-        internal_make_jobserver=True,
+        use_internal_make_jobserver=True,
         catkin_make_args=None,
         space_suffix=None,
         whitelist=None,
@@ -208,8 +208,8 @@ class Context(object):
         :type cmake_args: list
         :param make_args: extra make arguments to be passed to make for each package
         :type make_args: list
-        :param internal_make_jobserver: true if this configuration should use an internal make jobserv
-        :type internal_make_jobserver: bool
+        :param use_internal_make_jobserver: true if this configuration should use an internal make jobserv
+        :type use_internal_make_jobserver: bool
         :param catkin_make_args: extra make arguments to be passed to make for each catkin package
         :type catkin_make_args: list
         :param space_suffix: suffix for build, devel, and install spaces which are not explicitly set.
@@ -249,7 +249,7 @@ class Context(object):
         # Handle additional cmake and make arguments
         self.cmake_args = cmake_args or []
         self.make_args = make_args or []
-        self.internal_make_jobserver = internal_make_jobserver
+        self.use_internal_make_jobserver = use_internal_make_jobserver
         self.catkin_make_args = catkin_make_args or []
 
         # List of packages in the workspace is set externally
@@ -381,7 +381,7 @@ class Context(object):
                 clr("@{cf}Additional CMake Args:@|       @{yf}{cmake_args}@|"),
                 clr("@{cf}Additional Make Args:@|        @{yf}{make_args}@|"),
                 clr("@{cf}Additional catkin Make Args:@| @{yf}{catkin_make_args}@|"),
-                clr("@{cf}Internal Make Job Server:@|    @{yf}{_Context__internal_make_jobserver}@|"),
+                clr("@{cf}Internal Make Job Server:@|    @{yf}{_Context__use_internal_make_jobserver}@|"),
             ],
             [
                 clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
@@ -614,14 +614,14 @@ class Context(object):
         self.__make_args = value
 
     @property
-    def internal_make_jobserver(self):
-        return self.__internal_make_jobserver
+    def use_internal_make_jobserver(self):
+        return self.__use_internal_make_jobserver
 
-    @internal_make_jobserver.setter
-    def internal_make_jobserver(self, value):
+    @use_internal_make_jobserver.setter
+    def use_internal_make_jobserver(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__internal_make_jobserver = value
+        self.__use_internal_make_jobserver = value
 
     @property
     def catkin_make_args(self):

@@ -3,7 +3,7 @@ python:
   - "2.7"
   - "3.3"
 install:
-  - pip install argparse catkin-pkg distribute PyYAML
+  - pip install argparse catkin-pkg distribute PyYAML psutil
   - pip install nose coverage flake8 --upgrade
 before_script:
   - sudo apt-get install cmake python-setuptools libgtest-dev build-essential
