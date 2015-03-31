@@ -6,7 +6,7 @@ configuration options. These options include all of the elements listed in thr
 configuration summary.
 
 By default, the ``config`` verb gets and sets options for a workspace's
-*active* profile. If no profiles have been specified for a wotkspace, this is a
+*active* profile. If no profiles have been specified for a workspace, this is a
 default profile named ``default``.
 
 .. note::
