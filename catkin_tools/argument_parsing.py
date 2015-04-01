@@ -212,15 +212,17 @@ def extract_jobs_flags(mflags):
 
     :param mflags: string of space separated make arguments
     :type mflags: str
-    :returns: space separated list of make jobs flags
-    :rtype: str
+    :returns: list of make jobs flags
+    :rtype: list
     """
     regex = r'(?:^|\s)(-?(?:j|l)(?:\s*[0-9]+|\s|$))' + \
             r'|' + \
             r'(?:^|\s)((?:--)?(?:jobs|load-average)(?:(?:=|\s+)[0-9]+|(?:\s|$)))'
     matches = re.findall(regex, mflags) or []
     matches = [m[0] or m[1] for m in matches]
-    return ' '.join([m.strip() for m in matches]) if matches else None
+    filtered_flags = [m.strip() for m in matches] if matches else []
+
+    return filtered_flags
 
 
 def handle_make_arguments(
@@ -253,10 +255,13 @@ def handle_make_arguments(
             wide_log('Forcing "-j1" for running unit tests.')
             jobs_dict['jobs'] = 1
 
-    if 'jobs' in jobs_dict:
-        make_args.append('-j{0}'.format(jobs_dict['jobs']))
-    if 'load-average' in jobs_dict:
-        make_args.append('-l{0}'.format(jobs_dict['load-average']))
+    if len(jobs_dict) == 0:
+        make_args.extend(jobserver_arguments())
+    else:
+        if 'jobs' in jobs_dict:
+            make_args.append('-j{0}'.format(jobs_dict['jobs']))
+        if 'load-average' in jobs_dict:
+            make_args.append('-l{0}'.format(jobs_dict['load-average']))
 
     return make_args
 
@@ -285,17 +290,17 @@ def configure_make_args(make_args, use_internal_make_jobserver):
             'load-average': 1}
 
     # Get MAKEFLAGS from environment
-    makeflags_jobs_flags = extract_jobs_flags(os.environ.get('MAKEFLAGS', '')) or []
+    makeflags_jobs_flags = extract_jobs_flags(os.environ.get('MAKEFLAGS', ''))
     using_makeflags_jobs_flags = len(makeflags_jobs_flags) > 0
-    jobs_flags.update(extract_jobs_flags_values(''.join(makeflags_jobs_flags)))
+    jobs_flags.update(extract_jobs_flags_values(' '.join(makeflags_jobs_flags)))
 
     # Extract make jobs flags (these override MAKEFLAGS)
-    cli_jobs_flags = extract_jobs_flags(''.join(make_args)) or []
+    cli_jobs_flags = extract_jobs_flags(' '.join(make_args))
     using_cli_flags = len(cli_jobs_flags) > 0
-    jobs_flags.update(extract_jobs_flags_values(''.join(cli_jobs_flags)))
+    jobs_flags.update(extract_jobs_flags_values(' '.join(cli_jobs_flags)))
     if cli_jobs_flags:
         # Remove jobs flags from cli args if they're present
-        make_args = re.sub(cli_jobs_flags, '', ' '.join(make_args)).split()
+        make_args = re.sub(' '.join(cli_jobs_flags), '', ' '.join(make_args)).split()
 
     # Instantiate a jobserver
     if use_internal_make_jobserver:
@@ -305,7 +310,7 @@ def configure_make_args(make_args, use_internal_make_jobserver):
 
     # If the jobserver is supported
     if jobserver_supported():
-        jobs_args = jobserver_arguments()
+        jobs_args = []
     else:
         jobs_args = cli_jobs_flags.split()
 
@@ -331,11 +336,10 @@ def argument_preprocessor(args):
     args, cmake_args, make_args, catkin_make_args = extract_make_args(args)
 
     # Extract make jobs flags (these override MAKEFLAGS later on)
-    jobs_flags = extract_jobs_flags(' '.join(args)) or ''
-    jobs_args = jobs_flags.split()
-    if jobs_flags:
+    jobs_args = extract_jobs_flags(' '.join(args))
+    if jobs_args:
         # Remove jobs flags from cli args if they're present
-        args = re.sub(jobs_flags, '', ' '.join(args)).split()
+        args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
 
     extras = {
         'cmake_args': cmake_args,
