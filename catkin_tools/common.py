@@ -422,3 +422,8 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None):
             break
 
     return None
+
+
+def version_tuple(v):
+    """Get an integer version tuple from a string."""
+    return tuple(map(int, (str(v).split("."))))

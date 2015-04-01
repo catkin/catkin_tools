@@ -21,12 +21,12 @@ from termios import FIONREAD
 import array
 import fcntl
 import os
-import psutil
 import re
 import subprocess
 import time
 
 from .common import log
+from .common import version_tuple
 
 JOBSERVER_SUPPORT_MAKEFILE = b'''
 all:
@@ -34,7 +34,36 @@ all:
 '''
 
 
+def memory_usage():
+    """
+    Get used and total memory usage.
+
+    :returns: Used and total memory in bytes
+    :rtype: tuple
+    """
+
+    # Handle optional psutil support
+    try:
+        import psutil
+
+        psutil_version = version_tuple(psutil.__version__)
+        if psutil_version < (0, 6, 0):
+            usage = psutil.phymem_usage()
+            used = usage.used
+        else:
+            usage = psutil.virtual_memory()
+            used = usage.total - usage.available
+
+        return used, usage.total
+
+    except ImportError:
+        pass
+
+    return None, None
+
+
 class _MakeJobServer:
+
     """
     This class implements a GNU make job server.
     """
@@ -103,7 +132,7 @@ class _MakeJobServer:
                 val = float(m_abs.group(1))
                 mag_symbol = m_abs.group(2)
 
-                total_mem = float(psutil.phymem_usage().total)
+                _, total_mem = memory_usage()
 
                 if mag_symbol == '':
                     mag = 1.0
@@ -137,8 +166,9 @@ class _MakeJobServer:
 
             # make sure we're observing memory maximum
             if self.max_mem is not None:
-                mem_usage = psutil.phymem_usage()
-                if jobserver_running_jobs() > 0 and mem_usage.percent > self.max_mem:
+                mem_used, mem_total = memory_usage()
+                mem_percent_used = 100.0 * float(mem_used) / float(mem_total)
+                if jobserver_running_jobs() > 0 and mem_percent_used > self.max_mem:
                     time.sleep(0.01)
                     continue
 
@@ -159,9 +189,11 @@ class _MakeJobServer:
 
 
 class _MakeJob:
+
     """
     Context manager representing a jobserver job.
     """
+
     def __enter__(self):
         if _MakeJobServer._singleton is not None:
             _MakeJobServer._singleton._obtain()
@@ -285,4 +317,3 @@ def set_jobserver_max_mem(max_mem):
 
     if _MakeJobServer._singleton:
         _MakeJobServer._singleton._set_max_mem(max_mem)
-
