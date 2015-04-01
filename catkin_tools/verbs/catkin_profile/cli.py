@@ -97,7 +97,7 @@ def list_profiles(profiles, active_profile):
 def main(opts):
     try:
         # Load a context with initialization
-        ctx = Context.Load(opts.workspace)
+        ctx = Context.load(opts.workspace)
 
         if not ctx.initialized():
             print("A catkin workspace must be initialized before profiles can be managed.")
@@ -120,21 +120,21 @@ def main(opts):
                     return 1
             if opts.copy_active:
                 ctx.profile = opts.name
-                Context.Save(ctx)
+                Context.save(ctx)
                 print(clr('[profile] Created a new profile named @{cf}%s@| '
                           'based on active profile @{cf}%s@|' % (opts.name, active_profile)))
             elif opts.copy:
                 if opts.copy in profiles:
-                    new_ctx = Context.Load(opts.workspace, profile=opts.copy)
+                    new_ctx = Context.load(opts.workspace, profile=opts.copy)
                     new_ctx.profile = opts.name
-                    Context.Save(new_ctx)
+                    Context.save(new_ctx)
                     print(clr('[profile] Created a new profile named @{cf}%s@| '
                               'based on profile @{cf}%s@|' % (opts.name, opts.copy)))
                 else:
                     print(clr('[profile] @{rf}A profile with this name does not exist: %s@|' % opts.copy))
             else:
                 new_ctx = Context(workspace=ctx.workspace, profile=opts.name)
-                Context.Save(new_ctx)
+                Context.save(new_ctx)
                 print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % (opts.name)))
 
             profiles = get_profile_names(ctx.workspace)
@@ -168,7 +168,7 @@ def main(opts):
                                   'overwrite.' % (opts.new_name)))
                         return 1
                 ctx.profile = opts.new_name
-                Context.Save(ctx)
+                Context.save(ctx)
                 remove_profile(ctx.workspace, opts.current_name)
                 if opts.current_name == active_profile:
                     set_active_profile(ctx.workspace, opts.new_name)

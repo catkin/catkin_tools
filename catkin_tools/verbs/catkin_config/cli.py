@@ -37,6 +37,13 @@ def prepare_arguments(parser):
     # Workspace / profile args
     add_context_args(parser)
 
+    behavior_group = parser.add_argument_group('Behavior', 'Options affecting argument handling.')
+    add = behavior_group.add_mutually_exclusive_group().add_argument
+    add('--append-args', '-a', action='store_true', default=False,
+        help='For list-type arguments, append elements.')
+    add('--remove-args', '-r', action='store_true', default=False,
+        help='For list-type arguments, remove elements.')
+
     context_group = parser.add_argument_group('Workspace Context', 'Options affecting the context of the workspace.')
     add = context_group.add_argument
     add('--init', action='store_true', default=False,
@@ -134,7 +141,12 @@ def main(opts):
 
         # Try to find a metadata directory to get context defaults
         # Otherwise use the specified directory
-        context = Context.Load(opts.workspace, opts.profile, opts)
+        context = Context.load(
+            opts.workspace,
+            opts.profile,
+            opts,
+            append=opts.append_args,
+            remove=opts.remove_args)
 
         do_init = opts.init or not no_action
         summary_notes = []
@@ -143,7 +155,7 @@ def main(opts):
             summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `%s`@|' % context.workspace))
 
         if context.initialized() or do_init:
-            Context.Save(context)
+            Context.save(context)
 
         if opts.mkdirs and not context.source_space_exists():
             os.makedirs(context.source_space_abs)

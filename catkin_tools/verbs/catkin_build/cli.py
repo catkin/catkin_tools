@@ -212,7 +212,7 @@ def main(opts):
         sys.exit("With --no-deps, you must specify packages to build.")
 
     # Load the context
-    ctx = Context.Load(opts.workspace, opts.profile, opts, append=True)
+    ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
 
     # Load the environment of the workspace to extend
     if ctx.extend_path is not None:
@@ -243,7 +243,7 @@ def main(opts):
 
     # Save the context as the configuration
     if opts.save_config:
-        Context.Save(ctx)
+        Context.save(ctx)
 
     start = time.time()
     try:
