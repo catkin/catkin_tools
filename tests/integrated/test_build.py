@@ -92,3 +92,30 @@ def test_build_pkg_unit_tests_alias():
     assert_cmd_success(['catkin', 'run_tests', 'pkg_with_broken_test',
                         '--no-deps', '--no-notify', '--no-status'])
     assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
+
+@in_temporary_directory
+def test_build_pkg_cmake_args():
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    print("Creating source directory: %s" % source_space)
+    shutil.copytree(RESOURCES_DIR, source_space)
+
+    assert_cmd_failure(['catkin', 'build', 'pkg_with_cmake_args', '--no-deps',
+                        '--no-notify', '--no-status', '--force-cmake',
+                        '--cmake-args',
+                        '-DVAR1=VAL1'])
+
+    assert_cmd_failure(['catkin', 'build', 'pkg_with_cmake_args', '--no-deps',
+                        '--no-notify', '--no-status', '--force-cmake',
+                        '--cmake-args',
+                        '-DVAR1=VAL1', '-DVAR2=VAL2'])
+
+    assert_cmd_success(['catkin', 'build', 'pkg_with_cmake_args', '--no-deps',
+                        '--no-notify', '--no-status', '--force-cmake',
+                        '--cmake-args',
+                        '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3'])
+
+    assert_cmd_success(['catkin', 'build', 'pkg_with_cmake_args', '--no-deps',
+                        '--no-notify', '--no-status', '--force-cmake',
+                        '--cmake-args',
+                        '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3', '--'])
