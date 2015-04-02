@@ -159,11 +159,11 @@ To set the whitelist, you can call the following command:
 
     catkin config --whitelist foo bar
 
-To clear the whitelist, you can use the ``--clear-whitelist`` option:
+To clear the whitelist, you can use the ``--no-whitelist`` option:
 
 .. code-block:: text
 
-    catkin config --clear-whitelist
+    catkin config --no-whitelist
 
 If the *blacklist* is non-empty, it will filter the packages to be built in all
 cases except where a given package is named explicitly. This means that blacklisted
@@ -180,11 +180,11 @@ To set the blacklist, you can call the following command:
 
     catkin config --blacklist baz
 
-To clear the blacklist, you can use the ``--clear-blacklist`` option:
+To clear the blacklist, you can use the ``--no-blacklist`` option:
 
 .. code-block:: text
 
-    catkin config --clear-blacklist
+    catkin config --no-blacklist
 
 Note that you can still build packages on the blacklist and whitelist by
 passing their names to ``catkin build`` explicitly.
@@ -196,6 +196,8 @@ Full Command-Line Interface
 
     usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE] [--init]
                          [--extend EXTEND_PATH | --no-extend] [--mkdirs]
+                         [--whitelist PKG [PKG ...] | --no-whitelist]
+                         [--blacklist PKG [PKG ...] | --no-blacklist]
                          [-s SOURCE_SPACE | --default-source-space]
                          [-b BUILD_SPACE | --default-build-space]
                          [-d DEVEL_SPACE | --default-devel-space]
@@ -238,14 +240,15 @@ Full Command-Line Interface
       Packages to include or exclude from default build behavior.
 
       --whitelist PKG [PKG ...]
-                            If the whitelist is non-empty, only the packages on
-                            the whitelist are built with a bare call to `catkin
-                            build`.
-      --clear-whitelist     Clear all packages from the whitelist.
+                            Set the packages on the whitelist. If the whitelist is
+                            non-empty, only the packages on the whitelist are
+                            built with a bare call to `catkin build`.
+      --no-whitelist        Clear all packages from the whitelist.
       --blacklist PKG [PKG ...]
-                            Packages on the blacklist are not built with a bare
-                            call to `catkin build`.
-      --clear-blacklist     Clear all packages from the blacklist.
+                            Set the packages on the blacklist. Packages on the
+                            blacklist are not built with a bare call to `catkin
+                            build`.
+      --no-blacklist        Clear all packages from the blacklist.
 
     Spaces:
       Location of parts of the catkin workspace.
