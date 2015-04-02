@@ -128,13 +128,14 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
     def split_arguments(args, splitter_name):
         if splitter_name not in args:
             return args, None
-        start_index = args.index(splitter_name)
-        end_index = args.index('--', start_index + 1) if '--' in args else None
+        splitter_index = args.index(splitter_name)
+        start_index = splitter_index + 1
+        end_index = args.index('--', start_index) if '--' in args else None
 
         if end_index:
-            return args[0:index] + args[end_index + 1:], args[index + 1:end_index]
+            return args[0:splitter_index] + args[(end_index+1):], args[start_index:end_index]
         else:
-            return args[0:index], args[index + 1:]
+            return args[0:splitter_index], args[start_index:]
 
     for index in reversed(sorted(arg_indexes.keys())):
         arg_type = arg_indexes[index]
