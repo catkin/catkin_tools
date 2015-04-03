@@ -9,6 +9,9 @@ from .utils import which
 CMAKE_EXEC = which('cmake')
 SORT_EXEC = which('sort')
 
+# Cache for result-space environments
+_resultspace_env_cache = {}
+
 
 def get_resultspace_environment(result_space_path, quiet=False):
     """Get the environemt variables which result from sourcing another catkin
@@ -22,6 +25,11 @@ def get_resultspace_environment(result_space_path, quiet=False):
 
     :returns: a dictionary of environment variables and their values
     """
+
+    # Check the cache first
+    if result_space_path in _resultspace_env_cache:
+        return _resultspace_env_cache[result_space_path]
+
     # Check to make sure result_space_path is a valid directory
     if not os.path.isdir(result_space_path):
         if quiet:
@@ -93,6 +101,8 @@ def get_resultspace_environment(result_space_path, quiet=False):
     except IOError as err:
         print("WARNING: Failed to extract environment from resultspace: %s: %s" % (result_space_path, str(err)))
         return {}
+
+    _resultspace_env_cache[result_space_path] = env_dict
 
     return env_dict
 
