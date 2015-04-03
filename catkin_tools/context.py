@@ -22,6 +22,7 @@ import sys
 
 from . import metadata
 
+from .common import getcwd
 from .common import printed_fill
 from .common import remove_ansi_escape
 from .common import terminal_width
@@ -109,7 +110,7 @@ class Context(object):
         opts_vars = vars(opts) if opts else {}
 
         # Get the workspace (either the given directory or the enclosing ws)
-        workspace_hint = workspace_hint or opts_vars.get('workspace', None) or os.getcwd()
+        workspace_hint = workspace_hint or opts_vars.get('workspace', None) or getcwd()
         workspace = find_enclosing_workspace(workspace_hint)
         if not workspace:
             if strict or not workspace_hint:
