@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import os
+import sys
 
 from catkin_pkg.packages import find_packages
 from catkin_pkg.package import InvalidPackage
@@ -34,6 +35,8 @@ def prepare_arguments(parser):
         help="List dependencies of each package.")
     add('--depends-on', nargs='*',
         help="List all packages that depend on supplied argument package(s).")
+    add('--quiet', default=False, action='store_true',
+        help="Don't print out detected package warnings.")
 
     return parser
 
@@ -41,9 +44,10 @@ def prepare_arguments(parser):
 def main(opts):
     folders = opts.folders or [os.getcwd()]
     opts.depends_on = set(opts.depends_on) if opts.depends_on else set()
+    warnings = []
     try:
         for folder in folders:
-            for pkg_pth, pkg in find_packages(folder).items():
+            for pkg_pth, pkg in find_packages(folder, warnings=warnings).items():
                 build_depend_names = [d.name for d in pkg.build_depends]
                 is_build_dep = opts.depends_on.intersection(
                     build_depend_names)
@@ -65,3 +69,8 @@ def main(opts):
         message = '\n'.join(ex.args)
         print(clr("@{rf}Error:@| The directory %s contains an invalid package."
                   " See below for details:\n\n%s" % (folder, message)))
+
+    # Print out warnings
+    if not opts.quiet:
+        for warning in warnings:
+            print(clr("@{yf}Warning:@| %s" % warning), file=sys.stderr)

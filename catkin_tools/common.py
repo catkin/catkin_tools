@@ -403,14 +403,14 @@ def wide_log(msg, **kwargs):
     wide_log_fn(msg, **kwargs)
 
 
-def find_enclosing_package(search_start_path=None, ws_path=None):
+def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None):
     """Get the package containing the current directory."""
 
     search_start_path = search_start_path or os.getcwd()
     child_path = ''
 
     while True:
-        pkgs = find_packages(search_start_path)
+        pkgs = find_packages(search_start_path, warnings=warnings)
 
         # Check if the previous directory is a catkin package
         if child_path in pkgs:

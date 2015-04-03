@@ -190,7 +190,13 @@ def main(opts):
         # Determine the enclosing package
         try:
             ws_path = find_enclosing_workspace(os.getcwd())
-            this_package = find_enclosing_package(search_start_path=os.getcwd(), ws_path=ws_path)
+            # Suppress warnings since this won't necessaraly find all packages
+            # in the workspace (it stops when it finds one package), and
+            # relying on it for warnings could mislead people.
+            this_package = find_enclosing_package(
+                search_start_path=os.getcwd(),
+                ws_path=ws_path,
+                warnings=[])
         except (InvalidPackage, RuntimeError):
             this_package = None
 

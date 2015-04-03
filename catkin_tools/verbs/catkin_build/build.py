@@ -153,7 +153,11 @@ def determine_packages_to_be_built(packages, context):
     :rtype: tuple
     """
     start = time.time()
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True)
+
+    # Get all the packages in the context source space
+    # Suppress warnings since this is a utility function
+    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+
     # If there are no packages raise
     if not workspace_packages:
         sys.exit("No packages were found in the source space '{0}'".format(context.source_space_abs))
@@ -211,7 +215,12 @@ def determine_packages_to_be_built(packages, context):
 def _create_unmerged_devel_setup(context):
     # Find all of the leaf packages in the workspace
     # where leaf means that nothing in the workspace depends on it
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True)
+
+    # Find all packages in the source space
+    # Suppress warnings since this is an internal function whose goal is not to
+    # give feedback on the user's packages
+    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+
     ordered_packages = topological_order_packages(workspace_packages)
     workspace_packages = dict([(p.name, p) for pth, p in workspace_packages.items()])
     dependencies = set([])
