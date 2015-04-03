@@ -56,6 +56,10 @@ from catkin_tools.common import remove_ansi_escape
 from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
 
+from catkin_tools.make_jobserver import jobserver_max_jobs
+from catkin_tools.make_jobserver import jobserver_running_jobs
+from catkin_tools.make_jobserver import jobserver_supported
+
 from .common import get_build_type
 
 from .color import clr
@@ -795,12 +799,24 @@ def build_isolated_workspace(
                     # Print them in order of started number
                     for job_msg_args in sorted(executing_jobs, key=lambda args: args['number']):
                         msg += clr("[{name} - {run_time}] ").format(**job_msg_args)
-                    msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed]").format(
-                        len(executing_jobs),
-                        len(executors),
-                        len(packages) if no_deps else len(completed_packages),
-                        total_packages
-                    )
+
+                    if jobserver_supported():
+                        msg_rhs = clr("[{0}/{1} Jobs][{2}/{3} Packages][{4}/{5} Completed]").format(
+                            jobserver_running_jobs(),
+                            jobserver_max_jobs(),
+                            len(executing_jobs),
+                            len(executors),
+                            len(packages) if no_deps else len(completed_packages),
+                            total_packages
+                        )
+                    else:
+                        msg_rhs = clr("[{0}/{1} Packages][{2}/{3} Completed]").format(
+                            len(executing_jobs),
+                            len(executors),
+                            len(packages) if no_deps else len(completed_packages),
+                            total_packages
+                        )
+
                     # Update title bar
                     sys.stdout.write("\x1b]2;[build] {0}/{1}\x07".format(
                         len(packages) if no_deps else len(completed_packages),
