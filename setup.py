@@ -6,7 +6,7 @@ from setuptools import find_packages
 
 
 install_requires = [
-    'catkin-pkg',
+    'catkin-pkg >= 0.2.8',
     'setuptools',
     'PyYAML',
 ]
