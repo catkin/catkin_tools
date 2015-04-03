@@ -73,7 +73,7 @@ class Context(object):
         'space_suffix']
 
     @classmethod
-    def Load(cls, workspace_hint=None, profile=None, opts=None, strict=False, append=False):
+    def load(cls, workspace_hint=None, profile=None, opts=None, strict=False, append=False, remove=False):
         """Load a context from a given workspace and profile with optional modifications.
 
         This function will try to load a given context from the specified
@@ -97,6 +97,8 @@ class Context(object):
         :type strict: bool
         :param append: Appends any list-type opts to existing opts
         :type append: bool
+        :param remove: Removes any list-type opts from existing opts
+        :type remove: bool
 
         :returns: A potentially valid Context object constructed from the given arguments
         :rtype: Context
@@ -132,8 +134,14 @@ class Context(object):
         # Only update context args with given opts which are not none
         for (k, v) in opts_vars.items():
             if k in Context.KEYS and v is not None:
-                if append and type(context_args.get(k, None)) is list and type(v) is list:
-                    context_args[k] += v
+                # Handle list-type arguments with append/remove functionality
+                if type(context_args.get(k, None)) is list and type(v) is list:
+                    if append:
+                        context_args[k] += v
+                    elif remove:
+                        context_args[k] = [w for w in context_args[k] if w not in v]
+                    else:
+                        context_args[k] = v
                 else:
                     context_args[k] = v
 
@@ -141,7 +149,7 @@ class Context(object):
         return Context(**context_args)
 
     @classmethod
-    def Save(cls, context):
+    def save(cls, context):
         """Save a context in the associated workspace and profile."""
         metadata.update_metadata(
             context.workspace,

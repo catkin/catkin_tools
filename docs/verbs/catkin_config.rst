@@ -23,6 +23,26 @@ the root of the workspace. Doing so will not modify your workspace. The
 ``catkin`` command is context-sensitive, so it will determine which workspace
 contains the current working directory.
 
+Appending or Removing List-Type Arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Several configuration options are actually *lists* of values. Normally for
+these options, the given values will replace the current values in the
+configuration.
+
+If you would only like to modify, but not replace the value of a list-type
+option, you can use the ``-a`` / ``--append-args`` and ``-r`` /
+``--remove-args`` options to append or remove elements from these lists,
+respectively.
+
+List-type options include:
+
+ - ``--cmake-args``
+ - ``--make-args``
+ - ``--catkin-make-args``
+ - ``--whitelist``
+ - ``--blacklist``
+
 Installing Packages
 ^^^^^^^^^^^^^^^^^^^
 
@@ -194,7 +214,8 @@ Full Command-Line Interface
 
 .. code-block:: text
 
-    usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE] [--init]
+    usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
+                         [--append-args | --remove-args] [--init]
                          [--extend EXTEND_PATH | --no-extend] [--mkdirs]
                          [--whitelist PKG [PKG ...] | --no-whitelist]
                          [--blacklist PKG [PKG ...] | --no-blacklist]
@@ -223,6 +244,12 @@ Full Command-Line Interface
                             contained within it (default: ".")
       --profile PROFILE     The name of a config profile to use (default: active
                             profile)
+
+    Behavior:
+      Options affecting argument handling.
+
+      --append-args, -a     For list-type arguments, append elements.
+      --remove-args, -r     For list-type arguments, remove elements.
 
     Workspace Context:
       Options affecting the context of the workspace.
