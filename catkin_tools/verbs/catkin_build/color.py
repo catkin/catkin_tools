@@ -57,6 +57,9 @@ _color_translation_map = {
     "[{0}/{1} Active | {2}/{3} Completed]":
     fmt("[@!@{gf}{0}@|/@{gf}{1}@| Active | @!@{gf}{2}@|/@{gf}{3}@| Completed]"),
 
+    "[{0}/{1} Jobs | {2}/{3} Active | {4}/{5} Completed]":
+    fmt("[@!@{gf}{0}@|/@{gf}{1}@| Jobs | @!@{gf}{2}@|/@{gf}{3}@| Active | @!@{gf}{4}@|/@{gf}{5}@| Completed]"),
+
     "[!{package}] ":
     fmt("[@!@{rf}!@|@{cf}{package}@|] "),
 }

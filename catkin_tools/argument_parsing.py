@@ -312,7 +312,7 @@ def configure_make_args(make_args, use_internal_make_jobserver):
     if jobserver_supported():
         jobs_args = []
     else:
-        jobs_args = cli_jobs_flags.split()
+        jobs_args = cli_jobs_flags
 
     return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, jobserver_supported()
 

@@ -19,14 +19,15 @@ from tempfile import mkstemp
 from termios import FIONREAD
 
 import array
+import errno
 import fcntl
 import os
 import re
 import subprocess
 import time
 
-from .common import log
-from .common import version_tuple
+from catkin_tools.common import log
+from catkin_tools.common import version_tuple
 
 JOBSERVER_SUPPORT_MAKEFILE = b'''
 all:
@@ -63,7 +64,6 @@ def memory_usage():
 
 
 class _MakeJobServer:
-
     """
     This class implements a GNU make job server.
     """
@@ -189,7 +189,6 @@ class _MakeJobServer:
 
 
 class _MakeJob:
-
     """
     Context manager representing a jobserver job.
     """

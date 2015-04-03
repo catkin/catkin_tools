@@ -801,7 +801,7 @@ def build_isolated_workspace(
                         msg += clr("[{name} - {run_time}] ").format(**job_msg_args)
 
                     if jobserver_supported():
-                        msg_rhs = clr("[{0}/{1} Jobs][{2}/{3} Packages][{4}/{5} Completed]").format(
+                        msg_rhs = clr("[{0}/{1} Jobs | {2}/{3} Active | {4}/{5} Completed]").format(
                             jobserver_running_jobs(),
                             jobserver_max_jobs(),
                             len(executing_jobs),
@@ -810,7 +810,7 @@ def build_isolated_workspace(
                             total_packages
                         )
                     else:
-                        msg_rhs = clr("[{0}/{1} Packages][{2}/{3} Completed]").format(
+                        msg_rhs = clr("[{0}/{1} Active | {2}/{3} Completed]").format(
                             len(executing_jobs),
                             len(executors),
                             len(packages) if no_deps else len(completed_packages),

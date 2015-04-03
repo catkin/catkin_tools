@@ -232,7 +232,14 @@ def main(opts):
 
     # Set the jobserver memory limit
     if jobserver and opts.mem_limit:
-        print(clr("@!@{pf}EXPERIMENTAL: limit memory to %s@|" % str(opts.mem_limit)))
+        log(clr("@!@{pf}EXPERIMENTAL: limit memory to '%s'@|" % str(opts.mem_limit)))
+        # At this point psuitl will be required, check for it and bail out if not set
+        try:
+            import psutil  # noqa
+        except ImportError as exc:
+            log("Could not import psutil, but psutil is required when using --mem-limit.")
+            log("Please either install psutil or avoid using --mem-limit.")
+            sys.exit("Exception: {0}".format(exc))
         set_jobserver_max_mem(opts.mem_limit)
 
     ctx.make_args = make_args
