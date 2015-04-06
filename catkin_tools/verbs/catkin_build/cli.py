@@ -26,6 +26,7 @@ from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_arg
 from catkin_tools.argument_parsing import configure_make_args
 
 from catkin_tools.common import format_time_delta
+from catkin_tools.common import getcwd
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 
@@ -196,12 +197,12 @@ def main(opts):
     if opts.build_this or opts.start_with_this:
         # Determine the enclosing package
         try:
-            ws_path = find_enclosing_workspace(os.getcwd())
+            ws_path = find_enclosing_workspace(getcwd())
             # Suppress warnings since this won't necessaraly find all packages
             # in the workspace (it stops when it finds one package), and
             # relying on it for warnings could mislead people.
             this_package = find_enclosing_package(
-                search_start_path=os.getcwd(),
+                search_start_path=getcwd(),
                 ws_path=ws_path,
                 warnings=[])
         except (InvalidPackage, RuntimeError):
