@@ -26,8 +26,11 @@ Inconsistent Environment
 Dependency Resolution
 ^^^^^^^^^^^^^^^^^^^^^
 
-A package can't find certain resources
---------------------------------------
+Packages Are Being Built Out of Order
+-------------------------------------
 
-A package doesn't find the right version of a dependency
---------------------------------------------------------
+- The ``package.xml`` dependency tags are most likely incorrect. Note that
+  dependencies are only used to order the packages, and there is no warning if
+  a package can't be found.
+- Run ``catkin list --deps /path/to/ws/src`` to list the dependencies of each
+  package and look for errors.
