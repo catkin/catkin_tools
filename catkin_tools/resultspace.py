@@ -13,7 +13,7 @@ SORT_EXEC = which('sort')
 _resultspace_env_cache = {}
 
 
-def get_resultspace_environment(result_space_path, quiet=False):
+def get_resultspace_environment(result_space_path, quiet=False, cached=True):
     """Get the environemt variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This command is used to be as portable as possible.
@@ -22,12 +22,14 @@ def get_resultspace_environment(result_space_path, quiet=False):
     :type result_space_path: str
     :param quiet: don't throw exceptions, ``bool``
     :type quiet: bool
+    :param cached: use the cached environment
+    :type cached: bool
 
     :returns: a dictionary of environment variables and their values
     """
 
     # Check the cache first
-    if result_space_path in _resultspace_env_cache:
+    if cached and result_space_path in _resultspace_env_cache:
         return _resultspace_env_cache[result_space_path]
 
     # Check to make sure result_space_path is a valid directory
@@ -107,12 +109,14 @@ def get_resultspace_environment(result_space_path, quiet=False):
     return env_dict
 
 
-def load_resultspace_environment(result_space_path):
+def load_resultspace_environment(result_space_path, cached=True):
     """Load the environemt variables which result from sourcing another
     workspace path into this process's environment.
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
+    :param cached: use the cached environment
+    :type cached: bool
     """
-    env_dict = get_resultspace_environment(result_space_path)
+    env_dict = get_resultspace_environment(result_space_path, cached=cached)
     os.environ.update(env_dict)
