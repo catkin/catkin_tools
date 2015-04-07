@@ -39,11 +39,11 @@ opts, _ = parser.parse_known_args(list(sys.argv))
 if opts.prefix and opts.prefix == '/usr':
     data_files.append((
         '/etc/bash_completion.d',
-        ['catkin_tools-completion.sh']))
+        ['completion/catkin_tools-completion.bash']))
 else:
     data_files.append((
         os.path.join(sys.prefix, 'etc/bash_completion.d'),
-        ['catkin_tools-completion.sh']))
+        ['completion/catkin_tools-completion.bash']))
 
 setup(
     name='catkin_tools',
