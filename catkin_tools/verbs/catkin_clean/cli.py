@@ -85,7 +85,7 @@ def main(opts):
     needs_force = False
 
     # Load the context
-    ctx = Context.load(opts.workspace, opts.profile, opts, strict=True)
+    ctx = Context.load(opts.workspace, opts.profile, opts, strict=True, load_env=False)
 
     if not ctx:
         if not opts.workspace:

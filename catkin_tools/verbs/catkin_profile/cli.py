@@ -42,7 +42,8 @@ def prepare_arguments(parser):
         help='The path to the catkin workspace. Default: current working directory')
 
     add = parser_list.add_argument
-    # Nothing to do here yet
+    add('--unformatted', '-u', default=None, action='store_true',
+        help='Print profile list without punctuation and additional details.')
 
     add = parser_set.add_argument
     add('name', type=str,
@@ -75,21 +76,26 @@ def prepare_arguments(parser):
     return parser
 
 
-def list_profiles(profiles, active_profile):
+def list_profiles(profiles, active_profile, unformatted=False):
+
+    entry_format = '@{pf}-@| @{cf}%s@|' if not unformatted else '%s'
+    entry_active_format = entry_format + (' (@{yf}active@|)' if not unformatted else '')
 
     ret = []
     if len(profiles) > 0:
-        ret += [clr('[profile] Available profiles:')]
+        if not unformatted:
+            ret += [clr('[profile] Available profiles:')]
         for p in profiles:
             if p == active_profile:
-                ret += [clr('@{pf}-@| @{cf}%s@| (@{yf}active@|)' % p)]
+                ret += [clr(entry_active_format % p)]
             else:
-                ret += [clr('@{pf}-@| @{cf}%s@|' % p)]
+                ret += [clr(entry_format % p)]
     else:
-        ret += [clr(
-            '[profile] This workspace has no metadata profiles. Any '
-            'configuration settings will automatically by applied to a new '
-            'profile called `default`.')]
+        if not unformatted:
+            ret += [clr(
+                '[profile] This workspace has no metadata profiles. Any '
+                'configuration settings will automatically by applied to a new '
+                'profile called `default`.')]
 
     return '\n'.join(ret)
 
@@ -107,7 +113,7 @@ def main(opts):
         active_profile = get_active_profile(ctx.workspace)
 
         if opts.subcommand == 'list':
-            print(list_profiles(profiles, active_profile))
+            print(list_profiles(profiles, active_profile, unformatted=opts.unformatted))
 
         elif opts.subcommand == 'add':
             if opts.name in profiles:
