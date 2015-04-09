@@ -27,6 +27,7 @@ from .common import create_build_space
 from .common import generate_env_file
 from .common import get_python_install_dir
 
+INSTALLWATCH_EXEC = which('installwatch')
 MAKE_EXEC = which('make')
 CMAKE_EXEC = which('cmake')
 
@@ -298,6 +299,7 @@ class CatkinJob(Job):
         if not os.path.isfile(makefile_path) or self.force_cmake:
             commands.append(CMakeCommand(
                 env_cmd,
+                [INSTALLWATCH_EXEC, '-o', os.path.join(self.context.build_space_abs, 'build_logs', '%s_cmake_products.log' % self.package.name)] +
                 [
                     CMAKE_EXEC,
                     pkg_dir,
@@ -309,9 +311,13 @@ class CatkinJob(Job):
         else:
             commands.append(MakeCommand(env_cmd, [MAKE_EXEC, 'cmake_check_build_system'], build_space))
         # Make command
+        make_command = (
+            [INSTALLWATCH_EXEC, '-o', os.path.join(self.context.build_space_abs, 'build_logs', '%s_make_products.log' % self.package.name)] +
+            [MAKE_EXEC] +
+            handle_make_arguments(self.context.make_args + self.context.catkin_make_args))
         commands.append(MakeCommand(
             env_cmd,
-            [MAKE_EXEC] + handle_make_arguments(self.context.make_args + self.context.catkin_make_args),
+            make_command,
             build_space
         ))
         # Make install command, if installing
