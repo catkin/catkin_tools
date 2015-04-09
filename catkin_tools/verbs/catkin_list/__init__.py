@@ -18,7 +18,7 @@ from .cli import prepare_arguments
 # This describes this command to the loader
 description = dict(
     verb='list',
-    description="Lists catkin packages in a given folder.",
+    description="Lists catkin packages in the workspace or other arbitray folders.",
     main=main,
     prepare_arguments=prepare_arguments,
 )
