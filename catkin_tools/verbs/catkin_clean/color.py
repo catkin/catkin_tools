@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module implements many of the colorization functions used by catkin build"""
+"""This module implements many of the colorization functions used by catkin clean"""
 
 from catkin_tools.terminal_color import ansi
 from catkin_tools.terminal_color import fmt

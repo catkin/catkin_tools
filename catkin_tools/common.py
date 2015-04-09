@@ -239,6 +239,38 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return recursive_depends
 
 
+def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive build dependants of a package which are also in
+    the ordered_packages
+
+    :param package: package for which the recursive depends should be calculated
+    :type package: :py:class:`catkin_pkg.package.Package`
+    :param ordered_packages: packages in the workspace, ordered topologically,
+        stored as a list of tuples of package path and package object
+    :type ordered_packages: list(tuple(package path,
+        :py:class:`catkin_pkg.package.Package`))
+    :returns: list of package path, package object tuples which are the
+        recursive build depends for the given package
+    :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    """
+    workspace_packages_by_name = dict([(pkg.name, (pth, pkg)) for pth, pkg in ordered_packages])
+    packages_to_check = set([package_name])
+    recursive_dependants = list()
+
+    for pth, pkg in reversed(ordered_packages):
+        # Break if this is one to check
+        if pkg.name == package_name:
+            break
+
+        # Check if this package depends on the target package
+        deps = get_recursive_build_depends_in_workspace(pkg, ordered_packages)
+        deps_names = [p.name for _, p in deps]
+        if package_name in deps_names:
+            recursive_dependants.insert(0, (pth, pkg))
+
+    return recursive_dependants
+
+
 def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()

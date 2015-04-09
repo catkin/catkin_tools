@@ -16,13 +16,15 @@ from __future__ import print_function
 
 import os
 import stat
+import subprocess
 import sys
+import tempfile
 
 from multiprocessing import cpu_count
 
-from catkin_tools.runner import run_command
+from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 
-from .color import clr
+from catkin_tools.runner import run_command
 
 # Due to portability issues, it uses only POSIX-compliant shell features.
 # This means that there is no support for BASH-like arrays, and special
@@ -94,6 +96,31 @@ def generate_env_file(sources, env_file_path):
     return env_file_path
 
 
+def create_env_file(package, context):
+    sources = []
+    source_snippet = '. "{source_path}"'
+    # If installing to isolated folders or not installing, but devel spaces are not merged
+    if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
+        # Source each package's install or devel space
+        space = context.install_space_abs if context.install else context.devel_space_abs
+        # Get the recursive dependcies
+        depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
+        # For each dep add a line to source its setup file
+        for dep_pth, dep in depends:
+            source_path = os.path.join(space, dep.name, 'setup.sh')
+            sources.append(source_snippet.format(source_path=source_path))
+    else:
+        # Just source common install or devel space
+        source_path = os.path.join(
+            context.install_space_abs if context.install else context.devel_space_abs,
+            'setup.sh')
+        sources = [source_snippet.format(source_path=source_path)] if os.path.exists(source_path) else []
+    # Build the env_file
+    env_file_path = os.path.abspath(os.path.join(context.build_space_abs, package.name, 'build_env.sh'))
+    generate_env_file(sources, env_file_path)
+    return env_file_path
+
+
 def create_build_space(buildspace, package_name):
     """Creates a build space, if it does not already exist, in the build space
 
@@ -126,22 +153,47 @@ def get_build_type(package):
     return build_type_tag
 
 
-def get_python_install_dir():
-    """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
+class Job(object):
 
-    The PYTHON_INSTALL_DIR variable is normally set from the CMake file:
+    """Encapsulates a job which executes a series of commands"""
 
-        catkin/cmake/python.cmake
+    def __init__(self, context):
+        self.context = context
+        self.commands = []
+        self.__command_index = 0
 
-    :returns: Python install directory for the system Python
-    :rtype: str
-    """
-    python_install_dir = 'lib'
-    if os.name != 'nt':
-        python_version_xdoty = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
-        python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
+    def get_commands(self):
+        raise NotImplementedError('get_commands')
 
-    python_use_debian_layout = os.path.exists('/etc/debian_version')
-    python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
-    python_install_dir = os.path.join(python_install_dir, python_packages_dir)
-    return python_install_dir
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
+
+    def next(self):
+        if self.__command_index >= len(self.commands):
+            raise StopIteration()
+        self.__command_index += 1
+        return self.commands[self.__command_index - 1]
+
+
+class BuildJob(Job):
+
+    """Encapsulates a job which builds a package"""
+
+    def __init__(self, context,  package, package_path, force_cmake):
+        super(BuildJob, self).__init__(context)
+        self.package = package
+        self.package_name = package.name
+        self.package_path = package_path
+        self.force_cmake = force_cmake
+
+
+class CleanJob(Job):
+
+    """Encapsulates a job which cleans a package"""
+
+    def __init__(self, context, package_name):
+        super(CleanJob, self).__init__(context)
+        self.package_name = package_name

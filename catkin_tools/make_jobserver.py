@@ -64,6 +64,7 @@ def memory_usage():
 
 
 class _MakeJobServer:
+
     """
     This class implements a GNU make job server.
     """
@@ -189,6 +190,7 @@ class _MakeJobServer:
 
 
 class _MakeJob:
+
     """
     Context manager representing a jobserver job.
     """

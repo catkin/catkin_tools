@@ -20,6 +20,7 @@ import sys
 import time
 
 from catkin_pkg.package import InvalidPackage
+from catkin_pkg.package import parse_package
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
@@ -32,6 +33,14 @@ from catkin_tools.common import find_enclosing_package
 
 from catkin_tools.context import Context
 
+from catkin_tools.jobs.job import create_env_file
+from catkin_tools.jobs.job import get_build_type
+
+from catkin_tools.jobs.catkin import generate_setup_bootstrap
+from catkin_tools.jobs.catkin import get_bootstrap_path
+from catkin_tools.jobs.commands.cmake import CMAKE_EXEC
+from catkin_tools.jobs.commands.cmake import CMakeCommand
+
 from catkin_tools.make_jobserver import set_jobserver_max_mem
 
 from catkin_tools.metadata import find_enclosing_workspace
@@ -42,8 +51,6 @@ from catkin_tools.metadata import update_metadata
 from catkin_tools.resultspace import load_resultspace_environment
 
 from .color import clr
-
-from .common import get_build_type
 
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
@@ -275,6 +282,24 @@ def main(opts):
     # Save the context as the configuration
     if opts.save_config:
         Context.save(ctx)
+
+    # Generate setup bootstrap
+    if ctx.link_devel and not os.path.exists(os.path.join(ctx.devel_space_abs, '_setup_util.py')):
+        generate_setup_bootstrap(ctx.build_space_abs, ctx.devel_space_abs)
+        bootstrap_pkg_path = get_bootstrap_path(ctx.devel_space_abs, mkdirs=True)
+        bootstrap_pkg = parse_package(bootstrap_pkg_path)
+        setup_bootstrap_cmd = CMakeCommand(
+            create_env_file(bootstrap_pkg, ctx),
+            [
+                CMAKE_EXEC,
+                bootstrap_pkg_path,
+                '-DCATKIN_DEVEL_PREFIX=' + ctx.devel_space_abs,
+                '-DCMAKE_INSTALL_PREFIX=' + ctx.install_space_abs
+            ] + ctx.cmake_args,
+            os.path.join(ctx.build_space_abs, 'catkin_tools_bootstrap'))
+        for r in setup_bootstrap_cmd.run():
+            if type(r) is int and r != 0:
+                sys.exit("Couldn't generate bootstrap setup files.")
 
     start = time.time()
     try:

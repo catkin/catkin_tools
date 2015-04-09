@@ -12,133 +12,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
+import stat
 import subprocess
 import sys
 import tempfile
 
+from multiprocessing import cpu_count
+
 from catkin_tools.argument_parsing import handle_make_arguments
-from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
+
+from catkin_tools.runner import run_command
+
 from catkin_tools.utils import which
 
-from .common import create_build_space
-from .common import generate_env_file
-from .common import get_python_install_dir
+from .commands.cmake import CMakeCommand
+from .commands.cmake import CMAKE_EXEC
+from .commands.make import MakeCommand
+from .commands.make import InstallCommand
+from .commands.make import MAKE_EXEC
 
-MAKE_EXEC = which('make')
-CMAKE_EXEC = which('cmake')
+from .job import create_build_space
+from .job import create_env_file
+from .job import BuildJob
+from .job import CleanJob
 
-
-class Command(object):
-
-    """Single command which is part of a job"""
-    lock_install_space = False
-    stage_name = ''
-
-    def __init__(self, env_loader, cmd, location):
-        self.cmd = [env_loader] + cmd
-        self.cmd_str = ' '.join(self.cmd)
-        self.executable = os.path.basename(cmd[0])
-        self.pretty = ' '.join([self.executable] + cmd[1:])
-        self.plain_cmd = cmd
-        self.plain_cmd_str = ' '.join(self.plain_cmd)
-        self.env_loader = env_loader
-        self.location = location
+# FileNotFoundError from Python3
+try:
+    FileNotFoundError
+except NameError:
+    class FileNotFoundError(OSError):
+        pass
 
 
-class MakeCommand(Command):
-    stage_name = 'make'
-
-    def __init__(self, env_loader, cmd, location):
-        super(MakeCommand, self).__init__(env_loader, cmd, location)
-
-        if MAKE_EXEC is None:
-            raise RuntimeError("Executable 'make' could not be found in PATH.")
+INSTALL_MANIFEST_FILE = 'install_manifest.txt'
 
 
-class CMakeCommand(Command):
-    stage_name = 'cmake'
+def get_python_install_dir():
+    """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
 
-    def __init__(self, env_loader, cmd, location):
-        super(CMakeCommand, self).__init__(env_loader, cmd, location)
+    The PYTHON_INSTALL_DIR variable is normally set from the CMake file:
 
-        if CMAKE_EXEC is None:
-            raise RuntimeError("Executable 'cmake' could not be found in PATH.")
+        catkin/cmake/python.cmake
 
+    :returns: Python install directory for the system Python
+    :rtype: str
+    """
+    python_install_dir = 'lib'
+    if os.name != 'nt':
+        python_version_xdoty = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
+        python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
 
-class InstallCommand(MakeCommand):
-
-    """Command which touches the install space"""
-    lock_install_space = True
-    stage_name = 'make install'
-
-    def __init__(self, env_loader, cmd, location):
-        super(InstallCommand, self).__init__(env_loader, cmd, location)
-
-
-class Job(object):
-
-    """Encapsulates a job which builds a package"""
-
-    def __init__(self, package, package_path, context, force_cmake):
-        self.package = package
-        self.package_path = package_path
-        self.context = context
-        self.force_cmake = force_cmake
-        self.commands = []
-        self.__command_index = 0
-
-    def get_commands(self):
-        raise NotImplementedError('get_commands')
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.next()
-
-    def next(self):
-        if self.__command_index >= len(self.commands):
-            raise StopIteration()
-        self.__command_index += 1
-        return self.commands[self.__command_index - 1]
+    python_use_debian_layout = os.path.exists('/etc/debian_version')
+    python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
+    python_install_dir = os.path.join(python_install_dir, python_packages_dir)
+    return python_install_dir
 
 
-def create_env_file(package, context):
-    sources = []
-    source_snippet = '. "{source_path}"'
-    # If installing to isolated folders or not installing, but devel spaces are not merged
-    if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
-        # Source each package's install or devel space
-        space = context.install_space_abs if context.install else context.devel_space_abs
-        # Get the recursive dependcies
-        depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
-        # For each dep add a line to source its setup file
-        for dep_pth, dep in depends:
-            source_path = os.path.join(space, dep.name, 'setup.sh')
-            sources.append(source_snippet.format(source_path=source_path))
-    else:
-        # Just source common install or devel space
-        source_path = os.path.join(
-            context.install_space_abs if context.install else context.devel_space_abs,
-            'setup.sh')
-        sources = [source_snippet.format(source_path=source_path)] if os.path.exists(source_path) else []
-    # Build the env_file
-    env_file_path = os.path.abspath(os.path.join(context.build_space_abs, package.name, 'build_env.sh'))
-    generate_env_file(sources, env_file_path)
-    return env_file_path
-
-
-# TODO: Move various Job types out to another file
-
-class CMakeJob(Job):
+class CMakeBuildJob(BuildJob):
 
     """Job class for building plain cmake packages"""
 
-    def __init__(self, package, package_path, context, force_cmake):
-        Job.__init__(self, package, package_path, context, force_cmake)
+    def __init__(self, context, package, package_path, force_cmake):
+        super(CMakeBuildJob, self).__init__(context, package, package_path, force_cmake)
         self.commands = self.get_commands()
 
     def get_multiarch(self):
@@ -270,51 +206,77 @@ export PYTHONPATH="{pythonpath}$PYTHONPATH"
         return commands
 
 
-class CatkinJob(Job):
+class CMakeCleanJob(CleanJob):
 
-    """Job class for building catkin packages"""
+    """Job class for cleaning plain cmake packages"""
 
-    def __init__(self, package, package_path, context, force_cmake):
-        Job.__init__(self, package, package_path, context, force_cmake)
+    def __init__(self, context, package_name):
+        super(CMakeCleanJob, self).__init__(context, package_name)
         self.commands = self.get_commands()
 
     def get_commands(self):
         commands = []
         # Setup build variables
-        pkg_dir = os.path.join(self.context.source_space_abs, self.package_path)
-        build_space = create_build_space(self.context.build_space_abs, self.package.name)
-        if self.context.isolate_devel:
-            devel_space = os.path.join(self.context.devel_space_abs, self.package.name)
-        else:
-            devel_space = self.context.devel_space_abs
-        if self.context.isolate_install:
-            install_space = os.path.join(self.context.install_space_abs, self.package.name)
-        else:
-            install_space = self.context.install_space_abs
-        # Create an environment file
-        env_cmd = create_env_file(self.package, self.context)
-        # CMake command
-        makefile_path = os.path.join(build_space, 'Makefile')
-        if not os.path.isfile(makefile_path) or self.force_cmake:
+        build_space = create_build_space(self.context.build_space_abs, self.package_name)
+
+        # Read install manifest
+        install_manifest_path = os.path.join(build_space, INSTALL_MANIFEST_FILE)
+        installed_files = set()
+        if os.path.exists(install_manifest_path):
+            with open(install_manifest_path) as f:
+                installed_files = set([line.strip() for line in f.readlines()])
+
+        dirs_to_check = set()
+
+        for installed_file in installed_files:
+            # Make sure the file is given by an absolute path and it exists
+            if not os.path.isabs(installed_file) or not os.path.exists(installed_file):
+                continue
+
+            # Add commands to remove the file or directory
+            if os.path.isdir(installed_file):
+                commands.append(CMakeCommand(
+                    None,
+                    [CMAKE_EXEC, '-E', 'remove_directory', installed_file],
+                    build_space))
+            else:
+                commands.append(CMakeCommand(
+                    None,
+                    [CMAKE_EXEC, '-E', 'remove', installed_file],
+                    build_space))
+
+            # Check if directories that contain this file will be empty once it's removed
+            path = installed_file
+            # Only look in the devel space
+            while path != self.context.devel_space_abs:
+                # Pop up a directory
+                path, dirname = os.path.split(path)
+
+                # Skip if this path isn't a directory
+                if not os.path.isdir(path):
+                    continue
+
+                dirs_to_check.add(path)
+
+        # For each directory which may be empty after cleaning, visit them depth-first and count their descendants
+        dir_descendants = dict()
+        dirs_to_remove = set()
+        for path in sorted(dirs_to_check, key=lambda k: -len(k.split(os.path.sep))):
+            # Get the absolute path to all the files currently in this directory
+            files = [os.path.join(path, f) for f in os.listdir(path)]
+            # Filter out the files which we intend to remove
+            files = [f for f in files if f not in installed_files]
+            # Compute the minimum number of files potentially contained in this path
+            dir_descendants[path] = sum([(dir_descendants.get(f, 1) if os.path.isdir(f) else 1) for f in files])
+
+            # Schedule the directory for removal if removal of the given files will make it empty
+            if dir_descendants[path] == 0:
+                dirs_to_remove.add(path)
+
+        for generated_dir in dirs_to_remove:
             commands.append(CMakeCommand(
-                env_cmd,
-                [
-                    CMAKE_EXEC,
-                    pkg_dir,
-                    '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-                    '-DCMAKE_INSTALL_PREFIX=' + install_space
-                ] + self.context.cmake_args,
-                build_space
-            ))
-        else:
-            commands.append(MakeCommand(env_cmd, [MAKE_EXEC, 'cmake_check_build_system'], build_space))
-        # Make command
-        commands.append(MakeCommand(
-            env_cmd,
-            [MAKE_EXEC] + handle_make_arguments(self.context.make_args + self.context.catkin_make_args),
-            build_space
-        ))
-        # Make install command, if installing
-        if self.context.install:
-            commands.append(InstallCommand(env_cmd, [MAKE_EXEC, 'install'], build_space))
+                None,
+                [CMAKE_EXEC, '-E', 'remove_directory', generated_dir],
+                build_space))
+
         return commands

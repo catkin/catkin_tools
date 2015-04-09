@@ -60,6 +60,7 @@ class Context(object):
                    'devel_space',
                    'install_space',
                    'isolate_devel',
+                   'link_devel',
                    'install',
                    'isolate_install',
                    'cmake_args',
@@ -192,6 +193,7 @@ class Context(object):
         devel_space=None,
         install_space=None,
         isolate_devel=False,
+        link_devel=False,
         install=False,
         isolate_install=False,
         cmake_args=None,
@@ -263,6 +265,7 @@ class Context(object):
 
         # Handle build options
         self.isolate_devel = isolate_devel
+        self.link_devel = link_devel
         self.install = install
         self.isolate_install = isolate_install
 
@@ -594,6 +597,16 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__isolate_devel = value
+
+    @property
+    def link_devel(self):
+        return self.__link_devel
+
+    @link_devel.setter
+    def link_devel(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__link_devel = value
 
     @property
     def install(self):

@@ -110,6 +110,9 @@ def prepare_arguments(parser):
         help='Build products from each catkin package into isolated devel spaces.')
     add('--merge-devel', dest='isolate_devel', action='store_false', default=None,
         help='Build products from each catkin package into a single merged devel spaces.')
+    add('--link-devel', dest='link_devel', action='store_true', default=None,
+        help='Build products from each catkin package into isolated spaces,'
+        ' then symbolically link them into a merged devel space.')
 
     install_group = parser.add_argument_group(
         'Install Space', 'Options for configuring the structure of the install space.')
