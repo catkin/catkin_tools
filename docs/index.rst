@@ -15,6 +15,7 @@ Catkin Command Line Tools
    verbs/catkin_clean
    verbs/catkin_config
    verbs/catkin_create
+   verbs/catkin_find
    verbs/catkin_init
    verbs/catkin_list
    verbs/catkin_profile
