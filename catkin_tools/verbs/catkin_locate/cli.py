@@ -20,11 +20,8 @@ import sys
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
-
 from catkin_tools.context import Context
-
 from catkin_tools.metadata import find_enclosing_workspace
-
 from catkin_tools.terminal_color import ColorMapper
 
 color_mapper = ColorMapper()
@@ -32,8 +29,7 @@ clr = color_mapper.clr
 
 
 def prepare_arguments(parser):
-
-    add_context_args(parser)
+    add_context_args(parser)  # Adds the --profile option, possibly other things.
 
     # Behavior
     behavior_group = parser.add_argument_group('Behavior')
@@ -66,7 +62,10 @@ def prepare_arguments(parser):
         "source space. If the -b (--build) flag is given, it will output the "
         "path to the package's build directory. If the -d or -i (--devel or "
         "--install) flags are given, it will output the path to the package's "
-        "share directory in that space.")
+        "share directory in that space. If no package is provided, the base "
+        "space paths are printed, e.g. `catkin locate -s` might return "
+        "`/path/to/ws/src` and `catkin locate -s foo` might return "
+        "`/path/to/ws/src/foo`.")
     add = pkg_group.add_argument
     add('package', metavar='PACKAGE', nargs='?',
         help="The name of a package to locate.")
@@ -75,7 +74,6 @@ def prepare_arguments(parser):
 
 
 def main(opts):
-
     # Initialize dictionary version of opts namespace
     opts_vars = vars(opts) if opts else {}
 
