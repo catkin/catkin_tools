@@ -17,7 +17,7 @@ from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    verb='find',
+    verb='locate',
     description="Get the paths to various locations in a workspace.",
     main=main,
     prepare_arguments=prepare_arguments,

@@ -69,7 +69,7 @@ def prepare_arguments(parser):
         "share directory in that space.")
     add = pkg_group.add_argument
     add('package', metavar='PACKAGE', nargs='?',
-        help="The name of a package to find.")
+        help="The name of a package to locate.")
 
     return parser
 
@@ -117,7 +117,7 @@ def main(opts):
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
-                    print(clr("@{rf}ERROR: Could not find a package named '%s' in path '%s'@|" %
+                    print(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
                               (opts.package, path)), file=sys.stderr)
                     sys.exit(2)
             except RuntimeError as e:

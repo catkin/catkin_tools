@@ -1,7 +1,7 @@
-``catkin find`` -- Find Workspace Locations
+``catkin locate`` -- Find Workspace Locations
 ===========================================
 
-The ``find`` verb can be used to find important locations in the workspace such as
+The ``locate`` verb can be used to locate important locations in the workspace such as
 the active ``source``, ``build``, ``devel``, and ``install`` spaces, and package
 directories in the workspace.
 
@@ -10,7 +10,7 @@ Full Command-Line Interface
 
 .. code-block:: text
 
-    usage: catkin find [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e] [-r]
+    usage: catkin locate [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e] [-r]
                        [-s | -b | -d | -i]
                        [PACKAGE]
 
@@ -45,4 +45,4 @@ Full Command-Line Interface
       are given, it will output the path to the package's share directory in
       that space.
 
-      PACKAGE               The name of a package to find.
+      PACKAGE               The name of a package to locate.
