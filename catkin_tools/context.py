@@ -22,6 +22,7 @@ import sys
 
 from . import metadata
 
+from .common import getcwd
 from .common import printed_fill
 from .common import remove_ansi_escape
 from .common import terminal_width
@@ -74,8 +75,18 @@ class Context(object):
         'space_suffix']
 
     @classmethod
-    def load(cls, workspace_hint=None, profile=None, opts=None, strict=False, append=False, remove=False):
-        """Load a context from a given workspace and profile with optional modifications.
+    def load(
+        cls,
+        workspace_hint=None,
+        profile=None,
+        opts=None,
+        strict=False,
+        append=False,
+        remove=False,
+        load_env=True
+    ):
+        """Load a context from a given workspace and profile with optional
+        modifications.
 
         This function will try to load a given context from the specified
         workspace with the following resolution strategy:
@@ -100,6 +111,9 @@ class Context(object):
         :type append: bool
         :param remove: Removes any list-type opts from existing opts
         :type remove: bool
+        :param load_env: Control whether the context loads the resultspace
+        environment for the full build context
+        :type load_env: bool
 
         :returns: A potentially valid Context object constructed from the given arguments
         :rtype: Context
@@ -109,7 +123,7 @@ class Context(object):
         opts_vars = vars(opts) if opts else {}
 
         # Get the workspace (either the given directory or the enclosing ws)
-        workspace_hint = workspace_hint or opts_vars.get('workspace', None) or os.getcwd()
+        workspace_hint = workspace_hint or opts_vars.get('workspace', None) or getcwd()
         workspace = find_enclosing_workspace(workspace_hint)
         if not workspace:
             if strict or not workspace_hint:
@@ -147,7 +161,13 @@ class Context(object):
                     context_args[k] = v
 
         # Create the build context
-        return Context(**context_args)
+        ctx = Context(**context_args)
+
+        # Don't load the cmake config if it's not needed
+        if load_env:
+            ctx.load_env()
+
+        return ctx
 
     @classmethod
     def save(cls, context):
@@ -258,6 +278,14 @@ class Context(object):
         # List of warnings about the workspace is set internally
         self.warnings = []
 
+        # Initialize environment settings set by load_env
+        self.manual_cmake_prefix_path = None
+        self.cached_cmake_prefix_path = None
+        self.env_cmake_prefix_path = None
+        self.cmake_prefix_path = None
+
+    def load_env(self):
+
         # Check for CMAKE_PREFIX_PATH in manual cmake args
         self.manual_cmake_prefix_path = ''
         for cmake_arg in self.cmake_args:
@@ -271,16 +299,14 @@ class Context(object):
         else:
             sticky_env = get_resultspace_environment(self.devel_space_abs, quiet=True)
 
+        self.cached_cmake_prefix_path = ''
         if 'CMAKE_PREFIX_PATH' in sticky_env:
             split_result_cmake_prefix_path = sticky_env.get('CMAKE_PREFIX_PATH', '').split(':')
             if len(split_result_cmake_prefix_path) > 1:
                 self.cached_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
-            else:
-                self.cached_cmake_prefix_path = ''
-        else:
-            self.cached_cmake_prefix_path = ''
 
         # Either load an explicit environment or get it from the current environment
+        self.env_cmake_prefix_path = ''
         if self.extend_path:
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
             self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '')
@@ -300,8 +326,6 @@ class Context(object):
                     self.env_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
                 else:
                     self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '')
-            else:
-                self.env_cmake_prefix_path = ''
 
         # Add warnings based on conflicing CMAKE_PREFIX_PATH
         if self.cached_cmake_prefix_path and self.extend_path:
@@ -473,14 +497,12 @@ class Context(object):
 
     @extend_path.setter
     def extend_path(self, value):
-        try:
-            if value is not None:
-                if not os.path.isabs(value):
-                    value = os.path.join(self.workspace, value)
-                get_resultspace_environment(value)
-            self.__extend_path = value
-        except IOError as exc:
-            raise ValueError("Unable to extend workspace from \"%s\": %s" % (value, exc.message))
+        if value is not None:
+            if not os.path.isabs(value):
+                value = os.path.join(self.workspace, value)
+            if not os.path.exists(value):
+                raise ValueError("Resultspace path '{0}' does not exist.".format(value))
+        self.__extend_path = value
 
     @property
     def source_space_abs(self):

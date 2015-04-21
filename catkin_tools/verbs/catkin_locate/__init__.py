@@ -1,4 +1,4 @@
-# Copyright 2014 Open Source Robotics Foundation, Inc.
+# Copyright 2015 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ from .cli import prepare_arguments
 
 # This describes this command to the loader
 description = dict(
-    verb='list',
-    description="Lists catkin packages in the workspace or other arbitray folders.",
+    verb='locate',
+    description="Get the paths to various locations in a workspace.",
     main=main,
     prepare_arguments=prepare_arguments,
 )

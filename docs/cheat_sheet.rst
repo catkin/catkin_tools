@@ -70,6 +70,13 @@ Build packages with aditional CMake args:
 ... and save them to be used for the next build:
   - ``catkin build --save-config --cmake-args -DCMAKE_BUILD_TYPE=Debug``
 
+Build all packages in a given directory:
+  - ``catkin build $(catkin list -u /path/to/folder)``
+
+... or in the current folder:
+  - ``catkin build $(catkin list -u .)``
+
+
 Cleaning Build Products
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -126,3 +133,11 @@ Change from explicit to implicit chaining:
 
     catkin clean -a
     catkin config --no-extend
+
+Building With Other Jobservers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Build with ``distcc``:
+  .. code-block:: bash
+
+     CC="distcc gcc" CXX="distcc g++" catkin build -p$(distcc -j) -j$(distcc -j) --no-jobserver

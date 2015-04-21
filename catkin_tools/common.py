@@ -48,6 +48,33 @@ class FakeLock(object):
         pass
 
 
+def getcwd(symlinks=True):
+    """Get the current working directory.
+
+    :param symlinks: If True, then get the path considering symlinks. If false,
+    resolve the path to the actual path.
+    :type symlinks: bool
+    :returns: the current working directory
+    :rtype: str
+    """
+
+    cwd = ''
+
+    # Get the real path
+    realpath = os.getcwd()
+
+    # The `PWD` environment variable should contain the path that we took to
+    # get here, includng symlinks
+    if symlinks:
+        cwd = os.environ.get('PWD', '')
+
+    # Fallback on `getcwd` if the `PWD` variable is wrong
+    if not cwd or not os.path.exists(cwd) or os.path.realpath(cwd) != realpath:
+        cwd = realpath
+
+    return cwd
+
+
 def format_time_delta(delta):
     """Formats a given time delta, in seconds, into a day-hour-minute-second string
 
@@ -403,10 +430,10 @@ def wide_log(msg, **kwargs):
     wide_log_fn(msg, **kwargs)
 
 
-def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None):
+def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
     """Get the package containing the current directory."""
 
-    search_start_path = search_start_path or os.getcwd()
+    search_start_path = search_start_path or getcwd(symlinks=symlinks)
     child_path = ''
 
     while True:

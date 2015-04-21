@@ -17,6 +17,7 @@ Catkin Command Line Tools
    verbs/catkin_create
    verbs/catkin_init
    verbs/catkin_list
+   verbs/catkin_locate
    verbs/catkin_profile
    Advanced: Verb Aliasing <advanced/verb_customization>
    Advanced: Contributing Verbs <development/extending_the_catkin_command>
