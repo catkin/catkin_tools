@@ -57,7 +57,7 @@ data_files.append((
 
 setup(
     name='catkin_tools',
-    version='0.2.2',
+    version='0.3.0',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
