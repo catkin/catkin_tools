@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 
 from setuptools import setup
@@ -36,14 +37,23 @@ import argparse
 parser = argparse.ArgumentParser(description="shouldn't see this")
 parser.add_argument('--prefix')
 opts, _ = parser.parse_known_args(list(sys.argv))
-if opts.prefix and opts.prefix == '/usr':
-    data_files.append((
-        '/etc/bash_completion.d',
-        ['completion/catkin_tools-completion.bash']))
-else:
-    data_files.append((
-        os.path.join(sys.prefix, 'etc/bash_completion.d'),
-        ['completion/catkin_tools-completion.bash']))
+completetion_dest = None
+target_prefix = sys.prefix
+if opts.prefix:
+    target_prefix = opts.prefix
+# If the target is the root system target, use /etc
+if target_prefix == '/usr':
+    target_prefix = '/'
+if (
+    platform.platform().lower().startswith('darwin') and
+    target_prefix.startswith('/System/Library/Frameworks/Python.framework')
+):
+    # This is the system install of Python on OS X, install to `/etc`.
+    target_prefix = '/'
+completetion_dest = os.path.join(target_prefix, 'etc/bash_completion.d')
+data_files.append((
+    completetion_dest,
+    ['completion/catkin_tools-completion.bash']))
 
 setup(
     name='catkin_tools',
