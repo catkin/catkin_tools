@@ -536,11 +536,14 @@ The result code will be non-zero unless all tests passed.
 Building With Warnings
 ^^^^^^^^^^^^^^^^^^^^^^
 
-It can sometimes be useful to compile with strict warnings enabled across your whole catkin workspace. To achieve this, use a command like:
+It can sometimes be useful to compile with additional warnings enabled across your whole catkin workspace.
+To achieve this, use a command similar to this:
 
 .. code-block:: bash
 
-    $ catkin build -v --cmake-args -DEXTRA_C_FLAGS="-Wall -g -W -Wno-unused-parameter"
+    $ catkin build -v --cmake-args -DCMAKE_C_FLAGS="-Wall -W -Wno-unused-parameter"
+
+This command passes the ``-DCMAKE_C_FLAGS=...`` arugment to all invocations of ``cmake``.
 
 Debugging Build Errors
 ^^^^^^^^^^^^^^^^^^^^^^
