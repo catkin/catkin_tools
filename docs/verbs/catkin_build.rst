@@ -533,6 +533,15 @@ So if you want to check for failing tests, use the ``catkin_test_results`` comma
 
 The result code will be non-zero unless all tests passed.
 
+Building With Warnings
+^^^^^^^^^^^^^^^^^^^^^^
+
+It can sometimes be useful to compile with strict warnings enabled across your whole catkin workspace. To achieve this, use a command like:
+
+.. code-block:: bash
+
+    $ catkin build -v --cmake-args -DEXTRA_C_FLAGS="-Wall -g -W -Wno-unused-parameter"
+
 Debugging Build Errors
 ^^^^^^^^^^^^^^^^^^^^^^
 
