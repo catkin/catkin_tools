@@ -57,6 +57,7 @@ class Executor(Thread):
         self.current_job = None
         self.install_space_lock = install_lock
         self.shutdown_on_failure = not continue_on_failure
+        self.should_shutdown = False
 
     def job_started(self, job):
         self.queue.put(ExecutorEvent(self.executor_id, 'job_started', {}, job.package.name))
@@ -125,6 +126,11 @@ class Executor(Thread):
 
                 # Execute each command in the job
                 with jobserver_job():
+                    # Check here for externally set shutdown condition.
+                    # This prevents trailing jobs when using the job server.
+                    if self.should_shutdown:
+                        self.quit()
+                        return
                     for command in self.current_job:
                         install_space_locked = False
                         if command.lock_install_space:
