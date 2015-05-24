@@ -14,27 +14,4 @@
 
 from catkin_tools.utils import which
 
-from .system_command import SystemCommand
-
-
 MAKE_EXEC = which('make')
-
-
-class MakeCommand(SystemCommand):
-    stage_name = 'make'
-
-    def __init__(self, env_loader, cmd, location):
-        super(MakeCommand, self).__init__(env_loader, cmd, location)
-
-        if MAKE_EXEC is None:
-            raise RuntimeError("Executable 'make' could not be found in PATH.")
-
-
-class InstallCommand(MakeCommand):
-
-    """Command which touches the install space"""
-    lock_install_space = True
-    stage_name = 'make install'
-
-    def __init__(self, env_loader, cmd, location):
-        super(InstallCommand, self).__init__(env_loader, cmd, location)

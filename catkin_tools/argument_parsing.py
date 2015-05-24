@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 
+import argparse
 import os
 import re
 import sys
@@ -22,9 +23,7 @@ from multiprocessing import cpu_count
 
 from catkin_tools.common import wide_log
 
-from catkin_tools.make_jobserver import initialize_jobserver
-from catkin_tools.make_jobserver import jobserver_arguments
-from catkin_tools.make_jobserver import jobserver_supported
+from catkin_tools.execution.jobs import JobServer
 
 
 def add_context_args(parser):
@@ -60,10 +59,12 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     """
 
     add = parser.add_argument
-    add('-p', '--parallel-packages', '--parallel-jobs', '--parallel', dest='parallel_jobs', default=None,
-        help='Maximum number of packages which could be built in parallel (default is cpu count)')
     add('-j', '--jobs', default=None,
-        help='Limit parallel job count through the internal GNU make job server. default is cpu count')
+        help='Maximum number of build jobs to be distributed across active packages. (default is cpu count)')
+    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None,
+        help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+    # Deprecated flags kept for compatibility
+    add('--parallel-jobs', '--parallel', action='store_true', dest='parallel_jobs', help=argparse.SUPPRESS)
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--jobserver', dest='use_internal_make_jobserver', default=None, action='store_true',
@@ -256,7 +257,7 @@ def handle_make_arguments(
             jobs_dict['jobs'] = 1
 
     if len(jobs_dict) == 0:
-        make_args.extend(jobserver_arguments())
+        make_args.extend(JobServer.gnu_make_args())
     else:
         if 'jobs' in jobs_dict:
             make_args.append('-j{0}'.format(jobs_dict['jobs']))
@@ -282,7 +283,7 @@ def configure_make_args(make_args, use_internal_make_jobserver):
         n_cpus = cpu_count()
         jobs_flags = {
             'jobs': n_cpus,
-            'load-average': n_cpus}
+            'load-average': n_cpus + 1}
     except NotImplementedError:
         # If the number of cores cannot be determined, limit to one job
         jobs_flags = {
@@ -302,19 +303,19 @@ def configure_make_args(make_args, use_internal_make_jobserver):
         # Remove jobs flags from cli args if they're present
         make_args = re.sub(' '.join(cli_jobs_flags), '', ' '.join(make_args)).split()
 
-    # Instantiate a jobserver
-    if use_internal_make_jobserver:
-        initialize_jobserver(
-            num_jobs=jobs_flags.get('jobs', None),
-            max_load=jobs_flags.get('load-average', None))
+    # Instantiate the jobserver
+    JobServer.initialize(
+        max_jobs=jobs_flags.get('jobs', None),
+        max_load=jobs_flags.get('load-average', None),
+        gnu_make_enabled=use_internal_make_jobserver)
 
     # If the jobserver is supported
-    if jobserver_supported():
+    if JobServer.gnu_make_enabled():
         jobs_args = []
     else:
         jobs_args = cli_jobs_flags
 
-    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, jobserver_supported()
+    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, JobServer.gnu_make_enabled()
 
 
 def argument_preprocessor(args):

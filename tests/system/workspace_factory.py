@@ -5,6 +5,7 @@ from ..utils import temporary_directory
 
 
 class workspace_factory(temporary_directory):
+
     def __init__(self, source_space='src', prefix=''):
         super(workspace_factory, self).__init__(prefix=prefix)
         self.source_space = source_space
@@ -19,22 +20,30 @@ class workspace_factory(temporary_directory):
 
 
 class WorkspaceFactory(object):
-    def __init__(self, workspace, source_space):
+
+    def __init__(self, workspace, source_space='src'):
         self.workspace = workspace
         self.source_space = os.path.join(self.workspace, source_space)
         self.packages = {}
 
     class Package(object):
+
         def __init__(self, name, depends, build_depends, run_depends, test_depends):
             self.name = name
             self.build_depends = (build_depends or []) + (depends or [])
             self.run_depends = (run_depends or []) + (depends or [])
             self.test_depends = (test_depends or [])
 
-    def add_package(self, pkg_name, depends=None, build_depends=None, run_depends=None, test_depends=None):
+    def add_package(self, pkg_name, package_path):
+        """Copy a static package into the workspace"""
+        shutil.copytree(package_path, self.source_space)
+
+    def create_package(self, pkg_name, depends=None, build_depends=None, run_depends=None, test_depends=None):
+        """Add a package to be generated in this workspace."""
         self.packages[pkg_name] = self.Package(pkg_name, depends, build_depends, run_depends, test_depends)
 
     def build(self):
+        """Generate workspace paths and packages."""
         cwd = os.getcwd()
         if not os.path.isdir(self.workspace):
             if os.path.exists(self.workspace):

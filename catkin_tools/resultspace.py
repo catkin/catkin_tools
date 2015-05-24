@@ -2,7 +2,8 @@
 import os
 import re
 
-from .runner import run_command
+from osrf_pycommon.process_utils import execute_process
+
 from .common import string_type
 from .utils import which
 
@@ -93,7 +94,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
     env_dict = {}
 
     try:
-        for line in run_command(command, cwd=os.getcwd()):
+        for line in execute_process(command, cwd=os.getcwd()):
             if isinstance(line, string_type):
                 matches = env_regex.findall(line)
                 for (key, value) in matches:

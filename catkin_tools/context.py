@@ -59,8 +59,8 @@ class Context(object):
                    'build_space',
                    'devel_space',
                    'install_space',
-                   'isolate_devel',
                    'link_devel',
+                   'isolate_devel',
                    'install',
                    'isolate_install',
                    'cmake_args',
@@ -193,7 +193,7 @@ class Context(object):
         devel_space=None,
         install_space=None,
         isolate_devel=False,
-        link_devel=False,
+        link_devel=True,
         install=False,
         isolate_install=False,
         cmake_args=None,
@@ -264,8 +264,8 @@ class Context(object):
         self.blacklist = blacklist or []
 
         # Handle build options
-        self.isolate_devel = isolate_devel
         self.link_devel = link_devel
+        self.isolate_devel = isolate_devel
         self.install = install
         self.isolate_install = isolate_install
 
@@ -328,7 +328,7 @@ class Context(object):
 
                     self.env_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
                 else:
-                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '')
+                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '').rstrip(':')
 
         # Add warnings based on conflicing CMAKE_PREFIX_PATH
         if self.cached_cmake_prefix_path and self.extend_path:
@@ -400,6 +400,7 @@ class Context(object):
                 clr("@{cf}DESTDIR:@|                     @{yf}{_Context__destdir}@|"),
             ],
             [
+                clr("@{cf}Symlink Develspaces:@|         @{yf}{_Context__link_devel}@|"),
                 clr("@{cf}Isolate Develspaces:@|         @{yf}{_Context__isolate_devel}@|"),
                 clr("@{cf}Install Packages:@|            @{yf}{_Context__install}@|"),
                 clr("@{cf}Isolate Installs:@|            @{yf}{_Context__isolate_install}@|"),
@@ -589,16 +590,6 @@ class Context(object):
         self.__destdir = value
 
     @property
-    def isolate_devel(self):
-        return self.__isolate_devel
-
-    @isolate_devel.setter
-    def isolate_devel(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__isolate_devel = value
-
-    @property
     def link_devel(self):
         return self.__link_devel
 
@@ -607,6 +598,16 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__link_devel = value
+
+    @property
+    def isolate_devel(self):
+        return self.__isolate_devel
+
+    @isolate_devel.setter
+    def isolate_devel(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__isolate_devel = value
 
     @property
     def install(self):

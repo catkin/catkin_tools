@@ -22,22 +22,39 @@ import tempfile
 
 from multiprocessing import cpu_count
 
+from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 
-from catkin_tools.runner import run_command
+from catkin_tools.execution.jobs import Job
+from catkin_tools.execution.stages import CmdStage
+from catkin_tools.execution.stages import FunStage
 
-# Due to portability issues, it uses only POSIX-compliant shell features.
-# This means that there is no support for BASH-like arrays, and special
-# care needs to be taken in order to preserve argument atomicity when
-# passing along to the `exec` instruction at the end.
+from .commands.cmake import CMAKE_EXEC
+from .commands.cmake import CMakeIOBufferProtocol
+from .commands.make import MAKE_EXEC
+
+# Build Environment File
+# =============
 #
-# This involves forming a string called `_ARGS` which is composed of
-# tokens like `"$_Ai"` for i=0..N-1 for N arguments so that with N=3
-# arguments, for example, `_ARGS` would look like `"$_A0" "$_A1" "$_A2"`.
-# The double-quotes are necessary because they define the argument
-# boundaries when the variables are expanded by calling `eval`.
+# The Build Environment file is used to create environments to packages built
+# in an isolated build scenario. This enables packages to build against other
+# packages without sourcing the main workspace setup.sh file.
+#
+# Due to portability issues, it uses only POSIX-compliant shell features. This
+# means that there is no support for BASH-like arrays, and special care needs
+# to be taken in order to preserve argument atomicity when passing along to the
+# `exec` instruction at the end.
+#
+# This involves forming a string called `_ARGS` which is composed of tokens
+# like `"$_Ai"` for i=0..N-1 for N arguments so that with N=3 arguments, for
+# example, `_ARGS` would look like `"$_A0" "$_A1" "$_A2"`.  The double-quotes
+# are necessary because they define the argument boundaries when the variables
+# are expanded by calling `eval`.
 
-env_file_template = """\
+ENV_FILE_NAME = 'build_env.sh'
+
+
+ENV_FILE_TEMPLATE = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/common.py
 
@@ -87,18 +104,18 @@ eval exec $_ARGS
 """
 
 
-def generate_env_file(sources, env_file_path):
-    env_file = env_file_template.format(sources='\n'.join(sources))
-    with open(env_file_path, 'w') as f:
-        f.write(env_file)
-    # Make this file executable
-    os.chmod(env_file_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
-    return env_file_path
+def get_env_file_path(package, context):
+    """Get the path to a package's build environment file."""
+
+    return os.path.abspath(os.path.join(context.build_space_abs, package.name, ENV_FILE_NAME))
 
 
-def create_env_file(package, context):
+def create_env_file(logger, event_queue, package, context, env_file_path):
+    """FunStage functor for creating a build environment file."""
+
     sources = []
     source_snippet = '. "{source_path}"'
+
     # If installing to isolated folders or not installing, but devel spaces are not merged
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
@@ -115,13 +132,40 @@ def create_env_file(package, context):
             context.install_space_abs if context.install else context.devel_space_abs,
             'setup.sh')
         sources = [source_snippet.format(source_path=source_path)] if os.path.exists(source_path) else []
-    # Build the env_file
-    env_file_path = os.path.abspath(os.path.join(context.build_space_abs, package.name, 'build_env.sh'))
-    generate_env_file(sources, env_file_path)
-    return env_file_path
+
+    # Populate the build env file template and write it out
+    env_file = ENV_FILE_TEMPLATE.format(sources='\n'.join(sources))
+    if os.path.exists(env_file_path):
+        with open(env_file_path, 'r') as f:
+            if env_file == f.read():
+                return 0
+    with open(env_file_path, 'w') as f:
+        f.write(env_file)
+
+    # Make the env file executable
+    os.chmod(env_file_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+    return 0
 
 
-def create_build_space(buildspace, package_name):
+def get_package_build_space_path(buildspace, package_name):
+    """Generates a build space path, does not modify the filesystem.
+
+    TODO: Move to common.py
+    TODO: Get buildspace from context
+    TODO: Make arguments the same order as get_env_file_path
+
+    :param buildspace: folder in which packages are built
+    :type buildspace: str
+    :param package_name: name of the package this build space is for
+    :type package_name: str
+    :returns: package specific build directory
+    :rtype: str
+    """
+    return os.path.join(buildspace, package_name)
+
+
+def create_build_space(logger, event_queue, buildspace, package_name):
     """Creates a build space, if it does not already exist, in the build space
 
     :param buildspace: folder in which packages are built
@@ -131,14 +175,20 @@ def create_build_space(buildspace, package_name):
     :returns: package specific build directory
     :rtype: str
     """
-    package_build_dir = os.path.join(buildspace, package_name)
+    package_build_dir = get_package_build_space_path(buildspace, package_name)
     if not os.path.exists(package_build_dir):
         os.makedirs(package_build_dir)
     return package_build_dir
 
 
+def makedirs(logger, event_queue, path):
+    """FunStage functor that makes a path of directories."""
+    mkdir_p(path)
+    return 0
+
+
 def get_build_type(package):
-    """Returns the build type for a given package
+    """Returns the build type for a given package.
 
     :param package: package object
     :type package: :py:class:`catkin_pkg.package.Package`
@@ -153,47 +203,21 @@ def get_build_type(package):
     return build_type_tag
 
 
-class Job(object):
+def create_clean_buildspace_job(context, package_name, dependencies):
 
-    """Encapsulates a job which executes a series of commands"""
+    build_space = get_package_build_space_path(context.build_space_abs, package_name)
+    if not os.path.exists(build_space):
+        # No-op
+        return Job(jid=package_name, deps=dependencies, stages=[])
 
-    def __init__(self, context):
-        self.context = context
-        self.commands = []
-        self.__command_index = 0
+    stages = []
 
-    def get_commands(self):
-        raise NotImplementedError('get_commands')
+    stages.append(CmdStage(
+        'rmbuild',
+        [CMAKE_EXEC, '-E', 'remove_directory', build_space],
+        cwd=context.build_space_abs))
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.next()
-
-    def next(self):
-        if self.__command_index >= len(self.commands):
-            raise StopIteration()
-        self.__command_index += 1
-        return self.commands[self.__command_index - 1]
-
-
-class BuildJob(Job):
-
-    """Encapsulates a job which builds a package"""
-
-    def __init__(self, context,  package, package_path, force_cmake):
-        super(BuildJob, self).__init__(context)
-        self.package = package
-        self.package_name = package.name
-        self.package_path = package_path
-        self.force_cmake = force_cmake
-
-
-class CleanJob(Job):
-
-    """Encapsulates a job which cleans a package"""
-
-    def __init__(self, context, package_name):
-        super(CleanJob, self).__init__(context)
-        self.package_name = package_name
+    return Job(
+        jid=package_name,
+        deps=dependencies,
+        stages=stages)

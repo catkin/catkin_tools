@@ -19,8 +19,24 @@ import os
 import sys
 import time
 
+try:
+    # Python3
+    from queue import Queue
+except ImportError:
+    # Python2
+    from Queue import Queue
+
+try:
+    from catkin_pkg.packages import find_packages
+    from catkin_pkg.topological_order import topological_order_packages
+except ImportError as e:
+    sys.exit(
+        'ImportError: "from catkin_pkg.topological_order import '
+        'topological_order" failed: %s\nMake sure that you have installed '
+        '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
+    )
+
 from catkin_pkg.package import InvalidPackage
-from catkin_pkg.package import parse_package
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
@@ -30,21 +46,15 @@ from catkin_tools.common import format_time_delta
 from catkin_tools.common import getcwd
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import wide_log
 
 from catkin_tools.context import Context
 
-from catkin_tools.jobs.job import create_env_file
+from catkin_tools.execution.jobs import JobServer
+
 from catkin_tools.jobs.job import get_build_type
 
-from catkin_tools.jobs.catkin import generate_setup_bootstrap
-from catkin_tools.jobs.catkin import get_bootstrap_path
-from catkin_tools.jobs.commands.cmake import CMAKE_EXEC
-from catkin_tools.jobs.commands.cmake import CMakeCommand
-
-from catkin_tools.make_jobserver import set_jobserver_max_mem
-
 from catkin_tools.metadata import find_enclosing_workspace
-
 from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
 
@@ -58,7 +68,7 @@ from .build import topological_order_packages
 from .build import verify_start_with_option
 
 #
-# Hack
+# Begin Hack
 #
 
 # TODO(wjwwood): remove this, once it is no longer needed.
@@ -111,6 +121,9 @@ the --save-config argument. To see the current config, use the
         help='Build the package containing the current working directory.')
     add('--no-deps', action='store_true', default=False,
         help='Only build specified packages, not their dependencies.')
+    add('--unbuilt', action='store_true', default=False,
+        help='Build packages which have yet to be built.')
+
     start_with_group = pkg_group.add_mutually_exclusive_group()
     add = start_with_group.add_argument
     add('--start-with', metavar='PKGNAME', type=str,
@@ -127,6 +140,8 @@ the --save-config argument. To see the current config, use the
     add = build_group.add_argument
     add('--force-cmake', action='store_true', default=None,
         help='Runs cmake explicitly for each catkin package.')
+    add('--pre-clean', action='store_true', default=None,
+        help='Runs `make clean` before building each package.')
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
@@ -175,8 +190,12 @@ the --save-config argument. To see the current config, use the
 def dry_run(context, packages, no_deps, start_with):
     # Print Summary
     log(context.summary())
+    # Get all the packages in the context source space
+    # Suppress warnings since this is a utility function
+    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     # Find list of packages in the workspace
-    packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(packages, context)
+    packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(
+        packages, context, workspace_packages)
     # Assert start_with package is in the workspace
     verify_start_with_option(start_with, packages, all_packages, packages_to_be_built + packages_to_be_built_deps)
     if not no_deps:
@@ -220,17 +239,19 @@ def main(opts):
             if this_package:
                 opts.packages += [this_package]
             else:
-                sys.exit("catkin build: --this was specified, but this directory is not in a catkin package.")
+                sys.exit(
+                    "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
 
         # If --start--with was used without any packages and --this was specified, start with this package
         if opts.start_with_this:
             if this_package:
                 opts.start_with = this_package
             else:
-                sys.exit("catkin build: --this was specified, but this directory is not in a catkin package.")
+                sys.exit(
+                    "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
 
-    if opts.no_deps and not opts.packages:
-        sys.exit("With --no-deps, you must specify packages to build.")
+    if opts.no_deps and not opts.packages and not opts.unbuilt:
+        sys.exit(clr("[build] @!@{rf}Error:@| With --no-deps, you must specify packages to build."))
 
     # Load the context
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
@@ -248,7 +269,7 @@ def main(opts):
             log("Could not import psutil, but psutil is required when using --mem-limit.")
             log("Please either install psutil or avoid using --mem-limit.")
             sys.exit("Exception: {0}".format(exc))
-        set_jobserver_max_mem(opts.mem_limit)
+        JobServer.set_max_mem(opts.mem_limit)
 
     ctx.make_args = make_args
 
@@ -257,18 +278,19 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            log(clr("@!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
+            log(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
                     (ctx.extend_path, exc.message)))
             return 1
 
     # Display list and leave the file system untouched
     if opts.dry_run:
+        # TODO: Add unbuilt
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
-        print("catkin build: error: Unable to find source space `%s`" % ctx.source_space_abs)
+        print(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
         return 1
 
     # Always save the last context under the build verb
@@ -283,42 +305,34 @@ def main(opts):
     if opts.save_config:
         Context.save(ctx)
 
-    # Generate setup bootstrap
-    if ctx.link_devel and not os.path.exists(os.path.join(ctx.devel_space_abs, '_setup_util.py')):
-        generate_setup_bootstrap(ctx.build_space_abs, ctx.devel_space_abs)
-        bootstrap_pkg_path = get_bootstrap_path(ctx.devel_space_abs, mkdirs=True)
-        bootstrap_pkg = parse_package(bootstrap_pkg_path)
-        setup_bootstrap_cmd = CMakeCommand(
-            create_env_file(bootstrap_pkg, ctx),
-            [
-                CMAKE_EXEC,
-                bootstrap_pkg_path,
-                '-DCATKIN_DEVEL_PREFIX=' + ctx.devel_space_abs,
-                '-DCMAKE_INSTALL_PREFIX=' + ctx.install_space_abs
-            ] + ctx.cmake_args,
-            os.path.join(ctx.build_space_abs, 'catkin_tools_bootstrap'))
-        for r in setup_bootstrap_cmd.run():
-            if type(r) is int and r != 0:
-                sys.exit("Couldn't generate bootstrap setup files.")
-
     start = time.time()
+
+    # Get parallel toplevel jobs
     try:
-        return build_isolated_workspace(
-            ctx,
-            packages=opts.packages,
-            start_with=opts.start_with,
-            no_deps=opts.no_deps,
-            jobs=opts.parallel_jobs,
-            force_cmake=opts.force_cmake,
-            force_color=opts.force_color,
-            quiet=not opts.verbose,
-            interleave_output=opts.interleave_output,
-            no_status=opts.no_status,
-            limit_status_rate=opts.limit_status_rate,
-            lock_install=not opts.no_install_lock,
-            no_notify=opts.no_notify,
-            continue_on_failure=opts.continue_on_failure,
-            summarize_build=opts.summarize  # Can be True, False, or None
-        )
-    finally:
-        log("[build] Runtime: {0}".format(format_time_delta(time.time() - start)))
+        parallel_jobs = int(opts.parallel_jobs)
+    except TypeError:
+        parallel_jobs = None
+
+    # Set VERBOSE environment variable
+    if opts.verbose:
+        os.environ['VERBOSE'] = '1'
+
+    return build_isolated_workspace(
+        ctx,
+        packages=opts.packages,
+        start_with=opts.start_with,
+        no_deps=opts.no_deps,
+        unbuilt=opts.unbuilt,
+        n_jobs=parallel_jobs,
+        force_cmake=opts.force_cmake,
+        pre_clean=opts.pre_clean,
+        force_color=opts.force_color,
+        quiet=not opts.verbose,
+        interleave_output=opts.interleave_output,
+        no_status=opts.no_status,
+        limit_status_rate=opts.limit_status_rate,
+        lock_install=not opts.no_install_lock,
+        no_notify=opts.no_notify,
+        continue_on_failure=opts.continue_on_failure,
+        summarize_build=opts.summarize  # Can be True, False, or None
+    )

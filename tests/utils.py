@@ -10,6 +10,8 @@ import tempfile
 
 import subprocess
 
+from catkin_tools.commands.catkin import main as catkin_main
+
 try:
     # Python2
     from StringIO import StringIO
@@ -26,6 +28,29 @@ except ImportError:
 TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
 
+def catkin_success(args, env={}):
+    orig_environ = dict(os.environ)
+    try:
+        catkin_main(args)
+    except SystemExit as exc:
+        ret = exc.code
+        if ret != 0:
+            import traceback
+            traceback.print_exc()
+    finally:
+        os.environ = orig_environ
+    return ret == 0
+
+def catkin_failure(args, env={}):
+    orig_environ = dict(os.environ)
+    try:
+        os.environ.update(env)
+        catkin_main(args)
+    except SystemExit as exc:
+        ret = exc.code
+    finally:
+        os.environ = orig_environ
+    return ret != 0
 
 class AssertRaisesContext(object):
 
@@ -64,13 +89,17 @@ class redirected_stdio(object):
     def __enter__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
-        sys.stdout = out = StringIO()
-        sys.stderr = err = StringIO()
-        return out, err
+        self.out = StringIO()
+        self.err = StringIO()
+        sys.stdout = self.out 
+        sys.stderr = self.err
+        return self.out, self.err
 
     def __exit__(self, exc_type, exc_value, traceback):
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
+
+        print(self.out.getvalue())
 
 
 class temporary_directory(object):

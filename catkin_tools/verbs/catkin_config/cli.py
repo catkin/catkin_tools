@@ -106,13 +106,13 @@ def prepare_arguments(parser):
     devel_group = parser.add_argument_group(
         'Devel Space', 'Options for configuring the structure of the devel space.')
     add = devel_group.add_mutually_exclusive_group().add_argument
-    add('--isolate-devel', action='store_true', default=None,
-        help='Build products from each catkin package into isolated devel spaces.')
-    add('--merge-devel', dest='isolate_devel', action='store_false', default=None,
-        help='Build products from each catkin package into a single merged devel spaces.')
     add('--link-devel', dest='link_devel', action='store_true', default=None,
         help='Build products from each catkin package into isolated spaces,'
         ' then symbolically link them into a merged devel space.')
+    add('--merge-devel', dest='isolate_devel', action='store_false', default=None,
+        help='Build products from each catkin package into a single merged devel spaces.')
+    add('--isolate-devel', action='store_true', default=None,
+        help='Build products from each catkin package into isolated devel spaces.')
 
     install_group = parser.add_argument_group(
         'Install Space', 'Options for configuring the structure of the install space.')
@@ -123,10 +123,10 @@ def prepare_arguments(parser):
         help='Disables installing each package into the install space.')
 
     add = install_group.add_mutually_exclusive_group().add_argument
-    add('--isolate-install', action='store_true', default=None,
-        help='Install each catkin package into a separate install space.')
     add('--merge-install', dest='isolate_install', action='store_false', default=None,
         help='Install each catkin package into a single merged install space.')
+    add('--isolate-install', action='store_true', default=None,
+        help='Install each catkin package into a separate install space.')
 
     build_group = parser.add_argument_group('Build Options', 'Options for configuring the way packages are built.')
     add_cmake_and_make_and_catkin_make_args(build_group)

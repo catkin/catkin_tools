@@ -31,23 +31,6 @@ except NameError:
     string_type = str
 
 
-class FakeLock(object):
-
-    """Fake lock used to mimic a Lock but without causing synchronization"""
-
-    def acquire(self, blocking=False):
-        return True
-
-    def release(self):
-        pass
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
-
-
 def getcwd(symlinks=True):
     """Get the current working directory.
 
@@ -362,6 +345,9 @@ def slice_to_printed_length(string, length):
     if not matches:
         # If no matches, then set the lookup_array to a plain range
         lookup_array = range(len(string))
+    lookup_array.append(len(string))
+    if length > len(lookup_array):
+        return string
     return string[:lookup_array[length]] + clr('@|')
 
 
@@ -458,8 +444,12 @@ def wide_log(msg, **kwargs):
     :param truncate: If True, messages wider the then terminal will be truncated
     :type truncate: bool
     """
-    global wide_log_fn
-    wide_log_fn(msg, **kwargs)
+    try:
+        global wide_log_fn
+        wide_log_fn(msg, **kwargs)
+    except IOError:
+        # This happens when someone ctrl-c's during a log message
+        pass
 
 
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
@@ -486,3 +476,33 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
 def version_tuple(v):
     """Get an integer version tuple from a string."""
     return tuple(map(int, (str(v).split("."))))
+
+
+def mkdir_p(path):
+    """Equivalent to UNIX mkdir -p"""
+    if os.path.exists(path):
+        return
+    try:
+        return os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+CATKIN_TOOLS_DIRNAME = '.catkin_tools'
+
+
+def get_linked_devel_path(devel_space_abs):
+    """The path to the hidden directory in the develspace that
+    contains the isolated devel spaces linked into the develspace."""
+    return os.path.join(
+        devel_space_abs,
+        CATKIN_TOOLS_DIRNAME)
+
+
+def get_linked_devel_package_path(devel_space_abs, package_name):
+    """The path to a given package's linked devel space"""
+    return os.path.join(
+        get_linked_devel_path(devel_space_abs),
+        package_name)
