@@ -64,7 +64,7 @@ class PermissiveInstall(install):
         if os.name == 'posix':
             for file in self.get_outputs():
                 # all installed files should be readable for anybody
-                mode = ((os.stat(file)[ST_MODE]) | 0444) & 07777
+                mode = ((os.stat(file)[ST_MODE]) | 0o444) & 0o7777
                 log.info("changing permissions of %s to %o" % (file, mode))
                 os.chmod(file, mode)
 
