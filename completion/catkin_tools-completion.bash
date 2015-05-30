@@ -43,7 +43,7 @@ _catkin()
   catkin_clean_opts="--all --build --devel --install --cmake-cache --setup-files --orphans"
 
   # complete popular catkin config options
-  catkin_config_opts="--init --extend --no-extend --install --no-install --whitelist --blacklist --cmake-args --make-args --catkin-make-args --space-suffix"
+  catkin_config_opts="--init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix"
 
   # complete popular catkin create options
   catkin_create_pkg_opts="--version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
