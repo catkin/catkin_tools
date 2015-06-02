@@ -3,7 +3,10 @@ import platform
 import sys
 
 from setuptools import setup
+from setuptools.command.install import install
 from setuptools import find_packages
+from distutils import log
+from stat import ST_MODE
 
 
 # Setup installation dependencies
@@ -37,7 +40,6 @@ import argparse
 parser = argparse.ArgumentParser(description="shouldn't see this")
 parser.add_argument('--prefix')
 opts, _ = parser.parse_known_args(list(sys.argv))
-completetion_dest = None
 target_prefix = sys.prefix
 if opts.prefix:
     target_prefix = opts.prefix
@@ -50,10 +52,22 @@ if (
 ):
     # This is the system install of Python on OS X, install to `/etc`.
     target_prefix = '/'
-completetion_dest = os.path.join(target_prefix, 'etc/bash_completion.d')
+completion_dest = os.path.join(target_prefix, 'etc/bash_completion.d')
 data_files.append((
-    completetion_dest,
+    completion_dest,
     ['completion/catkin_tools-completion.bash']))
+
+
+class PermissiveInstall(install):
+    def run(self):
+        install.run(self)
+        if os.name == 'posix':
+            for file in self.get_outputs():
+                # all installed files should be readable for anybody
+                mode = ((os.stat(file)[ST_MODE]) | 0o444) & 0o7777
+                log.info("changing permissions of %s to %o" % (file, mode))
+                os.chmod(file, mode)
+
 
 setup(
     name='catkin_tools',
@@ -97,4 +111,5 @@ setup(
             'profile = catkin_tools.verbs.catkin_profile:description',
         ],
     },
+    cmdclass={'install': PermissiveInstall},
 )

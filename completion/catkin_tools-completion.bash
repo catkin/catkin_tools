@@ -43,7 +43,7 @@ _catkin()
   catkin_clean_opts="--all --build --devel --install --cmake-cache --setup-files --orphans"
 
   # complete popular catkin config options
-  catkin_config_opts="--init --extend --no-extend --cmake-args --make-args --catkin-make-args --space-suffix"
+  catkin_config_opts="--init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix"
 
   # complete popular catkin create options
   catkin_create_pkg_opts="--version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
@@ -61,7 +61,11 @@ _catkin()
         COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
       fi
     elif [[ "${COMP_WORDS[@]}" == *" config"* ]] ; then
-      COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+      if [[ "--whitelist --blacklist" == *${prev}* && ${cur} != -* ]] ; then
+        COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
+      else
+        COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+      fi
     elif [[ "${COMP_WORDS[@]}" == *" clean"* ]] ; then
       COMPREPLY=($(compgen -W "${catkin_clean_opts}" -- ${cur}))
     elif [[ "${COMP_WORDS[@]}" == *" create"* ]] ; then
