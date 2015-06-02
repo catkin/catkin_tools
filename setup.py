@@ -1,12 +1,11 @@
+from distutils import log
 import os
 import platform
-import sys
-
+from setuptools import find_packages
 from setuptools import setup
 from setuptools.command.install import install
-from setuptools import find_packages
-from distutils import log
 from stat import ST_MODE
+import sys
 
 
 # Setup installation dependencies
