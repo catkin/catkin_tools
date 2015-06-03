@@ -17,6 +17,17 @@ if [[ -n ${ZSH_VERSION-} ]]; then
   autoload -U +X bashcompinit && bashcompinit
 fi
 
+_last_option()
+{
+  # search backwards for the last given option
+  for (( i=${COMP_CWORD} ; i > 0 ; i-- )) ; do
+    if [[ ${COMP_WORDS[i]} == -* ]]; then
+      echo ${COMP_WORDS[i]}
+      return
+    fi
+  done
+}
+
 # TODO:
 # - parse --workspace and --profile options in order to complete outside of cwd
 # - autocomplete build options
@@ -61,7 +72,7 @@ _catkin()
         COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
       fi
     elif [[ "${COMP_WORDS[@]}" == *" config"* ]] ; then
-      if [[ "--whitelist --blacklist" == *${prev}* && ${cur} != -* ]] ; then
+      if [[ ${cur} != -* && "--whitelist --blacklist" == *$(_last_option)* ]] ; then
         COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
       else
         COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
