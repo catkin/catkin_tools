@@ -690,9 +690,10 @@ def build_isolated_workspace(
             while not job_queue.empty():
                 job_queue.get()
             # Kill the executors by sending a None to the job queue for each of them
-            for x in range(jobs):
+            for x in range(len(executors)):
                 job_queue.put(None)
-                executors[x].should_shutdown = True
+                if x in executors:
+                    executors[x].should_shutdown = True
 
         # While any executors are running, process executor events
         while executors:
