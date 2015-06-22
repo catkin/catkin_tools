@@ -179,25 +179,25 @@ def test_unbuilt_linked():
             # the rest should be built, but pkg_0 shouldn't be rebuilt
             assert os.path.exists(os.path.join('build', 'pkg_0'))
             assert not os.path.exists(os.path.join('build', 'pkg_1'))
-            # get the modification time of pkg_0's log directory
+
+            pkg_0_log_path = os.path.join('build', '_logs', 'pkg_0')
 
             # build the unbuilt packages (rebuild deps)
-            pkg_0_ctime = os.path.getmtime(os.path.join('build', '_logs', 'pkg_0'))
+            pkg_0_log_files = os.listdir(pkg_0_log_path)
             assert catkin_success(BUILD + ['--unbuilt'])
             assert os.path.exists(os.path.join('build', 'pkg_0'))
             assert os.path.exists(os.path.join('build', 'pkg_1'))
             # make sure pkg_0 has been rebuilt
-            assert pkg_0_ctime != os.path.getmtime(os.path.join('build', '_logs', 'pkg_0'))
+            assert pkg_0_log_files != os.listdir(pkg_0_log_path)
 
             # build the unbuilt packages (don't rebuild deps)
-            pkg_0_ctime = os.path.getmtime(os.path.join('build', '_logs', 'pkg_0'))
+            pkg_0_log_files = os.listdir(pkg_0_log_path)
             assert catkin_success(['clean', 'pkg_1'])
             assert catkin_success(BUILD + ['--unbuilt', '--no-deps'])
             assert os.path.exists(os.path.join('build', 'pkg_0'))
             assert os.path.exists(os.path.join('build', 'pkg_1'))
             # make sure pkg_0 hasn't been rebuilt
-            assert pkg_0_ctime == os.path.getmtime(os.path.join('build', '_logs', 'pkg_0'))
-
+            assert pkg_0_log_files == os.listdir(pkg_0_log_path)
 
 def test_unbuilt_isolated():
     """Test building unbuilt packages with an isolated develspace."""
