@@ -600,7 +600,7 @@ def create_catkin_tools_bootstrap_job(context, package, package_path, devel_spac
     if context.install:
         stages.append(CommandStage(
             'install',
-            command=[MAKE_EXEC, 'install'],
+            [MAKE_EXEC, 'install'],
             cwd=build_space))
 
     return Job(
