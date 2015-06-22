@@ -39,8 +39,8 @@ from .job import get_package_build_space_path
 from .job import makedirs
 
 from catkin_tools.execution.jobs import Job
-from catkin_tools.execution.stages import CmdStage
-from catkin_tools.execution.stages import FunStage
+from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.stages import FunctionStage
 
 # FileNotFoundError from Python3
 try:
@@ -235,14 +235,14 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     stages = []
 
     # Create package build space
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'mkdir',
         makedirs,
         path=build_space))
 
     # Create an environment file
     env_file_path = get_env_file_path(package, context)
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'envgen',
         create_env_file,
         package=package,
@@ -257,7 +257,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     # CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'cmake',
             ([env_file_path,
                 CMAKE_EXEC,
@@ -269,7 +269,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
         ))
     else:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'check',
             env_prefix + [MAKE_EXEC, 'cmake_check_build_system'],
             cwd=build_space,
@@ -280,27 +280,27 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     if pre_clean:
         make_args = handle_make_arguments(
             context.make_args + context.catkin_make_args)
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'preclean',
             env_prefix + [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
         ))
 
     # Make command
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'make',
         env_prefix + [MAKE_EXEC] + handle_make_arguments(context.make_args),
         cwd=build_space
     ))
 
     # Make install command (always run on plain cmake)
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'install',
         env_prefix + [MAKE_EXEC, 'install'],
         cwd=build_space))
 
     # Copy install manifest
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'register',
         copy_install_manifest,
         package_name=package.name,
@@ -308,7 +308,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         install_target=install_target))
 
     # Determine the location where the setup.sh file should be created
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'setupgen',
         generate_setup_file,
         context=context,
@@ -349,12 +349,12 @@ def create_cmake_clean_job(context, package_name, dependencies):
 
         # Add stages to remove the file or directory
         if os.path.isdir(installed_file):
-            stages.append(CmdStage(
+            stages.append(CommandStage(
                 'rmdir'
                 [CMAKE_EXEC, '-E', 'remove_directory', installed_file],
                 cwd=build_space))
         else:
-            stages.append(CmdStage(
+            stages.append(CommandStage(
                 'rm',
                 [CMAKE_EXEC, '-E', 'remove', installed_file],
                 cwd=build_space))
@@ -388,12 +388,12 @@ def create_cmake_clean_job(context, package_name, dependencies):
             dirs_to_remove.add(path)
 
     for generated_dir in dirs_to_remove:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'rmdir',
             [CMAKE_EXEC, '-E', 'remove_directory', generated_dir],
             cwd=build_space))
 
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'rmbuild',
         [CMAKE_EXEC, '-E', 'remove_directory', build_space],
         cwd=context.build_space_abs))

@@ -44,7 +44,7 @@ from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.jobs import JobServer
-from catkin_tools.execution.stages import CmdStage
+from catkin_tools.execution.stages import CommandStage
 
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace

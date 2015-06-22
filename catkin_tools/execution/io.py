@@ -76,7 +76,7 @@ class IOBufferContainer(object):
 class IOBufferLogger(IOBufferContainer):
 
     """This is a logging class to be used instead of sys.stdout and sys.stderr
-    in FunStage operations.
+    in FunctionStage operations.
 
     This class also generates `stdout` and `stderr` events.
     """

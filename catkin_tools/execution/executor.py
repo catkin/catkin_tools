@@ -21,8 +21,8 @@ from .io import IOBufferLogger
 
 from .jobs import JobServer
 
-from .stages import CmdStage
-from .stages import FunStage
+from .stages import CommandStage
+from .stages import FunctionStage
 
 
 def split(values, cond):
@@ -72,7 +72,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
             job_id=job.jid,
             stage_label=stage.label))
 
-        if type(stage) is CmdStage:
+        if type(stage) is CommandStage:
             try:
                 # Initiate the command
                 while True:
@@ -104,7 +104,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
                 logger.err(str(traceback.format_exc()))
                 retcode = 3
 
-        elif type(stage) is FunStage:
+        elif type(stage) is FunctionStage:
             try:
                 # Asynchronously yield until this function is completed
                 retcode = yield asyncio.From(get_loop().run_in_executor(

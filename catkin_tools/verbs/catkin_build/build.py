@@ -14,7 +14,6 @@
 
 """This modules implements the engine for building packages in parallel"""
 
-import operator
 import os
 import stat
 import sys
@@ -51,8 +50,8 @@ from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.jobs import JobServer
-from catkin_tools.execution.stages import CmdStage
-from catkin_tools.execution.stages import FunStage
+from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.stages import FunctionStage
 
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.cmake import create_cmake_build_job

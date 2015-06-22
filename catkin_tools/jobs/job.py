@@ -26,8 +26,8 @@ from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 
 from catkin_tools.execution.jobs import Job
-from catkin_tools.execution.stages import CmdStage
-from catkin_tools.execution.stages import FunStage
+from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
@@ -111,7 +111,7 @@ def get_env_file_path(package, context):
 
 
 def create_env_file(logger, event_queue, package, context, env_file_path):
-    """FunStage functor for creating a build environment file."""
+    """FunctionStage functor for creating a build environment file."""
 
     sources = []
     source_snippet = '. "{source_path}"'
@@ -182,7 +182,7 @@ def create_build_space(logger, event_queue, buildspace, package_name):
 
 
 def makedirs(logger, event_queue, path):
-    """FunStage functor that makes a path of directories."""
+    """FunctionStage functor that makes a path of directories."""
     mkdir_p(path)
     return 0
 
@@ -212,7 +212,7 @@ def create_clean_buildspace_job(context, package_name, dependencies):
 
     stages = []
 
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'rmbuild',
         [CMAKE_EXEC, '-E', 'remove_directory', build_space],
         cwd=context.build_space_abs))

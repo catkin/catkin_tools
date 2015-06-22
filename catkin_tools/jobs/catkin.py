@@ -30,8 +30,8 @@ from catkin_tools.common import get_linked_devel_package_path
 from catkin_tools.common import CATKIN_TOOLS_DIRNAME
 
 from catkin_tools.execution.jobs import Job
-from catkin_tools.execution.stages import CmdStage
-from catkin_tools.execution.stages import FunStage
+from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
@@ -454,14 +454,14 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     stages = []
 
     # Create package build space
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'mkdir',
         makedirs,
         path=build_space))
 
     # Create an environment file
     env_file_path = get_env_file_path(package, context)
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'envgen',
         create_env_file,
         package=package,
@@ -476,7 +476,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # Construct CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'cmake',
             ([env_file_path,
                 CMAKE_EXEC,
@@ -490,7 +490,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             occupy_job=True
         ))
     else:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'check',
             env_prefix + [MAKE_EXEC, 'cmake_check_build_system'],
             cwd=build_space,
@@ -502,7 +502,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     if pre_clean:
         make_args = handle_make_arguments(
             context.make_args + context.catkin_make_args)
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'preclean',
             env_prefix + [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
@@ -511,7 +511,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # Make command
     make_args = handle_make_arguments(
         context.make_args + context.catkin_make_args)
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'make',
         env_prefix + [MAKE_EXEC] + make_args,
         cwd=build_space,
@@ -519,13 +519,13 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Symlink command if using a linked develspace
     if context.link_devel:
-        stages.append(FunStage(
+        stages.append(FunctionStage(
             'register',
             append_dot_catkin_file,
             devel_space_abs=context.devel_space_abs,
             package_source_abs=os.path.join(context.source_space_abs, package_path)
         ))
-        stages.append(FunStage(
+        stages.append(FunctionStage(
             'symlink',
             link_devel_products,
             devel_space_abs=context.devel_space_abs,
@@ -535,7 +535,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Make install command, if installing
     if context.install:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'install',
             command=env_prefix + [MAKE_EXEC, 'install'],
             cwd=build_space))
@@ -565,14 +565,14 @@ def create_catkin_tools_bootstrap_job(context, package, package_path, devel_spac
     stages = []
 
     # Create package build space
-    stages.append(FunStage(
+    stages.append(FunctionStage(
         'mkdir',
         makedirs,
         path=build_space))
 
     # Construct CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'cmake',
         [
             CMAKE_EXEC,
@@ -588,7 +588,7 @@ def create_catkin_tools_bootstrap_job(context, package, package_path, devel_spac
     # Make command
     make_args = handle_make_arguments(
         context.make_args + context.catkin_make_args)
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'make',
         [
             MAKE_EXEC
@@ -598,7 +598,7 @@ def create_catkin_tools_bootstrap_job(context, package, package_path, devel_spac
 
     # Make install command, if installing
     if context.install:
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'install',
             command=[MAKE_EXEC, 'install'],
             cwd=build_space))
@@ -626,7 +626,7 @@ def create_catkin_clean_job(context, package_name, dependencies):
         return Job(
             jid=package_name,
             deps=dependencies,
-            stages=[CmdStage(
+            stages=[CommandStage(
                 'clean',
                 [CMAKE_EXEC, '-E', 'remove_directory', devel_space],
                 cwd=build_space)])
@@ -641,7 +641,7 @@ def create_catkin_clean_job(context, package_name, dependencies):
         return Job(
             jid=package_name,
             deps=dependencies,
-            stages=[CmdStage(
+            stages=[CommandStage(
                 'clean',
                 [CMAKE_EXEC, '-E', 'remove_directory', install_space],
                 cwd=build_space)])
@@ -650,23 +650,23 @@ def create_catkin_clean_job(context, package_name, dependencies):
 
     # Clean symlinks if linked devel
     if context.link_devel:
-        stages.append(FunStage(
+        stages.append(FunctionStage(
             'unregister',
             clean_dot_catkin_file,
             devel_space_abs=context.devel_space_abs,
             package_name=package_name))
-        stages.append(FunStage(
+        stages.append(FunctionStage(
             'unlink',
             unlink_devel_products,
             devel_space_abs=context.devel_space_abs,
             package_name=package_name))
-        stages.append(CmdStage(
+        stages.append(CommandStage(
             'rmdevel',
             [CMAKE_EXEC, '-E', 'remove_directory',
              get_linked_devel_package_path(context.devel_space_abs, package_name)],
             cwd=context.devel_space_abs))
 
-    stages.append(CmdStage(
+    stages.append(CommandStage(
         'rmbuild',
         [CMAKE_EXEC, '-E', 'remove_directory', build_space],
         cwd=context.build_space_abs))

@@ -21,7 +21,7 @@ class Stage(object):
         self.occupy_job = occupy_job
 
 
-class CmdStage(Stage):
+class CommandStage(Stage):
 
     """Job stage that describes a system command.
 
@@ -47,7 +47,7 @@ class CmdStage(Stage):
 
         if not type(cmd) in [list, tuple] or not all([type(s) is str for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
-        super(CmdStage, self).__init__(label, logger_factory, occupy_job)
+        super(CommandStage, self).__init__(label, logger_factory, occupy_job)
 
         self.async_execute_process_kwargs = {
             'cmd': cmd,
@@ -61,7 +61,7 @@ class CmdStage(Stage):
         }
 
 
-class FunStage(Stage):
+class FunctionStage(Stage):
 
     """Job stage that describes a python function.
 
@@ -76,7 +76,7 @@ class FunStage(Stage):
     def __init__(self, label, function, logger_factory=IOBufferLogger.factory, occupy_job=True, *args, **kwargs):
         if not callable(function):
             raise ValueError('Function stage must be callable.')
-        super(FunStage, self).__init__(label, logger_factory, occupy_job)
+        super(FunctionStage, self).__init__(label, logger_factory, occupy_job)
 
         def function_proxy(logger, event_queue):
             return function(logger, event_queue, *args, **kwargs)
