@@ -22,33 +22,34 @@ RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 @in_temporary_directory
 def test_build_pkg_unit_tests():
+    """Test running working unit tests"""
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
-    print("Creating source directory: %s" % source_space)
-    shutil.copytree(RESOURCES_DIR, source_space)
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'python_tests'), source_space)
     with redirected_stdio() as (out, err):
         assert catkin_success(
             ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'pkg_with_test', '--make-args', 'run_tests'])
-        assert_cmd_success(['catkin_test_results', 'build/pkg_with_test'])
+             'python_tests', '--make-args', 'run_tests'])
+        assert_cmd_success(['catkin_test_results', 'build/python_tests'])
 
         assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'pkg_with_broken_test', '--make-args', 'run_tests'])
-        assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
+            ['run_tests', 'python_tests', '--no-deps', '--no-notify', '--no-status'])
+        assert_cmd_success(['catkin_test_results', 'build/python_tests'])
 
 
 @in_temporary_directory
-def test_build_pkg_unit_tests_alias():
+def test_build_pkg_unit_tests_broken():
+    """Test running broken unit tests"""
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
-    print("Creating source directory: %s" % source_space)
-    shutil.copytree(RESOURCES_DIR, source_space)
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'python_tests_err'), source_space)
 
-    assert catkin_success(['run_tests', 'pkg_with_test', '--no-deps',
-                           '--no-notify', '--no-status'])
-    assert_cmd_success(['catkin_test_results', 'build/pkg_with_test'])
+    with redirected_stdio() as (out, err):
+        assert catkin_success(
+            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
+             'python_tests_err', '--make-args', 'run_tests'])
+        assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
 
-    assert catkin_success(['run_tests', 'pkg_with_broken_test',
-                           '--no-deps', '--no-notify', '--no-status'])
-    assert_cmd_failure(['catkin_test_results', 'build/pkg_with_broken_test'])
+        assert catkin_success(
+            ['run_tests', 'python_tests_err', '--no-deps', '--no-notify', '--no-status'])
+        assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])

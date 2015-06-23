@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package>
+  <name>make_err</name>
+  <version>0.0.0</version>
+  <description>This package produces a make error when building.</description>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

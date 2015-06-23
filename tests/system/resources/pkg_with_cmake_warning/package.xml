@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<package>
-  <name>pkg_with_cmake_warning</name>
-  <version>0.0.0</version>
-  <description>The catkin_pkg_cmake_warn package</description>
-  <maintainer email="jbohren@todo.todo">jbohren</maintainer>
-  <license>TODO</license>
-  <buildtool_depend>catkin</buildtool_depend>
-</package>

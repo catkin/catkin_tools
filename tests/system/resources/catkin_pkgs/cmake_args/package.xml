@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package>
+  <name>cmake_args</name>
+  <version>0.1.0</version>
+  <description>This package fails unless three CMake arguments are set.</description>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

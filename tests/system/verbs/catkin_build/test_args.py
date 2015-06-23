@@ -30,27 +30,27 @@ CLEAN = ['clean', '--all', '--force']  # , '--no-notify', '--no-color', '--no-st
 def test_cmake_args():
     """Test passing CMake args to packages."""
     with workspace_factory() as wf:
-        shutil.copytree(os.path.join(RESOURCES_DIR, 'pkg_with_cmake_args'), 'src')
+        shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'cmake_args'), 'src')
 
-        # pkg_with_cmake_args requires all three vars to be set
+        # cmake_args package requires all three vars to be set
         assert catkin_failure(
             BUILD +
-            ['pkg_with_cmake_args', '--no-deps'] +
+            ['cmake_args', '--no-deps'] +
             ['--cmake-args', '-DVAR1=VAL1'])
 
         assert catkin_failure(
             BUILD +
-            ['pkg_with_cmake_args', '--no-deps'] +
+            ['cmake_args', '--no-deps'] +
             ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2'])
 
         assert catkin_success(
             BUILD +
-            ['pkg_with_cmake_args', '--no-deps'] +
+            ['cmake_args', '--no-deps'] +
             ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3'])
 
         assert catkin_success(
             BUILD +
-            ['pkg_with_cmake_args', '--no-deps'] +
+            ['cmake_args', '--no-deps'] +
             ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3', '--'])
 
 
