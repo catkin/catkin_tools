@@ -254,7 +254,7 @@ class ConsoleStatusController(threading.Thread):
                         active_labels = []
 
                         for j, (s, t, p) in active_stages.items():
-                            d = format_time_delta_short(time.time() - t)
+                            d = format_time_delta_short(cumulative_times[j] + time.time() - t)
                             if p == '':
                                 active_labels.append(clr('[{}:{} - {}]').format(j, s, d))
                             else:
