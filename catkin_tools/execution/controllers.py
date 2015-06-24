@@ -243,9 +243,9 @@ class ConsoleStatusController(threading.Thread):
 
                     # Check load / mem
                     if not JobServer.load_ok():
-                        status_line += clr(' [@!@{rf}Load too high@|]')
+                        status_line += clr(' [@!@{rf}High Load@|]')
                     if not JobServer.mem_ok():
-                        status_line += clr(' [@!@{rf}Memory too high@|]')
+                        status_line += clr(' [@!@{rf}Low Memory@|]')
 
                     # Add active jobs
                     if len(active_jobs) == 0:

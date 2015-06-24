@@ -53,6 +53,9 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
     def color_lines(self, data):
         """Apply colorization rules to each line in data"""
         decoded_data = data.decode('utf-8')
+        # TODO: This will only work if all lines are received at once. Instead
+        # of direclty splitting lines, we should buffer the data lines until
+        # the last character is a line break
         lines = decoded_data.splitlines()
         colored_lines = [self.colorize_cmake(l) for l in lines if len(l) > 0]
         colored_data = '\n'.join(colored_lines)
