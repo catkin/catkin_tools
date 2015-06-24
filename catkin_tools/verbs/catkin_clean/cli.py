@@ -47,6 +47,15 @@ exempt_build_files = ['_logs', '.catkin_tools.yaml', 'catkin_tools_prebuild']
 setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_setup_util.py']
 
 
+def yes_no_loop(question):
+    while True:
+        resp = str(raw_input(question+" [yN]: "))
+        if resp.lower() in ['n', 'no'] or len(resp) == 0:
+            return False
+        elif resp.lower() in ['y', 'yes']:
+            return True
+        log(clr("[clean] Please answer either \"yes\" or \"no\"."))
+
 def prepare_arguments(parser):
     # Workspace / profile args
     add_context_args(parser)
@@ -144,7 +153,8 @@ def main(opts):
     # Make sure the user intends to clena everything
     if opts.all and not (opts.force or opts.dry_run):
         log(clr("[clean] @!@{yf}Warning:@| This will completely remove the "
-                "existing build, devel, and install spaces for this profile:"))
+                "existing build, devel, and install spaces for this profile. "
+                "Use `--force` to skip this check."))
         if build_exists:
             log(clr("[clean]   Build Space:   @{yf}{}").format(ctx.build_space_abs))
         if devel_exists:
@@ -152,33 +162,26 @@ def main(opts):
         if install_exists:
             log(clr("[clean]   Install Space: @{yf}{}").format(ctx.install_space_abs))
 
-        log("[clean] Note: Use `--force` to skip this check.\n")
-
         try:
-            clean_all_resp = str(
-                raw_input("[clean] Are you sure you want to completely remove the directories listed above? [yN]: "))
+            opts.all = yes_no_loop("\n[clean] Are you sure you want to completely remove the directories listed above?")
+            if not opts.all:
+                log(clr("[clean] Not removing build, devel, or install spaces for this profile."))
         except KeyboardInterrupt:
             log("\n[clean] No actions performed.")
             return 0
-
-        if clean_all_resp.lower() not in ['y', 'yes']:
-            opts.all = False
 
     # Warn before nuking .catkin_tools
     if opts.deinit and not opts.force:
         log(clr("[clean] @!@{yf}Warning:@| If you deinitialize this workspace "
-                "you will lose all profiles and all saved build configuration."))
-        log("[clean] Note: Use `--force` to skip this check.\n")
-
+                "you will lose all profiles and all saved build configuration. "
+                "Use `--force` to skip this check."))
         try:
-            deinit_resp = str(
-                raw_input("[clean] Are you sure you want to deinitialize this workspace? [yN]: "))
+            opts.deinit = yes_no_loop("\n[clean] Are you sure you want to deinitialize this workspace?")
+            if not opts.deinit:
+                log(clr("[clean] Not deinitializing workspace."))
         except KeyboardInterrupt:
             log("\n[clean] No actions performed.")
             return 0
-
-        if deinit_resp.lower() not in ['y', 'yes']:
-            opts.deinit = False
 
     # Initialize flag to be used on the next invocation
     needs_force = False
