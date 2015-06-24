@@ -49,12 +49,13 @@ setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_set
 
 def yes_no_loop(question):
     while True:
-        resp = str(raw_input(question+" [yN]: "))
+        resp = str(raw_input(question + " [yN]: "))
         if resp.lower() in ['n', 'no'] or len(resp) == 0:
             return False
         elif resp.lower() in ['y', 'yes']:
             return True
         log(clr("[clean] Please answer either \"yes\" or \"no\"."))
+
 
 def prepare_arguments(parser):
     # Workspace / profile args

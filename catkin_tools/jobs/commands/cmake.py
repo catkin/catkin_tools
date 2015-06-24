@@ -95,7 +95,8 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             cline = cline.replace('CMake Warning at ', '@{yf}@!CMake Warning@| at ' + self.source_path + os.path.sep)
         elif line.startswith('CMake Warning (dev) at '):
             # CMake Warning at...
-            cline = cline.replace('CMake Warning (dev) at ', '@{yf}@!CMake Warning (dev)@| at ' + self.source_path + os.path.sep)
+            cline = cline.replace(
+                'CMake Warning (dev) at ', '@{yf}@!CMake Warning (dev)@| at ' + self.source_path + os.path.sep)
         elif line.startswith('CMake Warning'):
             # CMake Warning...
             cline = cline.replace('CMake Warning', '@{yf}@!CMake Warning@|')
