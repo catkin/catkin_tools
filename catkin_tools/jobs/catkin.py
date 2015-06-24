@@ -590,7 +590,7 @@ def create_catkin_tools_bootstrap_job(context, package, package_path, devel_spac
         context.make_args + context.catkin_make_args)
     stages.append(CommandStage(
         'make',
-        [ MAKE_EXEC ] + make_args,
+        [MAKE_EXEC] + make_args,
         cwd=build_space,
     ))
 

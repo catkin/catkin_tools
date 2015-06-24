@@ -38,8 +38,8 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
     into the created protocol.
     """
 
-    def __init__(self, label, job_id, stage_label, event_queue, source_path, *args, **kwargs):
-        super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, *args, **kwargs)
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs):
+        super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
         self.source_path = source_path
 
     def on_stdout_received(self, data):
@@ -58,16 +58,18 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
     @classmethod
     def factory_factory(cls, source_path):
         """Factory factory for constructing protocols that know the source path for this CMake package."""
-        def factory(label, job_id, stage_label, event_queue):
+        def factory(label, job_id, stage_label, event_queue, log_path):
             # factory is called by caktin_tools executor
             def init_proxy(*args, **kwargs):
                 # init_proxy is called by asyncio
-                return cls(label, job_id, stage_label, event_queue, source_path, *args, **kwargs)
+                return cls(label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs)
             return init_proxy
         return factory
 
     def colorize_cmake(self, line):
         """Colorizes output from CMake
+
+        This also prepends the source path to the locations of warnings and errors.
 
         :param line: one, new line terminated, line from `cmake` which needs coloring.
         :type line: str

@@ -48,8 +48,8 @@ def async_job(label, job, threadpool, event_queue, log_path):
 
     # Execute each stage of this job
     for stage in job.stages:
-        # Create logger to be used instead of using stdout / stderr
-        logger = IOBufferLogger(label, job.jid, stage.label, event_queue)
+        # Logger reference in this scope for error reporting
+        logger = None
 
         # Abort the job if one of the stages has failed
         if job.continue_on_failure and not all_stages_succeeded:
@@ -77,7 +77,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
                 # Initiate the command
                 while True:
                     try:
-                        protocol_type = stage.logger_factory(label, job.jid, stage.label, event_queue)
+                        protocol_type = stage.logger_factory(label, job.jid, stage.label, event_queue, log_path)
                         transport, logger = yield asyncio.From(
                             async_execute_process(
                                 protocol_type,
@@ -101,10 +101,13 @@ def async_job(label, job, threadpool, event_queue, log_path):
                 # Asynchronously yield until this command is  completed
                 retcode = yield asyncio.From(logger.complete)
             except:
+                if logger is None:
+                    logger = IOBufferLogger(label, job.jid, stage.label, event_queue, log_path)
                 logger.err(str(traceback.format_exc()))
                 retcode = 3
 
         elif type(stage) is FunctionStage:
+            logger = IOBufferLogger(label, job.jid, stage.label, event_queue, log_path)
             try:
                 # Asynchronously yield until this function is completed
                 retcode = yield asyncio.From(get_loop().run_in_executor(
@@ -124,8 +127,8 @@ def async_job(label, job, threadpool, event_queue, log_path):
         # Update success tracker from this stage
         all_stages_succeeded = all_stages_succeeded and stage_succeeded
 
-        # Save the log
-        logfile_filename = logger.save(log_path)
+        # Close the logger
+        logger.close()
 
         # Store the results from this stage
         event_queue.put(ExecutionEvent(
@@ -136,7 +139,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
             stdout=logger.stdout_buffer,
             stderr=logger.stderr_buffer,
             interleaved=logger.interleaved_buffer,
-            logfile_filename=logfile_filename,
+            logfile_filename=logger.unique_logfile_name,
             retcode=retcode))
 
     # Finally, return whether all stages of the job completed
