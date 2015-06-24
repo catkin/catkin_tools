@@ -10,12 +10,13 @@ import sys
 import threading
 import time
 
+from catkin_tools.common import disable_wide_log
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import format_time_delta_short
 from catkin_tools.common import log
+from catkin_tools.common import remove_ansi_escape
 from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
-from catkin_tools.common import disable_wide_log
 
 from catkin_tools.notifications import notify
 
@@ -152,6 +153,7 @@ class ConsoleStatusController(threading.Thread):
             show_buffered_stderr=True,
             show_live_stdout=False,
             show_live_stderr=False,
+            show_compact_io=False,
             show_active_status=True,
             show_summary=True,
             show_full_summary=False,
@@ -167,6 +169,7 @@ class ConsoleStatusController(threading.Thread):
         :param show_buffered_stderr: Show stderr from jobs as they finish
         :param show_live_stdout: Show stdout lines from jobs as they're generated
         :param show_live_stderr: Show stdout lines from jobs as they're generated
+        :param show_compact_io: Don't print blank lines from redirected io
         :param show_active_status: Periodically show a status line displaying the active jobs
         :param show_summary: Show numbers of jobs that completed with errors and warnings
         :param show_full_summary: Show lists of jobs in each termination category
@@ -186,6 +189,7 @@ class ConsoleStatusController(threading.Thread):
         self.show_buffered_stderr = show_buffered_stderr
         self.show_live_stdout = show_live_stdout
         self.show_live_stderr = show_live_stderr
+        self.show_compact_io = show_compact_io
         self.show_active_status = show_active_status
         self.show_full_summary = show_full_summary
         self.show_summary = show_summary
@@ -419,14 +423,14 @@ class ConsoleStatusController(threading.Thread):
 
                 if self.show_buffered_stdout:
                     if len(event.data['interleaved']) > 0:
-                        lines = event.data['interleaved'].decode('utf-8').splitlines()
+                        lines = [l for l in event.data['interleaved'].decode('utf-8').splitlines() if (self.show_compact_io is False or len(l.strip()) > 0)]
                     else:
                         header_border = None
                         header_title = None
                         footer_border = None
                 elif self.show_buffered_stderr:
                     if len(event.data['stderr']) > 0:
-                        lines = event.data['stderr'].decode('utf-8').splitlines()
+                        lines = [l for l in event.data['stderr'].decode('utf-8').splitlines() if (self.show_compact_io is False or len(l.strip()) > 0)]
                     else:
                         header_border = None
                         header_title = None
@@ -437,10 +441,7 @@ class ConsoleStatusController(threading.Thread):
                     wide_log(header_border)
                 if header_title:
                     wide_log(header_title)
-                if len(lines) > 1:
-                    log('\n'.join(lines[:-1]))
-                if len(lines) > 0:
-                    wide_log(lines[-1])
+                wide_log('\n'.join(lines))
                 if footer_border:
                     wide_log(footer_border)
                 if footer_title:
@@ -451,14 +452,14 @@ class ConsoleStatusController(threading.Thread):
                     prefix = clr('[{}:{}] ').format(
                         event.data['job_id'],
                         event.data['stage_label'])
-                    wide_log('\n'.join(prefix + l for l in event.data['data'].splitlines()))
+                    wide_log(''.join(prefix + l for l in event.data['data'].splitlines(True)))
 
             elif 'STDOUT' == eid:
                 if self.show_live_stdout:
                     prefix = clr('[{}:{}] ').format(
                         event.data['job_id'],
                         event.data['stage_label'])
-                    wide_log('\n'.join(prefix + l for l in event.data['data'].splitlines()))
+                    wide_log(''.join(prefix + l for l in event.data['data'].splitlines(True)))
 
             elif 'MESSAGE' == eid:
                 wide_log(event.data['msg'])

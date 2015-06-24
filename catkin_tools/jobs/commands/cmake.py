@@ -56,9 +56,9 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         # TODO: This will only work if all lines are received at once. Instead
         # of direclty splitting lines, we should buffer the data lines until
         # the last character is a line break
-        lines = decoded_data.splitlines()
-        colored_lines = [self.colorize_cmake(l) for l in lines if len(l) > 0]
-        colored_data = '\n'.join(colored_lines)
+        lines = decoded_data.splitlines(True) # Keep line breaks
+        colored_lines = [self.colorize_cmake(l) for l in lines]
+        colored_data = ''.join(colored_lines)
         encoded_data = colored_data.encode('utf-8')
         return encoded_data
 
@@ -81,15 +81,20 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         :param line: one, new line terminated, line from `cmake` which needs coloring.
         :type line: str
         """
+        #return line
         cline = sanitize(line)
+
+        if len(cline.strip()) == 0:
+            return cline
+
         if line.startswith('-- '):
-            cline = '@{cf}-- @|' + cline[len('-- '):]
+            cline = '@{cf}--@| ' + cline[len('-- '):]
             if ':' in cline:
-                split_cline = cline.split(':', 1)
-                cline = '%s:@{yf}%s@|' % (split_cline[0], split_cline[1])
+                split_cline = cline.rstrip().split(':', 1)
+                cline = cline.replace(split_cline[1], '@{yf}%s@|' % split_cline[1])
         elif line.lower().startswith('warning'):
             # WARNING
-            cline = fmt('@{yf}') + cline
+            cline = fmt('@{yf}', reset=False) + cline
         elif line.startswith('CMake Warning at '):
             # CMake Warning at...
             cline = cline.replace('CMake Warning at ', '@{yf}@!CMake Warning@| at ' + self.source_path + os.path.sep)
@@ -113,4 +118,5 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             # CMake Call Stack
             cline = cline.replace('Call Stack (most recent call first):',
                                   '@{cf}@_Call Stack (most recent call first):@|')
-        return fmt(cline)
+
+        return fmt(cline, reset=False)

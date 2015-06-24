@@ -159,10 +159,11 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
         """
         :type data: utf-8 encoded bytes
         """
-        decoded_data = data.decode('utf-8')
-
         self.stdout_buffer += data
         self.interleaved_buffer += data
+        self.log_file.write(data)
+
+        decoded_data = data.decode('utf-8')
 
         progress_matches = re.match('\[\s*([0-9]+)%\]', decoded_data)
         if progress_matches is not None:
@@ -178,21 +179,18 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
             stage_label=self.stage_label,
             data=decoded_data))
 
-        self.log_file.write(data)
-
     def on_stderr_received(self, data):
         """
         :type data: utf-8 encoded bytes
         """
-        decoded_data = data.decode('utf-8')
-
         self.stderr_buffer += data
         self.interleaved_buffer += data
+        self.log_file.write(data)
+
+        decoded_data = data.decode('utf-8')
 
         self.event_queue.put(ExecutionEvent(
             'STDERR',
             job_id=self.job_id,
             stage_label=self.stage_label,
             data=decoded_data))
-
-        self.log_file.write(data)
