@@ -52,8 +52,12 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
 
     def color_lines(self, data):
         """Apply colorization rules to each line in data"""
-        lines = data.decode('utf-8').splitlines()
-        return (''.join([self.colorize_cmake(l) for l in lines if len(l) > 0])).encode('utf-8')
+        decoded_data = data.decode('utf-8')
+        lines = decoded_data.splitlines()
+        colored_lines = [self.colorize_cmake(l) for l in lines if len(l) > 0]
+        colored_data = '\n'.join(colored_lines)
+        encoded_data = colored_data.encode('utf-8')
+        return encoded_data
 
     @classmethod
     def factory_factory(cls, source_path):
@@ -84,8 +88,11 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             # WARNING
             cline = fmt('@{yf}') + cline
         elif line.startswith('CMake Warning at '):
-            # CMake Error...
+            # CMake Warning at...
             cline = cline.replace('CMake Warning at ', '@{yf}@!CMake Warning@| at ' + self.source_path + os.path.sep)
+        elif line.startswith('CMake Warning (dev) at '):
+            # CMake Warning at...
+            cline = cline.replace('CMake Warning (dev) at ', '@{yf}@!CMake Warning (dev)@| at ' + self.source_path + os.path.sep)
         elif line.startswith('CMake Warning'):
             # CMake Warning...
             cline = cline.replace('CMake Warning', '@{yf}@!CMake Warning@|')
@@ -102,4 +109,4 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             # CMake Call Stack
             cline = cline.replace('Call Stack (most recent call first):',
                                   '@{cf}@_Call Stack (most recent call first):@|')
-        return fmt(cline) + '\n'
+        return fmt(cline)
