@@ -56,7 +56,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         # TODO: This will only work if all lines are received at once. Instead
         # of direclty splitting lines, we should buffer the data lines until
         # the last character is a line break
-        lines = decoded_data.splitlines(True) # Keep line breaks
+        lines = decoded_data.splitlines(True)  # Keep line breaks
         colored_lines = [self.colorize_cmake(l) for l in lines]
         colored_data = ''.join(colored_lines)
         encoded_data = colored_data.encode('utf-8')
@@ -81,7 +81,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         :param line: one, new line terminated, line from `cmake` which needs coloring.
         :type line: str
         """
-        #return line
+        # return line
         cline = sanitize(line)
 
         if len(cline.strip()) == 0:
