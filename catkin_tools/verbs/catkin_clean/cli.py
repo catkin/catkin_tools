@@ -16,7 +16,6 @@ from __future__ import print_function
 
 import os
 import shutil
-import sys
 
 from catkin_pkg.packages import find_packages
 
@@ -27,14 +26,12 @@ from catkin_tools.context import Context
 from catkin_tools.common import get_linked_devel_path
 from catkin_tools.common import log
 
-from catkin_tools.jobs.job import get_build_type
 
 from catkin_tools.metadata import update_metadata
 from catkin_tools.metadata import METADATA_DIR_NAME
 
 from catkin_tools.terminal_color import ColorMapper
 
-from .clean import determine_packages_to_be_cleaned
 from .clean import clean_packages
 
 color_mapper = ColorMapper()

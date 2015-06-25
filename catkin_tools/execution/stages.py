@@ -1,8 +1,6 @@
 
-import functools
 import os
 
-from .io import IOBufferContainer
 from .io import IOBufferLogger
 from .io import IOBufferProtocol
 

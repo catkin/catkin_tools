@@ -14,13 +14,9 @@
 
 """This modules implements the engine for cleaning packages in parallel"""
 
-import operator
 import os
-import shutil
-import stat
 import sys
 import time
-import yaml
 
 try:
     # Python3
@@ -42,29 +38,20 @@ except ImportError as e:
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
-from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.jobs import JobServer
-from catkin_tools.execution.stages import CommandStage
 
-from catkin_tools.common import format_time_delta
-from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
-from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import get_recursive_build_dependants_in_workspace
 from catkin_tools.common import log
 from catkin_tools.common import wide_log
-from catkin_tools.common import get_linked_devel_path
 from catkin_tools.common import get_linked_devel_package_path
 
 from catkin_tools.jobs.catkin import create_catkin_clean_job
 from catkin_tools.jobs.catkin import DEVEL_MANIFEST_FILENAME
 from catkin_tools.jobs.cmake import create_cmake_clean_job
 from catkin_tools.jobs.cmake import INSTALL_MANIFEST_FILENAME
-from catkin_tools.jobs.job import get_build_type
 from catkin_tools.jobs.job import create_clean_buildspace_job
 
 from catkin_tools.execution.jobs import JobServer
-
-from .color import clr
 
 
 def determine_packages_to_be_cleaned(context, include_dependants, packages):

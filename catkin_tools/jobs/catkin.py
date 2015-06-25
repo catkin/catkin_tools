@@ -13,21 +13,15 @@
 # limitations under the License.
 
 import csv
-import errno
-import glob
 import os
-import stat
-import sys
 import threading
 
-from multiprocessing import cpu_count
 
 from catkin_tools.argument_parsing import handle_make_arguments
 
 from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_linked_devel_path
 from catkin_tools.common import get_linked_devel_package_path
-from catkin_tools.common import CATKIN_TOOLS_DIRNAME
 
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
@@ -37,7 +31,6 @@ from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
-from .job import create_build_space
 from .job import create_env_file
 from .job import get_env_file_path
 from .job import get_package_build_space_path

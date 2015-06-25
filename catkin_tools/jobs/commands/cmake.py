@@ -18,7 +18,6 @@ import os
 
 from catkin_tools.execution.io import IOBufferProtocol
 
-from catkin_tools.terminal_color import ansi
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import sanitize
 

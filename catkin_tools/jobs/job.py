@@ -16,22 +16,15 @@ from __future__ import print_function
 
 import os
 import stat
-import subprocess
-import sys
-import tempfile
 
-from multiprocessing import cpu_count
 
 from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
-from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
-from .commands.cmake import CMakeIOBufferProtocol
-from .commands.make import MAKE_EXEC
 
 # Build Environment File
 # =============
