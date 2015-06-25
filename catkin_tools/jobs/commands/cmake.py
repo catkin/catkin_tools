@@ -31,7 +31,7 @@ def split_to_last_line_break(data):
     """This splits a byte buffer into (head, tail) where head contains the
     beginning of the buffer to the last line break (inclusive) and the tail
     contains all bytes after that."""
-    last_break_index = 1 + data.rfind('\n')
+    last_break_index = 1 + data.rfind(b'\n')
     return data[:last_break_index], data[last_break_index:]
 
 

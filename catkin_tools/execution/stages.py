@@ -57,7 +57,7 @@ class CommandStage(Stage):
             # Emulate tty for cli colors
             'emulate_tty': emulate_tty,
             # Capture stderr and stdout separately
-            'stderr_to_stdout': stderr_to_stdout
+            'stderr_to_stdout': stderr_to_stdout,
         }
 
 

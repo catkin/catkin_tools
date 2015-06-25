@@ -17,6 +17,7 @@ from __future__ import print_function
 import datetime
 import os
 import re
+import subprocess
 
 from catkin_pkg.packages import find_packages
 
@@ -292,7 +293,7 @@ def terminal_width_windows():
 
 def terminal_width_linux():
     """Returns the estimated width of the terminal on linux"""
-    width = os.popen('tput cols', 'r').readline()
+    width = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE, close_fds=False).stdout.readline()
 
     return int(width)
 

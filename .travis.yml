@@ -29,7 +29,7 @@ install:
   - pip install nose coverage flake8 mock --upgrade
 before_script:
   - ./.travis.before_script.bash
-  - pip install git+https://github.com/osrf/osrf_pycommon.git
+  - pip install git+https://github.com/jbohren-forks/osrf_pycommon.git@dont-close-fds
   - pip install empy --upgrade
   - git clone https://github.com/ros/catkin.git /tmp/catkin_source
   - mkdir /tmp/catkin_source/build

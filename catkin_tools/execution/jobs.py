@@ -106,10 +106,23 @@ class JobServer:
         self.max_jobs = 0
         self.job_pipe = os.pipe()
 
+        # Setting fd inheritance is required in Python > 3.4
+        # This is set by default in Python 2.7
+        # For more info see: https://docs.python.org/3.4/library/os.html#fd-inheritance
+        if hasattr(os, 'set_inheritable'):
+            for fd in self.job_pipe:
+                os.set_inheritable(fd, True)
+                if not os.get_inheritable(fd):
+                    log(clr('@{yf}@!Warning: jobserver file descriptors are not inheritable.@|'))
+
     @staticmethod
     def _test_gnu_make_support():
         """
         Test if the system 'make' supports the job server implementation.
+
+        This simply checks if the `--jobserver-fds` option is supported by the
+        `make` command. It does not tests if the jobserver is actually working
+        properly.
         """
 
         fd, makefile = mkstemp()
