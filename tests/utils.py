@@ -28,6 +28,7 @@ except ImportError:
 TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
 
+
 def catkin_success(args, env={}):
     orig_environ = dict(os.environ)
     try:
@@ -41,6 +42,7 @@ def catkin_success(args, env={}):
         os.environ = orig_environ
     return ret == 0
 
+
 def catkin_failure(args, env={}):
     orig_environ = dict(os.environ)
     try:
@@ -51,6 +53,7 @@ def catkin_failure(args, env={}):
     finally:
         os.environ = orig_environ
     return ret != 0
+
 
 class AssertRaisesContext(object):
 
@@ -91,7 +94,7 @@ class redirected_stdio(object):
         self.original_stderr = sys.stderr
         self.out = StringIO()
         self.err = StringIO()
-        sys.stdout = self.out 
+        sys.stdout = self.out
         sys.stderr = self.err
         return self.out, self.err
 

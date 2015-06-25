@@ -74,7 +74,7 @@ class WorkspaceFactory(object):
 
             # Format the package.xml template
             return self.PACKAGE_XML_TEMPLATE.format(
-                name=self.name, 
+                name=self.name,
                 depends_xml=depends_xml,
                 export_xml=export_xml)
 
@@ -93,9 +93,8 @@ project({name})
 add_custom_target(install)"""
 
             return cmakelists_txt.format(
-                name=self.name, 
+                name=self.name,
                 find_package=' '.join(self.build_depends))
-
 
     def add_package(self, pkg_name, package_path):
         """Copy a static package into the workspace"""

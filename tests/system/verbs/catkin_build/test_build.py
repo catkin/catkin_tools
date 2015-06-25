@@ -23,7 +23,7 @@ from ....workspace_assertions import assert_no_warnings
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-BUILD = ['build', '--no-color', '--no-notify', '--no-status']
+BUILD = ['build', '--no-notify', '--no-status']
 CLEAN = ['clean', '--all', '--force']  # , '--no-notify', '--no-color', '--no-status']
 
 BUILD_TYPES = ['cmake', 'catkin']
@@ -104,13 +104,16 @@ def test_build_all_linked():
                 for i in range(n_pkgs):
                     assert os.path.exists(os.path.join('build', 'pkg_{}'.format(i)))
 
+
 def test_build_all_isolated():
     """Test building all packages in an isolated workspace"""
-    pass # TODO: Implement test
+    pass  # TODO: Implement test
+
 
 def test_build_all_merged():
     """Test building all packages in a merged workspace"""
-    pass # TODO: Implement test
+    pass  # TODO: Implement test
+
 
 def test_build_pkg():
     """Test building a package by name.
@@ -206,6 +209,7 @@ def test_unbuilt_linked():
                 assert os.path.exists(os.path.join('build', 'pkg_1'))
                 # make sure pkg_0 hasn't been rebuilt
                 assert pkg_0_log_files == os.listdir(pkg_0_log_path)
+
 
 def test_unbuilt_isolated():
     """Test building unbuilt packages with an isolated develspace."""

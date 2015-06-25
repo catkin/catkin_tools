@@ -27,6 +27,14 @@ from catkin_tools.utils import which
 CMAKE_EXEC = which('cmake')
 
 
+def split_to_last_line_break(data):
+    """This splits a byte buffer into (head, tail) where head contains the
+    beginning of the buffer to the last line break (inclusive) and the tail
+    contains all bytes after that."""
+    last_break_index = 1 + data.rfind('\n')
+    return data[:last_break_index], data[last_break_index:]
+
+
 class CMakeIOBufferProtocol(IOBufferProtocol):
 
     """An asyncio protocol that collects stdout and stderr.
@@ -42,13 +50,36 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
         self.source_path = source_path
 
+        # These are buffers for incomplete lines that we want to wait to parse
+        # until we have received them completely
+        self.stdout_tail = b''
+        self.stderr_tail = b''
+
     def on_stdout_received(self, data):
-        colored = self.color_lines(data)
+        data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
+        colored = self.color_lines(data_head)
         super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
 
     def on_stderr_received(self, data):
-        colored = self.color_lines(data)
+        data_head, self.stderr_tail = split_to_last_line_break(self.stderr_tail + data)
+        colored = self.color_lines(data_head)
         super(CMakeIOBufferProtocol, self).on_stderr_received(colored)
+
+    def close(self):
+        # Make sure tail buffers are flushed
+        self.flush_tails()
+        super(CMakeIOBufferProtocol, self).close()
+
+    def flush_tails(self):
+        """Write out any unprocessed tail buffers."""
+
+        colored = self.color_lines(self.stdout_tail)
+        super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
+        self.stdout_tail = b''
+
+        colored = self.color_lines(self.stderr_tail)
+        super(CMakeIOBufferProtocol, self).on_stderr_received(colored)
+        self.stderr_tail = b''
 
     def color_lines(self, data):
         """Apply colorization rules to each line in data"""

@@ -443,7 +443,8 @@ class ConsoleStatusController(threading.Thread):
                     wide_log(header_border)
                 if header_title:
                     wide_log(header_title)
-                wide_log('\n'.join(lines))
+                if len(lines) > 0:
+                    wide_log('\n'.join(lines))
                 if footer_border:
                     wide_log(footer_border)
                 if footer_title:
