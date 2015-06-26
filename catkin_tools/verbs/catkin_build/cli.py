@@ -15,11 +15,12 @@
 from __future__ import print_function
 
 import argparse
-import os
 import sys
 import time
 
 from catkin_pkg.package import InvalidPackage
+from catkin_pkg.tool_detection import get_previous_tool_used_on_the_space
+from catkin_pkg.tool_detection import mark_space_as_built_by
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
@@ -142,6 +143,8 @@ the --save-config argument. To see the current config, use the
         help='Adds a build summary to the end of a build; defaults to on with --continue-on-failure, off otherwise')
     add('--no-summarize', '--no-summary', action='store_false', dest='summarize',
         help='explicitly disable the end of build summary')
+    add('--override-build-tool-check',
+        help='use to override failure due to using differnt build tools on the same workspace.')
 
     # Deprecated args now handled by main catkin command
     add('--no-color', action='store_true', help=argparse.SUPPRESS)
@@ -254,15 +257,47 @@ def main(opts):
                     (ctx.extend_path, exc.message)))
             return 1
 
-    # Display list and leave the file system untouched
-    if opts.dry_run:
-        dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
-        return
-
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
         print("catkin build: error: Unable to find source space `%s`" % ctx.source_space_abs)
         return 1
+
+    # ensure the build space was previously built by catkin_tools
+    previous_tool = get_previous_tool_used_on_the_space(ctx.build_space_abs)
+    if previous_tool is not None and previous_tool != 'catkin build':
+        if opts.override_build_tool_check:
+            log(clr(
+                "@{yf}Warning: build space at '%s' was previously built by '%s', "
+                "but --override-build-tool-check was passed so continuing anyways."
+                % (ctx.build_space_abs, previous_tool)))
+        else:
+            print(clr(
+                "@{rf}The build space at '%s' was previously built by '%s'. "
+                "Please remove the build space or pick a different build space."
+                % (ctx.build_space_abs, previous_tool)))
+            return 1
+    mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
+
+    # ensure the devel space was previously built by catkin_tools
+    previous_tool = get_previous_tool_used_on_the_space(ctx.devel_space_abs)
+    if previous_tool is not None and previous_tool != 'catkin build':
+        if opts.override_build_tool_check:
+            log(clr(
+                "@{yf}Warning: devel space at '%s' was previously built by '%s', "
+                "but --override-build-tool-check was passed so continuing anyways."
+                % (ctx.devel_space_abs, previous_tool)))
+        else:
+            print(clr(
+                "@{rf}The devel space at '%s' was previously built by '%s'. "
+                "Please remove the devel space or pick a different devel space."
+                % (ctx.devel_space_abs, previous_tool)))
+            return 1
+    mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')
+
+    # Display list and leave the file system untouched
+    if opts.dry_run:
+        dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
+        return
 
     # Always save the last context under the build verb
     update_metadata(ctx.workspace, ctx.profile, 'build', ctx.get_stored_dict())

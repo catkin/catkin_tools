@@ -37,8 +37,7 @@ try:
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
-        'ImportError: "from catkin_pkg.topological_order import '
-        'topological_order" failed: %s\nMake sure that you have installed '
+        'Importing "catkin_pkg" failed: %s\nMake sure that you have installed '
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
