@@ -652,7 +652,7 @@ def build_isolated_workspace(
         log_dir = os.path.join(context.build_space_abs, 'build_logs')
         color = True
         if not force_color and not is_tty(sys.stdout):
-            color = True
+            color = False
         out = OutputController(log_dir, quiet, interleave_output,
                                color, max_package_name_length, prefix_output=(jobs > 1))
         if no_status:
