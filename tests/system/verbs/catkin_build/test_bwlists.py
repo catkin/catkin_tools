@@ -23,7 +23,7 @@ from ....workspace_assertions import assert_no_warnings
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-BUILD = ['build', '--no-color', '--no-notify', '--no-status']
+BUILD = ['build', '--no-notify', '--no-status']
 CLEAN = ['clean', '--all', '--force']  # , '--no-notify', '--no-color', '--no-status']
 
 

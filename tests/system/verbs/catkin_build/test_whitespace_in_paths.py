@@ -18,11 +18,11 @@ def test_catkin_build_with_whitespace_in_paths():
 
         assert os.path.isdir(wf.workspace)
 
-        cmd = ['--no-color', 'config', '--source', wf.source_space,
+        cmd = ['config', '--source', wf.source_space,
                '--devel', 'devel space',
                '--build', 'build space',
                '--install-space', 'install space']
         assert catkin_success(cmd), cmd
 
-        cmd = ['--no-color', 'build', '--no-status', '--no-notify', '--verbose']
+        cmd = ['build', '--no-status', '--no-notify', '--verbose']
         assert catkin_success(cmd), cmd

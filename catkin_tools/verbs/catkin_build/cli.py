@@ -36,6 +36,7 @@ from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_arg
 from catkin_tools.argument_parsing import configure_make_args
 
 from catkin_tools.common import getcwd
+from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 
@@ -50,6 +51,8 @@ from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
 
 from catkin_tools.resultspace import load_resultspace_environment
+
+from catkin_tools.terminal_color import set_color
 
 from .color import clr
 
@@ -210,6 +213,13 @@ def dry_run(context, packages, no_deps, start_with):
 
 
 def main(opts):
+
+    # Set color options
+    if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
+        set_color(True)
+    else:
+        set_color(False)
+
     # Context-aware args
     if opts.build_this or opts.start_with_this:
         # Determine the enclosing package
