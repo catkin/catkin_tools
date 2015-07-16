@@ -54,7 +54,7 @@ function catkin() {
   fi
 
   # Capture original args
-  ORIG_ARGS=(${@[*]})
+  ORIG_ARGS=($@)
 
   # Handle main arguments
   OPTSPEC=":hw-:"
