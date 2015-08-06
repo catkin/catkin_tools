@@ -53,12 +53,12 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
         )
 
     # Determine the shell to use to source the setup file
-    shell_path = os.environ.get('SHELL', '/bin/bash')
+    shell_path = os.environ.get('SHELL', '/bin/sh')
     (_, shell_name) = os.path.split(shell_path)
 
     # Use fallback shell if using a non-standard shell
-    if shell_name not in ['bash', 'zsh']:
-        shell_name = 'bash'
+    if shell_name not in ['bash', 'sh', 'zsh']:
+        shell_name = 'sh'
 
     # Check to make sure result_space_path contains the appropriate setup file
     setup_file_path = os.path.join(result_space_path, 'env.sh')
@@ -79,7 +79,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
         return {}
 
     # Construct a command list which sources the setup file and prints the env to stdout
-    norc_flags = {'bash': '--norc', 'zsh': '-f'}
+    norc_flags = {'bash': '--norc', 'sh': '', 'zsh': '-f'}
     subcommand = '%s %s -E environment | %s' % (setup_file_path, CMAKE_EXEC, SORT_EXEC)
 
     command = [
