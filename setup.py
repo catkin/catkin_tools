@@ -1,6 +1,7 @@
 from distutils import log
 import os
 import platform
+import argparse
 from setuptools import find_packages
 from setuptools import setup
 from setuptools.command.install import install
@@ -33,28 +34,39 @@ src_path = os.path.join(this_dir, 'catkin_tools')
 osx_notification_resources = [os.path.relpath(x, src_path)
                               for x in osx_notification_resources]
 
-# Figure out where to install the data_files
-data_files = []
-import argparse
-parser = argparse.ArgumentParser(description="shouldn't see this")
-parser.add_argument('--prefix')
-opts, _ = parser.parse_known_args(list(sys.argv))
-target_prefix = sys.prefix
-if opts.prefix:
-    target_prefix = opts.prefix
-# If the target is the root system target, use /etc
-if target_prefix == '/usr':
-    target_prefix = '/'
-if (
-    platform.platform().lower().startswith('darwin') and
-    target_prefix.startswith('/System/Library/Frameworks/Python.framework')
-):
-    # This is the system install of Python on OS X, install to `/etc`.
-    target_prefix = '/'
-completion_dest = os.path.join(target_prefix, 'etc/bash_completion.d')
-data_files.append((
-    completion_dest,
-    ['completion/catkin_tools-completion.bash']))
+
+def _resolve_prefix(prefix, type):
+    osx_system_prefix = '/System/Library/Frameworks/Python.framework/Versions'
+    if type == 'man':
+        if prefix == '/usr':
+            return '/usr/share'
+        if sys.prefix.startswith(osx_system_prefix):
+            return '/usr/share'
+    elif type == 'bash_comp':
+        if prefix == '/usr':
+            return '/'
+        if sys.prefix.startswith(osx_system_prefix):
+            return '/'
+    elif type == 'zsh_comp':
+        if sys.prefix.startswith(osx_system_prefix):
+            return '/usr'
+    else:
+        raise ValueError('not supported type')
+    return prefix
+
+
+def get_data_files(prefix):
+    data_files = []
+    bash_comp_dest = os.path.join(_resolve_prefix(prefix, 'bash_comp'),
+                                  'etc/bash_completion.d')
+    data_files.append((bash_comp_dest,
+                       ['completion/catkin_tools-completion.bash']))
+    zsh_comp_dest = os.path.join(_resolve_prefix(prefix, 'zsh_comp'),
+                                 'share/zsh/site-functions')
+    data_files.append((zsh_comp_dest,
+                       ['completion/_catkin',
+                        'completion/catkin_tools-completion.bash']))
+    return data_files
 
 
 class PermissiveInstall(install):
@@ -68,6 +80,12 @@ class PermissiveInstall(install):
                 os.chmod(file, mode)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--prefix', default='',
+                    help='prefix to install data files')
+opts, _ = parser.parse_known_args(sys.argv)
+prefix = opts.prefix
+
 setup(
     name='catkin_tools',
     version='0.3.0',
@@ -77,7 +95,7 @@ setup(
             'notifications/resources/linux/catkin_icon.png',
         ] + osx_notification_resources
     },
-    data_files=data_files,
+    data_files=get_data_files(prefix),
     install_requires=install_requires,
     author='William Woodall',
     author_email='william@osrfoundation.org',
