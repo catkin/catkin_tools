@@ -4,7 +4,7 @@ Configuration Summary
 Contents of the Config Summary
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Most ``catkin`` commands which modify the a workspace's configuration will
+Most ``catkin`` commands which modify a workspace's configuration will
 display the standard configuration summary, as shown below:
 
 .. code-block:: bash
