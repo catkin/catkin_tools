@@ -37,7 +37,7 @@ _catkin()
   catkin_opts="--force-color --no-color --test-colors"
 
   # complete popular catkin build options
-  catkin_build_opts="--dry-run --this --no-deps --continue-on-failure --force-cmake --verbose --summarize --no-notify"
+  catkin_build_opts="--dry-run --this --no-deps --start-with-this --continue-on-failure --force-cmake --verbose --interleave-output --no-status --summarize --no-notify"
 
   # complete popular catkin clean options
   catkin_clean_opts="--all --build --devel --install --cmake-cache --setup-files --orphans"
