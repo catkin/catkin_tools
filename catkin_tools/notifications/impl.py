@@ -29,7 +29,7 @@ def _notify_osx(title, msg):
     if open_exec is None:
         return
     command = [open_exec, app_path, '--args', title, msg]
-    terminal = os.environ['TERM_PROGRAM']
+    terminal = os.environ.get('TERM_PROGRAM')
     if terminal == "Apple_Terminal":
         command += ["-activate", "com.apple.Terminal"]
     elif terminal == "iTerm.app":
