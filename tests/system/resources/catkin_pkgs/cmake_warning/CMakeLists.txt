@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(cmake_warning)
+find_package(catkin REQUIRED)
+catkin_package()
+message(WARNING "This sends a warning from cmake.")

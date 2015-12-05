@@ -1,0 +1,11 @@
+<package>
+  <name>python_tests</name>
+  <version>0.1.0</version>
+  <license>BSD</license>
+  <maintainer email="todo@todo.com">todo</maintainer>
+  <description>This package contains a python test.</description>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <test_depend>unittest</test_depend>
+</package>
+
