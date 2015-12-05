@@ -49,7 +49,9 @@ Then install with the ``setup.py`` file:
 
 .. code-block:: bash
 
-    $ sudo python setup.py install
+    $ python setup.py install
+    
+Note: Depending on your environment/machine, you may need to use ``sudo`` with this command.
 
 Developing
 ----------
