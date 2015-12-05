@@ -50,6 +50,8 @@ Then install with the ``setup.py`` file:
 .. code-block:: bash
 
     $ python setup.py install
+    
+Note: Depending on your environment/machine, you may need to use ``sudo`` with this command.
 
 Developing
 ----------
