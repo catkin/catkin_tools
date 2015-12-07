@@ -117,7 +117,10 @@ def create_env_file(package, context):
         depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
         # For each dep add a line to source its setup file
         for dep_pth, dep in depends:
-            source_path = os.path.join(space, dep.name, 'setup.sh')
+            source_path_parts = [space, dep.name, 'setup.sh']
+            if context.destdir:
+                source_path_parts.insert(context.destdir)
+            source_path = os.path.join(*source_path_parts)
             sources.append(source_snippet.format(source_path=source_path))
     else:
         # Just source common install or devel space
