@@ -107,24 +107,35 @@ class Job(object):
 
 
 def create_env_file(package, context):
+    # Exporting _CATKIN_SETUP_DIR supports DESTDIR, where the absolute location of the installspace
+    # at build time does not match the intended final location of it.
+    source_snippet = '_CATKIN_SETUP_DIR={space} . "{source_path}"'
     sources = []
-    source_snippet = '. "{source_path}"'
     # If installing to isolated folders or not installing, but devel spaces are not merged
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
         space = context.install_space_abs if context.install else context.devel_space_abs
-        # Get the recursive dependcies
+        # Get the recursive dependencies
         depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
         # For each dep add a line to source its setup file
         for dep_pth, dep in depends:
             source_path = os.path.join(space, dep.name, 'setup.sh')
-            sources.append(source_snippet.format(source_path=source_path))
+            sources.append(source_snippet.format(source_path=source_path, space=space))
     else:
         # Just source common install or devel space
-        source_path = os.path.join(
-            context.install_space_abs if context.install else context.devel_space_abs,
-            'setup.sh')
-        sources = [source_snippet.format(source_path=source_path)] if os.path.exists(source_path) else []
+        if context.install:
+            space = context.install_space_abs
+            if context.destdir:
+                space = context.destdir + space
+        else:
+            space = context.devel_space_abs
+
+        source_path = os.path.join(space, "setup.sh")
+        if os.path.exists(source_path):
+            sources = [source_snippet.format(source_path=source_path, space=space)]
+        else:
+            sources = []
+
     # Build the env_file
     env_file_path = os.path.abspath(os.path.join(context.build_space_abs, package.name, 'build_env.sh'))
     generate_env_file(sources, env_file_path)
