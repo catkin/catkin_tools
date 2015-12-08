@@ -109,7 +109,7 @@ class Job(object):
 def create_env_file(package, context):
     # Exporting _CATKIN_SETUP_DIR supports DESTDIR, where the absolute location of the installspace
     # at build time does not match the intended final location of it.
-    source_snippet = '_CATKIN_SETUP_DIR={space} . "{source_path}"'
+    source_snippet = '_CATKIN_SETUP_DIR={space_path} . "{source_path}"'
     sources = []
     # If installing to isolated folders or not installing, but devel spaces are not merged
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
@@ -119,22 +119,25 @@ def create_env_file(package, context):
         depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
         # For each dep add a line to source its setup file
         for dep_pth, dep in depends:
-            source_path = os.path.join(space, dep.name, 'setup.sh')
-            sources.append(source_snippet.format(source_path=source_path, space=space))
+            space_path = os.path.join(space, dep.name)
+            source_path = os.path.join(space_path, 'setup.sh')
+            sources.append(source_snippet.format(space_path=space_path, source_path=source_path))
     else:
         # Just source common install or devel space
         if context.install:
-            space = context.install_space_abs
             if context.destdir:
-                space = context.destdir + space
+                # Intentionally not using os.path.join in this instance, as it's expected that
+                # when DESTDIR is specified, the install space is an absolute path, so a straight
+                # concatenation is more suitable than os.path.join.
+                space_path = context.destdir + context.install_space_abs
+            else:
+                space_path = context.install_space_abs
         else:
-            space = context.devel_space_abs
+            space_path = context.devel_space_abs
 
-        source_path = os.path.join(space, "setup.sh")
+        source_path = os.path.join(space_path, "setup.sh")
         if os.path.exists(source_path):
-            sources = [source_snippet.format(source_path=source_path, space=space)]
-        else:
-            sources = []
+            sources.append(source_snippet.format(space_path=space_path, source_path=source_path))
 
     # Build the env_file
     env_file_path = os.path.abspath(os.path.join(context.build_space_abs, package.name, 'build_env.sh'))
