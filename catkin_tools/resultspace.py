@@ -53,7 +53,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
         )
 
     # Determine the shell to use to source the setup file
-    shell_path = os.environ.get('SHELL', '')
+    shell_path = os.environ.get('SHELL', '/bin/bash')
     (_, shell_name) = os.path.split(shell_path)
 
     # Use fallback shell if using a non-standard shell
