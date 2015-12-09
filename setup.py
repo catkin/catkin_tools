@@ -10,7 +10,7 @@ import sys
 
 # Setup installation dependencies
 install_requires = [
-    'catkin-pkg >= 0.2.8',
+    'catkin-pkg > 0.2.9',
     'setuptools',
     'PyYAML',
 ]
