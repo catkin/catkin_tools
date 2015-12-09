@@ -377,13 +377,6 @@ class Context(object):
         if not self.source_space_exists():
             summary_warnings += [clr(
                 "Source space `@{yf}{_Context__source_space_abs}@|` does not yet exist.")]
-        if self.corrupted_by_catkin_make():
-            summary_warnings += [clr(
-                "Build space `@{yf}{_Context__build_space_abs}@|` exists but "
-                "appears to have previously been created by the `catkin_make` "
-                "or `catkin_make_isolated` tool. Please choose a different "
-                "directory to use with `catkin_tools` or clean the build "
-                "space.")]
 
         summary = [
             [
@@ -680,9 +673,3 @@ class Context(object):
     @blacklist.setter
     def blacklist(self, value):
         self.__blacklist = value
-
-    def corrupted_by_catkin_make(self):
-        for other_tool_name in ['catkin_make_isolated', 'catkin_make']:
-            if os.path.exists(os.path.join(self.build_space_abs, '%s.cache' % other_tool_name)):
-                return True
-        return False

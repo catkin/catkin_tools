@@ -540,14 +540,6 @@ def build_isolated_workspace(
         log("Creating build space directory, '{0}'".format(context.build_space_abs))
         os.makedirs(context.build_space_abs)
 
-    # Check for catkin_make droppings
-    if context.corrupted_by_catkin_make():
-        sys.exit(
-            clr("@{rf}Error:@| Build space `{0}` exists but appears to have previously been "
-                "created by the `catkin_make` or `catkin_make_isolated` tool. "
-                "Please choose a different directory to use with `catkin build` "
-                "or clean the build space.").format(context.build_space_abs))
-
     # Declare a buildspace marker describing the build config for error checking
     buildspace_marker_data = {
         'workspace': context.workspace,
