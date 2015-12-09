@@ -126,9 +126,9 @@ def create_env_file(package, context):
         # Just source common install or devel space
         if context.install:
             if context.destdir:
-                # Intentionally not using os.path.join in this instance, as it's expected that
-                # when DESTDIR is specified, the install space is an absolute path, so a straight
-                # concatenation is more suitable than os.path.join.
+                # Using `os.path.join` is explicitly avoided here, since
+                # `context.install_space_abs` is always absolute and therefore `context.destdir`
+                # would always be dropped by `os.path.join`.
                 space_path = context.destdir + context.install_space_abs
             else:
                 space_path = context.install_space_abs
