@@ -1,13 +1,12 @@
+import argparse
 from distutils import log
 import os
-import platform
-import argparse
-from setuptools import find_packages
-from setuptools import setup
-from setuptools.command.install import install
 from stat import ST_MODE
 import sys
 
+from setuptools import find_packages
+from setuptools import setup
+from setuptools.command.install import install
 
 # Setup installation dependencies
 install_requires = [
