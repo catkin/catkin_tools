@@ -276,7 +276,7 @@ def main(opts):
                 "Please remove the build space or pick a different build space."
                 % (ctx.build_space_abs, previous_tool)))
             return 1
-    mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
+    # the build space will be marked as catkin build's if dry run doesn't return
 
     # ensure the devel space was previously built by catkin_tools
     previous_tool = get_previous_tool_used_on_the_space(ctx.devel_space_abs)
@@ -292,12 +292,15 @@ def main(opts):
                 "Please remove the devel space or pick a different devel space."
                 % (ctx.devel_space_abs, previous_tool)))
             return 1
-    mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')
+    # the devel space will be marked as catkin build's if dry run doesn't return
 
     # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
+    # Now mark the build and devel spaces as catkin build's since dry run didn't return.
+    mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
+    mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')
 
     # Always save the last context under the build verb
     update_metadata(ctx.workspace, ctx.profile, 'build', ctx.get_stored_dict())
