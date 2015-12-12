@@ -65,6 +65,9 @@ def get_data_files(prefix):
     data_files.append((zsh_comp_dest,
                        ['completion/_catkin',
                         'completion/catkin_tools-completion.bash']))
+    data_files.append(('share/catkin_tools',
+                       ['scripts/catkin_shell_verbs.bash']))
+
     return data_files
 
 
