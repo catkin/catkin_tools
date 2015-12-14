@@ -39,8 +39,8 @@ def _notify_osx(title, msg):
                      stderr=subprocess.PIPE)
 
 
-def _notify_linux(title, msg):
-    icon_path = os.path.join(this_dir, 'resources', 'linux', 'catkin_icon.png')
+def _notify_linux(title, msg, icon_image='catkin_icon.png'):
+    icon_path = os.path.join(this_dir, 'resources', 'linux', icon_image)
     notify_send_exec = which('notify-send')
     if notify_send_exec is None:
         return
@@ -49,8 +49,8 @@ def _notify_linux(title, msg):
                      stderr=subprocess.PIPE)
 
 
-def notify(title, msg):
+def notify(title, msg, icon_image='catkin_icon.png'):
     if platform.system() == 'Darwin':
-        return _notify_osx(title, msg)
+        return _notify_osx(title, msg, icon_image=icon_image)
     if platform.system() == 'Linux':
-        return _notify_linux(title, msg)
+        return _notify_linux(title, msg, icon_image=icon_image)

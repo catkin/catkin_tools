@@ -338,7 +338,7 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
 def print_error_summary(errors, no_notify, log_dir):
     wide_log(clr("[build] There were '" + str(len(errors)) + "' @!@{rf}errors@|:"))
     if not no_notify:
-        notify("Build Failed", "there were {0} errors".format(len(errors)))
+        notify("Build Failed", "there were {0} errors".format(len(errors)), icon_image='catkin_icon_red.png')
     for error in errors:
         if error.event_type == 'exit':
             wide_log("""\

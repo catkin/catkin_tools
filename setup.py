@@ -92,6 +92,7 @@ setup(
     package_data={
         'catkin_tools': [
             'notifications/resources/linux/catkin_icon.png',
+            'notifications/resources/linux/catkin_icon_red.png',
         ] + osx_notification_resources
     },
     data_files=get_data_files(prefix),
