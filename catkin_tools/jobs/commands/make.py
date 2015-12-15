@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+from catkin_tools.utils import which
 
-if os.name == 'nt':
-    from . import run_windows as run
-else:
-    from . import run_unix as run
-
-run_command = run.run_command
+MAKE_EXEC = which('make')

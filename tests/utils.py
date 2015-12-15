@@ -31,6 +31,7 @@ MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
 def catkin_success(args, env={}):
     orig_environ = dict(os.environ)
     try:
+        os.environ.update(env)
         catkin_main(args)
     except SystemExit as exc:
         ret = exc.code
