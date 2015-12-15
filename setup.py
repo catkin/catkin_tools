@@ -69,6 +69,7 @@ def get_data_files(prefix):
 
 
 class PermissiveInstall(install):
+
     def run(self):
         install.run(self)
         if os.name == 'posix':
@@ -127,6 +128,10 @@ setup(
             'list = catkin_tools.verbs.catkin_list:description',
             'locate = catkin_tools.verbs.catkin_locate:description',
             'profile = catkin_tools.verbs.catkin_profile:description',
+        ],
+        'catkin_tools.jobs': [
+            'catkin = catkin_tools.jobs.catkin:description',
+            'cmake = catkin_tools.jobs.cmake:description',
         ],
     },
     cmdclass={'install': PermissiveInstall},
