@@ -1,12 +1,35 @@
-language: python
-python:
-  - "2.7"
-  - "3.3"
+# Travis auto-virtualenv isn't supported on OS X
+#language: python
+#python:
+  #- "2.7"
+  #- "3.3"
+language: generic
+matrix:
+  include:
+    - python: 2.7
+      language: python
+      python: "2.7"
+      os: linux
+      env: PYTHON=/usr/bin/python2.7
+    - python: 3.4
+      language: python
+      python: "3.4"
+      os: linux
+      env: PYTHON=/usr/bin/python3.4
+    - python: 2
+      os: osx
+      env: PYTHON=/usr/bin/python
+    - python: 3
+      os: osx
+      env: PYTHON=/usr/local/bin/python3
+before_install:
+  - source .travis.before_install.bash
 install:
   - pip install argparse catkin-pkg distribute PyYAML psutil
-  - pip install nose coverage flake8 --upgrade
+  - pip install nose coverage flake8 mock --upgrade
 before_script:
-  - sudo apt-get install cmake python-setuptools libgtest-dev build-essential
+  - ./.travis.before_script.bash
+  - pip install git+https://github.com/osrf/osrf_pycommon.git
   - pip install empy --upgrade
   - git clone https://github.com/ros/catkin.git /tmp/catkin_source
   - mkdir /tmp/catkin_source/build
