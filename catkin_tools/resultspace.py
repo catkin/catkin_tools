@@ -1,8 +1,26 @@
+# Copyright 2015 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+try:
+    from md5 import md5
+except ImportError:
+    from hashlib import md5
 import os
 import re
 
-from .runner import run_command
+from osrf_pycommon.process_utils import execute_process
+
 from .common import string_type
 from .utils import which
 
@@ -12,12 +30,13 @@ DEFAULT_SHELL = '/bin/bash'
 
 # Cache for result-space environments
 _resultspace_env_cache = {}
+_resultspace_env_hooks_cache = {}
 
 
-def get_resultspace_environment(result_space_path, quiet=False, cached=True):
+def get_resultspace_environment(result_space_path, quiet=False, cached=True, strict=True):
     """Get the environemt variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
-    This command is used to be as portable as possible.
+    This cmake command is used to be as portable as possible.
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
@@ -25,12 +44,26 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
     :type quiet: bool
     :param cached: use the cached environment
     :type cached: bool
+    :param strict: require the ``.catkin`` file exists in the resultspace
+    :type strict: bool
 
     :returns: a dictionary of environment variables and their values
     """
 
+    # Get the MD5 checksums for the current env hooks
+    # TODO: the env hooks path should be defined somewhere
+    env_hooks_path = os.path.join(result_space_path, 'etc', 'catkin', 'profile.d')
+    if os.path.exists(env_hooks_path):
+        env_hooks = [
+            md5(open(os.path.join(env_hooks_path, path)).read()).hexdigest()
+            for path in os.listdir(env_hooks_path)]
+    else:
+        env_hooks = []
+
     # Check the cache first
-    if cached and result_space_path in _resultspace_env_cache:
+    if (cached
+            and result_space_path in _resultspace_env_cache
+            and env_hooks == _resultspace_env_hooks_cache.get(result_space_path, [])):
         return _resultspace_env_cache[result_space_path]
 
     # Check to make sure result_space_path is a valid directory
@@ -44,7 +77,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
 
     # Check to make sure result_space_path contains a `.catkin` file
     # TODO: `.catkin` should be defined somewhere as an atom in catkin_pkg
-    if not os.path.exists(os.path.join(result_space_path, '.catkin')):
+    if strict and not os.path.exists(os.path.join(result_space_path, '.catkin')):
         if quiet:
             return dict()
         raise IOError(
@@ -102,7 +135,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
     env_dict = {}
 
     try:
-        for line in run_command(command, cwd=os.getcwd()):
+        for line in execute_process(command, cwd=os.getcwd()):
             if isinstance(line, string_type):
                 matches = env_regex.findall(line)
                 for (key, value) in matches:
@@ -114,6 +147,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True):
         return {}
 
     _resultspace_env_cache[result_space_path] = env_dict
+    _resultspace_env_hooks_cache[result_space_path] = env_hooks
 
     return env_dict
 

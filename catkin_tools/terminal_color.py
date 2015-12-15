@@ -124,7 +124,7 @@ def sanitize(msg):
     return msg
 
 
-def fmt(msg):
+def fmt(msg, reset=True):
     """Replaces color annotations with ansi escape sequences"""
     global _ansi
     msg = msg.replace('@!', '@{boldon}')
@@ -132,7 +132,7 @@ def fmt(msg):
     msg = msg.replace('@_', '@{ulon}')
     msg = msg.replace('@|', '@{reset}')
     t = ColorTemplate(msg)
-    return t.substitute(_ansi) + ansi('reset')
+    return t.substitute(_ansi) + (ansi('reset') if reset else '')
 
 
 def test_colors():

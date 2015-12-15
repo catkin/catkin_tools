@@ -81,7 +81,57 @@ def create_subparsers(parser, verbs):
     return argument_preprocessors
 
 
-def main(sysargs=None):
+def expand_one_verb_alias(sysargs, verb_aliases, used_aliases):
+    """Iterate through sysargs looking for expandable verb aliases.
+
+    When a verb alias is found, sysargs is modified to effectively expand the alias.
+    The alias is removed from verb_aliases and added to used_aliases.
+    After finding and expanding an alias, this function returns True.
+    If no alias is found to be expanded, this function returns False.
+    """
+    cmd = os.path.basename(sys.argv[0])
+    for index, arg in enumerate(sysargs):
+        if arg.startswith('-'):
+            # Not a verb, continue through the arguments
+            continue
+        if arg in used_aliases:
+            print(fmt(
+                "@!@{gf}==>@| Expanding alias '@!@{yf}" + arg +
+                "@|' was previously expanded, ignoring this time to prevent infinite recursion."
+            ))
+        if arg in verb_aliases:
+            before = [] if index == 0 else sysargs[:index - 1]
+            after = [] if index == len(sysargs) else sysargs[index + 1:]
+            sysargs[:] = before + verb_aliases[arg].split() + after
+            print(fmt(
+                "@!@{gf}==>@| Expanding alias "
+                "'@!@{yf}{alias}@|' "
+                "from '@{yf}{before} @!{alias}@{boldoff}{after}@|' "
+                "to '@{yf}{before} @!{expansion}@{boldoff}{after}@|'"
+            ).format(
+                alias=arg,
+                expansion=verb_aliases[arg],
+                before=' '.join([cmd] + before),
+                after=(' '.join([''] + after) if after else '')
+            ))
+            # Prevent the alias from being used again, to prevent infinite recursion
+            used_aliases.append(arg)
+            del verb_aliases[arg]
+            # Return True since one has been found
+            return True
+        # Return False since no verb alias was found
+        return False
+
+
+def expand_verb_aliases(sysargs, verb_aliases):
+    """Expands aliases in sysargs which are found in verb_aliases until none are found."""
+    used_aliases = []
+    while expand_one_verb_alias(sysargs, verb_aliases, used_aliases):
+        pass
+    return sysargs
+
+
+def catkin_main(sysargs):
     # Initialize config
     try:
         initialize_config()
@@ -89,7 +139,8 @@ def main(sysargs=None):
         sys.exit("Failed to initialize config: {0}".format(exc))
 
     # Create a top level parser
-    parser = argparse.ArgumentParser(description="catkin command", formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="catkin command", formatter_class=argparse.RawDescriptionHelpFormatter)
     add = parser.add_argument
     add('-a', '--list-aliases', action="store_true", default=False,
         help="Lists the current verb aliases and then quits, all other arguments are ignored")
@@ -113,7 +164,6 @@ def main(sysargs=None):
 
     # Setup sysargs
     sysargs = sys.argv[1:] if sysargs is None else sysargs
-    cmd = os.path.basename(sys.argv[0])
 
     # Get colors config
     no_color = False
@@ -144,39 +194,8 @@ def main(sysargs=None):
         if not arg.startswith('-'):
             break
 
-    # Do alias expansion
-    expanding_verb_aliases = True
-    used_aliases = []
-    while expanding_verb_aliases:
-        expanding_verb_aliases = False
-        for index, arg in enumerate(sysargs):
-            if not arg.startswith('-'):
-                if arg in used_aliases:
-                    print(fmt(
-                        "@!@{gf}==>@| Expanding alias '@!@{yf}" +
-                        arg +
-                        "@|' was previously expanded, ignoring this time to prevent infinite recursion."
-                    ))
-                if arg in verb_aliases:
-                    before = [] if index == 0 else sysargs[:index - 1]
-                    after = [] if index == len(sysargs) else sysargs[index + 1:]
-                    sysargs = before + verb_aliases[arg].split() + after
-                    print(fmt(
-                        "@!@{gf}==>@| Expanding alias "
-                        "'@!@{yf}{alias}@|' "
-                        "from '@{yf}{before} @!{alias}@{boldoff}{after}@|' "
-                        "to '@{yf}{before} @!{expansion}@{boldoff}{after}@|'"
-                    ).format(
-                        alias=arg,
-                        expansion=verb_aliases[arg],
-                        before=' '.join([cmd] + before),
-                        after=(' '.join([''] + after) if after else '')
-                    ))
-                    expanding_verb_aliases = True
-                    # Prevent the alias from being used again, to prevent infinite recursion
-                    used_aliases.append(arg)
-                    del verb_aliases[arg]
-                break
+    # Do verb alias expansion
+    sysargs = expand_verb_aliases(sysargs, verb_aliases)
 
     # Determine the verb, splitting arguments into pre and post verb
     verb = None
@@ -217,3 +236,10 @@ def main(sysargs=None):
     # Finally call the subparser's main function with the processed args
     # and the extras which the preprocessor may have returned
     sys.exit(args.main(args) or 0)
+
+
+def main(sysargs=None):
+    try:
+        catkin_main(sysargs)
+    except KeyboardInterrupt:
+        print('Interrupted by user!')

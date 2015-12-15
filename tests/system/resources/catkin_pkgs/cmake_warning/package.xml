@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package>
+  <name>cmake_warning</name>
+  <version>0.1.0</version>
+  <description>This package produces a warning when configuring CMake.</description>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

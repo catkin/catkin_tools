@@ -17,6 +17,7 @@ from __future__ import print_function
 import datetime
 import os
 import re
+import subprocess
 
 from catkin_pkg.packages import find_packages
 
@@ -29,23 +30,6 @@ try:
     string_type = basestring
 except NameError:
     string_type = str
-
-
-class FakeLock(object):
-
-    """Fake lock used to mimic a Lock but without causing synchronization"""
-
-    def acquire(self, blocking=False):
-        return True
-
-    def release(self):
-        pass
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
 
 
 def getcwd(symlinks=True):
@@ -239,6 +223,38 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return recursive_depends
 
 
+def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive build dependants of a package which are also in
+    the ordered_packages
+
+    :param package: package for which the recursive depends should be calculated
+    :type package: :py:class:`catkin_pkg.package.Package`
+    :param ordered_packages: packages in the workspace, ordered topologically,
+        stored as a list of tuples of package path and package object
+    :type ordered_packages: list(tuple(package path,
+        :py:class:`catkin_pkg.package.Package`))
+    :returns: list of package path, package object tuples which are the
+        recursive build depends for the given package
+    :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    """
+    workspace_packages_by_name = dict([(pkg.name, (pth, pkg)) for pth, pkg in ordered_packages])
+    packages_to_check = set([package_name])
+    recursive_dependants = list()
+
+    for pth, pkg in reversed(ordered_packages):
+        # Break if this is one to check
+        if pkg.name == package_name:
+            break
+
+        # Check if this package depends on the target package
+        deps = get_recursive_build_depends_in_workspace(pkg, ordered_packages)
+        deps_names = [p.name for _, p in deps]
+        if package_name in deps_names:
+            recursive_dependants.insert(0, (pth, pkg))
+
+    return recursive_dependants
+
+
 def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()
@@ -277,7 +293,7 @@ def terminal_width_windows():
 
 def terminal_width_linux():
     """Returns the estimated width of the terminal on linux"""
-    width = os.popen('tput cols', 'r').readline()
+    width = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE, close_fds=False).stdout.readline()
 
     return int(width)
 
@@ -330,6 +346,9 @@ def slice_to_printed_length(string, length):
     if not matches:
         # If no matches, then set the lookup_array to a plain range
         lookup_array = range(len(string))
+    lookup_array.append(len(string))
+    if length > len(lookup_array):
+        return string
     return string[:lookup_array[length]] + clr('@|')
 
 
@@ -426,8 +445,12 @@ def wide_log(msg, **kwargs):
     :param truncate: If True, messages wider the then terminal will be truncated
     :type truncate: bool
     """
-    global wide_log_fn
-    wide_log_fn(msg, **kwargs)
+    try:
+        global wide_log_fn
+        wide_log_fn(msg, **kwargs)
+    except IOError:
+        # This happens when someone ctrl-c's during a log message
+        pass
 
 
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
@@ -454,3 +477,16 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
 def version_tuple(v):
     """Get an integer version tuple from a string."""
     return tuple(map(int, (str(v).split("."))))
+
+
+def mkdir_p(path):
+    """Equivalent to UNIX mkdir -p"""
+    if os.path.exists(path):
+        return
+    try:
+        return os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
