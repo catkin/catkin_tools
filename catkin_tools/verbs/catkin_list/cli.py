@@ -20,7 +20,6 @@ from catkin_tools.argument_parsing import add_context_args
 
 from catkin_tools.context import Context
 
-
 from catkin_pkg.packages import find_packages
 from catkin_pkg.package import InvalidPackage
 

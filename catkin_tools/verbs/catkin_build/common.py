@@ -18,12 +18,6 @@ import os
 import stat
 import sys
 
-from multiprocessing import cpu_count
-
-from catkin_tools.runner import run_command
-
-from .color import clr
-
 # Due to portability issues, it uses only POSIX-compliant shell features.
 # This means that there is no support for BASH-like arrays, and special
 # care needs to be taken in order to preserve argument atomicity when
