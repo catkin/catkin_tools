@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+  <name>pkg_with_roslint</name>
+  <version>0.0.0</version>
+  <description>The catkin_pkg_roslint package</description>
+  <maintainer email="jbohren@todo.todo">jbohren</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslint</build_depend>
+</package>

@@ -1,0 +1,11 @@
+<package>
+  <name>app_pkg</name>
+  <description>vanilla CMake</description>
+  <version>0.1.0</version>
+  <license>BSD</license>
+  <maintainer email="jbo@jhu.edu">jbo</maintainer>
+  <build_depend>lib_pkg</build_depend>
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

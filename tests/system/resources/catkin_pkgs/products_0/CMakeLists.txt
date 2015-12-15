@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(products_0)
+find_package(catkin REQUIRED)
+
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}_lib
+  CFG_EXTRAS extras.cmake)
+
+include_directories(include)
+
+add_library(${PROJECT_NAME}_lib lib.cpp)
+target_link_libraries(${PROJECT_NAME}_lib ${catkin_LIBRARIES})
+
+add_executable(main main.cpp)
+target_link_libraries(main ${PROJECT_NAME}_lib ${catkin_LIBRARIES})
