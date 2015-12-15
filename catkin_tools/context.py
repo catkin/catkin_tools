@@ -54,25 +54,28 @@ class Context(object):
     DEFAULT_DEVEL_SPACE = 'devel'
     DEFAULT_INSTALL_SPACE = 'install'
 
-    STORED_KEYS = ['extend_path',
-                   'source_space',
-                   'build_space',
-                   'devel_space',
-                   'install_space',
-                   'isolate_devel',
-                   'install',
-                   'isolate_install',
-                   'cmake_args',
-                   'make_args',
-                   'use_internal_make_jobserver',
-                   'catkin_make_args',
-                   'whitelist',
-                   'blacklist']
+    STORED_KEYS = [
+        'extend_path',
+        'source_space',
+        'build_space',
+        'devel_space',
+        'install_space',
+        'isolate_devel',
+        'install',
+        'isolate_install',
+        'cmake_args',
+        'make_args',
+        'use_internal_make_jobserver',
+        'catkin_make_args',
+        'whitelist',
+        'blacklist',
+    ]
 
     KEYS = STORED_KEYS + [
         'workspace',
         'profile',
-        'space_suffix']
+        'space_suffix',
+    ]
 
     @classmethod
     def load(

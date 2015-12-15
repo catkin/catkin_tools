@@ -100,7 +100,15 @@ add_custom_target(install)"""
         """Copy a static package into the workspace"""
         shutil.copytree(package_path, self.source_space)
 
-    def create_package(self, pkg_name, build_type='cmake', depends=None, build_depends=None, run_depends=None, test_depends=None):
+    def create_package(
+        self,
+        pkg_name,
+        build_type='cmake',
+        depends=None,
+        build_depends=None,
+        run_depends=None,
+        test_depends=None
+    ):
         """Add a package to be generated in this workspace."""
         self.packages[pkg_name] = self.Package(pkg_name, build_type, depends, build_depends, run_depends, test_depends)
 

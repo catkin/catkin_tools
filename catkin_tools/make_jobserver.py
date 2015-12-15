@@ -29,10 +29,10 @@ import time
 from catkin_tools.common import log
 from catkin_tools.common import version_tuple
 
-JOBSERVER_SUPPORT_MAKEFILE = b'''
+JOBSERVER_SUPPORT_MAKEFILE = b"""
 all:
 \techo $(MAKEFLAGS) | grep -- '--jobserver-fds'
-'''
+"""
 
 
 def memory_usage():

@@ -1,17 +1,12 @@
-
 from __future__ import print_function
 
 import os
-import shutil
 
 from math import floor
 
 from ...workspace_factory import workspace_factory
 
 from ....utils import in_temporary_directory
-from ....utils import assert_cmd_success
-from ....utils import assert_cmd_failure
-from ....utils import assert_files_exist
 from ....utils import catkin_success
 from ....utils import catkin_failure
 from ....utils import redirected_stdio
@@ -86,7 +81,7 @@ def test_build_dry_run():
     with redirected_stdio() as (out, err):
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
-                n_pkgs = create_tree_workspace(wf, build_type, 3)
+                create_tree_workspace(wf, build_type, 3)
                 wf.build()
                 assert catkin_success(BUILD + ['--dry-run'])
                 assert not os.path.exists('build')

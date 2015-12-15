@@ -1,24 +1,12 @@
-
 from __future__ import print_function
 
 import os
 import shutil
 
-from math import floor
-
 from ...workspace_factory import workspace_factory
 
-from ....utils import in_temporary_directory
-from ....utils import assert_cmd_success
-from ....utils import assert_cmd_failure
-from ....utils import assert_files_exist
 from ....utils import catkin_success
 from ....utils import catkin_failure
-from ....utils import redirected_stdio
-
-
-from ....workspace_assertions import assert_workspace_initialized
-from ....workspace_assertions import assert_no_warnings
 
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -29,7 +17,7 @@ CLEAN = ['clean', '--all', '--force']  # , '--no-notify', '--no-color', '--no-st
 
 def test_cmake_args():
     """Test passing CMake args to packages."""
-    with workspace_factory() as wf:
+    with workspace_factory():
         shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'cmake_args'), 'src')
 
         # cmake_args package requires all three vars to be set

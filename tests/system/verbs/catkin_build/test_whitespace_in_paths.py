@@ -1,9 +1,6 @@
 import os
 
-from catkin_tools.commands.catkin import main
-
 from ....utils import catkin_success
-from ....utils import catkin_failure
 
 from ...workspace_factory import workspace_factory
 
