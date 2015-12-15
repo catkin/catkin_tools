@@ -27,6 +27,12 @@ from .common import create_build_space
 from .common import generate_env_file
 from .common import get_python_install_dir
 
+# FileNotFoundError is only defined in Python3, but IOError can be used.
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
 MAKE_EXEC = which('make')
 CMAKE_EXEC = which('cmake')
 
