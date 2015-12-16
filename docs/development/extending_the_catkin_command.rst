@@ -1,8 +1,7 @@
 Extending the ``catkin`` command
 ================================
 
-The ``catkin`` command is setup to be easily extended using the ``setuptools`` notion of ``entry_points``, see: http://guide.python-distribute.org/creation.html#entry-points
-By using the ``entry_points`` extensions to the ``catkin`` command can be made within the ``catkin_tools`` package or an external package.
+The ``catkin`` command is designed to be easily extendable using the ``setuptools`` ``entry_points`` interface without modifying the ``catkin_tools`` project, itself.
 Regardless of what package the ``entry_point`` is defined in, it will be defined in the ``setup.py`` of that package, and will take this form:
 
 .. code-block:: python
