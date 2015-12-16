@@ -1,10 +1,10 @@
 ``catkin build`` -- Build Packages
 ==================================
 
-The ``build`` verb for the ``catkin`` command is used to build one or more  packages in a catkin workspace.
-Like most ``catkin`` verbs, the ``catkin build`` verb is context-aware. This means that it can be executed from within any directory contained by an *initialized* workspace.
+The ``build`` verb is used to build one or more packages in a catkin workspace.
+Like most verbs, ``build`` is context-aware. This means that it can be executed from within any directory contained by an *initialized* workspace.
 
-If a workspace is not yet initialized, ``catkin build`` can initialize it, but only if it is called from the workspace root and the default workspace structure is desired.
+If a workspace is not yet initialized, ``build`` can initialize it, but only if it is called from the workspace root and the default workspace structure is desired.
 
 Workspaces can also be built from arbitrary working directories if the user specifies the path to the workspace with the ``--workspace`` option.
 
@@ -26,26 +26,12 @@ Workspaces can also be built from arbitrary working directories if the user spec
 
 Basic Usage
 ^^^^^^^^^^^
-Consider a Catkin workspace with a **source space** populated with the
-following Catkin packages which have yet to be built:
-
-.. code-block:: bash
-
-    $ pwd
-    /tmp/path/to/my_catkin_ws
-
-    $ ls ./*
-    ./src:
-    catkin             console_bridge     genlisp            genpy
-    message_runtime    ros_comm           roscpp_core        std_msgs
-    common_msgs        gencpp             genmsg             message_generation
-    ros                ros_tutorials      rospack
 
 Previewing The Build
 --------------------
 
-Before actually building anything in the workspace, it is useful to preview which
-packages ``catkin build`` will build, and in what order. This can be done with the
+Before actually building anything in the workspace, it is useful to preview
+which packages will be built and in what order. This can be done with the
 ``--dry-run`` option:
 
 .. code-block:: bash
@@ -123,118 +109,11 @@ above are:
  * **metapackage** -- A package which contains no build products, but just groups
    other packages together for distribution
 
-Building Specific Packages
---------------------------
+Building a Workspace
+--------------------
 
-In addition to the usage above, the ``--dry-run`` option will show what the
-behavior of ``catkin build`` will be with various other options.
-For example, the following will happen when you specify a single package to
-build:
-
-.. code-block:: bash
-
-    $ catkin build roscpp_tutorials --dry-run
-    ....
-    Found '36' packages in 0.1 seconds.
-    Packages to be built:
-    - catkin               (catkin)
-    - genmsg               (catkin)
-    - gencpp               (catkin)
-    - genlisp              (catkin)
-    - genpy                (catkin)
-    - console_bridge       (cmake)
-    - cpp_common           (catkin)
-    - message_generation   (catkin)
-    - message_runtime      (catkin)
-    - rosbuild             (catkin)
-    - roscpp_traits        (catkin)
-    - roslang              (catkin)
-    - rospack              (catkin)
-    - roslib               (catkin)
-    - rostime              (catkin)
-    - roscpp_serialization (catkin)
-    - rosunit              (catkin)
-    - rosconsole           (catkin)
-    - std_msgs             (catkin)
-    - rosgraph_msgs        (catkin)
-    - xmlrpcpp             (catkin)
-    - roscpp               (catkin)
-    - roscpp_tutorials     (catkin)
-    Total packages: 23
-
-As shown above, only 23 packages (``roscpp_tutorials`` and its dependencies),
-of the total 36 packages would be built.
-
-Skipping Packages
------------------
-
-Suppose you built every package up to ``roscpp_tutorials``, but that package
-had a build error.
-After fixing the error, you could run the same build command again, but the
-``build`` verb provides an option to save time in this situation.
-If re-started from the beginning, none of the products of the dependencies of
-``roscpp_tutorials`` would be re-built, but it would still take some time for
-the underlying byuildsystem to verify that for each package.
-
-Those checks could be skipped, however, by jumping directly to a given package.
-You could use the ``--start-with`` option to continue the build where you left
-off after fixing the problem. (The following example uses the ``--dry-run``
-option again to preview the behavior):
-
-.. code-block:: bash
-
-    $ catkin build roscpp_tutorials --start-with roscpp_tutorials --dry-run
-    ....
-    Found '36' packages in 0.0 seconds.
-    Packages to be built:
-    (skip) catkin               (catkin)
-    (skip) genmsg               (catkin)
-    (skip) gencpp               (catkin)
-    (skip) genlisp              (catkin)
-    (skip) genpy                (catkin)
-    (skip) console_bridge       (cmake)
-    (skip) cpp_common           (catkin)
-    (skip) message_generation   (catkin)
-    (skip) message_runtime      (catkin)
-    (skip) rosbuild             (catkin)
-    (skip) roscpp_traits        (catkin)
-    (skip) roslang              (catkin)
-    (skip) rospack              (catkin)
-    (skip) roslib               (catkin)
-    (skip) rostime              (catkin)
-    (skip) roscpp_serialization (catkin)
-    (skip) rosunit              (catkin)
-    (skip) rosconsole           (catkin)
-    (skip) std_msgs             (catkin)
-    (skip) rosgraph_msgs        (catkin)
-    (skip) xmlrpcpp             (catkin)
-    (skip) roscpp               (catkin)
-    ------ roscpp_tutorials     (catkin)
-    Total packages: 23
-
-However, you should be careful when using the ``--start-with`` option, as
-``catkin build`` will assume that all dependencies leading up to that package
-have already been successfully built.
-
-If you're only interested in building a *single* package in a workspace, you
-can also use the ``--no-deps`` option along with a package name. This will
-skip all of the package's dependencies, build the given package, and then exit.
-
-.. code-block:: bash
-
-    $ catkin build roscpp_tutorials --no-deps roscpp_tutorials --dry-run
-    ....
-    Found '36' packages in 0.0 seconds.
-    Packages to be built:
-    - roscpp_tutorials     (catkin)
-    Total packages: 1
-
-Build Products
---------------
-
-At this point the workspace has not been modified, but once we tell the
-``build`` verb to actually build the workspace then directories for a **build
-space** and a **devel space** will be created:
+When no packages are given as arguments, ``catkin build`` builds the entire workspace.
+It automatically creates directories for a **build space** and a **devel space**:
 
 .. code-block:: bash
 
@@ -273,13 +152,7 @@ space** and a **devel space** will be created:
     [build] Finished.
     [build] Runtime: 3 minutes and 54.6 seconds
 
-Since no packages were given as arguments, ``catkin build`` built all of
-the packages in the workspace.
-
-As shown above, after the build finishes, we now have a **build space** with a
-folder containing the intermediate build products for each package and a
-**devel space** with an FHS layout into which all the final build products have
-been written.
+After the build finishes, the **build space** contains directories containing the intermediate build products for each package, and the **devel space** contains an FHS layout into which all the final build products are written.
 
 .. code-block:: bash
 
@@ -314,13 +187,228 @@ been written.
     ``catkin_make_isolated`` which would have an isolated FHS directory for
     each package in the **devel space**.
 
-Context-Aware Building
-^^^^^^^^^^^^^^^^^^^^^^
+Status Line
+-----------
 
-In addition to building all packages or specified packages with various dependency requirements,
-``catkin build`` can also determine the package containing the current working directory. This
-is equivalent to specifying the name of the package on the command line, and is
-done by passing the ``--this`` option to ``catkin build`` like the following:
+When running ``catkin build`` with default options, it displays a "live" status line similar to the following:
+
+.. code-block:: none
+
+    [build - 20.2] [18/34 complete] [4/4 jobs] [1 queued] [xmlrpcpp:make (66%) - 4.9] ...
+
+The status line stays at the bottom of the screen and displays the continuously-updated progress of the entire build as well as the active build jobs which are still running. It is composed of the following information:
+
+ * ``[build - <T>]`` -- The first block on the left indicates the total elapsed
+   build time ``<T>`` in seconds thus far.
+ * ``[<M>/<N> complete]``  --  The second block from the left indicates the
+   build progress in terms of the number of completed packages, ``<M>`` out of
+   the total number of packages to be built ``<N>``.
+ * ``[<M>/<N> jobs]`` --  The third block from the left indicates the number of
+   active total low-level jobs ``<M>`` out of the total number of low-level
+   workers ``<N>``.
+ * ``[<N> queued]`` --  The fourth block from the left indicates the number of
+   jobs ``<N>`` whose dependencies have already been satisfied and are ready to
+   be built.
+ * ``[<N> failed]`` --  The fifth block from the left indicates the number of
+   jobs ``<N>`` which have failed. This block only appears once one or more
+   jobs has failed.
+ * ``[<package>:<stage> (<P>%) - <T>]`` -- The remaining blocks show details on
+   the active jobs. These include the percent complete, ``<P>``, of the stage,
+   if available, as well as the time elapsed building the package, ``<T>``.
+
+When necessary, the status line can be disabled by passing the ``--no-status`` option to ``catkin build``.
+This is sometimes required when running ``catkin build`` from within a program that doesn't support the ASCII escape sequences required to reset and re-write the status line.
+
+Console Messages
+----------------
+
+Normally, unless an error occurs, the output from each package's build proces
+is collected but not printed to the console. All that is printed is a pair of
+messages designating the start and end of a package's build. This is formatted
+like the following for the ``genmsg`` package:
+
+.. code-block:: none
+
+    ...
+    Starting  >>> genmsg
+    ...
+    Finished  <<< genmsg   [ 0.1 seconds ]
+    ...
+
+Error messages are printed whenever a build job writes to ``stderr``.
+In such cases, the ``build`` verb will automatically print the captured ``stderr`` buffer under a ``Warnings`` header once the job has completed, similarly to below:
+
+.. code-block:: none
+
+    ...
+    ____________________________________________________________________________
+    Warnings   << rospack:make /path/to/my_catkin_ws/build/_logs/rospack/build.make.000.log
+    In file included from /usr/include/python2.7/Python.h:8:0,
+                     from /path/to/my_catkin_ws/src/rospack/src/rospack.cpp:71:
+    /usr/include/python2.7/pyconfig.h:1161:0: warning: "_POSIX_C_SOURCE" redefined [enabled by default]
+    /usr/include/features.h:164:0: note: this is the location of the previous definition
+    /usr/include/python2.7/pyconfig.h:1183:0: warning: "_XOPEN_SOURCE" redefined [enabled by default]
+    /usr/include/features.h:166:0: note: this is the location of the previous definition
+    ............................................................................
+    Finished  <<< rospack                     [ 11.7 seconds ]
+    ...
+
+Note that the first line displays the path to the interleaved log file, which persists until the build space is cleaned.
+Additionally, if a package fails, the output to ``stderr`` is printed under the ``Errors`` header.
+
+.. code-block:: none
+
+    ____________________________________________________________________________
+    Errors     << catkin_pkg_make_err:make /home/jbohren/ws/catkin_tools_test_ws/build/_logs/catkin_pkg_make_err/build.make.062.log
+    /home/jbohren/ws/catkin_tools_test_ws/src/catkin_pkg_make_err/main.cpp: In function ‘int main(int, char**)’:
+    /home/jbohren/ws/catkin_tools_test_ws/src/catkin_pkg_make_err/main.cpp:3:3: error: expected ‘,’ or ‘;’ before ‘return’
+    make[2]: *** [CMakeFiles/main.dir/main.cpp.o] Error 1
+    make[1]: *** [CMakeFiles/main.dir/all] Error 2
+    make: *** [all] Error 2
+    ............................................................................
+    Failed     << catkin_pkg_make_err:make     [ Exited with code 2 ]
+
+All of the messages from the underlying jobs can be shown when using the
+``-v`` or ``--verbose`` option. This will print the normal messages when a
+build job starts and finishes as well as the interleaved output to ``stdout``
+and ``stderr`` from each build command in a block.
+
+.. code-block:: none
+
+    Starting  >>> genmsg
+    Starting   >> genmsg:mkdir
+    Finished   << genmsg:mkdir
+    Starting   >> genmsg:envgen
+    Finished   << genmsg:envgen
+    Starting   >> genmsg:cmake
+    Subprocess  > genmsg:cmake `cd /path/to/my_catkin_ws/build/genmsg && /path/to/my_catkin_ws/build/genmsg/build_env.sh /usr/bin/cmake /path/to/my_catkin_ws/src/genmsg --no-warn-unused-cli -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install`
+    Output     << genmsg:cmake /path/to/my_catkin_ws/build/_logs/genmsg/build.cmake.000.log
+    Not searching for unused variables given on the command line.
+    Re-run cmake no build system arguments
+    -- The C compiler identification is GNU
+    -- The CXX compiler identification is GNU
+    -- Check for working C compiler: /usr/bin/gcc
+    -- Check for working C compiler: /usr/bin/gcc -- works
+    -- Detecting C compiler ABI info
+    -- Detecting C compiler ABI info - done
+    -- Check for working CXX compiler: /usr/bin/c++
+    -- Check for working CXX compiler: /usr/bin/c++ -- works
+    -- Detecting CXX compiler ABI info
+    -- Detecting CXX compiler ABI info - done
+    -- Using CATKIN_DEVEL_PREFIX: /path/to/my_catkin_ws/devel
+    -- Using CMAKE_PREFIX_PATH: /path/to/my_catkin_ws/smach/devel;/opt/ros/hydro
+    -- This workspace overlays: /path/to/my_catkin_ws/smach/devel;/opt/ros/hydro
+    -- Found PythonInterp: /usr/bin/python (found version "2.7.3")
+    -- Using PYTHON_EXECUTABLE: /usr/bin/python
+    -- Python version: 2.7
+    -- Using Debian Python package layout
+    -- Using CATKIN_ENABLE_TESTING: ON
+    -- Call enable_testing()
+    -- Using CATKIN_TEST_RESULTS_DIR: /path/to/my_catkin_ws/build/genmsg/test_results
+    -- Looking for include files CMAKE_HAVE_PTHREAD_H
+    -- Looking for include files CMAKE_HAVE_PTHREAD_H - found
+    -- Looking for pthread_create in pthreads
+    -- Looking for pthread_create in pthreads - not found
+    -- Looking for pthread_create in pthread
+    -- Looking for pthread_create in pthread - found
+    -- Found Threads: TRUE
+    -- Found gtest sources under '/usr/src/gtest': gtests will be built
+    -- catkin 0.5.90
+    -- Configuring done
+    -- Generating done
+    -- Build files have been written to: /path/to/my_catkin_ws/build/genmsg
+    Finished   << genmsg:cmake
+    Starting   >> genmsg:make
+    Subprocess  > genmsg:make `cd /path/to/my_catkin_ws/build/genmsg && /usr/bin/make --jobserver-fds=3,4 -j`
+    Output     << genmsg:make /path/to/my_catkin_ws/build/_logs/genmsg/build.make.000.log
+    /usr/bin/cmake -H/path/to/my_catkin_ws/src/genmsg -B/path/to/my_catkin_ws/build/genmsg --check-build-system CMakeFiles/Makefile.cmake 0
+    /usr/bin/cmake -E cmake_progress_start /path/to/my_catkin_ws/build/genmsg/CMakeFiles /path/to/my_catkin_ws/build/genmsg/CMakeFiles/progress.marks
+    /usr/bin/make -f CMakeFiles/Makefile2 all
+    make[1]: Entering directory `/path/to/my_catkin_ws/build/genmsg'
+    make[1]: Nothing to be done for `all'.
+    make[1]: Leaving directory `/path/to/my_catkin_ws/build/genmsg'
+    /usr/bin/cmake -E cmake_progress_start /path/to/my_catkin_ws/build/genmsg/CMakeFiles 0
+    Finished   << genmsg:make
+    Finished  <<< genmsg        [ 2.0 seconds ]
+
+Build Summary
+-------------
+
+At the end of each build, a brief build summary is printed to guarantee that
+anomalies aren't missed. This summary displays the total runtime, the number
+of successful jobs, the number of jobs which produced warnings, and the
+number of jobs which weren't attempted due to failed dependencies.
+
+.. code-block:: none
+
+    [build] Runtime: 1.9 seconds total.
+    [build] Summary: 4 of 7 jobs completed.
+    [build]   Warnings:  None.
+    [build]   Abandoned: 1 jobs were abandoned.
+    [build]   Failed:    2 jobs failed.
+
+Building Subsets of Packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Consider a Catkin workspace with a **source space** populated with the following Catkin packages which have yet to be built:
+
+.. code-block:: bash
+
+    $ pwd
+    /tmp/path/to/my_catkin_ws
+
+    $ ls ./*
+    ./src:
+    catkin             console_bridge     genlisp            genpy
+    message_runtime    ros_comm           roscpp_core        std_msgs
+    common_msgs        gencpp             genmsg             message_generation
+    ros                ros_tutorials      rospack
+
+
+Building Specific Packages
+--------------------------
+
+In addition to the usage above, the ``--dry-run`` option will show what the behavior of ``catkin build`` will be with various other options.
+For example, the following will happen when you specify a single package to build:
+
+.. code-block:: bash
+
+    $ catkin build roscpp_tutorials --dry-run
+    ....
+    Found '36' packages in 0.1 seconds.
+    Packages to be built:
+    - catkin               (catkin)
+    - genmsg               (catkin)
+    - gencpp               (catkin)
+    - genlisp              (catkin)
+    - genpy                (catkin)
+    - console_bridge       (cmake)
+    - cpp_common           (catkin)
+    - message_generation   (catkin)
+    - message_runtime      (catkin)
+    - rosbuild             (catkin)
+    - roscpp_traits        (catkin)
+    - roslang              (catkin)
+    - rospack              (catkin)
+    - roslib               (catkin)
+    - rostime              (catkin)
+    - roscpp_serialization (catkin)
+    - rosunit              (catkin)
+    - rosconsole           (catkin)
+    - std_msgs             (catkin)
+    - rosgraph_msgs        (catkin)
+    - xmlrpcpp             (catkin)
+    - roscpp               (catkin)
+    - roscpp_tutorials     (catkin)
+    Total packages: 23
+
+As shown above, only 23 packages (``roscpp_tutorials`` and its dependencies),
+of the total 36 packages would be built.
+
+Context-Aware Building
+----------------------
+
+In addition to building all packages or specified packages with various dependency requirements, ``catkin build`` can also determine the package containing the current working directory.
+This is equivalent to specifying the name of the package on the command line, and is done by passing the ``--this`` option to ``catkin build`` like the following:
 
 .. code-block:: bash
 
@@ -332,157 +420,63 @@ done by passing the ``--this`` option to ``catkin build`` like the following:
     - roscpp_tutorials     (catkin)
     Total packages: 1
 
-Controlling the Number of Build Jobs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Skipping Packages
+-----------------
 
-By default ``catkin build`` on a computer with ``N`` cores will build up to
-``N`` packages in parallel and will distribute ``N`` ``make`` jobs among them
-using an internal jobserver. If your platform doesn't support jobserver
-scheduling, ``catkin build`` will pass ``-jN -lN`` to ``make`` for each package.
+Suppose you built every package up to ``roscpp_tutorials``, but that package had a build error.
+After fixing the error, you could run the same build command again, but the ``build`` verb provides an option to save time in this situation.
+If re-started from the beginning, none of the products of the dependencies of ``roscpp_tutorials`` would be re-built, but it would still take some time for the underlying byuildsystem to verify that for each package.
 
-You can control the maximum number of packages allowed to build in parallel by
-using the ``-p`` or ``--parallel-packages`` option and you can change the
-number of ``make`` jobs available with the ``-j`` or ``--jobs`` option.
+Those checks could be skipped, however, by jumping directly to a given package.
+You could use the ``--start-with`` option to continue the build where you left off after fixing the problem. (The following example uses the ``--dry-run`` option again to preview the behavior):
 
-By default, these jobs options aren't passed to the underlying ``make``
-command. To disable the jobserver, you can use the ``--no-jobserver`` option, and
-you can pass flags directly to ``make`` with the ``--make-args`` option.
+.. code-block:: bash
 
-.. note::
+    $ catkin build roscpp_tutorials --start-with roscpp_tutorials --dry-run
+    ....
+    Found '36' packages in 0.0 seconds.
+    Packages to be built:
+    (skip) catkin               (catkin)
+    (skip) genmsg               (catkin)
+    (skip) gencpp               (catkin)
+    (skip) genlisp              (catkin)
+    (skip) genpy                (catkin)
+    (skip) console_bridge       (cmake)
+    (skip) cpp_common           (catkin)
+    (skip) message_generation   (catkin)
+    (skip) message_runtime      (catkin)
+    (skip) rosbuild             (catkin)
+    (skip) roscpp_traits        (catkin)
+    (skip) roslang              (catkin)
+    (skip) rospack              (catkin)
+    (skip) roslib               (catkin)
+    (skip) rostime              (catkin)
+    (skip) roscpp_serialization (catkin)
+    (skip) rosunit              (catkin)
+    (skip) rosconsole           (catkin)
+    (skip) std_msgs             (catkin)
+    (skip) rosgraph_msgs        (catkin)
+    (skip) xmlrpcpp             (catkin)
+    (skip) roscpp               (catkin)
+    ------ roscpp_tutorials     (catkin)
+    Total packages: 23
 
-    Jobs flags (``-jN`` and/or ``-lN``) can be passed directly to ``make`` by
-    giving them to ``catkin build``, but other ``make`` arguments need to be
-    passed to the ``--make-args`` option.
+However, you should be careful when using the ``--start-with`` option, as ``catkin build`` will assume that all dependencies leading up to that package have already been successfully built.
 
-Controlling Command-Line Output
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you're only interested in building a *single* package in a workspace, you can also use the ``--no-deps`` option along with a package name.
+This will skip all of the package's dependencies, build the given package, and then exit.
 
-Status Line
------------
+.. code-block:: bash
 
-While running ``catkin build`` with default options, you would have seen the
-"live" status lines similar to the following:
+    $ catkin build roscpp_tutorials --no-deps roscpp_tutorials --dry-run
+    ....
+    Found '36' packages in 0.0 seconds.
+    Packages to be built:
+    - roscpp_tutorials     (catkin)
+    Total packages: 1
 
-.. code-block:: none
-
-    [build - 5.9] [genmsg - 1.3] [message_runtime - 0.7] ...        [4/4 Active | 3/36 Completed]
-
-This status line stays at the bottom of the screen and displays the continuously-updated progress
-of the entire build as well as the active build jobs which are still running. It is composed
-of the following information:
-
- * **Total Build Time** -- The first block on the left, indicates the total
-   elapsed build time in seconds thus far.  Above, ``[build - 5.9]`` means that
-   the build has been running for a total of ``5.9`` seconds.
- * **Active Job Status** -- The next blocks show the currently active jobs with as
-   name of the package being built and the elapsed time for that job, in
-   seconds.  The above block like ``[genmsg - 1.3]`` means that the ``genmsg``
-   package is currently being built, and it has been building for ``1.3``
-   seconds.
- * **Active and Completed Counts** -- The final block, justified to the right,
-   is the number of packages being actively built out of the total allowed
-   parallel jobs (specified with the ``-p`` options) as well as the number of
-   completed packages out of the total. Above, the block ``[4/4 Active | 3/36
-   Completed]`` means that there are four out of four jobs active and three of
-   the total 36 packages to be built have been completed.
-
-This status line can be disabled by passing the ``--no-status`` option to ``catkin build``.
-
-Package Build Messages
-----------------------
-
-Normally, unless an error occurs, the output from each package's build proces
-is collected but not printed to the console. All that is printed is a pair of
-messages designating the start and end of a package's build. This is formatted
-like the following for the ``genmsg`` package:
-
-.. code-block:: none
-
-    Starting ==> genmsg
-    Finished <== genmsg [ 2.4 seconds ]
-
-However, if you would like to see more of the messages from the underlying
-buildsystem, you can invoke the ``-v`` or ``--verbose`` option.
-This will print the normal message when a package build starts and finished as
-well as the output of each build command in a block, once it finishes:
-
-.. code-block:: none
-
-    Starting ==> catkin
-
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' in '/path/to/my_catkin_ws/build/catkin'
-    -- The C compiler identification is Clang 5.0.0
-    -- The CXX compiler identification is Clang 5.0.0
-    -- Check for working C compiler: /usr/bin/cc
-    -- Check for working C compiler: /usr/bin/cc -- works
-    -- Detecting C compiler ABI info
-    -- Detecting C compiler ABI info - done
-    -- Check for working CXX compiler: /usr/bin/c++
-    -- Check for working CXX compiler: /usr/bin/c++ -- works
-    -- Detecting CXX compiler ABI info
-    -- Detecting CXX compiler ABI info - done
-    -- Using CATKIN_DEVEL_PREFIX: /path/to/my_catkin_ws/devel/catkin
-    -- Using CMAKE_PREFIX_PATH: /path/to/my_catkin_ws/install
-    -- This workspace overlays: /path/to/my_catkin_ws/install
-    -- Found PythonInterp: /usr/bin/python (found version "2.7.5")
-    -- Using PYTHON_EXECUTABLE: /usr/bin/python
-    -- Python version: 2.7
-    -- Using default Python package layout
-    -- Found PY_em: /Library/Python/2.7/site-packages/em.pyc
-    -- Using CATKIN_ENABLE_TESTING: ON
-    -- Call enable_testing()
-    -- Using CATKIN_TEST_RESULTS_DIR: /path/to/my_catkin_ws/build/catkin/test_results
-    -- Found gtest: gtests will be built
-    -- catkin 0.5.86
-    -- Configuring done
-    -- Generating done
-    -- Build files have been written to: /path/to/my_catkin_ws/build/catkin
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/local/bin/cmake /path/to/my_catkin_ws/src/catkin -DCATKIN_DEVEL_PREFIX=/path/to/my_catkin_ws/devel/catkin -DCMAKE_INSTALL_PREFIX=/path/to/my_catkin_ws/install' finished with return code '0'
-
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/catkin'
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make -j4 -l4' finished with return code '0'
-
-    [catkin]: ==> '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make install' in '/path/to/my_catkin_ws/build/catkin'
-    Install the project...
-    -- Install configuration: ""
-    ... truncated for brevity
-    [catkin]: <== '/path/to/my_catkin_ws/build/catkin/build_env.sh /usr/bin/make install' finished with return code '0'
-
-    Finished <== catkin [ 3.4 seconds ]
-
-.. note::
-
-    The printing of these command outputs maybe be interleaved with commands
-    from other package builds if more than one package is being built at the
-    same time.
-
-If you want to see the output from commands streaming to the screen, then you
-can use the ``-i`` or ``--interleave`` option.  This option will cause the
-output from commands to be pushed to the screen immediately, instead of
-buffering until the command finishes.  This ends up being pretty confusing, so
-when interleaved output is used ``catkin build`` prefixes each line with
-``[<package name>]:`` like this:
-
-.. code-block:: none
-
-    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/build_env.sh /usr/bin/make cmake_check_build_system' in '/Users/william/my_catkin_ws/build/roscpp_traits'
-    [ros_tutorials]: -- The CXX compiler identification is Clang 5.0.0
-    [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc
-    [roscpp_traits]: ==> '/Users/william/my_catkin_ws/build/roscpp_traits/build_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/roscpp_traits'
-    [rosbuild]: ==> '/Users/william/my_catkin_ws/build/rosbuild/build_env.sh /usr/bin/make -j4 -l4' in '/Users/william/my_catkin_ws/build/rosbuild'
-    [rosclean]: -- The C compiler identification is Clang 5.0.0
-    [ros_tutorials]: -- Check for working C compiler: /usr/bin/cc -- works
-    [ros_tutorials]: -- Detecting C compiler ABI info
-    [rosclean]: -- The CXX compiler identification is Clang 5.0.0
-    [rosclean]: -- Check for working C compiler: /usr/bin/cc
-
-.. note::
-
-    When you use ``-p 1`` and ``-v`` at the same time, ``-i`` is implicitly added.
-
-
-Running Tests Built in a Workspace
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Building and Running Tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Running tests for a given package typically is done by invoking a special ``make`` target like ``test`` or ``run_tests``.
 catkin packages all define the ``run_tests`` target which aggregates all types of tests and runs them together.
@@ -533,8 +527,23 @@ So if you want to check for failing tests, use the ``catkin_test_results`` comma
 
 The result code will be non-zero unless all tests passed.
 
+
+Advanced Options
+^^^^^^^^^^^^^^^^
+
+Temporarily Changing Build Flags
+--------------------------------
+
+While the build configuratoin flags are set and stored in the build context,
+it's possible to temporarily override or augment them when using the ``build``
+verb.
+
+.. code-block:: bash
+
+    $ catkin build --cmake-args -DCMAKE_C_FLAGS="-Wall -W -Wno-unused-parameter"
+
 Building With Warnings
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 It can sometimes be useful to compile with additional warnings enabled across your whole catkin workspace.
 To achieve this, use a command similar to this:
@@ -545,82 +554,29 @@ To achieve this, use a command similar to this:
 
 This command passes the ``-DCMAKE_C_FLAGS=...`` arugment to all invocations of ``cmake``.
 
-Debugging Build Errors
-^^^^^^^^^^^^^^^^^^^^^^
 
-As mentioned above, by default the output from each build is optimistically
-hidden to give a clean overview of the workspace build, but when there is a
-problem with a build a few things happen.
+Configuring Build Jobs
+----------------------
 
-First, the package with a failure prints the failing command's output to the
-screen between some enclosing lines:
+By default ``catkin build`` on a computer with ``N`` cores will build up to
+``N`` packages in parallel and will distribute ``N`` ``make`` jobs among them
+using an internal jobserver. If your platform doesn't support jobserver
+scheduling, ``catkin build`` will pass ``-jN -lN`` to ``make`` for each package.
 
-.. code-block:: none
+You can control the maximum number of packages allowed to build in parallel by
+using the ``-p`` or ``--parallel-packages`` option and you can change the
+number of ``make`` jobs available with the ``-j`` or ``--jobs`` option.
 
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
-    [ 66%] Built target rospack
-    make[1]: *** [CMakeFiles/rosstackexe.dir/all] Interrupt: 2
-    make[1]: *** [CMakeFiles/rospackexe.dir/all] Interrupt: 2
-    make: *** [all] Interrupt: 2
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'
+By default, these jobs options aren't passed to the underlying ``make``
+command. To disable the jobserver, you can use the ``--no-jobserver`` option, and
+you can pass flags directly to ``make`` with the ``--make-args`` option.
 
-And the status line is updated to reflect that that package has run into an
-issue by placing a ``!`` in front of it:
+.. note::
 
-.. code-block:: none
+    Jobs flags (``-jN`` and/or ``-lN``) can be passed directly to ``make`` by
+    giving them to ``catkin build``, but other ``make`` arguments need to be
+    passed to the ``--make-args`` option.
 
-    [build - 1.7] [!cpp_common] [!rospack] [genlisp - 0.3]        [1/1 Active | 10/23 Completed]
-
-Then the ``catkin build`` command waits for the rest of the currently still building packages to finish
-(without starting new package builds) and then summarizes the errors for you:
-
-.. code-block:: none
-
-    [build] There were '2' errors:
-
-    Failed to build package 'cpp_common' because the following command:
-
-        # Command run in directory: /path/to/my_catkin_ws/build/cpp_common
-        /path/to/my_catkin_ws/build/cpp_common/build_env.sh /usr/bin/make -j4 -l4
-
-    Exited with return code: -2
-
-    Failed to build package 'rospack' because the following command:
-
-        # Command run in directory: /path/to/my_catkin_ws/build/rospack
-        /path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4
-
-    Exited with return code: -2
-    Build summary:
-     Successful catkin
-     Successful genmsg
-     ...
-     Failed     cpp_common
-     Failed     rospack
-     Not built  roscpp_serialization
-     Not built  roscpp
-     ...
-
-Packages marked as `Not built` were requested, but not yet built because catkin stopped due to failed packages.
-
-To try to build as many requested packages as possible (instead of stopping after the first package failed),
-you can pass the ``--continue-on-failure`` option. Then the ``catkin build`` command will then continue building packages whose dependencies built successfully
-
-If you don't want to scroll back up to find the error amongst the other output,
-you can ``cat`` the whole build log out of the ``build_logs`` folder in the
-**build space**:
-
-.. code-block:: bash
-
-    $ cat build/build_logs/rospack.log
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make cmake_check_build_system' in '/path/to/my_catkin_ws/build/rospack'
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make cmake_check_build_system' finished with return code '0'
-    [rospack]: ==> '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' in '/path/to/my_catkin_ws/build/rospack'
-    [ 66%] Built target rospack
-    make[1]: *** [CMakeFiles/rosstackexe.dir/all] Interrupt: 2
-    make[1]: *** [CMakeFiles/rospackexe.dir/all] Interrupt: 2
-    make: *** [all] Interrupt: 2
-    [rospack]: <== '/path/to/my_catkin_ws/build/rospack/build_env.sh /usr/bin/make -j4 -l4' failed with return code '-2'
 
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -2,6 +2,9 @@ Catkin Command Line Tools
 =========================
 
 .. toctree::
+   :name: tocmain
+   :caption: Main Overview
+   :glob:
    :hidden:
    :maxdepth: 2
 
@@ -10,19 +13,47 @@ Catkin Command Line Tools
    mechanics
    config_summary
    cheat_sheet
+   build_types
    Troubleshooting <troubleshooting>
-   verbs/catkin_build
-   verbs/catkin_clean
-   verbs/catkin_config
-   verbs/catkin_create
-   verbs/catkin_init
-   verbs/catkin_list
-   verbs/catkin_locate
-   verbs/catkin_profile
-   Advanced: Shell support <advanced/catkin_shell_verbs>
-   Advanced: Verb Aliasing <advanced/verb_customization>
-   Advanced: Contributing Verbs <development/extending_the_catkin_command>
-.. TODO: Advanced: Workspace Chaining <advanced/workspace_chaining>
+
+.. toctree::
+   :name: tocverbs
+   :caption: Verb Details
+   :glob:
+   :hidden:
+   :maxdepth: 2
+
+   verbs/*
+
+.. toctree::
+   :name: tocadv
+   :caption: Advanced Usage
+   :glob:
+   :hidden:
+   :maxdepth: 2
+
+   Shell Support <advanced/catkin_shell_verbs>
+   Verb Aliasing <advanced/verb_customization>
+.. Workspace Chaining <advanced/workspace_chaining>
+
+.. toctree::
+   :name: tocdes
+   :caption: Design
+   :glob:
+   :hidden:
+   :maxdepth: 2
+
+   Execution Engine <advanced/job_executor>
+
+.. toctree::
+   :name: toccontrib
+   :caption: Contributing
+   :glob:
+   :hidden:
+   :maxdepth: 2
+
+   development/adding_build_types
+   Adding New Verbs <development/extending_the_catkin_command>
 
 This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces. 
 
@@ -38,6 +69,10 @@ This Python package provides command line tools for working with the catkin meta
 
 The ``catkin`` command
 ^^^^^^^^^^^^^^^^^^^^^^
+
+.. .. raw:: html
+..
+..   <script type="text/javascript" src="https://asciinema.org/a/1lsef4d23r6hxh5kn8vjcx0el.js" id="asciicast-1lsef4d23r6hxh5kn8vjcx0el" async></script>
 
 The ``catkin`` Command-Line Interface (CLI) tool is the single point of entry
 for most of the functionality provided by this package.
@@ -70,6 +105,7 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 - :doc:`create -- Create structures like Catkin packages <verbs/catkin_create>`
 - :doc:`init -- Initialize a catkin workspace <verbs/catkin_init>`
 - :doc:`list -- Find and list information about catkin packages in a workspace <verbs/catkin_list>`
+- :doc:`locate -- Get important workspace directory paths <verbs/catkin_locate>`
 - :doc:`profile -- Manage different named configuration profiles <verbs/catkin_profile>`
 
 Shell support in ``catkin`` command
