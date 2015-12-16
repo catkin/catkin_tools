@@ -23,7 +23,11 @@ from catkin_tools.utils import which
 this_dir = os.path.dirname(__file__)
 
 
-def _notify_osx(title, msg):
+def _notify_osx(title, msg, icon_image):
+    # Note: icon_image is unused on OS X. Maybe it would make more sense
+    # to pass a boolean `success' and then let the platform specific
+    # notification implementations decide how that translates to icons
+    # or what not.
     app_path = os.path.join(this_dir, 'resources', 'osx', 'catkin build.app')
     open_exec = which('open')
     if open_exec is None:
@@ -39,7 +43,7 @@ def _notify_osx(title, msg):
                      stderr=subprocess.PIPE)
 
 
-def _notify_linux(title, msg, icon_image='catkin_icon.png'):
+def _notify_linux(title, msg, icon_image):
     icon_path = os.path.join(this_dir, 'resources', 'linux', icon_image)
     notify_send_exec = which('notify-send')
     if notify_send_exec is None:
