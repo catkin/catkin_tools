@@ -449,8 +449,6 @@ def build_isolated_workspace(
     jobs = []
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
     for pkg_path, pkg in all_packages:
-        if pkg.name == 'catkin':
-            continue
         if pkg.name not in packages_to_be_built_names:
             continue
         # Ignore metapackages
@@ -459,7 +457,7 @@ def build_isolated_workspace(
 
         # Get actual execution deps
         deps = [p.name for _, p in get_cached_recursive_build_depends_in_workspace(
-            pkg, packages_to_be_built) if p.name != 'catkin']
+            pkg, packages_to_be_built)]
 
         # Create the job based on the build type
         build_type = get_build_type(pkg)

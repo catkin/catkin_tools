@@ -696,3 +696,21 @@ class Context(object):
             return os.path.join(self.install_space_abs, package.name)
         else:
             return self.install_space_abs
+
+    def package_dest_path(self, package):
+        if self.install:
+            if self.destdir is None:
+                return self.package_install_space(package)
+            else:
+                return os.path.join(
+                    self.destdir,
+                    self.package_install_space(package).lstrip(os.sep)
+                )
+        else:
+            return self.package_devel_space(package)
+
+    def package_final_path(self, package):
+        if self.install:
+            return self.package_install_space(package)
+        else:
+            return self.package_devel_space(package)
