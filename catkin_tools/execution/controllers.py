@@ -200,8 +200,13 @@ class ConsoleStatusController(threading.Thread):
         self.jobs = dict([(j.jid, j) for j in jobs])
 
         # Compute the max job id length when combined with stage labels
-        self.max_jid_length = 1 + \
-            max([len(jid) + max([len(s.label) for s in job.stages] or [0]) for jid, job in self.jobs.items()])
+        self.max_jid_length = 1
+        if len(self.jobs) > 0:
+            self.max_jid_length += max(
+                [len(jid) + max([len(s.label) for s in job.stages] or [0])
+                 for jid, job
+                 in self.jobs.items()]
+            )
 
     def run(self):
         pending_jobs = []

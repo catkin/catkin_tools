@@ -345,7 +345,7 @@ def slice_to_printed_length(string, length):
         current_index += len(m.group())
     if not matches:
         # If no matches, then set the lookup_array to a plain range
-        lookup_array = range(len(string))
+        lookup_array = list(range(len(string)))
     lookup_array.append(len(string))
     if length > len(lookup_array):
         return string

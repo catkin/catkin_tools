@@ -6,32 +6,46 @@
 language: generic
 matrix:
   include:
-    - python: 2.7
+    - dist: precise
+      python: 2.7
       language: python
       python: "2.7"
       os: linux
-      env: PYTHON=/usr/bin/python2.7
-    - python: 3.4
+      env: PYTHON=/usr/bin/python2.7 CATKIN_VERSION=groovy-devel
+    - dist: precise
+      python: 3.4
       language: python
       python: "3.4"
       os: linux
-      env: PYTHON=/usr/bin/python3.4
-    - python: 2
-      os: osx
-      env: PYTHON=/usr/bin/python
-    - python: 3
-      os: osx
-      env: PYTHON=/usr/local/bin/python3
+      env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=groovy-devel
+    - dist: trusty
+      python: 2.7
+      language: python
+      python: "2.7"
+      os: linux
+      env: PYTHON=/usr/bin/python2.7 CATKIN_VERSION=indigo-devel
+    - dist: trusty
+      python: 3.4
+      language: python
+      python: "3.4"
+      os: linux
+      env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=indigo-devel
+    - os: osx
+      python: 2
+      env: PYTHON=/usr/bin/python CATKIN_VERSION=indigo-devel
+    - os: osx
+      python: 3
+      env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
 before_install:
   - source .travis.before_install.bash
 install:
-  - pip install argparse catkin-pkg distribute PyYAML psutil
-  - pip install nose coverage flake8 mock --upgrade
+  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil
+  - pip install nose coverage flake8 mock trollius --upgrade
 before_script:
   - ./.travis.before_script.bash
   - pip install git+https://github.com/osrf/osrf_pycommon.git
   - pip install empy --upgrade
-  - git clone https://github.com/ros/catkin.git /tmp/catkin_source
+  - git clone https://github.com/ros/catkin.git /tmp/catkin_source -b $CATKIN_VERSION --depth 1
   - mkdir /tmp/catkin_source/build
   - pushd /tmp/catkin_source/build
   - cmake .. && make
