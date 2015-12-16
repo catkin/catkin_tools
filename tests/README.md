@@ -10,8 +10,41 @@ organized into different directories:
 
 ## Running Tests
 
-To run all tests and view the output, run the following in this directory:
+All tests can be run from the root of the repository.
+
+First, make sure the required test dependencies are installed:
+
+*Ubuntu* -- `sudo apt-get install cmake libgtest-dev build-essential python-setuptools python-pip`
+
+*OS X* -- `pip install setuptools`
+
+*Both Platforms*
 
 ```
-nosetests -s
+pip install argparse catkin-pkg distribute PyYAML psutil
+pip install nose coverage flake8 mock trollius empy --upgrade
+pip install git+https://github.com/osrf/osrf_pycommon.git
+```
+
+Second, build the Catkin CMake tool:
+
+```
+git clone https://github.com/ros/catkin.git /tmp/catkin_source -b indigo-devel --depth 1
+mkdir /tmp/catkin_source/build
+pushd /tmp/catkin_source/build
+cmake .. && make
+source devel/setup.bash
+popd
+```
+
+Finally, install `catkin_tools`:
+
+```
+python setup.py develop
+```
+
+To run all tests and view the output, run the following from the repository root:
+
+```
+python setup.py nosetests -s
 ```

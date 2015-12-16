@@ -245,8 +245,9 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     # Package install space path
     install_space = context.package_install_space(package)
 
-    # Get the actual install location
-    install_target = install_space if context.install else devel_space
+    # Get actual staging path
+    dest_path = context.package_dest_path(package)
+    final_path = context.package_final_path(package)
 
     # Create job stages
     stages = []
@@ -263,7 +264,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         # Create an environment file
         env_file_path = get_env_file_path(package, context)
         stages.append(FunctionStage(
-            'envgen',
+            'buildenvgen',
             create_env_file,
             package=package,
             context=context,
@@ -280,7 +281,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
                 CMAKE_EXEC,
                 pkg_dir,
                 '--no-warn-unused-cli',
-                '-DCMAKE_INSTALL_PREFIX=' + install_target]
+                '-DCMAKE_INSTALL_PREFIX=' + final_path]
              + context.cmake_args),
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
@@ -321,13 +322,13 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         'setupgen',
         generate_setup_file,
         context=context,
-        install_target=install_target))
+        install_target=dest_path))
 
     stages.append(FunctionStage(
         'envgen',
         generate_env_file,
         context=context,
-        install_target=install_target))
+        install_target=dest_path))
 
     return Job(
         jid=package.name,

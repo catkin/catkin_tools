@@ -33,7 +33,7 @@ _resultspace_env_cache = {}
 _resultspace_env_hooks_cache = {}
 
 
-def get_resultspace_environment(result_space_path, quiet=False, cached=True, strict=True):
+def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cached=True, strict=True):
     """Get the environemt variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This cmake command is used to be as portable as possible.
@@ -55,7 +55,7 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True, str
     env_hooks_path = os.path.join(result_space_path, 'etc', 'catkin', 'profile.d')
     if os.path.exists(env_hooks_path):
         env_hooks = [
-            md5(open(os.path.join(env_hooks_path, path)).read()).hexdigest()
+            md5(open(os.path.join(env_hooks_path, path)).read().encode('utf-8')).hexdigest()
             for path in os.listdir(env_hooks_path)]
     else:
         env_hooks = []
@@ -135,7 +135,9 @@ def get_resultspace_environment(result_space_path, quiet=False, cached=True, str
     env_dict = {}
 
     try:
-        for line in execute_process(command, cwd=os.getcwd()):
+        for line in execute_process(command, env=base_env, cwd=os.getcwd()):
+            if type(line) is bytes:
+                line = line.decode()
             if isinstance(line, string_type):
                 matches = env_regex.findall(line)
                 for (key, value) in matches:
