@@ -33,7 +33,7 @@ Build Stages
 ==============  ============  ==================================================
  ``mkdir``                    | Create package build space if it doesn't exist.
 ----------------------------  --------------------------------------------------
- ``envgen``                   | Generate environment setup file for building.
+ ``buildenvgen``              | Generate environment setup file for building.
 ----------------------------  --------------------------------------------------
  ``cmake``       ``check``    | Run CMake configure step **once** for the
                               | first build and the ``cmake_check_build_system``
@@ -48,6 +48,12 @@ Build Stages
 ----------------------------  --------------------------------------------------
  ``install`` `optional`       | Run the ``install`` target after building.
                               | This is only done with the ``--install`` option.
+----------------------------  --------------------------------------------------
+ ``setupgen``                 | Generate a ``setup.sh`` file to "source" the \
+                              | result space.
+----------------------------  --------------------------------------------------
+ ``envgen``                   | Generate an ``env.sh`` file for loading the \
+                              | result space's environment.
 ============================  ==================================================
 
 CMake
