@@ -120,11 +120,9 @@ def get_env_loaders(package, context):
             source_path = os.path.join(space, dep.name, 'env.sh')
             sources.append(source_path)
     else:
-        # Just source common install or devel space
-        source_path = os.path.join(
-            context.install_space_abs if context.install else context.devel_space_abs,
-            'env.sh')
-        sources = [source_path]  # if os.path.exists(source_path) else []
+        # Get the actual destination of this package
+        source_path = os.path.join(context.package_dest_path(package), 'env.sh')
+        sources = [source_path]
 
     return sources
 
@@ -134,16 +132,23 @@ def get_env_loader(package, context):
     based on a set of environments to load."""
 
     def load_env(base_env):
+        # Copy the base environment to extend
         job_env = dict(base_env)
+        # Get the paths to the env loaders
         env_loader_paths = get_env_loaders(package, context)
-        # print('Loading resultspace envs from: {}'.format(env_loader_paths))
+        # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
+        if context.destdir is not None:
+            job_env['_CATKIN_SETUP_DIR'] = context.package_dest_path(package)
+
         for env_loader_path in env_loader_paths:
+            # print(' - Loading resultspace env from: {}'.format(env_loader_path))
             resultspace_env = get_resultspace_environment(
                 os.path.split(env_loader_path)[0],
+                base_env=job_env,
                 quiet=True,
                 cached=True,
                 strict=False)
-            job_env = dict(job_env, **resultspace_env)
+            job_env.update(resultspace_env)
         return job_env
 
     return load_env
