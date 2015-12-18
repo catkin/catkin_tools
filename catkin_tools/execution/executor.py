@@ -33,7 +33,7 @@ def split(values, cond):
 
 
 @asyncio.coroutine
-def async_job(label, job, threadpool, event_queue, log_path):
+def async_job(verb, job, threadpool, event_queue, log_path):
     """Run a sequence of Stages from a Job and collect their output.
 
     :param job: A Job instance
@@ -83,7 +83,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
                     try:
                         stage.async_execute_process_kwargs['env'] = dict(
                             stage.async_execute_process_kwargs['env'], **job_env)
-                        protocol_type = stage.logger_factory(label, job.jid, stage.label, event_queue, log_path)
+                        protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
                         transport, logger = yield asyncio.From(
                             async_execute_process(
                                 protocol_type,
@@ -107,12 +107,12 @@ def async_job(label, job, threadpool, event_queue, log_path):
                 # Asynchronously yield until this command is  completed
                 retcode = yield asyncio.From(logger.complete)
             except:
-                logger = IOBufferLogger(label, job.jid, stage.label, event_queue, log_path)
+                logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
                 logger.err(str(traceback.format_exc()))
                 retcode = 3
 
         elif type(stage) is FunctionStage:
-            logger = IOBufferLogger(label, job.jid, stage.label, event_queue, log_path)
+            logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
             try:
                 # Asynchronously yield until this function is completed
                 retcode = yield asyncio.From(get_loop().run_in_executor(
@@ -145,6 +145,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
             stderr=logger.stderr_buffer,
             interleaved=logger.interleaved_buffer,
             logfile_filename=logger.unique_logfile_name,
+            repro=stage.get_repro(verb, job.jid),
             retcode=retcode))
 
     # Finally, return whether all stages of the job completed
@@ -153,7 +154,7 @@ def async_job(label, job, threadpool, event_queue, log_path):
 
 @asyncio.coroutine
 def execute_jobs(
-        label,
+        verb,
         jobs,
         event_queue,
         log_path,
@@ -223,7 +224,7 @@ def execute_jobs(
 
             # Start the job coroutine
             active_jobs.append(job)
-            active_job_fs.add(async_job(label, job, threadpool, event_queue, log_path))
+            active_job_fs.add(async_job(verb, job, threadpool, event_queue, log_path))
 
         # Report running jobs
         event_queue.put(ExecutionEvent(

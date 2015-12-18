@@ -20,6 +20,11 @@ import sys
 import time
 
 try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
+
+try:
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -47,6 +52,7 @@ from catkin_tools.context import Context
 import catkin_tools.execution.job_server as job_server
 
 from catkin_tools.jobs.job import get_build_type
+from catkin_tools.jobs.job import get_env_loader
 
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata
@@ -107,6 +113,8 @@ the --save-config argument. To see the current config, use the
     add = parser.add_argument
     add('--dry-run', '-n', action='store_true', default=False,
         help='List the packages which will be built with the given arguments without building them.')
+    add('--env', dest='build_env', metavar='PKGNAME', nargs=1,
+        help='Print the environment in which PKGNAME is built to stdout.')
     # What packages to build
     pkg_group = parser.add_argument_group('Packages', 'Control which packages get built.')
     add = pkg_group.add_argument
@@ -212,6 +220,13 @@ def dry_run(context, packages, no_deps, start_with):
         log(clr("{prefix}@{cf}{name:<" + max_name_len + "}@| (@{yf}{build_type}@|)")
             .format(prefix=clr('@!@{kf}(skip)@| ') if start_with else prefix, name=pkg.name, build_type=build_type))
     log("Total packages: " + str(len(packages_to_be_built)))
+
+
+def print_build_env(context, package):
+    # Load the environment used by this package for building
+    env = get_env_loader(package[0], context)(os.environ)
+    for k, v in env.items():
+        print('{}={}'.format(k, cmd_quote(v)), end=' ')
 
 
 def main(opts):
@@ -325,6 +340,10 @@ def main(opts):
     # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
+        return
+    # Print the build environment for a given package and leave the filesystem untouched
+    if opts.build_env:
+        print_build_env(ctx, opts.build_env)
         return
     # Now mark the build and devel spaces as catkin build's since dry run didn't return.
     mark_space_as_built_by(ctx.build_space_abs, 'catkin build')

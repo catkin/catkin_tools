@@ -258,30 +258,15 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         makedirs,
         path=build_space))
 
-    # Only use the env prefix for building if the develspace is isolated
-    env_prefix = []
-    if context.isolate_devel:
-        # Create an environment file
-        env_file_path = get_env_file_path(package, context)
-        stages.append(FunctionStage(
-            'buildenvgen',
-            create_env_file,
-            package=package,
-            context=context,
-            env_file_path=env_file_path))
-
-        env_prefix = [env_file_path]
-
     # CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
         stages.append(CommandStage(
             'cmake',
-            (env_prefix + [
-                CMAKE_EXEC,
-                pkg_dir,
-                '--no-warn-unused-cli',
-                '-DCMAKE_INSTALL_PREFIX=' + final_path]
+            ([CMAKE_EXEC,
+              pkg_dir,
+              '--no-warn-unused-cli',
+              '-DCMAKE_INSTALL_PREFIX=' + final_path]
              + context.cmake_args),
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
@@ -289,7 +274,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     else:
         stages.append(CommandStage(
             'check',
-            env_prefix + [MAKE_EXEC, 'cmake_check_build_system'],
+            [MAKE_EXEC, 'cmake_check_build_system'],
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
         ))
@@ -300,21 +285,21 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
             context.make_args + context.catkin_make_args)
         stages.append(CommandStage(
             'preclean',
-            env_prefix + [MAKE_EXEC, 'clean'] + make_args,
+            [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
         ))
 
     # Make command
     stages.append(CommandStage(
         'make',
-        env_prefix + [MAKE_EXEC] + handle_make_arguments(context.make_args),
+        [MAKE_EXEC] + handle_make_arguments(context.make_args),
         cwd=build_space
     ))
 
     # Make install command (always run on plain cmake)
     stages.append(CommandStage(
         'install',
-        env_prefix + [MAKE_EXEC, 'install'],
+        [MAKE_EXEC, 'install'],
         cwd=build_space))
 
     # Determine the location where the setup.sh file should be created

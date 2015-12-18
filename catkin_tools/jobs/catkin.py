@@ -60,40 +60,25 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         makedirs,
         path=build_space))
 
-    # Only use the env prefix for building if the develspace is isolated
-    env_prefix = []
-    if context.isolate_devel:
-        # Create an environment file
-        env_file_path = get_env_file_path(package, context)
-        stages.append(FunctionStage(
-            'envgen',
-            create_env_file,
-            package=package,
-            context=context,
-            env_file_path=env_file_path))
-
-        env_prefix = [env_file_path]
-
     # Construct CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
         stages.append(CommandStage(
             'cmake',
-            (env_prefix + [
-                CMAKE_EXEC,
-                pkg_dir,
-                '--no-warn-unused-cli',
-                '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-                '-DCMAKE_INSTALL_PREFIX=' + install_space]
+            ([CMAKE_EXEC,
+              pkg_dir,
+              '--no-warn-unused-cli',
+              '-DCATKIN_DEVEL_PREFIX=' + devel_space,
+              '-DCMAKE_INSTALL_PREFIX=' + install_space]
              + context.cmake_args),
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-            occupy_job=True
-        ))
+            occupy_job=True)
+        )
     else:
         stages.append(CommandStage(
             'check',
-            env_prefix + [MAKE_EXEC, 'cmake_check_build_system'],
+            [MAKE_EXEC, 'cmake_check_build_system'],
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
             occupy_job=True
@@ -105,7 +90,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             context.make_args + context.catkin_make_args)
         stages.append(CommandStage(
             'preclean',
-            env_prefix + [MAKE_EXEC, 'clean'] + make_args,
+            [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
         ))
 
@@ -114,7 +99,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         context.make_args + context.catkin_make_args)
     stages.append(CommandStage(
         'make',
-        env_prefix + [MAKE_EXEC] + make_args,
+        [MAKE_EXEC] + make_args,
         cwd=build_space,
     ))
 
@@ -122,7 +107,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     if context.install:
         stages.append(CommandStage(
             'install',
-            env_prefix + [MAKE_EXEC, 'install'],
+            [MAKE_EXEC, 'install'],
             cwd=build_space))
 
     return Job(
