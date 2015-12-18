@@ -155,6 +155,7 @@ class ConsoleStatusController(threading.Thread):
             show_active_status=True,
             show_summary=True,
             show_full_summary=False,
+            show_repro_cmd=True,
             active_status_rate=10.0,
             pre_start_time=None):
         """
@@ -171,6 +172,7 @@ class ConsoleStatusController(threading.Thread):
         :param show_active_status: Periodically show a status line displaying the active jobs
         :param show_summary: Show numbers of jobs that completed with errors and warnings
         :param show_full_summary: Show lists of jobs in each termination category
+        :param show_repro_cmd: Show the commands to reproduce failed stages
         :param active_status_rate: The rate in Hz at which the status line should be printed
         :param pre_start_time: The actual start time to report, if preprocessing was done
         """
@@ -191,6 +193,7 @@ class ConsoleStatusController(threading.Thread):
         self.show_active_status = show_active_status
         self.show_full_summary = show_full_summary
         self.show_summary = show_summary
+        self.show_repro_cmd = show_repro_cmd
         self.active_status_rate = active_status_rate
         self.pre_start_time = pre_start_time
 
@@ -447,6 +450,10 @@ class ConsoleStatusController(threading.Thread):
                         header_border = None
                         header_title = None
                         footer_border = None
+
+                if self.show_repro_cmd and len(lines) > 0:
+                    if event.data['repro'] is not None:
+                        lines.insert(0, clr('@!@{kf}{}@|').format(event.data['repro']))
 
                 # Print the output
                 if header_border:
