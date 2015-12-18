@@ -1,6 +1,11 @@
 
 import os
 
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
+
 from .io import IOBufferLogger
 from .io import IOBufferProtocol
 
@@ -13,10 +18,15 @@ class Stage(object):
     and how to do it.
     """
 
-    def __init__(self, label, logger_factory=IOBufferProtocol.factory, occupy_job=True):
+    def __init__(self, label, logger_factory=IOBufferProtocol.factory, occupy_job=True, repro=None):
         self.label = str(label)
         self.logger_factory = logger_factory
         self.occupy_job = occupy_job
+        self.repro = repro
+
+    def get_repro(self, verb, jid):
+        """Get a string which should reproduce this stage outside of the catkin command."""
+        return self.repro
 
 
 class CommandStage(Stage):
@@ -57,6 +67,13 @@ class CommandStage(Stage):
             # Capture stderr and stdout separately
             'stderr_to_stdout': stderr_to_stdout,
         }
+
+    def get_repro(self, verb, jid):
+        return 'cd {}; env "$(catkin {} --env {})" {}; cd -'.format(
+            self.async_execute_process_kwargs['cwd'],
+            verb,
+            jid,
+            ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']]))
 
 
 class FunctionStage(Stage):
