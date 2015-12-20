@@ -19,6 +19,7 @@ Catkin Command Line Tools
    verbs/catkin_list
    verbs/catkin_locate
    verbs/catkin_profile
+   Advanced: Shell support <advanced/catkin_shell_verbs>
    Advanced: Verb Aliasing <advanced/verb_customization>
    Advanced: Contributing Verbs <development/extending_the_catkin_command>
 .. TODO: Advanced: Workspace Chaining <advanced/workspace_chaining>
@@ -66,6 +67,12 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 - :doc:`init -- Initialize a catkin workspace <verbs/catkin_init>`
 - :doc:`list -- Find and list information about catkin packages in a workspace <verbs/catkin_list>`
 - :doc:`profile -- Manage different named configuration profiles <verbs/catkin_profile>`
+
+Shell support in ``catkin`` command
+-----------------------------------
+
+A bash/zsh user can use wrapper function, please read :doc:`development/catkin_shell_verbs`.
+
 
 Extending the ``catkin`` command
 --------------------------------
