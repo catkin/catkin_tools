@@ -18,6 +18,7 @@ import datetime
 import os
 import re
 import subprocess
+import sys
 
 from catkin_pkg.packages import find_packages
 
@@ -259,17 +260,30 @@ def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()
 
+unicode_error_printed = False
+unicode_sanitizer = re.compile(r'[^\x00-\x7F]+')
+
 
 def log(*args, **kwargs):
     """Wrapper for print, allowing for special handling where necessary"""
-    if 'end_with_escape' not in kwargs or kwargs['end_with_escape'] is True:
-        args = list(args)
-        escape_reset = clr('@|')
-        if escape_reset:
-            args.append(escape_reset)
-        if 'end_with_escape' in kwargs:
-            del kwargs['end_with_escape']
-    print(*args, **kwargs)
+    global unicode_error_printed
+    try:
+        print(*args, **kwargs)
+    except UnicodeEncodeError as err:
+        # Strip unicode characters from string args
+        sanitized_args = [unicode_sanitizer.sub('?', a)
+                          if type(a) in [str, unicode]
+                          else a
+                          for a in args]
+        print(*sanitized_args, **kwargs)
+
+        # Warn the user that
+        if not unicode_error_printed:
+            print('WARNING: Could not encode unicode characters. Please set the'
+                  ' PYTHONIOENCODING environment variable to see complete output.'
+                  ' (i.e. PYTHONIOENCODING=UTF-8)',
+                  file=sys.stderr)
+            unicode_error_printed = True
 
 
 def terminal_width_windows():
