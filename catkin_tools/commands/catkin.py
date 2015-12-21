@@ -102,7 +102,7 @@ def main(sysargs=None):
     add('--no-color', action='store_true', default=False,
         help='Forces catkin to not use color in the output, regardless of the detect terminal type.')
     add('--locate-extra-shell-verbs', action='store_true',
-        help='Returns the full path of extra shell verbs settings files')
+        help='Returns the full path of the file to source for extra shell verbs, then exits.')
 
     # Generate a list of verbs available
     verbs = list_verbs()
@@ -183,8 +183,9 @@ def main(sysargs=None):
     # Check for --locate-extra-shell-verbs
     for arg in sysargs:
         if arg == '--locate-extra-shell-verbs':
-            import inspect
-            print(os.path.abspath(os.path.join(inspect.stack()[-1][1],'../../','share/catkin_tools/catkin_shell_verbs.bash')))
+            this_dir = os.path.dirname(__file__)
+            shell_verbs = os.path.join(this_dir, '..', 'verbs', 'catkin_shell_verbs.bash')
+            print(os.path.normpath(shell_verbs))
             sys.exit(0)
 
     # Determine the verb, splitting arguments into pre and post verb

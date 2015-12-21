@@ -1,16 +1,17 @@
 Shell support in ``catkin`` command
 ===================================
 
-When you source the following file, you can use bash/zsh shell functions which provide added utility.
+You can use the command ``catkin --locate-extra-shell-verbs`` to locate the shell file for your installation.
+When you source the resulting file, you can use ``bash``/``zsh`` shell functions which provide added utility.
 
 .. code-block:: shell
 
-    . /opt/ros/indigo/etc/bash_completion.d/catkin_shell_verbs.{bash,zsh}
+    . `catkin --locate-extra-shell-verbs`
 
 Provided verbs are:
 
-- ``cd`` -- Change to package directory in source space
-- ``source`` -- Source the develspace or installspace of the containing workspace
+- ``catkin cd`` -- Change to package directory in source space.
+- ``catkin source`` -- Source the develspace or installspace of the containing workspace.
 
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -23,7 +24,7 @@ Change to package directory in source space with `cd` verb.
 
     ARGS are any valid catkin locate arguments
 
-The `source` verb sources the develspace or installspace of the containing workspace
+The `source` verb sources the develspace or installspace of the containing workspace.
 
 .. code-block:: text
 
@@ -33,4 +34,3 @@ The `source` verb sources the develspace or installspace of the containing works
 
     optional arguments:
       -w [/path/to/ws] Source setup.sh from given workspace.
-

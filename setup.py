@@ -65,9 +65,6 @@ def get_data_files(prefix):
     data_files.append((zsh_comp_dest,
                        ['completion/_catkin',
                         'completion/catkin_tools-completion.bash']))
-    data_files.append(('share/catkin_tools',
-                       ['scripts/catkin_shell_verbs.bash']))
-
     return data_files
 
 
@@ -96,6 +93,7 @@ setup(
         'catkin_tools': [
             'notifications/resources/linux/catkin_icon.png',
             'notifications/resources/linux/catkin_icon_red.png',
+            'verbs/catkin_shell_verbs.bash',
         ] + osx_notification_resources
     },
     data_files=get_data_files(prefix),

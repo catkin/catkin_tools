@@ -63,7 +63,7 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 - :doc:`build -- Build packages in a catkin workspace <verbs/catkin_build>`
 - :doc:`config -- Configure a catkin workspace's layout and settings <verbs/catkin_config>`
 - :doc:`clean -- Clean products generated in a catkin workspace <verbs/catkin_clean>`
-- :doc:`create -- Create structrures like Catkin packages <verbs/catkin_create>`
+- :doc:`create -- Create structures like Catkin packages <verbs/catkin_create>`
 - :doc:`init -- Initialize a catkin workspace <verbs/catkin_init>`
 - :doc:`list -- Find and list information about catkin packages in a workspace <verbs/catkin_list>`
 - :doc:`profile -- Manage different named configuration profiles <verbs/catkin_profile>`
@@ -71,11 +71,11 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 Shell support in ``catkin`` command
 -----------------------------------
 
-A bash/zsh user can use wrapper function, please read :doc:`development/catkin_shell_verbs`.
+If you are using ``bash`` or ``zsh``, then you can source an extra setup file to gain access to some additional verbs.
+For more information see: :doc:`advanced/catkin_shell_verbs`.
 
 
 Extending the ``catkin`` command
 --------------------------------
 
 If you would like to add a verb to the ``catkin`` command without modifying its source, please read :doc:`development/extending_the_catkin_command`.
-
