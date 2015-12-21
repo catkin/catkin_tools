@@ -54,25 +54,28 @@ class Context(object):
     DEFAULT_DEVEL_SPACE = 'devel'
     DEFAULT_INSTALL_SPACE = 'install'
 
-    STORED_KEYS = ['extend_path',
-                   'source_space',
-                   'build_space',
-                   'devel_space',
-                   'install_space',
-                   'isolate_devel',
-                   'install',
-                   'isolate_install',
-                   'cmake_args',
-                   'make_args',
-                   'use_internal_make_jobserver',
-                   'catkin_make_args',
-                   'whitelist',
-                   'blacklist']
+    STORED_KEYS = [
+        'extend_path',
+        'source_space',
+        'build_space',
+        'devel_space',
+        'install_space',
+        'isolate_devel',
+        'install',
+        'isolate_install',
+        'cmake_args',
+        'make_args',
+        'use_internal_make_jobserver',
+        'catkin_make_args',
+        'whitelist',
+        'blacklist',
+    ]
 
     KEYS = STORED_KEYS + [
         'workspace',
         'profile',
-        'space_suffix']
+        'space_suffix',
+    ]
 
     @classmethod
     def load(
@@ -200,7 +203,8 @@ class Context(object):
         catkin_make_args=None,
         space_suffix=None,
         whitelist=None,
-        blacklist=None
+        blacklist=None,
+        **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
 
@@ -241,6 +245,10 @@ class Context(object):
         :raises: ValueError if workspace or source space does not exist
         """
         self.__locked = False
+
+        # Check for unhandled context options
+        if len(kwargs) > 0:
+            print('Warning: Unhandled config context options: {}'.format(kwargs))
 
         # Validation is done on assignment
         # Handle *space assignment and defaults
@@ -325,7 +333,7 @@ class Context(object):
 
                     self.env_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
                 else:
-                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '')
+                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '').rstrip(':')
 
         # Add warnings based on conflicing CMAKE_PREFIX_PATH
         if self.cached_cmake_prefix_path and self.extend_path:
@@ -673,3 +681,18 @@ class Context(object):
     @blacklist.setter
     def blacklist(self, value):
         self.__blacklist = value
+
+    def package_build_space(self, package):
+        return os.path.join(self.build_space_abs, package.name)
+
+    def package_devel_space(self, package):
+        if self.isolate_devel:
+            return os.path.join(self.devel_space_abs, package.name)
+        else:
+            return self.devel_space_abs
+
+    def package_install_space(self, package):
+        if self.isolate_install:
+            return os.path.join(self.install_space_abs, package.name)
+        else:
+            return self.install_space_abs

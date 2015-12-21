@@ -43,7 +43,7 @@ def run_command(cmd, cwd=None):
                 left_over = lines[-1]
             try:
                 yield data.decode()
-            except UnicodeDecodeError as exc:
+            except UnicodeDecodeError:
                 yield unicode(data, errors='ignore')
     # Done
     yield p.returncode
