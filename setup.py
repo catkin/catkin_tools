@@ -126,6 +126,7 @@ setup(
             'list = catkin_tools.verbs.catkin_list:description',
             'locate = catkin_tools.verbs.catkin_locate:description',
             'profile = catkin_tools.verbs.catkin_profile:description',
+            'roslint = catkin_tools.verbs.catkin_roslint:description',
         ],
     },
     cmdclass={'install': PermissiveInstall},
