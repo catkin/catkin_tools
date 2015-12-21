@@ -141,9 +141,9 @@ def async_job(verb, job, threadpool, event_queue, log_path):
             job_id=job.jid,
             stage_label=stage.label,
             succeeded=stage_succeeded,
-            stdout=logger.stdout_buffer,
-            stderr=logger.stderr_buffer,
-            interleaved=logger.interleaved_buffer,
+            stdout=logger.get_stdout_log(),
+            stderr=logger.get_stderr_log(),
+            interleaved=logger.get_interleaved_log(),
             logfile_filename=logger.unique_logfile_name,
             repro=stage.get_repro(verb, job.jid),
             retcode=retcode))

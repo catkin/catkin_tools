@@ -27,6 +27,7 @@ from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
 from .job import create_env_file
@@ -101,6 +102,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         'make',
         [MAKE_EXEC] + make_args,
         cwd=build_space,
+        logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 
     # Make install command, if installing
@@ -108,7 +110,9 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         stages.append(CommandStage(
             'install',
             [MAKE_EXEC, 'install'],
-            cwd=build_space))
+            cwd=build_space,
+            logger_factory=CMakeMakeIOBufferProtocol.factory
+        ))
 
     return Job(
         jid=package.name,

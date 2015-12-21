@@ -436,16 +436,22 @@ class ConsoleStatusController(threading.Thread):
 
                 if self.show_buffered_stdout:
                     if len(event.data['interleaved']) > 0:
-                        lines = [l for l in event.data['interleaved'].decode(
-                            'utf-8').splitlines() if (self.show_compact_io is False or len(l.strip()) > 0)]
+                        lines = [
+                            l
+                            for l in event.data['interleaved'].splitlines()
+                            if (self.show_compact_io is False or len(l.strip()) > 0)
+                        ]
                     else:
                         header_border = None
                         header_title = None
                         footer_border = None
                 elif self.show_buffered_stderr:
                     if len(event.data['stderr']) > 0:
-                        lines = [l for l in event.data['stderr'].decode(
-                            'utf-8').splitlines() if (self.show_compact_io is False or len(l.strip()) > 0)]
+                        lines = [
+                            l
+                            for l in event.data['stderr'].splitlines()
+                            if (self.show_compact_io is False or len(l.strip()) > 0)
+                        ]
                     else:
                         header_border = None
                         header_title = None
