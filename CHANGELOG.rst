@@ -2,6 +2,24 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.1 (2015-12-20)
+------------------
+* Added some new shell based verbs, i.e. ``catkin cd`` and ``catkin source``.
+  `#244 <https://github.com/catkin/catkin_tools/pull/244>`_
+  `#192 <https://github.com/catkin/catkin_tools/pull/192>`_
+* Use a red icon when a build fails in the notifications.
+  `#246 <https://github.com/catkin/catkin_tools/pull/246>`_
+* Changed how and where shell completion files are installed.
+* Improvements to support ``DESTDIR``.
+  `#240 <https://github.com/catkin/catkin_tools/pull/240>`_
+* Added a cross tool check to warn users when they are using ``catkin_tools`` in conjunction with either ``catkin_make`` or ``catkin_make_isolated``.
+  `#214 <https://github.com/catkin/catkin_tools/pull/214>`_
+* Use ``/bin/bash`` as a fallback when the ``SHELL`` environment variable is not set.
+  `#239 <https://github.com/catkin/catkin_tools/pull/239>`_
+  `#243 <https://github.com/catkin/catkin_tools/pull/243>`_
+* Fix error when ``TERM`` doesn't match (through ``ssh`` for example).
+  `#232 <https://github.com/catkin/catkin_tools/pull/232>`_
+
 0.3.0 (2015-04-21)
 ------------------
 * Added support for architecture specific libraries directories, a la ``GNUInstallDirs``.

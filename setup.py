@@ -87,7 +87,7 @@ prefix = opts.prefix
 
 setup(
     name='catkin_tools',
-    version='0.3.0',
+    version='0.3.1',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
