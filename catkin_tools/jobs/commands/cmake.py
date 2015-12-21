@@ -15,8 +15,10 @@
 from __future__ import print_function
 
 import os
+import re
 
 from catkin_tools.execution.io import IOBufferProtocol
+from catkin_tools.execution.events import ExecutionEvent
 
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import sanitize
@@ -82,14 +84,14 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
 
     def color_lines(self, data):
         """Apply colorization rules to each line in data"""
-        decoded_data = data.decode('utf-8')
+        decoded_data = self._decode(data)
         # TODO: This will only work if all lines are received at once. Instead
         # of direclty splitting lines, we should buffer the data lines until
         # the last character is a line break
         lines = decoded_data.splitlines(True)  # Keep line breaks
         colored_lines = [self.colorize_cmake(l) for l in lines]
         colored_data = ''.join(colored_lines)
-        encoded_data = colored_data.encode('utf-8')
+        encoded_data = self._encode(colored_data)
         return encoded_data
 
     @classmethod
@@ -150,3 +152,24 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
                                   '@{cf}@_Call Stack (most recent call first):@|')
 
         return fmt(cline, reset=False)
+
+
+class CMakeMakeIOBufferProtocol(IOBufferProtocol):
+
+    """An IOBufferProtocol which parses CMake's progree prefixes and emits corresponding STAGE_PROGRESS events."""
+
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
+        super(CMakeMakeIOBufferProtocol, self).__init__(
+            label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
+
+    def on_stdout_received(self, data):
+        super(CMakeMakeIOBufferProtocol, self).on_stdout_received(data)
+
+        # Parse CMake Make completion progress
+        progress_matches = re.match('\[\s*([0-9]+)%\]', self._decode(data))
+        if progress_matches is not None:
+            self.event_queue.put(ExecutionEvent(
+                'STAGE_PROGRESS',
+                job_id=self.job_id,
+                stage_label=self.stage_label,
+                percent=str(progress_matches.groups()[0])))

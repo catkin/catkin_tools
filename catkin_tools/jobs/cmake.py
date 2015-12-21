@@ -26,6 +26,7 @@ from catkin_tools.common import mkdir_p
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
 from .job import create_env_file
@@ -293,14 +294,17 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     stages.append(CommandStage(
         'make',
         [MAKE_EXEC] + handle_make_arguments(context.make_args),
-        cwd=build_space
+        cwd=build_space,
+        logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 
     # Make install command (always run on plain cmake)
     stages.append(CommandStage(
         'install',
         [MAKE_EXEC, 'install'],
-        cwd=build_space))
+        cwd=build_space,
+        logger_factory=CMakeMakeIOBufferProtocol.factory
+    ))
 
     # Determine the location where the setup.sh file should be created
     stages.append(FunctionStage(

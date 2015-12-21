@@ -1,6 +1,5 @@
 
 import os
-import re
 import shutil
 
 from glob import glob
@@ -82,6 +81,30 @@ class IOBufferContainer(object):
             with open(self.unique_logfile_name + '.stderr', 'wb') as logfile:
                 logfile.write(self.stderr_buffer)
 
+    def get_interleaved_log(self):
+        """Get decoded interleaved log."""
+        return self._decode(self.interleaved_buffer)
+
+    def get_stdout_log(self):
+        """Get decoded stdout log."""
+        return self._decode(self.stdout_buffer)
+
+    def get_stderr_log(self):
+        """Get decoded stderr log."""
+        return self._decode(self.stderr_buffer)
+
+    def _encode(self, data):
+        """Encode a Python str into bytes.
+        :type data: str
+        """
+        return data.encode('utf-8')
+
+    def _decode(self, data):
+        """Decode bytes into Python str.
+        :type data: bytes
+        """
+        return data.decode('utf-8')
+
     def __del__(self):
         if self.is_open:
             self.close()
@@ -111,33 +134,39 @@ class IOBufferLogger(IOBufferContainer):
         """
         :type data: str
         """
-        encoded_data = data.encode('utf-8')
+        # Buffer the encoded data
+        encoded_data = self._encode(data)
         self.stdout_buffer += encoded_data
         self.interleaved_buffer += encoded_data
 
+        # Save the encoded data
+        self.log_file.write(encoded_data)
+
+        # Emit event with decoded Python str
         self.event_queue.put(ExecutionEvent(
             'STDOUT',
             job_id=self.job_id,
             stage_label=self.stage_label,
             data=data))
 
-        self.log_file.write(encoded_data)
-
     def err(self, data):
         """
         :type data: str
         """
-        encoded_data = data.encode('utf-8')
+        # Buffer the encoded data
+        encoded_data = self._encode(data)
         self.stderr_buffer += encoded_data
         self.interleaved_buffer += encoded_data
 
+        # Save the encoded data
+        self.log_file.write(encoded_data)
+
+        # Emit event with decoded Python str
         self.event_queue.put(ExecutionEvent(
             'STDERR',
             job_id=self.job_id,
             stage_label=self.stage_label,
             data=data))
-
-        self.log_file.write(encoded_data)
 
 
 class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
@@ -157,23 +186,16 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
 
     def on_stdout_received(self, data):
         """
-        :type data: utf-8 encoded bytes
+        :type data: encoded bytes
         """
         self.stdout_buffer += data
         self.interleaved_buffer += data
         self.log_file.write(data)
 
-        decoded_data = data.decode('utf-8')
+        # Get the decoded Python str
+        decoded_data = self._decode(data)
 
-        # TODO: This is CMake-specific, it should be defined in the CMake job
-        progress_matches = re.match('\[\s*([0-9]+)%\]', decoded_data)
-        if progress_matches is not None:
-            self.event_queue.put(ExecutionEvent(
-                'STAGE_PROGRESS',
-                job_id=self.job_id,
-                stage_label=self.stage_label,
-                percent=str(progress_matches.groups()[0])))
-
+        # Emit event with decoded Python str
         self.event_queue.put(ExecutionEvent(
             'STDOUT',
             job_id=self.job_id,
@@ -182,14 +204,16 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
 
     def on_stderr_received(self, data):
         """
-        :type data: utf-8 encoded bytes
+        :type data: encoded bytes
         """
         self.stderr_buffer += data
         self.interleaved_buffer += data
         self.log_file.write(data)
 
-        decoded_data = data.decode('utf-8')
+        # Get the decoded Python str
+        decoded_data = self._decode(data)
 
+        # Emit event with decoded Python str
         self.event_queue.put(ExecutionEvent(
             'STDERR',
             job_id=self.job_id,
