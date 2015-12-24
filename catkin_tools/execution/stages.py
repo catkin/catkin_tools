@@ -37,7 +37,16 @@ class CommandStage(Stage):
     :param command: A list of strings composing a system command
     :param protocol: A protocol class to use for this stage
 
-    Additional kwargs are passed to `async_execute_process`
+    :parma cmd: The command to run
+    :param cwd: The directory in which to run the command (default: os.getcwd())
+    :param env: The environment variable overrides. These update the loaded environment (default: {})
+    :param shell: Whether to run the command in "shell" mode, (if True, cmd should be a single string) (default: False)
+    :param emulate_tty: Support colored output (default: True)
+    :param stderr_to_stdout: Pipe stderr to stdout (default: False)
+
+    :param occupy_job: Whether this stage should wait for a worker from the job server (default: True)
+    :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
+
     """
 
     def __init__(
@@ -57,6 +66,8 @@ class CommandStage(Stage):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
         super(CommandStage, self).__init__(label, logger_factory, occupy_job)
 
+        self.env_overrides = env
+
         self.async_execute_process_kwargs = {
             'cmd': cmd,
             'cwd': cwd,
@@ -68,11 +79,29 @@ class CommandStage(Stage):
             'stderr_to_stdout': stderr_to_stdout,
         }
 
+    def set_base_env(self, base_env):
+        """Set the base environment for this stage, and update it with the env args passed to the constructor."""
+        self.async_execute_process_kwargs['env'] = dict(
+            base_env, **self.async_execute_process_kwargs['env'])
+
     def get_repro(self, verb, jid):
-        return 'cd {}; catkin {} --env {} | xargs env {}; cd -'.format(
+        """Get a command line to reproduce this stage."""
+
+        # Define the base env command
+        env_cmd = 'catkin {} --env {}'.format(verb, jid)
+
+        # Add additional env args
+        env_override_repro = ' '.join([
+            '{}={}'.format(k, cmd_quote(v))
+            for k, v in self.env_overrides.items()
+        ])
+        if len(env_override_repro) > 0:
+            env_cmd = 'echo "$({}) {}"'.format(env_cmd, env_override_repro)
+
+        # Return the full command
+        return 'cd {}; {} | xargs env {}; cd -'.format(
             self.async_execute_process_kwargs['cwd'],
-            verb,
-            jid,
+            env_cmd,
             ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']]))
 
 

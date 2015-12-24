@@ -81,9 +81,11 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                 # Initiate the command
                 while True:
                     try:
-                        stage.async_execute_process_kwargs['env'] = dict(
-                            stage.async_execute_process_kwargs['env'], **job_env)
+                        # Set the base environment for this stage
+                        stage.set_base_env(job_env)
+                        # Get the logger
                         protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
+                        # Start asynchroonous execution
                         transport, logger = yield asyncio.From(
                             async_execute_process(
                                 protocol_type,

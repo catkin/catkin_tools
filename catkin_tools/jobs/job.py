@@ -149,6 +149,7 @@ def get_env_loader(package, context):
                 cached=True,
                 strict=False)
             job_env.update(resultspace_env)
+
         return job_env
 
     return load_env
