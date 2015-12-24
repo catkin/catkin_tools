@@ -24,7 +24,11 @@ Catkin Command Line Tools
    Advanced: Contributing Verbs <development/extending_the_catkin_command>
 .. TODO: Advanced: Workspace Chaining <advanced/workspace_chaining>
 
-This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces.
+This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces. 
+
+.. note::
+
+  This package was announced in March 2015 and is still in alpha. The beta release is planned for `February 2016 <https://github.com/catkin/catkin_tools/milestones>`.
 
 .. note::
 
