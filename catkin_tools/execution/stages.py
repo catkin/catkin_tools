@@ -99,7 +99,7 @@ class CommandStage(Stage):
             env_cmd = 'echo "$({}) {}"'.format(env_cmd, env_override_repro)
 
         # Return the full command
-        return 'cd {}; {} | xargs env {}; cd -'.format(
+        return 'cd {}; {} | xargs -I %ENV% env %ENV% {}; cd -'.format(
             self.async_execute_process_kwargs['cwd'],
             env_cmd,
             ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']]))
