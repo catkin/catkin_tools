@@ -28,7 +28,7 @@ This Python package provides command line tools for working with the catkin meta
 
 .. note::
 
-  This package was announced in March 2015 and is still in alpha. The beta release is planned for `February 2016 <https://github.com/catkin/catkin_tools/milestones>`.
+  This package was announced in March 2015 and is still in beta. A second beta release is planned for `February 2016 <https://github.com/catkin/catkin_tools/milestones>`.
 
 .. note::
 
