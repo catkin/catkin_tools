@@ -222,11 +222,17 @@ def dry_run(context, packages, no_deps, start_with):
     log("Total packages: " + str(len(packages_to_be_built)))
 
 
-def print_build_env(context, package):
+def print_build_env(context, package_name):
+    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     # Load the environment used by this package for building
-    env = get_env_loader(package[0], context)(os.environ)
-    for k, v in env.items():
-        print('{}={}'.format(k, cmd_quote(v)), end=' ')
+    for pth, pkg in workspace_packages.items():
+        if pkg.name == package_name:
+            env = get_env_loader(pkg, context)(os.environ)
+            for k, v in env.items():
+                print('{}={}'.format(k, cmd_quote(v)), end=' ')
+            return 0
+    print('[build] Error: Package `{}` not in workspace.'.format(package_name))
+    return 1
 
 
 def main(opts):
@@ -343,8 +349,7 @@ def main(opts):
         return
     # Print the build environment for a given package and leave the filesystem untouched
     if opts.build_env:
-        print_build_env(ctx, opts.build_env)
-        return
+        return print_build_env(ctx, opts.build_env[0])
     # Now mark the build and devel spaces as catkin build's since dry run didn't return.
     mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
     mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')

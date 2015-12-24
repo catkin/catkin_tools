@@ -700,17 +700,17 @@ class Context(object):
     def package_dest_path(self, package):
         if self.install:
             if self.destdir is None:
-                return self.package_install_space(package)
+                return self.package_install_space(package.name)
             else:
                 return os.path.join(
                     self.destdir,
-                    self.package_install_space(package).lstrip(os.sep)
+                    self.package_install_space(package.name).lstrip(os.sep)
                 )
         else:
-            return self.package_devel_space(package)
+            return self.package_devel_space(package.name)
 
     def package_final_path(self, package):
         if self.install:
-            return self.package_install_space(package)
+            return self.package_install_space(package.name)
         else:
-            return self.package_devel_space(package)
+            return self.package_devel_space(package.name)
