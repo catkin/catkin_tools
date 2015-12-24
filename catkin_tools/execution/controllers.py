@@ -56,8 +56,8 @@ _color_translation_map = {
     "Starting >> {}:{}":
     fmt("Starting  @{gf} >>@| @{cf}{}@|:@{bf}{}@|"),
 
-    "Subprocess > {}:{} `cd {} && {}`":
-    fmt("Subprocess  @!@{gf}>@| @{cf}{}@|:@{bf}{}@| @!@{kf}`cd {} && {}`@|"),
+    "Subprocess > {}:{} `{}`":
+    fmt("Subprocess  @!@{gf}>@| @{cf}{}@|:@{bf}{}@| @!@{kf}`{}`@|"),
 
     "Finished << {}:{}":
     fmt("@!@{kf}Finished@|  @{gf} <<@| @{cf}{}@|:@{bf}{}@|"),
@@ -366,11 +366,10 @@ class ConsoleStatusController(threading.Thread):
 
             elif 'SUBPROCESS' == eid:
                 if self.show_stage_events:
-                    wide_log(clr('Subprocess > {}:{} `cd {} && {}`').format(
+                    wide_log(clr('Subprocess > {}:{} `{}`').format(
                         event.data['job_id'],
                         event.data['stage_label'],
-                        event.data['cwd'],
-                        ' '.join(event.data['cmd'])))
+                        event.data['stage_repro']))
 
             elif 'FINISHED_STAGE' == eid:
                 # Get the stage duration

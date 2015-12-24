@@ -102,6 +102,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                     'SUBPROCESS',
                     job_id=job.jid,
                     stage_label=stage.label,
+                    stage_repro=stage.get_repro(verb, job.jid),
                     **stage.async_execute_process_kwargs))
 
                 # Asynchronously yield until this command is  completed

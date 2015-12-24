@@ -69,7 +69,7 @@ class CommandStage(Stage):
         }
 
     def get_repro(self, verb, jid):
-        return 'cd {}; env "$(catkin {} --env {})" {}; cd -'.format(
+        return 'cd {}; catkin {} --env {} | xargs env {}; cd -'.format(
             self.async_execute_process_kwargs['cwd'],
             verb,
             jid,
