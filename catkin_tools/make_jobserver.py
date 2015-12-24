@@ -81,8 +81,6 @@ class _MakeJobServer:
         documentation)
         """
 
-        assert(_MakeJobServer._singleton is None)
-
         if not num_jobs:
             try:
                 num_jobs = cpu_count()
@@ -230,7 +228,8 @@ def initialize_jobserver(*args, **kwargs):
     memory usage exceeds this value
     """
 
-    assert(_MakeJobServer._singleton is None)
+    if _MakeJobServer._singleton is None:
+        log('@{yf}WARNING: Re-initializing jobserver. This might break running jobs.@|')
 
     # Check if the jobserver is supported
     supported = _test_support()
