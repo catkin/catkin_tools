@@ -115,8 +115,8 @@ def prepare_arguments(parser):
 def main(opts):
 
     try:
-        package_dest_path = opts.path
-        print('path: ' + str(opts.path))
+        # Get absolute path to directory containing package
+        package_dest_path = os.path.abspath(opts.path)
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
             target_path = os.path.join(package_dest_path, package_name)
