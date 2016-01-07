@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import csv
 import os
-import threading
 
 
 from catkin_tools.argument_parsing import handle_make_arguments
@@ -30,14 +28,29 @@ from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
-from .job import create_env_file
-from .job import get_env_file_path
 from .job import get_env_loader
-from .job import get_package_build_space_path
 from .job import makedirs
 
 
+CTR_NUKE_SH = """
+#!/usr/bin/env sh
+unset CATKIN_TEST_RESULTS_DIR
+unset ROS_TEST_RESULTS_DIR
+"""
+
+
+def ctr_nuke(logger, event_queue, prefix):
+    """Adds a shell script which clears the catkin and ros test results dir."""
+    ctr_nuke_path = os.path.join(prefix, 'etc', 'catkin', 'profile.d')
+    ctr_nuke_filename = os.path.join(ctr_nuke_path, '06-ctr-nuke.sh')
+    mkdir_p(ctr_nuke_path)
+    if not os.path.exists(ctr_nuke_filename):
+        with open(ctr_nuke_filename, 'w') as ctr_nuke_file:
+            ctr_nuke_file.write(CTR_NUKE_SH)
+    return 0
+
 # job factories
+
 
 def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean):
     """Job class for building catkin packages"""
@@ -61,9 +74,25 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         makedirs,
         path=build_space))
 
+    # Define test results directory
+    catkin_test_results_dir = os.path.join(build_space, 'test_results')
+    # Always override the CATKIN and ROS _TEST_RESULTS_DIR environment variables.
+    # This is in order to avoid cross talk due to parallel builds.
+    # This is only needed for ROS Hydro and earlier (the problem was addressed upstream in Indigo).
+    # See: https://github.com/catkin/catkin_tools/issues/139
+    ctr_env = {
+        'CATKIN_TEST_RESULTS_DIR': catkin_test_results_dir,
+        'ROS_TEST_RESULTS_DIR': catkin_test_results_dir
+    }
+
     # Construct CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
+        # Create a shell script which clears the catkin and ros test results environment variable.
+        stages.append(FunctionStage(
+            'ctr-nuke',
+            ctr_nuke,
+            prefix=(devel_space if not context.install else install_space)))
         stages.append(CommandStage(
             'cmake',
             ([CMAKE_EXEC,
@@ -102,6 +131,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         'make',
         [MAKE_EXEC] + make_args,
         cwd=build_space,
+        env=ctr_env if 'test' in make_args else {},
         logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 
