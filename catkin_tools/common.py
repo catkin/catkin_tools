@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import datetime
+import errno
 import os
 import re
 import subprocess
@@ -238,8 +239,6 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
         recursive build depends for the given package
     :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
     """
-    workspace_packages_by_name = dict([(pkg.name, (pth, pkg)) for pth, pkg in ordered_packages])
-    packages_to_check = set([package_name])
     recursive_dependants = list()
 
     for pth, pkg in reversed(ordered_packages):
@@ -269,7 +268,7 @@ def log(*args, **kwargs):
     global unicode_error_printed
     try:
         print(*args, **kwargs)
-    except UnicodeEncodeError as err:
+    except UnicodeEncodeError:
         # Strip unicode characters from string args
         sanitized_args = [unicode_sanitizer.sub('?', a)
                           if type(a) in [str, unicode]

@@ -210,8 +210,6 @@ def test_install_cmake():
                 os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
                 os.path.join('src/cmake_pkgs'))
 
-            tmpinstall_path = os.path.join(os.getcwd(), 'tmpinstall')
-
             assert catkin_success(['config', '--install'])
             assert catkin_success(BUILD)
             assert os.path.exists(os.path.join('install'))

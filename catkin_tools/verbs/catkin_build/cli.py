@@ -17,7 +17,6 @@ from __future__ import print_function
 import argparse
 import os
 import sys
-import time
 
 try:
     from shlex import quote as cmd_quote
@@ -66,7 +65,6 @@ from .color import clr
 
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
-from .build import topological_order_packages
 from .build import verify_start_with_option
 
 #
@@ -365,8 +363,6 @@ def main(opts):
     # Save the context as the configuration
     if opts.save_config:
         Context.save(ctx)
-
-    start = time.time()
 
     # Get parallel toplevel jobs
     try:

@@ -14,6 +14,7 @@
 
 """This modules implements the engine for building packages in parallel"""
 
+import operator
 import os
 import pkg_resources
 import stat
@@ -38,24 +39,23 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
-from catkin_pkg.package import parse_package
-
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
+from catkin_tools.common import remove_ansi_escape
+from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
 
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
-from catkin_tools.jobs.catkin import create_catkin_build_job
-from catkin_tools.jobs.cmake import create_cmake_build_job
 from catkin_tools.jobs.job import get_build_type
 
-from .color import clr
+from catkin_tools.notifications import notify
 
+from .color import clr
 
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
@@ -418,7 +418,7 @@ def build_isolated_workspace(
     # Also re-sort
     try:
         packages_to_be_built = topological_order_packages(dict(packages_to_be_built))
-    except AttributeError as err:
+    except AttributeError:
         log(clr("[build] @!@{rf}Error:@| The workspace packages have a circular "
                 "dependency, and cannot be built. Please run `catkin list "
                 "--deps` to determine the problematic package(s)."))

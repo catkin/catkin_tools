@@ -1,3 +1,16 @@
+# Copyright 2016 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from __future__ import print_function
 
@@ -17,7 +30,6 @@ from catkin_tools.common import log
 from catkin_tools.common import version_tuple
 
 from catkin_tools.terminal_color import ColorMapper
-
 
 mapper = ColorMapper()
 clr = mapper.clr
@@ -110,7 +122,7 @@ class JobServer(object):
 
         # Read all possible tokens from the pipe
         try:
-            tokens = os.read(cls._job_pipe[0], cls._max_jobs)
+            os.read(cls._job_pipe[0], cls._max_jobs)
         except OSError as e:
             if e.errno != errno.EINTR:
                 raise
@@ -350,7 +362,7 @@ def try_acquire_gen():
     """
     while True:
         # make sure we're observing load and memory maximums
-        if _check_conditions() and running_jobs() < max_jobs():
+        if JobServer._check_conditions() and running_jobs() < max_jobs():
             # try to get a job token
             token = JobServer._acquire()
             yield token

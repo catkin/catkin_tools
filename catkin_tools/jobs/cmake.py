@@ -13,26 +13,18 @@
 # limitations under the License.
 
 import os
-import shutil
-import stat
 import subprocess
 import sys
 import tempfile
 
-
 from catkin_tools.argument_parsing import handle_make_arguments
-
-from catkin_tools.common import mkdir_p
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
-from .job import create_env_file
-from .job import get_env_file_path
 from .job import get_env_loader
-from .job import get_package_build_space_path
 from .job import makedirs
 
 from catkin_tools.execution.jobs import Job
@@ -40,7 +32,6 @@ from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
 
 from catkin_tools.terminal_color import ColorMapper
-
 
 mapper = ColorMapper()
 clr = mapper.clr

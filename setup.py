@@ -48,7 +48,7 @@ def _resolve_prefix(prefix, type):
             return '/'
     elif type == 'zsh_comp':
         if sys.prefix.startswith(osx_system_prefix):
-            return '/usr'
+            return '/usr/local'
     else:
         raise ValueError('not supported type')
     return prefix

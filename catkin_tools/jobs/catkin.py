@@ -14,7 +14,6 @@
 
 import os
 
-
 from catkin_tools.argument_parsing import handle_make_arguments
 
 from catkin_tools.common import mkdir_p
@@ -30,7 +29,6 @@ from .commands.make import MAKE_EXEC
 
 from .job import get_env_loader
 from .job import makedirs
-
 
 CTR_NUKE_SH = """
 #!/usr/bin/env sh

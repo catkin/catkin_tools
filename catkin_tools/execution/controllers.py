@@ -1,3 +1,16 @@
+# Copyright 2016 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 try:
     # Python3
@@ -6,6 +19,8 @@ except ImportError:
     # Python2
     from Queue import Empty
 
+import os
+import operator
 import sys
 import threading
 import time
@@ -212,17 +227,14 @@ class ConsoleStatusController(threading.Thread):
             )
 
     def run(self):
-        pending_jobs = []
         queued_jobs = []
         active_jobs = []
         completed_jobs = {}
-        abandoned_jobs = []
         failed_jobs = []
         warned_jobs = []
 
         cumulative_times = dict()
         start_times = dict()
-        end_times = dict()
         active_stages = dict()
 
         start_time = self.pre_start_time or time.time()
@@ -300,11 +312,9 @@ class ConsoleStatusController(threading.Thread):
             eid = event.event_id
 
             if 'JOB_STATUS' == eid:
-                pending_jobs = event.data['pending']
                 queued_jobs = event.data['queued']
                 active_jobs = event.data['active']
                 completed_jobs = event.data['completed']
-                abandoned_jobs = event.data['abandoned']
 
                 # Check if all jobs have finished in some way
                 if all([len(event.data[t]) == 0 for t in ['pending', 'queued', 'active']]):
@@ -587,9 +597,11 @@ cd {location} && {cmd.cmd_str}; cd -
 @!@{kf}# Path to log:@|
 cat {log_dir}
 
-@{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package,
-                                                         log_dir=os.path.join(log_dir, error.package + '.log'),
-                                                         **error.data))
+@{rf}Exited@| with return code: @!{retcode}@|""").format(
+                package=error.package,
+                log_dir=os.path.join(log_dir, error.package + '.log'),
+                **error.data)
+            )
 
 
 def print_items_in_columns(items_in, number_of_columns):

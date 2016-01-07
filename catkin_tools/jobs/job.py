@@ -17,7 +17,6 @@ from __future__ import print_function
 import os
 import stat
 
-
 from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 
@@ -47,7 +46,6 @@ from .commands.cmake import CMAKE_EXEC
 # are expanded by calling `eval`.
 
 ENV_FILE_NAME = 'build_env.sh'
-
 
 ENV_FILE_TEMPLATE = """\
 #!/usr/bin/env sh
