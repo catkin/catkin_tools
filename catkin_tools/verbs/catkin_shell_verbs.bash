@@ -54,7 +54,11 @@ function catkin() {
   fi
 
   # Capture original args
-  ORIG_ARGS=(${@[*]})
+  if [[ "$SHELL_EXT" == "bash" ]]; then
+      ORIG_ARGS=$@
+  else
+      ORIG_ARGS=(${@[*]})
+  fi
 
   # Handle main arguments
   OPTSPEC=":hw-:"
