@@ -129,7 +129,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         'make',
         [MAKE_EXEC] + make_args,
         cwd=build_space,
-        env=ctr_env if 'test' in make_args else {},
+        env_overrides=ctr_env if 'test' in make_args else {},
         logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 

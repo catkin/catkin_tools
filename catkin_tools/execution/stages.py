@@ -45,45 +45,51 @@ class Stage(object):
 class CommandStage(Stage):
 
     """Job stage that describes a system command.
-
-    :param label: The label for the stage
-    :param command: A list of strings composing a system command
-    :param protocol: A protocol class to use for this stage
-
-    :parma cmd: The command to run
-    :param cwd: The directory in which to run the command (default: os.getcwd())
-    :param env: The environment variable overrides. These update the loaded environment (default: {})
-    :param shell: Whether to run the command in "shell" mode, (if True, cmd should be a single string) (default: False)
-    :param emulate_tty: Support colored output (default: True)
-    :param stderr_to_stdout: Pipe stderr to stdout (default: False)
-
-    :param occupy_job: Whether this stage should wait for a worker from the job server (default: True)
-    :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
-
     """
 
     def __init__(
             self,
             label,
             cmd,
-            cwd=os.getcwd(),
-            env={},
+            cwd=None,
+            env=None,
+            env_overrides=None,
             shell=False,
             emulate_tty=True,
             stderr_to_stdout=False,
             occupy_job=True,
             logger_factory=IOBufferProtocol.factory):
-        """ """
+        """
+        :param label: The label for the stage
+        :param command: A list of strings composing a system command
+        :param protocol: A protocol class to use for this stage
+
+        :parma cmd: The command to run
+        :param cwd: The directory in which to run the command (default: os.getcwd())
+        :param env: The base environment. (default: {})
+        :param env_overrides: The variables that override the base environment. (default: {})
+        :param shell: Whether to run the command in "shell" mode. (default: False)
+        :param emulate_tty: Support colored output (default: True)
+        :param stderr_to_stdout: Pipe stderr to stdout (default: False)
+
+        :param occupy_job: Whether this stage should wait for a worker from the job server (default: True)
+        :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
+        """
 
         if not type(cmd) in [list, tuple] or not all([type(s) is str for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
         super(CommandStage, self).__init__(label, logger_factory, occupy_job)
 
-        self.env_overrides = env
+        # Store environment overrides
+        self.env_overrides = env_overrides or {}
+
+        # Override base environment
+        env = env or {}
+        env.update(self.env_overrides)
 
         self.async_execute_process_kwargs = {
             'cmd': cmd,
-            'cwd': cwd,
+            'cwd': cwd or os.getcwd(),
             'env': env,
             'shell': shell,
             # Emulate tty for cli colors
@@ -92,10 +98,10 @@ class CommandStage(Stage):
             'stderr_to_stdout': stderr_to_stdout,
         }
 
-    def set_base_env(self, base_env):
-        """Set the base environment for this stage, and update it with the env args passed to the constructor."""
-        self.async_execute_process_kwargs['env'] = dict(
-            base_env, **self.async_execute_process_kwargs['env'])
+    def update_env(self, base_env):
+        """Update the environment for this stage with the env args passed to the constructor."""
+        self.async_execute_process_kwargs['env'].update(base_env)
+        self.async_execute_process_kwargs['env'].update(self.env_overrides)
 
     def get_repro(self, verb, jid):
         """Get a command line to reproduce this stage."""

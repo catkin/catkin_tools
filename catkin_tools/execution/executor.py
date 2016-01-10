@@ -93,8 +93,8 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                 # Initiate the command
                 while True:
                     try:
-                        # Set the base environment for this stage
-                        stage.set_base_env(job_env)
+                        # Update the environment for this stage (respects overrides)
+                        stage.update_env(job_env)
                         # Get the logger
                         protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
                         # Start asynchroonous execution
