@@ -445,9 +445,43 @@ def build_isolated_workspace(
             else:
                 break
 
+    # Populate .catkin file if we're not installing
+    # NOTE: This is done to avoid the Catkin CMake code from doing it,
+    # which isn't parallel-safe. Catkin CMake only modifies this file if
+    # it's package source path isn't found.
+    if not context.install:
+        wide_log("[build] Checking devel manifest...")
+        dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
+        # If the file exists, get the current paths
+        if os.path.exists(dot_catkin_file_path):
+            dot_catkin_paths = open(dot_catkin_file_path, 'r').read().split(';')
+        else:
+            dot_catkin_paths = []
+
+        # Update the list with the new packages (in topological order)
+        packages_to_be_built_paths = [
+            path
+            for path, pkg in packages_to_be_built
+        ]
+
+        new_dot_catkin_paths = [
+            os.path.join(context.source_space_abs, path)
+            for path, pkg in all_packages
+            if path in dot_catkin_paths or path in packages_to_be_built_paths
+        ]
+
+        # Write the new file if it's different, otherwise, leave it alone
+        if dot_catkin_paths == new_dot_catkin_paths:
+            wide_log("[build] Devel manifest is up to date.")
+        else:
+            wide_log("[build] Updating devel manifest.")
+            open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
+
+    # Get the names of all packages to be built
+    packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
+
     # Construct jobs
     jobs = []
-    packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
     for pkg_path, pkg in all_packages:
         if pkg.name not in packages_to_be_built_names:
             continue
