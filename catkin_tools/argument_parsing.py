@@ -74,6 +74,13 @@ def add_cmake_and_make_and_catkin_make_args(parser):
         help='Disable the internal GNU Make job server, and use an external one (like distcc, for example).')
 
     add = parser.add_mutually_exclusive_group().add_argument
+    add('--env-cache', dest='use_env_cache', default=None, action='store_true',
+        help='Re-use cached environment variables when re-sourcing a resultspace that has been '
+             'loaded at a different stage in the task.')
+    add('--no-env-cache', dest='use_env_cache', default=None, action='store_false',
+        help='Don\'t cache environment variables when re-sourcing the same resultspace.')
+
+    add = parser.add_mutually_exclusive_group().add_argument
     add('--cmake-args', metavar='ARG', dest='cmake_args', nargs='+', required=False, type=str, default=None,
         help='Arbitrary arguments which are passes to CMake. '
              'It collects all of following arguments until a "--" is read.')

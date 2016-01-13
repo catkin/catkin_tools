@@ -144,7 +144,7 @@ def get_env_loader(package, context):
                 os.path.split(env_loader_path)[0],
                 base_env=job_env,
                 quiet=True,
-                cached=True,
+                cached=context.use_env_cache,
                 strict=False)
             job_env.update(resultspace_env)
 
