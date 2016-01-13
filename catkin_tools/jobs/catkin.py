@@ -97,8 +97,8 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
               pkg_dir,
               '--no-warn-unused-cli',
               '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-              '-DCMAKE_INSTALL_PREFIX=' + install_space]
-             + context.cmake_args),
+              '-DCMAKE_INSTALL_PREFIX=' + install_space] +
+             context.cmake_args),
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
             occupy_job=True)
