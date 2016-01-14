@@ -137,134 +137,6 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
                      .format(start_with, ' '.join(packages)))
 
 
-def print_error_summary(errors, no_notify, log_dir):
-    wide_log(clr("[build] There were '" + str(len(errors)) + "' @!@{rf}errors@|:"))
-    if not no_notify:
-        notify("Build Failed", "there were {0} errors".format(len(errors)), icon_image='catkin_icon_red.png')
-    for error in errors:
-        if error.event_type == 'exit':
-            wide_log("""\
-Executor '{exec_id}' had an unhandled exception while processing package '{package}':
-
-{data[exc]}""".format(exec_id=error.executor_id + 1, **error.__dict__))
-        else:
-            wide_log(clr("""
-@{rf}Failed@| to build package '@{cf}{package}@|' because the following command:
-
-@!@{kf}# Command to reproduce:@|
-cd {location} && {cmd.cmd_str}; cd -
-
-@!@{kf}# Path to log:@|
-cat {log_dir}
-
-@{rf}Exited@| with return code: @!{retcode}@|""").format(package=error.package,
-                                                         log_dir=os.path.join(log_dir, error.package + '.log'),
-                                                         **error.data))
-
-
-def print_items_in_columns(items_in, number_of_columns):
-    number_of_items_in_line = 0
-    line_template = "{}" * number_of_columns
-    line_items = []
-    items = list(items_in)
-    while items:
-        line_items.append(items.pop(0))
-        number_of_items_in_line += 1
-        if number_of_items_in_line == number_of_columns:
-            wide_log(line_template.format(*line_items))
-            line_items = []
-            number_of_items_in_line = 0
-    if line_items:
-        wide_log(("{}" * len(line_items)).format(*line_items))
-
-
-def print_build_summary(context, packages_to_be_built, completed_packages, failed_packages):
-    # Calculate the longest package name
-    max_name_len = max([len(pkg.name) for _, pkg in context.packages])
-
-    def get_template(template_name, column_width):
-        templates = {
-            'successful': " @!@{gf}Successful@| @{cf}{package:<" + str(column_width) + "}@|",
-            'failed': " @!@{rf}Failed@|     @{cf}{package:<" + str(column_width) + "}@|",
-            'not_built': " @!@{kf}Not built@|  @{cf}{package:<" + str(column_width) + "}@|",
-        }
-        return templates[template_name]
-
-    # Setup templates for comparison
-    successful_template = get_template('successful', max_name_len)
-    failed_template = get_template('failed', max_name_len)
-    not_built_template = get_template('not_built', max_name_len)
-    # Calculate the maximum _printed_ length for each template
-    faux_package_name = ("x" * max_name_len)
-    templates = [
-        remove_ansi_escape(clr(successful_template).format(package=faux_package_name)),
-        remove_ansi_escape(clr(failed_template).format(package=faux_package_name)),
-        remove_ansi_escape(clr(not_built_template).format(package=faux_package_name)),
-    ]
-    # Calculate the longest column using the longest template
-    max_column_len = max([len(template) for template in templates])
-    # Calculate the number of columns
-    number_of_columns = (terminal_width() / max_column_len) or 1
-
-    successfuls = {}
-    faileds = {}
-    not_builts = {}
-    non_whitelisted = {}
-    blacklisted = {}
-
-    for (_, pkg) in context.packages:
-        if pkg.name in context.blacklist:
-            blacklisted[pkg.name] = clr(not_built_template).format(package=pkg.name)
-        elif len(context.whitelist) > 0 and pkg.name not in context.whitelist:
-            non_whitelisted[pkg.name] = clr(not_built_template).format(package=pkg.name)
-        elif pkg.name in completed_packages:
-            successfuls[pkg.name] = clr(successful_template).format(package=pkg.name)
-        else:
-            if pkg.name in failed_packages:
-                faileds[pkg.name] = clr(failed_template).format(package=pkg.name)
-            else:
-                not_builts[pkg.name] = clr(not_built_template).format(package=pkg.name)
-
-    # Combine successfuls and not_builts, sort by key, only take values
-    wide_log("")
-    wide_log("Build summary:")
-    combined = dict(successfuls)
-    combined.update(not_builts)
-    non_failed = [v for k, v in sorted(combined.items(), key=operator.itemgetter(0))]
-    print_items_in_columns(non_failed, number_of_columns)
-
-    # Print out whitelisted packages
-    if len(non_whitelisted) > 0:
-        wide_log("")
-        wide_log("Non-Whitelisted Packages:")
-        non_whitelisted_list = [v for k, v in sorted(non_whitelisted.items(), key=operator.itemgetter(0))]
-        print_items_in_columns(non_whitelisted_list, number_of_columns)
-
-    # Print out blacklisted packages
-    if len(blacklisted) > 0:
-        wide_log("")
-        wide_log("Blacklisted Packages:")
-        blacklisted_list = [v for k, v in sorted(blacklisted.items(), key=operator.itemgetter(0))]
-        print_items_in_columns(blacklisted_list, number_of_columns)
-
-    # Faileds only, sort by key, only take values
-    failed = [v for k, v in sorted(faileds.items(), key=operator.itemgetter(0))]
-    if len(failed) > 0:
-        wide_log("")
-        wide_log("Failed packages:")
-        print_items_in_columns(failed, number_of_columns)
-    else:
-        wide_log("")
-        wide_log("All packages built successfully.")
-
-    wide_log("")
-    wide_log(clr("[build] @!@{gf}Successfully@| built '@!@{cf}{0}@|' packages, "
-                 "@!@{rf}failed@| to build '@!@{cf}{1}@|' packages, "
-                 "and @!@{kf}did not try to build@| '@!@{cf}{2}@|' packages.").format(
-        len(successfuls), len(faileds), len(not_builts)
-    ))
-
-
 def build_isolated_workspace(
     context,
     packages=None,
@@ -491,6 +363,9 @@ def build_isolated_workspace(
             'build',
             ['package', 'packages'],
             jobs,
+            [pkg.name for _, pkg in context.packages],
+            [p for p in context.whitelist],
+            [p for p in context.blacklist],
             event_queue,
             show_notifications=not no_notify,
             show_active_status=not no_status,
