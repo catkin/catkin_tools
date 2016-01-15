@@ -111,8 +111,9 @@ the --save-config argument. To see the current config, use the
     add = parser.add_argument
     add('--dry-run', '-n', action='store_true', default=False,
         help='List the packages which will be built with the given arguments without building them.')
-    add('--env', dest='build_env', metavar='PKGNAME', nargs=1,
+    add('--get-env', dest='get_env', metavar='PKGNAME', nargs=1,
         help='Print the environment in which PKGNAME is built to stdout.')
+
     # What packages to build
     pkg_group = parser.add_argument_group('Packages', 'Control which packages get built.')
     add = pkg_group.add_argument
@@ -345,9 +346,11 @@ def main(opts):
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
+
     # Print the build environment for a given package and leave the filesystem untouched
-    if opts.build_env:
-        return print_build_env(ctx, opts.build_env[0])
+    if opts.get_env:
+        return print_build_env(ctx, opts.get_env[0])
+
     # Now mark the build and devel spaces as catkin build's since dry run didn't return.
     mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
     mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')

@@ -42,8 +42,8 @@ class Stage(object):
         self.occupy_job = occupy_job
         self.repro = repro
 
-    def get_repro(self, verb, jid):
-        """Get a string which should reproduce this stage outside of the catkin command."""
+    def get_reproduction_cmd(self, verb, jid):
+        """Get a command line to reproduce this stage with the proper environment."""
         return self.repro
 
 
@@ -108,25 +108,31 @@ class CommandStage(Stage):
         self.async_execute_process_kwargs['env'].update(base_env)
         self.async_execute_process_kwargs['env'].update(self.env_overrides)
 
-    def get_repro(self, verb, jid):
-        """Get a command line to reproduce this stage."""
+    def get_reproduction_cmd(self, verb, jid):
+        """Get a command line to reproduce this stage with the proper environment."""
 
         # Define the base env command
-        env_cmd = 'catkin {} --env {}'.format(verb, jid)
+        get_env_cmd = 'catkin {} --get-env {}'.format(verb, jid)
 
         # Add additional env args
-        env_override_repro = ' '.join([
+        env_overrides_formatted = ' '.join([
             '{}={}'.format(k, cmd_quote(v))
             for k, v in self.env_overrides.items()
         ])
-        if len(env_override_repro) > 0:
-            env_cmd = 'echo "$({}) {}"'.format(env_cmd, env_override_repro)
+
+        # Define the actual command to reproduce
+        cmd_str = ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']])
+
+        # Define the command to run the subcommand
+        env_cmd = 'catkin env -si {} {}'.format(
+            env_overrides_formatted,
+            cmd_str)
 
         # Return the full command
-        return 'cd {}; {} | xargs -I %ENV% env %ENV% {}; cd -'.format(
+        return 'cd {}; {} | {}; cd -'.format(
             self.async_execute_process_kwargs['cwd'],
-            env_cmd,
-            ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']]))
+            get_env_cmd,
+            env_cmd)
 
 
 class FunctionStage(Stage):

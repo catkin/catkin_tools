@@ -116,7 +116,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                     'SUBPROCESS',
                     job_id=job.jid,
                     stage_label=stage.label,
-                    stage_repro=stage.get_repro(verb, job.jid),
+                    stage_repro=stage.get_reproduction_cmd(verb, job.jid),
                     **stage.async_execute_process_kwargs))
 
                 # Asynchronously yield until this command is  completed
@@ -160,7 +160,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
             stderr=logger.get_stderr_log(),
             interleaved=logger.get_interleaved_log(),
             logfile_filename=logger.unique_logfile_name,
-            repro=stage.get_repro(verb, job.jid),
+            repro=stage.get_reproduction_cmd(verb, job.jid),
             retcode=retcode))
 
     # Finally, return whether all stages of the job completed
