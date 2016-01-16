@@ -20,11 +20,6 @@ import os
 import sys
 
 try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
-
-try:
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -46,6 +41,7 @@ from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import format_env_dict
 
 from catkin_tools.context import Context
 
@@ -230,11 +226,11 @@ def print_build_env(context, package_name):
     # Load the environment used by this package for building
     for pth, pkg in workspace_packages.items():
         if pkg.name == package_name:
-            env = get_env_loader(pkg, context)(os.environ)
-            for k, v in env.items():
-                print('{}={}'.format(k, cmd_quote(v)), end=' ')
+            environ = get_env_loader(pkg, context)(os.environ)
+            print(format_env_dict(environ))
             return 0
-    print('[build] Error: Package `{}` not in workspace.'.format(package_name))
+    print('[build] Error: Package `{}` not in workspace.'.format(package_name),
+          file=sys.stderr)
     return 1
 
 

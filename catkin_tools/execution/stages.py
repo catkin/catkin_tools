@@ -14,10 +14,7 @@
 
 import os
 
-try:
-    basestring
-except NameError:
-    basestring = str
+from catkin_tools.common import string_type
 
 try:
     from shlex import quote as cmd_quote
@@ -81,7 +78,7 @@ class CommandStage(Stage):
         :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
         """
 
-        if not type(cmd) in [list, tuple] or not all([isinstance(s, basestring) for s in cmd]):
+        if not type(cmd) in [list, tuple] or not all([isinstance(s, string_type) for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
         super(CommandStage, self).__init__(label, logger_factory, occupy_job)
 

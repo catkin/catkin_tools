@@ -19,25 +19,25 @@ import re
 import sys
 
 from shlex import split as cmd_split
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
 
 from osrf_pycommon.process_utils import execute_process
+
+from catkin_tools.common import format_env_dict
+from catkin_tools.common import parse_env_str
 
 
 def prepare_arguments(parser):
 
     add = parser.add_argument
 
+    add('-i', '--ignore-environment', default=False, action='store_true',
+        help='Start with an empty environment.')
     add('-s', '--stdin', default=False, action='store_true',
         help='Read environment variable definitions from stdin. '
              'Variables should be given in NAME=VALUE format. ')
-    add('-i', '--ignore-environment', default=False, action='store_true',
-        help='Start with an empty environment.')
-    add('-f', '--formatted', default=False, action='store_true',
-        help='Output environment variables on separate lines, when running without command.')
+    add('-q', '--quoted', default=False, action='store_true',
+        help='Output environment variables on a single line, delimited by single quotes.')
+
     add('envs_', metavar='NAME=VALUE', nargs='*', type=str, default=[],
         help='Explicitly set environment variables for the subcommand. '
              'These override variables given to stdin.')
@@ -110,25 +110,25 @@ def main(opts):
     if opts.stdin:
         input_env_str = sys.stdin.read()
 
-        environ.update({
-            k: v for k, v in [
-                e.split('=', 1) for e in cmd_split(input_env_str)
-            ]
-        })
+        environ.update(parse_env_str(input_env_str))
 
     # Finally, update with explicit vars
     environ.update(opts.envs)
 
-    # Print environment and exit if there's no command
     if len(opts.cmd) == 0:
-        for k, v in environ.items():
-            print('{}={}'.format(k, cmd_quote(v)), end=' ' if not opts.formatted else '\n')
-        return 0
+        # Print environment and exit if there's no command
+        print(format_env_dict(environ, opts.quoted))
+    else:
+        # Run the subcommand with the modified environment
+        for ret in execute_process(opts.cmd, env=environ, emulate_tty=True):
+            if ret:
+                if isinstance(ret, int):
+                    return ret
+                else:
+                    print(ret, end='')
 
-    # Run the subcommand with the modified environment
-    for ret in execute_process(opts.cmd, env=environ, emulate_tty=True):
-        if ret:
-            if isinstance(ret, int):
-                return ret
-            else:
-                print(ret, end='')
+    # Flush stdout
+    # NOTE: This is done to ensure that automated use of this tool doesn't miss
+    # the output
+    sys.stdout.flush()
+    return 0

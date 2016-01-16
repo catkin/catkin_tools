@@ -95,6 +95,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                     try:
                         # Update the environment for this stage (respects overrides)
                         stage.update_env(job_env)
+
                         # Get the logger
                         protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
                         # Start asynchroonous execution

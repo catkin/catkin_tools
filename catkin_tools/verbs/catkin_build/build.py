@@ -353,7 +353,7 @@ def build_isolated_workspace(
     if start_with is not None:
         for path, pkg in list(packages_to_be_built):
             if pkg.name != start_with:
-                wide_log(clr("@!@{pf}Skipping@|  @{gf}---@| @{cf}{}@|").format(pkg.name))
+                wide_log(clr("@!@{pf}Skipping@| @{gf}---@| @{cf}{}@|").format(pkg.name))
                 packages_to_be_built.pop(0)
             else:
                 break
