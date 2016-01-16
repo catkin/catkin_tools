@@ -308,15 +308,6 @@ def build_isolated_workspace(
         all_packages,
         packages_to_be_built + packages_to_be_built_deps)
 
-    # Remove packages before start_with
-    if start_with is not None:
-        for path, pkg in list(packages_to_be_built):
-            if pkg.name != start_with:
-                wide_log("[build] Skipping package '{0}'".format(pkg.name))
-                packages_to_be_built.pop(0)
-            else:
-                break
-
     # Populate .catkin file if we're not installing
     # NOTE: This is done to avoid the Catkin CMake code from doing it,
     # which isn't parallel-safe. Catkin CMake only modifies this file if
@@ -348,6 +339,15 @@ def build_isolated_workspace(
         else:
             wide_log("[build] Updating devel manifest.")
             open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
+
+    # Remove packages before start_with
+    if start_with is not None:
+        for path, pkg in list(packages_to_be_built):
+            if pkg.name != start_with:
+                wide_log(clr("@!@{pf}Skipping@|  @{gf}---@| @{cf}{}@|").format(pkg.name))
+                packages_to_be_built.pop(0)
+            else:
+                break
 
     # Get the names of all packages to be built
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
