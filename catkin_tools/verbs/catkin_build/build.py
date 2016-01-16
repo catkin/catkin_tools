@@ -137,6 +137,21 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
                      .format(start_with, ' '.join(packages)))
 
 
+def get_unbuilt_packages(context, workspace_packages):
+    """Get list of packages in workspace which have not been built."""
+
+    # Set of unbuilt packages
+    unbuilt_pkgs = set()
+
+    # Look for packages without build directories
+    for path, pkg in workspace_packages.items():
+        if 'metapackage' not in [e.tagname for e in pkg.exports]:
+            if not os.path.exists(os.path.join(context.build_space_abs, pkg.name)):
+                unbuilt_pkgs.add(pkg.name)
+
+    return unbuilt_pkgs
+
+
 def build_isolated_workspace(
     context,
     packages=None,
@@ -256,14 +271,8 @@ def build_isolated_workspace(
     # Suppress warnings since this is a utility function
     workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
 
-    # Set of unbuilt packages
-    unbuilt_pkgs = set()
-
-    # Look for packages without build directories
-    for path, pkg in workspace_packages.items():
-        if 'metapackage' not in [e.tagname for e in pkg.exports]:
-            if not os.path.exists(os.path.join(context.build_space_abs, pkg.name)):
-                unbuilt_pkgs.add(pkg.name)
+    # Get packages which have not been built yet
+    unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
 
     # Handle unbuilt packages
     if unbuilt:
@@ -429,7 +438,9 @@ def build_isolated_workspace(
         status_thread.join(1.0)
 
         # Warn user about new packages
-        if len(unbuilt_pkgs) > 0:
+        now_unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
+        new_pkgs = [p for p in unbuilt_pkgs if p not in now_unbuilt_pkgs]
+        if len(new_pkgs) > 0:
             log(clr("[build] @/@!Note:@| @/Workspace packages have changed, "
                     "please re-source setup files to use them.@|"))
 
