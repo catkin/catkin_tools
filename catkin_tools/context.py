@@ -252,7 +252,7 @@ class Context(object):
 
         # Check for unhandled context options
         if len(kwargs) > 0:
-            print('Warning: Unhandled config context options: {}'.format(kwargs))
+            print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
 
         # Validation is done on assignment
         # Handle *space assignment and defaults
