@@ -32,7 +32,7 @@ clr = color_mapper.clr
 
 # Exempt build directories
 # See https://github.com/catkin/catkin_tools/issues/82
-exempt_build_files = ['build_logs', '.catkin_tools.yaml']
+exempt_build_files = ['build_logs', '.built_by', '.catkin_tools.yaml']
 
 setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_setup_util.py']
 
