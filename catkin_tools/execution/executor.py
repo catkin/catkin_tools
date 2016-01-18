@@ -107,7 +107,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
                         if 'Text file busy' in str(exc):
                             # This is a transient error, try again shortly
                             # TODO: report the file causing the problem (exc.filename)
-                            time.sleep(0.01)
+                            yield asyncio.From(asyncio.sleep(0.01))
                             continue
                         raise
 
@@ -147,9 +147,6 @@ def async_job(verb, job, threadpool, event_queue, log_path):
         # Update success tracker from this stage
         all_stages_succeeded = all_stages_succeeded and stage_succeeded
 
-        # Close the logger
-        logger.close()
-
         # Store the results from this stage
         event_queue.put(ExecutionEvent(
             'FINISHED_STAGE',
@@ -162,6 +159,9 @@ def async_job(verb, job, threadpool, event_queue, log_path):
             logfile_filename=logger.unique_logfile_name,
             repro=stage.get_reproduction_cmd(verb, job.jid),
             retcode=retcode))
+
+        # Close logger
+        logger.close()
 
     # Finally, return whether all stages of the job completed
     raise asyncio.Return(job.jid, all_stages_succeeded)
@@ -348,6 +348,7 @@ def execute_jobs(
 def run_until_complete(coroutine):
     # Get event loop
     loop = get_loop()
+    loop.slow_callback_duration = 1.0
 
     # Run jobs
     return loop.run_until_complete(coroutine)
