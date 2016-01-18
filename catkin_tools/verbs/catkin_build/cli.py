@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import argparse
+import logging
 import os
 import sys
 
@@ -175,6 +176,9 @@ the --save-config argument. To see the current config, use the
     # Experimental args
     add('--mem-limit', default=None, help=argparse.SUPPRESS)
 
+    # Advanced args
+    add('--develdebug', metavar='LEVEL', default=None, help=argparse.SUPPRESS)
+
     def status_rate_type(rate):
         rate = float(rate)
         if rate < 0:
@@ -235,6 +239,12 @@ def print_build_env(context, package_name):
 
 
 def main(opts):
+
+    # Check for develdebug mode
+    if opts.develdebug is not None:
+        os.environ['TROLLIUSDEBUG'] = opts.develdebug.lower()
+        logging.basicConfig(level=opts.develdebug.upper())
+
 
     # Set color options
     if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
