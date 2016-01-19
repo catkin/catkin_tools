@@ -21,6 +21,8 @@ import re
 import subprocess
 import sys
 
+import trollius as asyncio
+
 from shlex import split as cmd_split
 try:
     from shlex import quote as cmd_quote
@@ -38,6 +40,21 @@ try:
     string_type = basestring
 except NameError:
     string_type = str
+
+
+class FakeLock(asyncio.locks.Lock):
+
+    """Fake lock used to mimic an asyncio.Lock but without causing synchronization"""
+
+    def locked(self):
+        return False
+
+    @asyncio.coroutine
+    def acquire(self):
+        raise asyncio.Return(True)
+
+    def release(self):
+        pass
 
 
 def getcwd(symlinks=True):

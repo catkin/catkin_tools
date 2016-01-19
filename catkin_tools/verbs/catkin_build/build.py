@@ -19,9 +19,12 @@ import os
 import pkg_resources
 import stat
 import sys
+import threading
 import time
 import traceback
 import yaml
+
+import trollius as asyncio
 
 try:
     # Python3
@@ -39,6 +42,7 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
+from catkin_tools.common import FakeLock
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
@@ -419,11 +423,17 @@ def build_isolated_workspace(
             active_status_rate=limit_status_rate)
         status_thread.start()
 
+        # Initialize locks
+        locks = {
+            'installspace': asyncio.Lock() if lock_install else FakeLock()
+        }
+
         # Block while running N jobs asynchronously
         try:
             all_succeeded = run_until_complete(execute_jobs(
                 'build',
                 jobs,
+                locks,
                 event_queue,
                 os.path.join(context.build_space_abs, '_logs'),
                 max_toplevel_jobs=n_jobs,

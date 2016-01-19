@@ -306,14 +306,12 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            log(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
-                    (ctx.extend_path, exc.message)))
-            return 1
+            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
+                         (ctx.extend_path, exc.message)))
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
-        print(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
-        return 1
+        sys.exit(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
 
     # ensure the build space was previously built by catkin_tools
     previous_tool = get_previous_tool_used_on_the_space(ctx.build_space_abs)
@@ -324,11 +322,10 @@ def main(opts):
                 "but --override-build-tool-check was passed so continuing anyways."
                 % (ctx.build_space_abs, previous_tool)))
         else:
-            print(clr(
+            sys.exit(clr(
                 "@{rf}The build space at '%s' was previously built by '%s'. "
                 "Please remove the build space or pick a different build space."
                 % (ctx.build_space_abs, previous_tool)))
-            return 1
     # the build space will be marked as catkin build's if dry run doesn't return
 
     # ensure the devel space was previously built by catkin_tools
@@ -340,11 +337,10 @@ def main(opts):
                 "but --override-build-tool-check was passed so continuing anyways."
                 % (ctx.devel_space_abs, previous_tool)))
         else:
-            print(clr(
+            sys.exit(clr(
                 "@{rf}The devel space at '%s' was previously built by '%s'. "
                 "Please remove the devel space or pick a different devel space."
                 % (ctx.devel_space_abs, previous_tool)))
-            return 1
     # the devel space will be marked as catkin build's if dry run doesn't return
 
     # Display list and leave the file system untouched

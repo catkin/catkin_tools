@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 from catkin_tools.common import string_type
 
@@ -33,11 +34,18 @@ class Stage(object):
     and how to do it.
     """
 
-    def __init__(self, label, logger_factory=IOBufferProtocol.factory, occupy_job=True, repro=None):
+    def __init__(
+            self,
+            label,
+            logger_factory=IOBufferProtocol.factory,
+            occupy_job=True,
+            locked_resource=None,
+            repro=None):
         self.label = str(label)
         self.logger_factory = logger_factory
         self.occupy_job = occupy_job
         self.repro = repro
+        self.locked_resource = locked_resource
 
     def get_reproduction_cmd(self, verb, jid):
         """Get a command line to reproduce this stage with the proper environment."""
@@ -60,6 +68,7 @@ class CommandStage(Stage):
             emulate_tty=True,
             stderr_to_stdout=False,
             occupy_job=True,
+            locked_resource=None,
             logger_factory=IOBufferProtocol.factory):
         """
         :param label: The label for the stage
@@ -80,7 +89,7 @@ class CommandStage(Stage):
 
         if not type(cmd) in [list, tuple] or not all([isinstance(s, string_type) for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
-        super(CommandStage, self).__init__(label, logger_factory, occupy_job)
+        super(CommandStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
 
         # Store environment overrides
         self.env_overrides = env_overrides or {}
@@ -144,10 +153,18 @@ class FunctionStage(Stage):
         - event_queue
     """
 
-    def __init__(self, label, function, logger_factory=IOBufferLogger.factory, occupy_job=True, *args, **kwargs):
+    def __init__(
+            self,
+            label,
+            function,
+            logger_factory=IOBufferLogger.factory,
+            occupy_job=True,
+            locked_resource=None,
+            *args,
+            **kwargs):
         if not callable(function):
             raise ValueError('Function stage must be callable.')
-        super(FunctionStage, self).__init__(label, logger_factory, occupy_job)
+        super(FunctionStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
 
         def function_proxy(logger, event_queue):
             return function(logger, event_queue, *args, **kwargs)

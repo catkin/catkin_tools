@@ -20,6 +20,7 @@ except ImportError:
     from hashlib import md5
 import os
 import re
+import subprocess
 
 try:
     from shlex import quote as cmd_quote
@@ -123,13 +124,13 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
         'zsh': '-f'
     }
 
-    command = [
+    command = ' '.join([
         cmd_quote(setup_file_path),
         shell_path,
         norc_flags[shell_name],
         '-c',
         '"typeset -px"'
-    ]
+    ])
 
     # Define some "blacklisted" environment variables which shouldn't be copied
     blacklisted_keys = ('_', 'PWD')
@@ -137,17 +138,22 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
 
     try:
         # Run the command synchronously to get the resultspace environmnet
-        lines = ''
-        for ret in execute_process(' '.join(command), cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
-            if type(ret) is bytes:
-                ret = ret.decode()
-            if isinstance(ret, string_type):
-                lines += ret
+        if 0:
+            # NOTE: This sometimes fails to get all output (returns prematurely)
+            lines = ''
+            for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
+                if type(ret) is bytes:
+                    ret = ret.decode()
+                if isinstance(ret, string_type):
+                    lines += ret
+        else:
+            p = subprocess.Popen(command, cwd=os.getcwd(), env=base_env, shell=True, stdout=subprocess.PIPE)
+            lines, _ = p.communicate()
 
         # Extract the environment variables
         env_dict = {
             k: v
-            for k, v in parse_env_str(lines).items()
+            for k, v in parse_env_str(lines.decode('utf-8')).items()
             if k not in blacklisted_keys
         }
 
