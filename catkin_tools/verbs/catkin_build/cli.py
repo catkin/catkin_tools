@@ -241,7 +241,6 @@ def main(opts):
         os.environ['TROLLIUSDEBUG'] = opts.develdebug.lower()
         logging.basicConfig(level=opts.develdebug.upper())
 
-
     # Set color options
     if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
         set_color(True)

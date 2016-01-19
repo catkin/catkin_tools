@@ -35,8 +35,6 @@ def prepare_arguments(parser):
     add('-s', '--stdin', default=False, action='store_true',
         help='Read environment variable definitions from stdin. '
              'Variables should be given in NAME=VALUE format. ')
-    add('-q', '--quoted', default=False, action='store_true',
-        help='Output environment variables on a single line, delimited by single quotes.')
 
     add('envs_', metavar='NAME=VALUE', nargs='*', type=str, default=[],
         help='Explicitly set environment variables for the subcommand. '
@@ -117,7 +115,7 @@ def main(opts):
 
     if len(opts.cmd) == 0:
         # Print environment and exit if there's no command
-        print(format_env_dict(environ, opts.quoted))
+        print(format_env_dict(environ))
     else:
         # Run the subcommand with the modified environment
         for ret in execute_process(opts.cmd, env=environ, emulate_tty=True):

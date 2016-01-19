@@ -30,9 +30,7 @@ from osrf_pycommon.process_utils import execute_process
 
 from .common import parse_env_str
 from .common import string_type
-from .utils import which
 
-CATKIN_EXEC = which('catkin')
 DEFAULT_SHELL = '/bin/bash'
 
 # Cache for result-space environments
@@ -119,21 +117,19 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
             "required setup file \"%s\" does not exist." % (result_space_path, setup_file_path)
         )
 
-    # Make sure we've found CMAKE and SORT executables
-    if CATKIN_EXEC is None:
-        print("WARNING: Failed to find 'catkin' executable. How are you running this?")
-        return {}
-
     # Construct a command list which sources the setup file and prints the env to stdout
-    norc_flags = {'bash': '--norc', 'zsh': '-f'}
-    subcommand = '{} {} env -q'.format(
-        cmd_quote(setup_file_path),
-        CATKIN_EXEC)
+    norc_flags = {
+        'bash': '--norc',
+        'zsh': '-f'
+    }
 
     command = [
+        cmd_quote(setup_file_path),
         shell_path,
         norc_flags[shell_name],
-        '-c', subcommand]
+        '-c',
+        '"typeset -px"'
+    ]
 
     # Define some "blacklisted" environment variables which shouldn't be copied
     blacklisted_keys = ('_', 'PWD')
@@ -142,7 +138,7 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
     try:
         # Run the command synchronously to get the resultspace environmnet
         lines = ''
-        for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=True):
+        for ret in execute_process(' '.join(command), cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
             if type(ret) is bytes:
                 ret = ret.decode()
             if isinstance(ret, string_type):
@@ -182,4 +178,12 @@ def load_resultspace_environment(result_space_path, cached=True):
     :type cached: bool
     """
     env_dict = get_resultspace_environment(result_space_path, cached=cached)
-    os.environ.update(env_dict)
+    try:
+        os.environ.update(env_dict)
+    except TypeError:
+        for k, v in env_dict.items():
+            try:
+                os.environ.update({k: v.decode()})
+            except TypeError as err:
+                print({k: v})
+                raise err
