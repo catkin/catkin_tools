@@ -156,6 +156,8 @@ the --save-config argument. To see the current config, use the
     add = behavior_group.add_argument
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
+    add('--interleave-output', '-i', action='store_true', default=False,
+        help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
     add('--summarize', '--summary', '-s', action='store_true', default=None,
@@ -389,6 +391,7 @@ def main(opts):
         pre_clean=opts.pre_clean,
         force_color=opts.force_color,
         quiet=not opts.verbose,
+        interleave_output=opts.interleave_output,
         no_status=opts.no_status,
         limit_status_rate=opts.limit_status_rate,
         lock_install=not opts.no_install_lock,

@@ -142,11 +142,12 @@ class IOBufferLogger(IOBufferContainer):
     def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
         IOBufferContainer.__init__(self, label, job_id, stage_label, event_queue, log_path)
 
-    def out(self, data):
+    def out(self, data, end='\n'):
         """
         :type data: str
         """
         # Buffer the encoded data
+        data += end
         encoded_data = self._encode(data)
         self.stdout_buffer += encoded_data
         self.interleaved_buffer += encoded_data
@@ -161,11 +162,12 @@ class IOBufferLogger(IOBufferContainer):
             stage_label=self.stage_label,
             data=data))
 
-    def err(self, data):
+    def err(self, data, end='\n'):
         """
         :type data: str
         """
         # Buffer the encoded data
+        data += end
         encoded_data = self._encode(data)
         self.stderr_buffer += encoded_data
         self.interleaved_buffer += encoded_data
@@ -196,10 +198,23 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
         IOBufferContainer.__init__(self, label, job_id, stage_label, event_queue, log_path)
         AsyncSubprocessProtocol.__init__(self, *args, **kwargs)
 
+        self.intermediate_stdout_buffer = b''
+        self.intermediate_stderr_buffer = b''
+
+    def _split(self, data):
+        try:
+            last_break = data.rindex('\n') + 1
+            return data[0:last_break], data[last_break:]
+        except ValueError:
+            return b'', data
+
     def on_stdout_received(self, data):
         """
         :type data: encoded bytes
         """
+
+        data, self.intermediate_stdout_buffer = self._split(self.intermediate_stdout_buffer + data)
+
         self.stdout_buffer += data
         self.interleaved_buffer += data
         self.log_file.write(data)
@@ -218,6 +233,9 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
         """
         :type data: encoded bytes
         """
+
+        data, self.intermediate_stderr_buffer = self._split(self.intermediate_stderr_buffer + data)
+
         self.stderr_buffer += data
         self.interleaved_buffer += data
         self.log_file.write(data)
@@ -231,3 +249,13 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
             job_id=self.job_id,
             stage_label=self.stage_label,
             data=decoded_data))
+
+    def on_process_exited2(self, returncode):
+        """
+        Dump anything remaining in the intermediate buffers.
+        """
+
+        if len(self.intermediate_stdout_buffer) > 0:
+            self.on_stdout_received(self.intermediate_stdout_buffer + b'\n')
+        if len(self.intermediate_stderr_buffer) > 0:
+            self.on_stderr_received(self.intermediate_stderr_buffer + b'\n')

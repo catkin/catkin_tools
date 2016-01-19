@@ -29,6 +29,7 @@ import time
 from catkin_tools.common import disable_wide_log
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import format_time_delta_short
+from catkin_tools.common import log
 from catkin_tools.common import remove_ansi_escape
 from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
@@ -187,6 +188,7 @@ class ConsoleStatusController(threading.Thread):
             label,
             job_labels,
             jobs,
+            max_toplevel_jobs,
             available_jobs,
             whitelisted_jobs,
             blacklisted_jobs,
@@ -228,6 +230,7 @@ class ConsoleStatusController(threading.Thread):
         self.job_label = job_labels[0]
         self.jobs_label = job_labels[1]
         self.event_queue = event_queue
+        self.max_toplevel_jobs = max_toplevel_jobs
 
         self.show_notifications = show_notifications
         self.show_stage_events = show_stage_events
@@ -657,7 +660,7 @@ class ConsoleStatusController(threading.Thread):
                     if len(event.data['interleaved']) > 0:
                         lines = [
                             l
-                            for l in event.data['interleaved'].splitlines()
+                            for l in event.data['interleaved'].splitlines(True)
                             if (self.show_compact_io is False or len(l.strip()) > 0)
                         ]
                     else:
@@ -668,7 +671,7 @@ class ConsoleStatusController(threading.Thread):
                     if len(event.data['stderr']) > 0:
                         lines = [
                             l
-                            for l in event.data['stderr'].splitlines()
+                            for l in event.data['stderr'].splitlines(True)
                             if (self.show_compact_io is False or len(l.strip()) > 0)
                         ]
                     else:
@@ -678,7 +681,7 @@ class ConsoleStatusController(threading.Thread):
 
                 if self.show_repro_cmd and len(lines) > 0:
                     if event.data['repro'] is not None:
-                        lines.insert(0, clr('@!@{kf}{}@|').format(event.data['repro']))
+                        lines.append(clr('@!@{kf}{}@|\n').format(event.data['repro']))
 
                 # Print the output
                 if header_border:
@@ -686,25 +689,19 @@ class ConsoleStatusController(threading.Thread):
                 if header_title:
                     wide_log(header_title)
                 if len(lines) > 0:
-                    wide_log('\n'.join(lines))
+                    wide_log(''.join(lines), end='\r')
                 if footer_border:
                     wide_log(footer_border)
                 if footer_title:
                     wide_log(footer_title)
 
             elif 'STDERR' == eid:
-                if self.show_live_stderr:
-                    prefix = clr('[{}:{}] ').format(
-                        event.data['job_id'],
-                        event.data['stage_label'])
-                    wide_log(''.join(prefix + l for l in event.data['data'].splitlines(True)))
+                if self.show_live_stderr and len(event.data['data']) > 0:
+                    wide_log(self.format_interleaved_lines(event.data), end='\r')
 
             elif 'STDOUT' == eid:
-                if self.show_live_stdout:
-                    prefix = clr('[{}:{}] ').format(
-                        event.data['job_id'],
-                        event.data['stage_label'])
-                    wide_log(''.join(prefix + l for l in event.data['data'].splitlines(True)))
+                if self.show_live_stdout and len(event.data['data']) > 0:
+                    wide_log(self.format_interleaved_lines(event.data), end='\r')
 
             elif 'MESSAGE' == eid:
                 wide_log(event.data['msg'])
@@ -721,3 +718,13 @@ class ConsoleStatusController(threading.Thread):
         wide_log(clr('[{}] Runtime: {} total.').format(
             self.label,
             format_time_delta(time.time() - start_time)))
+
+    def format_interleaved_lines(self, data):
+        if self.max_toplevel_jobs != 1:
+            prefix = clr('[{}:{}] ').format(
+                data['job_id'],
+                data['stage_label'])
+        else:
+            prefix = ''
+
+        return ''.join(prefix + l + fmt('@|') for l in data['data'].splitlines(True))
