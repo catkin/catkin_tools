@@ -139,7 +139,8 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             'install',
             [MAKE_EXEC, 'install'],
             cwd=build_space,
-            logger_factory=CMakeMakeIOBufferProtocol.factory
+            logger_factory=CMakeMakeIOBufferProtocol.factory,
+            locked_resource='installspace'
         ))
 
     return Job(

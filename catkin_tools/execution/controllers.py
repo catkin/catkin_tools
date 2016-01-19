@@ -106,10 +106,10 @@ _color_translation_map = {
 
     # Summary
     "[{}] Summary: All {} {} succeeded!":
-    fmt("[{}] @/@!Summary:@| @/All @!{}@| @/{} succeeded!@|"),
+    fmt("[{}] @/@!@{gf}Summary:@| @/All @!{}@| @/{} succeeded!@|"),
 
     "[{}] Summary: {} of {} {} succeeded.":
-    fmt("[{}] @/@!@{yf}Summary:@| @/@!@{yf}{}@| @/@{yf}of @!@{yf}{}@| @/@{yf}{} succeeded.@|"),
+    fmt("[{}] @/@!@{yf}Summary:@| @/@!{}@| @/of @!{}@| @/{} succeeded.@|"),
 
     "[{}] Warnings: None.":
     fmt("[{}]   @/@!@{kf}Warnings:  None.@|"),
@@ -127,7 +127,7 @@ _color_translation_map = {
     fmt("[{}]   @/@!@{kf}Ignored:   None.@|"),
 
     "[{}] Ignored: {} {} were skipped or are blacklisted.":
-    fmt("[{}]   @/@!@{kf}Ignored:   {} {} were skipped or are blacklisted.@|"),
+    fmt("[{}]   @/@!@{pf}Ignored:@|   @/@!{}@| @/{} were skipped or are blacklisted.@|"),
 
     "[{}] Failed: No {} failed.":
     fmt("[{}]   @/@!@{kf}Failed:    None.@|"),

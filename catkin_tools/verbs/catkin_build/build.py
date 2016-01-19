@@ -19,9 +19,12 @@ import os
 import pkg_resources
 import stat
 import sys
+import threading
 import time
 import traceback
 import yaml
+
+import trollius as asyncio
 
 try:
     # Python3
@@ -39,6 +42,7 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
+from catkin_tools.common import FakeLock
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
@@ -135,6 +139,21 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
             sys.exit("Package given for --start-with, '{0}', "
                      "is in the workspace but would not be built with given package arguments: '{1}'"
                      .format(start_with, ' '.join(packages)))
+
+
+def get_unbuilt_packages(context, workspace_packages):
+    """Get list of packages in workspace which have not been built."""
+
+    # Set of unbuilt packages
+    unbuilt_pkgs = set()
+
+    # Look for packages without build directories
+    for path, pkg in workspace_packages.items():
+        if 'metapackage' not in [e.tagname for e in pkg.exports]:
+            if not os.path.exists(os.path.join(context.build_space_abs, pkg.name)):
+                unbuilt_pkgs.add(pkg.name)
+
+    return unbuilt_pkgs
 
 
 def build_isolated_workspace(
@@ -256,14 +275,8 @@ def build_isolated_workspace(
     # Suppress warnings since this is a utility function
     workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
 
-    # Set of unbuilt packages
-    unbuilt_pkgs = set()
-
-    # Look for packages without build directories
-    for path, pkg in workspace_packages.items():
-        if 'metapackage' not in [e.tagname for e in pkg.exports]:
-            if not os.path.exists(os.path.join(context.build_space_abs, pkg.name)):
-                unbuilt_pkgs.add(pkg.name)
+    # Get packages which have not been built yet
+    unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
 
     # Handle unbuilt packages
     if unbuilt:
@@ -308,15 +321,6 @@ def build_isolated_workspace(
         all_packages,
         packages_to_be_built + packages_to_be_built_deps)
 
-    # Remove packages before start_with
-    if start_with is not None:
-        for path, pkg in list(packages_to_be_built):
-            if pkg.name != start_with:
-                wide_log("[build] Skipping package '{0}'".format(pkg.name))
-                packages_to_be_built.pop(0)
-            else:
-                break
-
     # Populate .catkin file if we're not installing
     # NOTE: This is done to avoid the Catkin CMake code from doing it,
     # which isn't parallel-safe. Catkin CMake only modifies this file if
@@ -348,6 +352,15 @@ def build_isolated_workspace(
         else:
             wide_log("[build] Updating devel manifest.")
             open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
+
+    # Remove packages before start_with
+    if start_with is not None:
+        for path, pkg in list(packages_to_be_built):
+            if pkg.name != start_with:
+                wide_log(clr("@!@{pf}Skipping@| @{gf}---@| @{cf}{}@|").format(pkg.name))
+                packages_to_be_built.pop(0)
+            else:
+                break
 
     # Get the names of all packages to be built
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
@@ -410,11 +423,17 @@ def build_isolated_workspace(
             active_status_rate=limit_status_rate)
         status_thread.start()
 
+        # Initialize locks
+        locks = {
+            'installspace': asyncio.Lock() if lock_install else FakeLock()
+        }
+
         # Block while running N jobs asynchronously
         try:
             all_succeeded = run_until_complete(execute_jobs(
                 'build',
                 jobs,
+                locks,
                 event_queue,
                 os.path.join(context.build_space_abs, '_logs'),
                 max_toplevel_jobs=n_jobs,
@@ -429,7 +448,9 @@ def build_isolated_workspace(
         status_thread.join(1.0)
 
         # Warn user about new packages
-        if len(unbuilt_pkgs) > 0:
+        now_unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
+        new_pkgs = [p for p in unbuilt_pkgs if p not in now_unbuilt_pkgs]
+        if len(new_pkgs) > 0:
             log(clr("[build] @/@!Note:@| @/Workspace packages have changed, "
                     "please re-source setup files to use them.@|"))
 

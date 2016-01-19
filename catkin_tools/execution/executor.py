@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import os
 import time
+import threading
 import traceback
 
 from itertools import tee
@@ -28,6 +29,7 @@ from concurrent.futures import FIRST_COMPLETED
 from osrf_pycommon.process_utils import async_execute_process
 from osrf_pycommon.process_utils import get_loop
 
+from catkin_tools.common import FakeLock
 from catkin_tools.execution import job_server
 
 from .events import ExecutionEvent
@@ -45,7 +47,7 @@ def split(values, cond):
 
 
 @asyncio.coroutine
-def async_job(verb, job, threadpool, event_queue, log_path):
+def async_job(verb, job, threadpool, locks, event_queue, log_path):
     """Run a sequence of Stages from a Job and collect their output.
 
     :param job: A Job instance
@@ -71,97 +73,108 @@ def async_job(verb, job, threadpool, event_queue, log_path):
         if job.continue_on_failure and not all_stages_succeeded:
             break
 
-        # If the stage doesn't require a job token, release it temporarily
-        if stage.occupy_job:
-            if not occupying_job:
-                while job_server.try_acquire() is None:
-                    yield asyncio.From(asyncio.sleep(0.2))
-                occupying_job = True
+        # Check for stage synchronization lock
+        if stage.locked_resource is not None:
+            lock = locks.setdefault(stage.locked_resource, asyncio.Lock())
+            yield asyncio.From(lock)
         else:
-            if occupying_job:
-                job_server.release()
-                occupying_job = False
+            lock = FakeLock()
 
-        # Notify stage started
-        event_queue.put(ExecutionEvent(
-            'STARTED_STAGE',
-            job_id=job.jid,
-            stage_label=stage.label))
+        try:
+            # If the stage doesn't require a job token, release it temporarily
+            if stage.occupy_job:
+                if not occupying_job:
+                    while job_server.try_acquire() is None:
+                        yield asyncio.From(asyncio.sleep(0.05))
+                    occupying_job = True
+            else:
+                if occupying_job:
+                    job_server.release()
+                    occupying_job = False
 
-        if type(stage) is CommandStage:
-            try:
-                # Initiate the command
-                while True:
-                    try:
-                        # Update the environment for this stage (respects overrides)
-                        stage.update_env(job_env)
-                        # Get the logger
-                        protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
-                        # Start asynchroonous execution
-                        transport, logger = yield asyncio.From(
-                            async_execute_process(
-                                protocol_type,
-                                **stage.async_execute_process_kwargs))
-                        break
-                    except OSError as exc:
-                        if 'Text file busy' in str(exc):
-                            # This is a transient error, try again shortly
-                            # TODO: report the file causing the problem (exc.filename)
-                            time.sleep(0.01)
-                            continue
-                        raise
+            # Notify stage started
+            event_queue.put(ExecutionEvent(
+                'STARTED_STAGE',
+                job_id=job.jid,
+                stage_label=stage.label))
 
-                # Notify that a subprocess has been created
-                event_queue.put(ExecutionEvent(
-                    'SUBPROCESS',
-                    job_id=job.jid,
-                    stage_label=stage.label,
-                    stage_repro=stage.get_repro(verb, job.jid),
-                    **stage.async_execute_process_kwargs))
+            if type(stage) is CommandStage:
+                try:
+                    # Initiate the command
+                    while True:
+                        try:
+                            # Update the environment for this stage (respects overrides)
+                            stage.update_env(job_env)
 
-                # Asynchronously yield until this command is  completed
-                retcode = yield asyncio.From(logger.complete)
-            except:
+                            # Get the logger
+                            protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
+                            # Start asynchroonous execution
+                            transport, logger = yield asyncio.From(
+                                async_execute_process(
+                                    protocol_type,
+                                    **stage.async_execute_process_kwargs))
+                            break
+                        except OSError as exc:
+                            if 'Text file busy' in str(exc):
+                                # This is a transient error, try again shortly
+                                # TODO: report the file causing the problem (exc.filename)
+                                yield asyncio.From(asyncio.sleep(0.01))
+                                continue
+                            raise
+
+                    # Notify that a subprocess has been created
+                    event_queue.put(ExecutionEvent(
+                        'SUBPROCESS',
+                        job_id=job.jid,
+                        stage_label=stage.label,
+                        stage_repro=stage.get_reproduction_cmd(verb, job.jid),
+                        **stage.async_execute_process_kwargs))
+
+                    # Asynchronously yield until this command is  completed
+                    retcode = yield asyncio.From(logger.complete)
+                except:
+                    logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
+                    logger.err(str(traceback.format_exc()))
+                    retcode = 3
+
+            elif type(stage) is FunctionStage:
                 logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
-                logger.err(str(traceback.format_exc()))
-                retcode = 3
+                try:
+                    # Asynchronously yield until this function is completed
+                    retcode = yield asyncio.From(get_loop().run_in_executor(
+                        threadpool,
+                        stage.function,
+                        logger,
+                        event_queue))
+                except:
+                    logger.err(str(traceback.format_exc()))
+                    retcode = 3
+            else:
+                raise TypeError("Bad Job Stage: {}".format(stage))
 
-        elif type(stage) is FunctionStage:
-            logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
-            try:
-                # Asynchronously yield until this function is completed
-                retcode = yield asyncio.From(get_loop().run_in_executor(
-                    threadpool,
-                    stage.function,
-                    logger,
-                    event_queue))
-            except:
-                logger.err(str(traceback.format_exc()))
-                retcode = 3
-        else:
-            raise TypeError("Bad Job Stage: {}".format(stage))
+            # Set whether this stage succeeded
+            stage_succeeded = (retcode == 0)
 
-        # Set whether this stage succeeded
-        stage_succeeded = (retcode == 0)
+            # Update success tracker from this stage
+            all_stages_succeeded = all_stages_succeeded and stage_succeeded
 
-        # Update success tracker from this stage
-        all_stages_succeeded = all_stages_succeeded and stage_succeeded
+            # Store the results from this stage
+            event_queue.put(ExecutionEvent(
+                'FINISHED_STAGE',
+                job_id=job.jid,
+                stage_label=stage.label,
+                succeeded=stage_succeeded,
+                stdout=logger.get_stdout_log(),
+                stderr=logger.get_stderr_log(),
+                interleaved=logger.get_interleaved_log(),
+                logfile_filename=logger.unique_logfile_name,
+                repro=stage.get_reproduction_cmd(verb, job.jid),
+                retcode=retcode))
 
-        # Close the logger
-        logger.close()
-
-        # Store the results from this stage
-        event_queue.put(ExecutionEvent(
-            'FINISHED_STAGE',
-            job_id=job.jid,
-            stage_label=stage.label,
-            succeeded=stage_succeeded,
-            stdout=logger.get_stdout_log(),
-            stderr=logger.get_stderr_log(),
-            interleaved=logger.get_interleaved_log(),
-            logfile_filename=logger.unique_logfile_name,
-            repro=stage.get_repro(verb, job.jid),
-            retcode=retcode))
+            # Close logger
+            logger.close()
+        finally:
+            lock.release()
 
     # Finally, return whether all stages of the job completed
     raise asyncio.Return(job.jid, all_stages_succeeded)
@@ -171,6 +184,7 @@ def async_job(verb, job, threadpool, event_queue, log_path):
 def execute_jobs(
         verb,
         jobs,
+        locks,
         event_queue,
         log_path,
         max_toplevel_jobs=None,
@@ -239,7 +253,7 @@ def execute_jobs(
 
             # Start the job coroutine
             active_jobs.append(job)
-            active_job_fs.add(async_job(verb, job, threadpool, event_queue, log_path))
+            active_job_fs.add(async_job(verb, job, threadpool, locks, event_queue, log_path))
 
         # Report running jobs
         event_queue.put(ExecutionEvent(
@@ -348,6 +362,7 @@ def execute_jobs(
 def run_until_complete(coroutine):
     # Get event loop
     loop = get_loop()
+    loop.slow_callback_duration = 1.0
 
     # Run jobs
     return loop.run_until_complete(coroutine)

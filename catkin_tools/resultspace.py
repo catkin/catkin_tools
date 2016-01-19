@@ -12,20 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+
 try:
     from md5 import md5
 except ImportError:
     from hashlib import md5
 import os
 import re
+import subprocess
+
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
 
 from osrf_pycommon.process_utils import execute_process
 
+from .common import parse_env_str
 from .common import string_type
-from .utils import which
 
-CMAKE_EXEC = which('cmake')
-SORT_EXEC = which('sort')
 DEFAULT_SHELL = '/bin/bash'
 
 # Cache for result-space environments
@@ -60,11 +66,11 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
     else:
         env_hooks = []
 
-    # Check the cache first
-    if (cached and
-            result_space_path in _resultspace_env_cache and
-            env_hooks == _resultspace_env_hooks_cache.get(result_space_path, [])):
-        return _resultspace_env_cache[result_space_path]
+    # Check the cache first, if desired
+    if cached:
+        cached_env_hooks = _resultspace_env_hooks_cache.get(result_space_path, [])
+        if result_space_path in _resultspace_env_cache and env_hooks == cached_env_hooks:
+            return dict(_resultspace_env_cache[result_space_path])
 
     # Check to make sure result_space_path is a valid directory
     if not os.path.isdir(result_space_path):
@@ -112,46 +118,60 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
             "required setup file \"%s\" does not exist." % (result_space_path, setup_file_path)
         )
 
-    # Make sure we've found CMAKE and SORT executables
-    if CMAKE_EXEC is None:
-        print("WARNING: Failed to find 'cmake' executable.")
-        return {}
-    if SORT_EXEC is None:
-        print("WARNING: Failed to find 'sort' executable.")
-        return {}
-
     # Construct a command list which sources the setup file and prints the env to stdout
-    norc_flags = {'bash': '--norc', 'zsh': '-f'}
-    subcommand = '%s %s -E environment | %s' % (setup_file_path, CMAKE_EXEC, SORT_EXEC)
+    norc_flags = {
+        'bash': '--norc',
+        'zsh': '-f'
+    }
 
-    command = [
+    command = ' '.join([
+        cmd_quote(setup_file_path),
         shell_path,
         norc_flags[shell_name],
-        '-c', subcommand]
+        '-c',
+        '"typeset -px"'
+    ])
 
-    # Run the command to source the other environment and output all environment variables
+    # Define some "blacklisted" environment variables which shouldn't be copied
     blacklisted_keys = ('_', 'PWD')
-    env_regex = re.compile('(.+?)=(.*)$', re.M)
     env_dict = {}
 
     try:
-        for line in execute_process(command, env=base_env, cwd=os.getcwd()):
-            if type(line) is bytes:
-                line = line.decode()
-            if isinstance(line, string_type):
-                matches = env_regex.findall(line)
-                for (key, value) in matches:
-                    value = value.rstrip()
-                    if key not in blacklisted_keys and key not in env_dict:
-                        env_dict[key] = value
+        # Run the command synchronously to get the resultspace environmnet
+        if 0:
+            # NOTE: This sometimes fails to get all output (returns prematurely)
+            lines = ''
+            for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
+                if type(ret) is bytes:
+                    ret = ret.decode()
+                if isinstance(ret, string_type):
+                    lines += ret
+        else:
+            p = subprocess.Popen(command, cwd=os.getcwd(), env=base_env, shell=True, stdout=subprocess.PIPE)
+            lines, _ = p.communicate()
+
+        # Extract the environment variables
+        env_dict = {
+            k: v
+            for k, v in parse_env_str(lines.decode('utf-8')).items()
+            if k not in blacklisted_keys
+        }
+
+        # Check to make sure we got some kind of environment
+        if len(env_dict) > 0:
+            # Cache the result
+            _resultspace_env_cache[result_space_path] = env_dict
+            _resultspace_env_hooks_cache[result_space_path] = env_hooks
+        else:
+            print("WARNING: Sourced environment from `{}` has no environment variables. Something is wrong.".format(
+                setup_file_path))
+
     except IOError as err:
-        print("WARNING: Failed to extract environment from resultspace: %s: %s" % (result_space_path, str(err)))
-        return {}
+        print("WARNING: Failed to extract environment from resultspace: {}: {}".format(
+            result_space_path, str(err)),
+            file=sys.stderr)
 
-    _resultspace_env_cache[result_space_path] = env_dict
-    _resultspace_env_hooks_cache[result_space_path] = env_hooks
-
-    return env_dict
+    return dict(env_dict)
 
 
 def load_resultspace_environment(result_space_path, cached=True):
@@ -164,4 +184,12 @@ def load_resultspace_environment(result_space_path, cached=True):
     :type cached: bool
     """
     env_dict = get_resultspace_environment(result_space_path, cached=cached)
-    os.environ.update(env_dict)
+    try:
+        os.environ.update(env_dict)
+    except TypeError:
+        for k, v in env_dict.items():
+            try:
+                os.environ.update({k: v.decode()})
+            except TypeError as err:
+                print({k: v})
+                raise err

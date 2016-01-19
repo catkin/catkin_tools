@@ -13,11 +13,9 @@
 # limitations under the License.
 
 import os
+import sys
 
-try:
-    basestring
-except NameError:
-    basestring = str
+from catkin_tools.common import string_type
 
 try:
     from shlex import quote as cmd_quote
@@ -36,14 +34,21 @@ class Stage(object):
     and how to do it.
     """
 
-    def __init__(self, label, logger_factory=IOBufferProtocol.factory, occupy_job=True, repro=None):
+    def __init__(
+            self,
+            label,
+            logger_factory=IOBufferProtocol.factory,
+            occupy_job=True,
+            locked_resource=None,
+            repro=None):
         self.label = str(label)
         self.logger_factory = logger_factory
         self.occupy_job = occupy_job
         self.repro = repro
+        self.locked_resource = locked_resource
 
-    def get_repro(self, verb, jid):
-        """Get a string which should reproduce this stage outside of the catkin command."""
+    def get_reproduction_cmd(self, verb, jid):
+        """Get a command line to reproduce this stage with the proper environment."""
         return self.repro
 
 
@@ -63,6 +68,7 @@ class CommandStage(Stage):
             emulate_tty=True,
             stderr_to_stdout=False,
             occupy_job=True,
+            locked_resource=None,
             logger_factory=IOBufferProtocol.factory):
         """
         :param label: The label for the stage
@@ -81,9 +87,9 @@ class CommandStage(Stage):
         :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
         """
 
-        if not type(cmd) in [list, tuple] or not all([isinstance(s, basestring) for s in cmd]):
+        if not type(cmd) in [list, tuple] or not all([isinstance(s, string_type) for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
-        super(CommandStage, self).__init__(label, logger_factory, occupy_job)
+        super(CommandStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
 
         # Store environment overrides
         self.env_overrides = env_overrides or {}
@@ -108,25 +114,31 @@ class CommandStage(Stage):
         self.async_execute_process_kwargs['env'].update(base_env)
         self.async_execute_process_kwargs['env'].update(self.env_overrides)
 
-    def get_repro(self, verb, jid):
-        """Get a command line to reproduce this stage."""
+    def get_reproduction_cmd(self, verb, jid):
+        """Get a command line to reproduce this stage with the proper environment."""
 
         # Define the base env command
-        env_cmd = 'catkin {} --env {}'.format(verb, jid)
+        get_env_cmd = 'catkin {} --get-env {}'.format(verb, jid)
 
         # Add additional env args
-        env_override_repro = ' '.join([
+        env_overrides_formatted = ' '.join([
             '{}={}'.format(k, cmd_quote(v))
             for k, v in self.env_overrides.items()
         ])
-        if len(env_override_repro) > 0:
-            env_cmd = 'echo "$({}) {}"'.format(env_cmd, env_override_repro)
+
+        # Define the actual command to reproduce
+        cmd_str = ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']])
+
+        # Define the command to run the subcommand
+        env_cmd = 'catkin env -si {} {}'.format(
+            env_overrides_formatted,
+            cmd_str)
 
         # Return the full command
-        return 'cd {}; {} | xargs -I %ENV% env %ENV% {}; cd -'.format(
+        return 'cd {}; {} | {}; cd -'.format(
             self.async_execute_process_kwargs['cwd'],
-            env_cmd,
-            ' '.join([cmd_quote(t) for t in self.async_execute_process_kwargs['cmd']]))
+            get_env_cmd,
+            env_cmd)
 
 
 class FunctionStage(Stage):
@@ -141,10 +153,18 @@ class FunctionStage(Stage):
         - event_queue
     """
 
-    def __init__(self, label, function, logger_factory=IOBufferLogger.factory, occupy_job=True, *args, **kwargs):
+    def __init__(
+            self,
+            label,
+            function,
+            logger_factory=IOBufferLogger.factory,
+            occupy_job=True,
+            locked_resource=None,
+            *args,
+            **kwargs):
         if not callable(function):
             raise ValueError('Function stage must be callable.')
-        super(FunctionStage, self).__init__(label, logger_factory, occupy_job)
+        super(FunctionStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
 
         def function_proxy(logger, event_queue):
             return function(logger, event_queue, *args, **kwargs)

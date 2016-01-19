@@ -294,7 +294,8 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         'install',
         [MAKE_EXEC, 'install'],
         cwd=build_space,
-        logger_factory=CMakeMakeIOBufferProtocol.factory
+        logger_factory=CMakeMakeIOBufferProtocol.factory,
+        locked_resource='installspace'
     ))
 
     # Determine the location where the setup.sh file should be created

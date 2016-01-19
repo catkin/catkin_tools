@@ -15,13 +15,9 @@
 from __future__ import print_function
 
 import argparse
+import logging
 import os
 import sys
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
 
 try:
     from catkin_pkg.packages import find_packages
@@ -45,6 +41,7 @@ from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import format_env_dict
 
 from catkin_tools.context import Context
 
@@ -111,8 +108,9 @@ the --save-config argument. To see the current config, use the
     add = parser.add_argument
     add('--dry-run', '-n', action='store_true', default=False,
         help='List the packages which will be built with the given arguments without building them.')
-    add('--env', dest='build_env', metavar='PKGNAME', nargs=1,
+    add('--get-env', dest='get_env', metavar='PKGNAME', nargs=1,
         help='Print the environment in which PKGNAME is built to stdout.')
+
     # What packages to build
     pkg_group = parser.add_argument_group('Packages', 'Control which packages get built.')
     add = pkg_group.add_argument
@@ -174,6 +172,9 @@ the --save-config argument. To see the current config, use the
     # Experimental args
     add('--mem-limit', default=None, help=argparse.SUPPRESS)
 
+    # Advanced args
+    add('--develdebug', metavar='LEVEL', default=None, help=argparse.SUPPRESS)
+
     def status_rate_type(rate):
         rate = float(rate)
         if rate < 0:
@@ -225,15 +226,20 @@ def print_build_env(context, package_name):
     # Load the environment used by this package for building
     for pth, pkg in workspace_packages.items():
         if pkg.name == package_name:
-            env = get_env_loader(pkg, context)(os.environ)
-            for k, v in env.items():
-                print('{}={}'.format(k, cmd_quote(v)), end=' ')
+            environ = get_env_loader(pkg, context)(os.environ)
+            print(format_env_dict(environ))
             return 0
-    print('[build] Error: Package `{}` not in workspace.'.format(package_name))
+    print('[build] Error: Package `{}` not in workspace.'.format(package_name),
+          file=sys.stderr)
     return 1
 
 
 def main(opts):
+
+    # Check for develdebug mode
+    if opts.develdebug is not None:
+        os.environ['TROLLIUSDEBUG'] = opts.develdebug.lower()
+        logging.basicConfig(level=opts.develdebug.upper())
 
     # Set color options
     if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
@@ -300,14 +306,12 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            log(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
-                    (ctx.extend_path, exc.message)))
-            return 1
+            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
+                         (ctx.extend_path, exc.message)))
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
-        print(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
-        return 1
+        sys.exit(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
 
     # ensure the build space was previously built by catkin_tools
     previous_tool = get_previous_tool_used_on_the_space(ctx.build_space_abs)
@@ -318,11 +322,10 @@ def main(opts):
                 "but --override-build-tool-check was passed so continuing anyways."
                 % (ctx.build_space_abs, previous_tool)))
         else:
-            print(clr(
+            sys.exit(clr(
                 "@{rf}The build space at '%s' was previously built by '%s'. "
                 "Please remove the build space or pick a different build space."
                 % (ctx.build_space_abs, previous_tool)))
-            return 1
     # the build space will be marked as catkin build's if dry run doesn't return
 
     # ensure the devel space was previously built by catkin_tools
@@ -334,20 +337,21 @@ def main(opts):
                 "but --override-build-tool-check was passed so continuing anyways."
                 % (ctx.devel_space_abs, previous_tool)))
         else:
-            print(clr(
+            sys.exit(clr(
                 "@{rf}The devel space at '%s' was previously built by '%s'. "
                 "Please remove the devel space or pick a different devel space."
                 % (ctx.devel_space_abs, previous_tool)))
-            return 1
     # the devel space will be marked as catkin build's if dry run doesn't return
 
     # Display list and leave the file system untouched
     if opts.dry_run:
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
+
     # Print the build environment for a given package and leave the filesystem untouched
-    if opts.build_env:
-        return print_build_env(ctx, opts.build_env[0])
+    if opts.get_env:
+        return print_build_env(ctx, opts.get_env[0])
+
     # Now mark the build and devel spaces as catkin build's since dry run didn't return.
     mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
     mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')
