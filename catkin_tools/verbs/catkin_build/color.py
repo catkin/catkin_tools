@@ -67,34 +67,3 @@ _color_translation_map = {
 color_mapper = ColorMapper(_color_translation_map)
 
 clr = color_mapper.clr
-
-
-def colorize_cmake(line):
-    """Colorizes output from CMake
-
-    :param line: one, new line terminated, line from `cmake` which needs coloring.
-    :type line: str
-    """
-    cline = sanitize(line)
-    if line.startswith('-- '):
-        cline = '@{cf}-- @|' + cline[len('-- '):]
-        if ':' in cline:
-            split_cline = cline.split(':')
-            cline = split_cline[0] + ':@{yf}' + ':'.join(split_cline[1:]) + '@|'
-    if line.lower().startswith('warning'):
-        # WARNING
-        cline = fmt('@{yf}') + cline
-    if line.startswith('CMake Warning'):
-        # CMake Warning...
-        cline = cline.replace('CMake Warning', '@{yf}@!CMake Warning@|')
-    if line.startswith('ERROR:'):
-        # ERROR:
-        cline = cline.replace('ERROR:', '@!@{rf}ERROR:@|')
-    if line.startswith('CMake Error'):
-        # CMake Error...
-        cline = cline.replace('CMake Error', '@{rf}@!CMake Error@|')
-    if line.startswith('Call Stack (most recent call first):'):
-        # CMake Call Stack
-        cline = cline.replace('Call Stack (most recent call first):',
-                              '@{cf}@_Call Stack (most recent call first):@|')
-    return fmt(cline)

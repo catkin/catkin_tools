@@ -66,6 +66,7 @@ class Context(object):
         'cmake_args',
         'make_args',
         'use_internal_make_jobserver',
+        'use_env_cache',
         'catkin_make_args',
         'whitelist',
         'blacklist',
@@ -200,6 +201,7 @@ class Context(object):
         cmake_args=None,
         make_args=None,
         use_internal_make_jobserver=True,
+        use_env_cache=False,
         catkin_make_args=None,
         space_suffix=None,
         whitelist=None,
@@ -234,6 +236,8 @@ class Context(object):
         :type make_args: list
         :param use_internal_make_jobserver: true if this configuration should use an internal make jobserv
         :type use_internal_make_jobserver: bool
+        :param use_env_cache: true if this configuration should cache job environments loaded from resultspaces
+        :type use_env_cache: bool
         :param catkin_make_args: extra make arguments to be passed to make for each catkin package
         :type catkin_make_args: list
         :param space_suffix: suffix for build, devel, and install spaces which are not explicitly set.
@@ -248,7 +252,7 @@ class Context(object):
 
         # Check for unhandled context options
         if len(kwargs) > 0:
-            print('Warning: Unhandled config context options: {}'.format(kwargs))
+            print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
 
         # Validation is done on assignment
         # Handle *space assignment and defaults
@@ -278,6 +282,7 @@ class Context(object):
         self.cmake_args = cmake_args or []
         self.make_args = make_args or []
         self.use_internal_make_jobserver = use_internal_make_jobserver
+        self.use_env_cache = use_env_cache
         self.catkin_make_args = catkin_make_args or []
 
         # List of packages in the workspace is set externally
@@ -407,6 +412,7 @@ class Context(object):
                 clr("@{cf}Additional Make Args:@|        @{yf}{make_args}@|"),
                 clr("@{cf}Additional catkin Make Args:@| @{yf}{catkin_make_args}@|"),
                 clr("@{cf}Internal Make Job Server:@|    @{yf}{_Context__use_internal_make_jobserver}@|"),
+                clr("@{cf}Cache Job Environments:@|      @{yf}{_Context__use_env_cache}@|"),
             ],
             [
                 clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
@@ -647,6 +653,16 @@ class Context(object):
         self.__use_internal_make_jobserver = value
 
     @property
+    def use_env_cache(self):
+        return self.__use_env_cache
+
+    @use_env_cache.setter
+    def use_env_cache(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__use_env_cache = value
+
+    @property
     def catkin_make_args(self):
         return self.__catkin_make_args
 
@@ -696,3 +712,21 @@ class Context(object):
             return os.path.join(self.install_space_abs, package.name)
         else:
             return self.install_space_abs
+
+    def package_dest_path(self, package):
+        if self.install:
+            if self.destdir is None:
+                return self.package_install_space(package.name)
+            else:
+                return os.path.join(
+                    self.destdir,
+                    self.package_install_space(package.name).lstrip(os.sep)
+                )
+        else:
+            return self.package_devel_space(package.name)
+
+    def package_final_path(self, package):
+        if self.install:
+            return self.package_install_space(package.name)
+        else:
+            return self.package_devel_space(package.name)

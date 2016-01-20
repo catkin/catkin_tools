@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 import os
+import re
+import shutil
 
 from math import floor
 
@@ -186,7 +188,7 @@ def test_force_cmake():
 
 
 def test_install():
-    """Test building and installing."""
+    """Test building and installing catkin packages without DESTDIR"""
     with redirected_stdio() as (out, err):
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
@@ -196,3 +198,69 @@ def test_install():
                 assert catkin_success(['config', '--install'])
                 assert catkin_success(BUILD)
                 assert os.path.exists(os.path.join('install'))
+
+
+def test_install_cmake():
+    """Test building and installing cmake packages without DESTDIR."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            print(os.getcwd)
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
+                os.path.join('src/cmake_pkgs'))
+
+            assert catkin_success(['config', '--install'])
+            assert catkin_success(BUILD)
+            assert os.path.exists(os.path.join('install'))
+
+
+def test_install_cmake_destdir():
+    """Test building and installing cmake packages with DESTDIR."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            print(os.getcwd)
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
+                os.path.join('src/cmake_pkgs'))
+
+            tmpinstall_path = os.path.join(os.getcwd(), 'tmpinstall')
+            env = {'DESTDIR': tmpinstall_path}
+
+            assert catkin_success(['config', '--install', '--install-space', '/opt/foo'], env)
+            assert catkin_success(BUILD, env)
+            assert os.path.exists(tmpinstall_path)
+            assert not os.path.exists(os.path.join('install'))
+
+
+def test_install_catkin_destdir():
+    """Test building and installing catkin packages with DESTDIR."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            print(os.getcwd)
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'products_0'),
+                os.path.join('src', 'products_0'))
+
+            tmpinstall_path = os.path.join(os.getcwd(), 'tmpinstall')
+            env = {'DESTDIR': tmpinstall_path}
+            install_space = os.path.abspath(os.path.join('opt', 'foo'))
+
+            assert catkin_success(['config', '--install', '--install-space', install_space], env)
+            assert catkin_success(BUILD, env)
+            assert os.path.exists(tmpinstall_path)
+            assert not os.path.exists(os.path.join('install'))
+
+            # check for _CATKIN_SETUP_DIR
+            setup_sh_path = os.path.join(tmpinstall_path, install_space.lstrip(os.sep), 'setup.sh')
+            print(setup_sh_path)
+            assert os.path.exists(setup_sh_path)
+            setup_dir_correct = False
+            with open(setup_sh_path, "r") as setup_sh:
+                for line in setup_sh:
+                    if re.search('_CATKIN_SETUP_DIR:={}'.format(install_space), line):
+                        setup_dir_correct = True
+                        break
+            assert setup_dir_correct is True

@@ -48,7 +48,7 @@ def _resolve_prefix(prefix, type):
             return '/'
     elif type == 'zsh_comp':
         if sys.prefix.startswith(osx_system_prefix):
-            return '/usr'
+            return '/usr/local'
     else:
         raise ValueError('not supported type')
     return prefix
@@ -69,6 +69,7 @@ def get_data_files(prefix):
 
 
 class PermissiveInstall(install):
+
     def run(self):
         install.run(self)
         if os.name == 'posix':
@@ -123,10 +124,15 @@ setup(
             'clean = catkin_tools.verbs.catkin_clean:description',
             'config = catkin_tools.verbs.catkin_config:description',
             'create = catkin_tools.verbs.catkin_create:description',
+            'env = catkin_tools.verbs.catkin_env:description',
             'init = catkin_tools.verbs.catkin_init:description',
             'list = catkin_tools.verbs.catkin_list:description',
             'locate = catkin_tools.verbs.catkin_locate:description',
             'profile = catkin_tools.verbs.catkin_profile:description',
+        ],
+        'catkin_tools.jobs': [
+            'catkin = catkin_tools.jobs.catkin:description',
+            'cmake = catkin_tools.jobs.cmake:description',
         ],
     },
     cmdclass={'install': PermissiveInstall},

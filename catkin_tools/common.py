@@ -15,8 +15,19 @@
 from __future__ import print_function
 
 import datetime
+import errno
 import os
 import re
+import subprocess
+import sys
+
+import trollius as asyncio
+
+from shlex import split as cmd_split
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
 
 from catkin_pkg.packages import find_packages
 
@@ -31,20 +42,18 @@ except NameError:
     string_type = str
 
 
-class FakeLock(object):
+class FakeLock(asyncio.locks.Lock):
 
-    """Fake lock used to mimic a Lock but without causing synchronization"""
+    """Fake lock used to mimic an asyncio.Lock but without causing synchronization"""
 
-    def acquire(self, blocking=False):
-        return True
+    def locked(self):
+        return False
+
+    @asyncio.coroutine
+    def acquire(self):
+        raise asyncio.Return(True)
 
     def release(self):
-        pass
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
         pass
 
 
@@ -239,21 +248,64 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return recursive_depends
 
 
+def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive build dependants of a package which are also in
+    the ordered_packages
+
+    :param package: package for which the recursive depends should be calculated
+    :type package: :py:class:`catkin_pkg.package.Package`
+    :param ordered_packages: packages in the workspace, ordered topologically,
+        stored as a list of tuples of package path and package object
+    :type ordered_packages: list(tuple(package path,
+        :py:class:`catkin_pkg.package.Package`))
+    :returns: list of package path, package object tuples which are the
+        recursive build depends for the given package
+    :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    """
+    recursive_dependants = list()
+
+    for pth, pkg in reversed(ordered_packages):
+        # Break if this is one to check
+        if pkg.name == package_name:
+            break
+
+        # Check if this package depends on the target package
+        deps = get_recursive_build_depends_in_workspace(pkg, ordered_packages)
+        deps_names = [p.name for _, p in deps]
+        if package_name in deps_names:
+            recursive_dependants.insert(0, (pth, pkg))
+
+    return recursive_dependants
+
+
 def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()
 
+unicode_error_printed = False
+unicode_sanitizer = re.compile(r'[^\x00-\x7F]+')
+
 
 def log(*args, **kwargs):
     """Wrapper for print, allowing for special handling where necessary"""
-    if 'end_with_escape' not in kwargs or kwargs['end_with_escape'] is True:
-        args = list(args)
-        escape_reset = clr('@|')
-        if escape_reset:
-            args.append(escape_reset)
-        if 'end_with_escape' in kwargs:
-            del kwargs['end_with_escape']
-    print(*args, **kwargs)
+    global unicode_error_printed
+    try:
+        print(*args, **kwargs)
+    except UnicodeEncodeError:
+        # Strip unicode characters from string args
+        sanitized_args = [unicode_sanitizer.sub('?', a)
+                          if type(a) in [str, unicode]
+                          else a
+                          for a in args]
+        print(*sanitized_args, **kwargs)
+
+        # Warn the user that
+        if not unicode_error_printed:
+            print('WARNING: Could not encode unicode characters. Please set the'
+                  ' PYTHONIOENCODING environment variable to see complete output.'
+                  ' (i.e. PYTHONIOENCODING=UTF-8)',
+                  file=sys.stderr)
+            unicode_error_printed = True
 
 
 def terminal_width_windows():
@@ -277,7 +329,7 @@ def terminal_width_windows():
 
 def terminal_width_linux():
     """Returns the estimated width of the terminal on linux"""
-    width = os.popen('tput cols', 'r').readline()
+    width = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE, close_fds=False).stdout.readline()
 
     return int(width)
 
@@ -329,7 +381,10 @@ def slice_to_printed_length(string, length):
         current_index += len(m.group())
     if not matches:
         # If no matches, then set the lookup_array to a plain range
-        lookup_array = range(len(string))
+        lookup_array = list(range(len(string)))
+    lookup_array.append(len(string))
+    if length > len(lookup_array):
+        return string
     return string[:lookup_array[length]] + clr('@|')
 
 
@@ -426,8 +481,12 @@ def wide_log(msg, **kwargs):
     :param truncate: If True, messages wider the then terminal will be truncated
     :type truncate: bool
     """
-    global wide_log_fn
-    wide_log_fn(msg, **kwargs)
+    try:
+        global wide_log_fn
+        wide_log_fn(msg, **kwargs)
+    except IOError:
+        # This happens when someone ctrl-c's during a log message
+        pass
 
 
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
@@ -454,3 +513,41 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
 def version_tuple(v):
     """Get an integer version tuple from a string."""
     return tuple(map(int, (str(v).split("."))))
+
+
+def mkdir_p(path):
+    """Equivalent to UNIX mkdir -p"""
+    if os.path.exists(path):
+        return
+    try:
+        return os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def format_env_dict(environ):
+    """Format an environment dict for printing to console similarly to `typeset` builtin."""
+
+    return '\n'.join([
+        'typeset -x {}={}'.format(k, cmd_quote(v))
+        for k, v in environ.items()
+    ])
+
+
+def parse_env_str(environ_str):
+    """Parse a quoted environment string generated by format_env_dict, or `typeset` builtin."""
+
+    try:
+        split_envs = [e.split('=', 1) for e in cmd_split(environ_str)]
+        return {
+            e[0]: e[1] for e
+            in split_envs
+            if len(e) == 2
+        }
+    except ValueError:
+        print('WARNING: Could not parse env string: `{}`'.format(environ_str),
+              file=sys.stderr)
+        raise

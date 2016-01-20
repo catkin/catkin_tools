@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 
+import argparse
 import os
 import re
 import sys
@@ -22,9 +23,7 @@ from multiprocessing import cpu_count
 
 from catkin_tools.common import wide_log
 
-from catkin_tools.make_jobserver import initialize_jobserver
-from catkin_tools.make_jobserver import jobserver_arguments
-from catkin_tools.make_jobserver import jobserver_supported
+import catkin_tools.execution.job_server as job_server
 
 
 def add_context_args(parser):
@@ -60,10 +59,12 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     """
 
     add = parser.add_argument
-    add('-p', '--parallel-packages', '--parallel-jobs', '--parallel', dest='parallel_jobs', default=None,
-        help='Maximum number of packages which could be built in parallel (default is cpu count)')
     add('-j', '--jobs', default=None,
-        help='Limit parallel job count through the internal GNU make job server. default is cpu count')
+        help='Maximum number of build jobs to be distributed across active packages. (default is cpu count)')
+    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None,
+        help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+    # Deprecated flags kept for compatibility
+    add('--parallel-jobs', '--parallel', action='store_true', dest='parallel_jobs', help=argparse.SUPPRESS)
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--jobserver', dest='use_internal_make_jobserver', default=None, action='store_true',
@@ -71,6 +72,13 @@ def add_cmake_and_make_and_catkin_make_args(parser):
              'of Make jobs across all active packages.')
     add('--no-jobserver', dest='use_internal_make_jobserver', default=None, action='store_false',
         help='Disable the internal GNU Make job server, and use an external one (like distcc, for example).')
+
+    add = parser.add_mutually_exclusive_group().add_argument
+    add('--env-cache', dest='use_env_cache', default=None, action='store_true',
+        help='Re-use cached environment variables when re-sourcing a resultspace that has been '
+             'loaded at a different stage in the task.')
+    add('--no-env-cache', dest='use_env_cache', default=None, action='store_false',
+        help='Don\'t cache environment variables when re-sourcing the same resultspace.')
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--cmake-args', metavar='ARG', dest='cmake_args', nargs='+', required=False, type=str, default=None,
@@ -247,6 +255,10 @@ def handle_make_arguments(
 
     # Get the values for the jobs flags which may be in the make args
     jobs_dict = extract_jobs_flags_values(' '.join(make_args))
+    jobs_args = extract_jobs_flags(' '.join(make_args))
+    if len(jobs_args) > 0:
+        # Remove jobs flags from cli args if they're present
+        make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
 
     if force_single_threaded_when_running_tests:
         # force single threaded execution when running test since rostest does not support multiple parallel runs
@@ -255,8 +267,8 @@ def handle_make_arguments(
             wide_log('Forcing "-j1" for running unit tests.')
             jobs_dict['jobs'] = 1
 
-    if len(jobs_dict) == 0:
-        make_args.extend(jobserver_arguments())
+    if job_server.gnu_make_enabled():
+        make_args.extend(job_server.gnu_make_args())
     else:
         if 'jobs' in jobs_dict:
             make_args.append('-j{0}'.format(jobs_dict['jobs']))
@@ -282,7 +294,7 @@ def configure_make_args(make_args, use_internal_make_jobserver):
         n_cpus = cpu_count()
         jobs_flags = {
             'jobs': n_cpus,
-            'load-average': n_cpus}
+            'load-average': n_cpus + 1}
     except NotImplementedError:
         # If the number of cores cannot be determined, limit to one job
         jobs_flags = {
@@ -292,29 +304,31 @@ def configure_make_args(make_args, use_internal_make_jobserver):
     # Get MAKEFLAGS from environment
     makeflags_jobs_flags = extract_jobs_flags(os.environ.get('MAKEFLAGS', ''))
     using_makeflags_jobs_flags = len(makeflags_jobs_flags) > 0
-    jobs_flags.update(extract_jobs_flags_values(' '.join(makeflags_jobs_flags)))
+    if using_makeflags_jobs_flags:
+        makeflags_jobs_flags_dict = extract_jobs_flags_values(' '.join(makeflags_jobs_flags))
+        jobs_flags.update(makeflags_jobs_flags_dict)
 
     # Extract make jobs flags (these override MAKEFLAGS)
     cli_jobs_flags = extract_jobs_flags(' '.join(make_args))
     using_cli_flags = len(cli_jobs_flags) > 0
-    jobs_flags.update(extract_jobs_flags_values(' '.join(cli_jobs_flags)))
     if cli_jobs_flags:
+        jobs_flags.update(extract_jobs_flags_values(' '.join(cli_jobs_flags)))
         # Remove jobs flags from cli args if they're present
         make_args = re.sub(' '.join(cli_jobs_flags), '', ' '.join(make_args)).split()
 
-    # Instantiate a jobserver
-    if use_internal_make_jobserver:
-        initialize_jobserver(
-            num_jobs=jobs_flags.get('jobs', None),
-            max_load=jobs_flags.get('load-average', None))
+    # Instantiate the jobserver
+    job_server.initialize(
+        max_jobs=jobs_flags.get('jobs', None),
+        max_load=jobs_flags.get('load-average', None),
+        gnu_make_enabled=use_internal_make_jobserver)
 
     # If the jobserver is supported
-    if jobserver_supported():
+    if job_server.gnu_make_enabled():
         jobs_args = []
     else:
         jobs_args = cli_jobs_flags
 
-    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, jobserver_supported()
+    return make_args + jobs_args, using_makeflags_jobs_flags, using_cli_flags, job_server.gnu_make_enabled()
 
 
 def argument_preprocessor(args):
@@ -337,13 +351,14 @@ def argument_preprocessor(args):
 
     # Extract make jobs flags (these override MAKEFLAGS later on)
     jobs_args = extract_jobs_flags(' '.join(args))
-    if jobs_args:
+    if len(jobs_args) > 0:
         # Remove jobs flags from cli args if they're present
         args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
 
     extras = {
         'cmake_args': cmake_args,
-        'make_args': (make_args or []) + (jobs_args or []),
+        'make_args': (make_args or []) + jobs_args,
         'catkin_make_args': catkin_make_args,
     }
+
     return args, extras

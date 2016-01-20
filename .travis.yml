@@ -1,8 +1,4 @@
 # Travis auto-virtualenv isn't supported on OS X
-#language: python
-#python:
-  #- "2.7"
-  #- "3.3"
 language: generic
 matrix:
   include:
@@ -37,14 +33,17 @@ matrix:
       python: 3
       env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
 before_install:
+  # Install catkin_tools dependencies
   - source .travis.before_install.bash
-install:
-  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil
-  - pip install nose coverage flake8 mock trollius --upgrade
-before_script:
-  - ./.travis.before_script.bash
+  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil trollius
   - pip install git+https://github.com/osrf/osrf_pycommon.git
-  - pip install empy --upgrade
+install:
+  # Install catkin_tools
+  - python setup.py develop
+before_script:
+  # Install catkin_tools test harness dependencies
+  - ./.travis.before_script.bash
+  - pip install empy sphinx_rtd_theme nose coverage flake8 mock --upgrade
   - git clone https://github.com/ros/catkin.git /tmp/catkin_source -b $CATKIN_VERSION --depth 1
   - mkdir /tmp/catkin_source/build
   - pushd /tmp/catkin_source/build
@@ -52,7 +51,11 @@ before_script:
   - source devel/setup.bash
   - popd
 script:
-  - python setup.py develop
+  # Run catkin_tools test harness
   - python setup.py nosetests -s
+  # Build documentation
+  - pushd docs
+  - make html
+  - popd
 notifications:
   email: false
