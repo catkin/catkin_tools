@@ -203,7 +203,7 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
 
     def _split(self, data):
         try:
-            last_break = data.rindex('\n') + 1
+            last_break = data.rindex(b'\n') + 1
             return data[0:last_break], data[last_break:]
         except ValueError:
             return b'', data
