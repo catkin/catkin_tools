@@ -122,8 +122,9 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         if line.startswith('-- '):
             cline = '@{cf}--@| ' + cline[len('-- '):]
             if ':' in cline:
-                split_cline = cline.rstrip().split(':', 1)
-                cline = cline.replace(split_cline[1], '@{yf}%s@|' % split_cline[1])
+                split_cline = cline.split(':', 1)
+                if len(split_cline[1].strip()) > 0:
+                    cline = split_cline[0] + (':@{yf}%s@|' % split_cline[1])
         elif line.lower().startswith('warning'):
             # WARNING
             cline = fmt('@{yf}', reset=False) + cline

@@ -419,6 +419,7 @@ def build_isolated_workspace(
             show_notifications=not no_notify,
             show_active_status=not no_status,
             show_buffered_stdout=not quiet and not interleave_output,
+            show_buffered_stderr=not interleave_output,
             show_live_stdout=interleave_output,
             show_live_stderr=interleave_output,
             show_stage_events=not quiet,

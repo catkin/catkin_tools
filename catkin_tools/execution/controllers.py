@@ -679,21 +679,22 @@ class ConsoleStatusController(threading.Thread):
                         header_title = None
                         footer_border = None
 
-                if self.show_repro_cmd and len(lines) > 0:
-                    if event.data['repro'] is not None:
-                        lines.append(clr('@!@{kf}{}@|\n').format(event.data['repro']))
-
-                # Print the output
-                if header_border:
-                    wide_log(header_border)
-                if header_title:
-                    wide_log(header_title)
                 if len(lines) > 0:
-                    wide_log(''.join(lines), end='\r')
-                if footer_border:
-                    wide_log(footer_border)
-                if footer_title:
-                    wide_log(footer_title)
+                    if self.show_repro_cmd:
+                        if event.data['repro'] is not None:
+                            lines.append(clr('@!@{kf}{}@|\n').format(event.data['repro']))
+
+                    # Print the output
+                    if header_border:
+                        wide_log(header_border)
+                    if header_title:
+                        wide_log(header_title)
+                    if len(lines) > 0:
+                        wide_log(''.join(lines), end='\r')
+                    if footer_border:
+                        wide_log(footer_border)
+                    if footer_title:
+                        wide_log(footer_title)
 
             elif 'STDERR' == eid:
                 if self.show_live_stderr and len(event.data['data']) > 0:
@@ -727,4 +728,7 @@ class ConsoleStatusController(threading.Thread):
         else:
             prefix = ''
 
-        return ''.join(prefix + l + fmt('@|') for l in data['data'].splitlines(True))
+        template = '\r{}\r{}'.format(' ' * terminal_width(), prefix)
+        suffix = clr('@|')
+
+        return ''.join(template + l + suffix for l in data['data'].splitlines(True))
