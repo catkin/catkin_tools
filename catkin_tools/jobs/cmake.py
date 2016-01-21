@@ -13,11 +13,16 @@
 # limitations under the License.
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 
+
 from catkin_tools.argument_parsing import handle_make_arguments
+
+from catkin_tools.common import mkdir_p
+from catkin_tools.common import get_linked_devel_package_path
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
@@ -42,6 +47,37 @@ try:
 except NameError:
     class FileNotFoundError(OSError):
         pass
+
+
+INSTALL_MANIFEST_FILENAME = 'install_manifest.txt'
+
+
+def get_install_manifest_path(install_target, package_name):
+    """Get the path to the installed install manifest for this package."""
+    return os.path.join(
+        get_linked_devel_package_path(install_target, package_name),
+        INSTALL_MANIFEST_FILENAME)
+
+
+def copy_install_manifest(logger, event_queue, package_name, build_space, install_target):
+
+    # Get the paths
+    src_install_manifest_path = os.path.join(build_space, INSTALL_MANIFEST_FILENAME)
+    dst_install_manifest_path = get_install_manifest_path(install_target, package_name)
+
+    # Create the directory for the manifest if it doesn't exist
+    mkdir_p(os.path.split(dst_install_manifest_path)[0])
+
+    if os.path.exists(src_install_manifest_path):
+        # Copy the install manifest
+        shutil.copyfile(src_install_manifest_path, dst_install_manifest_path)
+    else:
+        # Didn't actually install anything, so create an empty manifest for completeness
+        logger.err("Warning: No targets installed.")
+        with open(dst_install_manifest_path, 'a'):
+            os.utime(dst_install_manifest_path, None)
+
+    return 0
 
 
 def get_python_install_dir():
@@ -183,7 +219,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
         setup_file_needed = context.isolate_install or not os.path.exists(setup_file_path)
     else:
         # Do not replace existing setup.sh if devel space is merged
-        setup_file_needed = context.isolate_devel or not os.path.exists(setup_file_path)
+        setup_file_needed = not context.link_devel and context.isolate_devel or not os.path.exists(setup_file_path)
 
     if not setup_file_needed:
         logger.out("Setup file does not need to be generated.")
@@ -298,6 +334,14 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         locked_resource='installspace'
     ))
 
+    # Copy install manifest
+    stages.append(FunctionStage(
+        'register',
+        copy_install_manifest,
+        package_name=package.name,
+        build_space=build_space,
+        install_target=dest_path))
+
     # Determine the location where the setup.sh file should be created
     stages.append(FunctionStage(
         'setupgen',
@@ -315,6 +359,90 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         jid=package.name,
         deps=dependencies,
         env_loader=get_env_loader(package, context),
+        stages=stages)
+
+
+def create_cmake_clean_job(context, package_name, dependencies):
+    """Factory for a Job to clean cmake packages"""
+
+    # Determine install target
+    install_target = context.install_space_abs if context.install else context.devel_space_abs
+
+    # Setup build variables
+    build_space = get_package_build_space_path(context.build_space_abs, package_name)
+
+    # Read install manifest
+    install_manifest_path = get_install_manifest_path(install_target, package_name)
+    installed_files = set()
+    if os.path.exists(install_manifest_path):
+        with open(install_manifest_path) as f:
+            installed_files = set([line.strip() for line in f.readlines()])
+
+    # List of directories to check for removed files
+    dirs_to_check = set()
+
+    # Stages for this clean job
+    stages = []
+
+    for installed_file in installed_files:
+        # Make sure the file is given by an absolute path and it exists
+        if not os.path.isabs(installed_file) or not os.path.exists(installed_file):
+            continue
+
+        # Add stages to remove the file or directory
+        if os.path.isdir(installed_file):
+            stages.append(CommandStage(
+                'rmdir'
+                [CMAKE_EXEC, '-E', 'remove_directory', installed_file],
+                cwd=build_space))
+        else:
+            stages.append(CommandStage(
+                'rm',
+                [CMAKE_EXEC, '-E', 'remove', installed_file],
+                cwd=build_space))
+
+        # Check if directories that contain this file will be empty once it's removed
+        path = installed_file
+        # Only look in the devel space
+        while path != self.context.devel_space_abs:
+            # Pop up a directory
+            path, dirname = os.path.split(path)
+
+            # Skip if this path isn't a directory
+            if not os.path.isdir(path):
+                continue
+
+            dirs_to_check.add(path)
+
+    # For each directory which may be empty after cleaning, visit them depth-first and count their descendants
+    dir_descendants = dict()
+    dirs_to_remove = set()
+    for path in sorted(dirs_to_check, key=lambda k: -len(k.split(os.path.sep))):
+        # Get the absolute path to all the files currently in this directory
+        files = [os.path.join(path, f) for f in os.listdir(path)]
+        # Filter out the files which we intend to remove
+        files = [f for f in files if f not in installed_files]
+        # Compute the minimum number of files potentially contained in this path
+        dir_descendants[path] = sum([(dir_descendants.get(f, 1) if os.path.isdir(f) else 1) for f in files])
+
+        # Schedule the directory for removal if removal of the given files will make it empty
+        if dir_descendants[path] == 0:
+            dirs_to_remove.add(path)
+
+    for generated_dir in dirs_to_remove:
+        stages.append(CommandStage(
+            'rmdir',
+            [CMAKE_EXEC, '-E', 'remove_directory', generated_dir],
+            cwd=build_space))
+
+    stages.append(CommandStage(
+        'rmbuild',
+        [CMAKE_EXEC, '-E', 'remove_directory', build_space],
+        cwd=context.build_space_abs))
+
+    return Job(
+        jid=package_name,
+        deps=dependencies,
         stages=stages)
 
 

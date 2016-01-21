@@ -60,7 +60,7 @@ class Context(object):
         'build_space',
         'devel_space',
         'install_space',
-        'isolate_devel',
+        'devel_layout',
         'install',
         'isolate_install',
         'cmake_args',
@@ -195,7 +195,7 @@ class Context(object):
         build_space=None,
         devel_space=None,
         install_space=None,
-        isolate_devel=False,
+        devel_layout=None,
         install=False,
         isolate_install=False,
         cmake_args=None,
@@ -274,7 +274,7 @@ class Context(object):
         self.blacklist = blacklist or []
 
         # Handle build options
-        self.isolate_devel = isolate_devel
+        self.devel_layout = devel_layout if devel_layout else 'merged'
         self.install = install
         self.isolate_install = isolate_install
 
@@ -403,7 +403,7 @@ class Context(object):
                 clr("@{cf}DESTDIR:@|                     @{yf}{_Context__destdir}@|"),
             ],
             [
-                clr("@{cf}Isolate Develspaces:@|         @{yf}{_Context__isolate_devel}@|"),
+                clr("@{cf}Devel Space Layout:@|          @{yf}{_Context__devel_layout}@|"),
                 clr("@{cf}Install Packages:@|            @{yf}{_Context__install}@|"),
                 clr("@{cf}Isolate Installs:@|            @{yf}{_Context__isolate_install}@|"),
             ],
@@ -593,14 +593,26 @@ class Context(object):
         self.__destdir = value
 
     @property
-    def isolate_devel(self):
-        return self.__isolate_devel
+    def devel_layout(self):
+        return self.__devel_layout
 
-    @isolate_devel.setter
-    def isolate_devel(self, value):
+    @devel_layout.setter
+    def devel_layout(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__isolate_devel = value
+        self.__devel_layout = value
+
+    @property
+    def merge_devel(self):
+        return self.devel_layout == 'merged'
+
+    @property
+    def link_devel(self):
+        return self.devel_layout == 'linked'
+
+    @property
+    def isolate_devel(self):
+        return self.devel_layout == 'isolated'
 
     @property
     def install(self):

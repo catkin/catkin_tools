@@ -42,6 +42,8 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
+from catkin_pkg.package import parse_package
+
 from catkin_tools.common import FakeLock
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
@@ -55,11 +57,17 @@ from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
+from catkin_tools.jobs.catkin import create_catkin_build_job
+from catkin_tools.jobs.cmake import create_cmake_build_job
 from catkin_tools.jobs.job import get_build_type
+from catkin_tools.jobs.catkin import generate_setup_bootstrap
+from catkin_tools.jobs.catkin import create_catkin_tools_bootstrap_job
+from catkin_tools.jobs.catkin import get_bootstrap_path
 
 from catkin_tools.notifications import notify
 
 from .color import clr
+
 
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
@@ -199,6 +207,8 @@ def build_isolated_workspace(
     :type force_color: bool
     :param quiet: suppresses the output of commands unless there is an error
     :type quiet: bool
+    :param interleave_output: prints the output of commands as they are received
+    :type interleave_output: bool
     :param no_status: disables status bar
     :type no_status: bool
     :param limit_status_rate: rate to which status updates are limited; the default 0, places no limit.
@@ -314,6 +324,64 @@ def build_isolated_workspace(
     if len(packages_to_be_built) == 0:
         log(clr('[build] No packages to be built.'))
         return
+
+    # Generate bootstrap, if necessary
+    setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
+        wide_log('[build] Preparing linked develspace...')
+        bootstrap_job = None
+
+        # If catkin is in the workspace, it needs to be built first, instead
+        pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
+
+        if 'catkin' in pkg_dict:
+            # Catkin can be used as the bootstrap
+            pkg_path, pkg = pkg_dict['catkin']
+            bootstrap_job = create_catkin_tools_bootstrap_job(
+                context, pkg, pkg_path, context.devel_space_abs)
+        else:
+            # Bootstrap package needed
+            generate_setup_bootstrap(context.build_space_abs, context.devel_space_abs, force_cmake)
+
+            bootstrap_pkg_path = get_bootstrap_path(context.devel_space_abs, mkdirs=True)
+            bootstrap_pkg = parse_package(bootstrap_pkg_path)
+
+            bootstrap_job = create_catkin_tools_bootstrap_job(
+                context,
+                bootstrap_pkg,
+                bootstrap_pkg_path,
+                context.devel_space_abs)
+
+        # Spin up status output thread
+        event_queue = Queue()
+        #status_thread = ConsoleStatusController(
+            #'build',
+            #['package', 'packages'],
+            #[bootstrap_job],
+            #event_queue,
+            #show_summary=False,
+            #show_active_status=not no_status,
+            #show_buffered_stdout=not quiet,
+            #show_stage_events=not quiet,
+            #pre_start_time=pre_start_time)
+        #status_thread.start()
+
+        all_succeeded = run_until_complete(execute_jobs(
+            'build',
+            [bootstrap_job],
+            {},
+            event_queue,
+            os.path.join(context.build_space_abs, '_logs'),
+            max_toplevel_jobs=n_jobs,
+            continue_on_failure=False,
+            continue_without_deps=False))
+
+        #status_thread.join()
+
+        if all_succeeded:
+            wide_log('[build] Succesfully prepared linked develspace.')
+        else:
+            sys.exit('[build] Could not prepare linked develspace.')
 
     # Assert start_with package is in the workspace
     verify_start_with_option(

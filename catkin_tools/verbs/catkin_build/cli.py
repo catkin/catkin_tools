@@ -347,6 +347,7 @@ def main(opts):
 
     # Display list and leave the file system untouched
     if opts.dry_run:
+        # TODO: Add unbuilt
         dry_run(ctx, opts.packages, opts.no_deps, opts.start_with)
         return
 
