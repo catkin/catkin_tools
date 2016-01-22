@@ -90,7 +90,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         stages.append(FunctionStage(
             'ctr-nuke',
             ctr_nuke,
-            prefix=(devel_space if not context.install else install_space)))
+            prefix=context.package_dest_path(package)))
         stages.append(CommandStage(
             'cmake',
             ([CMAKE_EXEC,
