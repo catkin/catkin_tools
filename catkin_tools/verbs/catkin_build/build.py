@@ -337,13 +337,13 @@ def build_isolated_workspace(
 
         # Update the list with the new packages (in topological order)
         packages_to_be_built_paths = [
-            path
+            os.path.join(context.source_space_abs, path)
             for path, pkg in packages_to_be_built
         ]
 
         new_dot_catkin_paths = [
             os.path.join(context.source_space_abs, path)
-            for path, pkg in all_packages
+            for path in [os.path.join(context.source_space_abs, path) for path, pkg in all_packages]
             if path in dot_catkin_paths or path in packages_to_be_built_paths
         ]
 
