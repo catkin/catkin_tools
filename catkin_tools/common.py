@@ -489,6 +489,22 @@ def wide_log(msg, **kwargs):
         pass
 
 
+def get_build_type(package):
+    """Returns the build type for a given package.
+
+    :param package: package object
+    :type package: :py:class:`catkin_pkg.package.Package`
+    :returns: build type of the package, e.g. 'catkin' or 'cmake'
+    :rtype: str
+    """
+    export_tags = [e.tagname for e in package.exports]
+    if 'build_type' in export_tags:
+        build_type_tag = [e.content for e in package.exports if e.tagname == 'build_type'][0]
+    else:
+        build_type_tag = 'catkin'
+    return build_type_tag
+
+
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
     """Get the package containing the current directory."""
 
@@ -551,20 +567,3 @@ def parse_env_str(environ_str):
         print('WARNING: Could not parse env string: `{}`'.format(environ_str),
               file=sys.stderr)
         raise
-
-CATKIN_TOOLS_DIRNAME = '.catkin_tools'
-
-
-def get_linked_devel_path(devel_space_abs):
-    """The path to the hidden directory in the develspace that
-    contains the isolated devel spaces linked into the develspace."""
-    return os.path.join(
-        devel_space_abs,
-        CATKIN_TOOLS_DIRNAME)
-
-
-def get_linked_devel_package_path(devel_space_abs, package_name):
-    """The path to a given package's linked devel space"""
-    return os.path.join(
-        get_linked_devel_path(devel_space_abs),
-        package_name)

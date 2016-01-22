@@ -46,6 +46,7 @@ from catkin_pkg.package import parse_package
 
 from catkin_tools.common import FakeLock
 from catkin_tools.common import format_time_delta
+from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
@@ -59,10 +60,8 @@ from catkin_tools.execution.executor import run_until_complete
 
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.cmake import create_cmake_build_job
-from catkin_tools.jobs.job import get_build_type
-from catkin_tools.jobs.catkin import generate_setup_bootstrap
-from catkin_tools.jobs.catkin import create_catkin_tools_bootstrap_job
-from catkin_tools.jobs.catkin import get_bootstrap_path
+from catkin_tools.jobs.catkin import generate_prebuild_package
+from catkin_tools.jobs.catkin import create_catkin_tools_prebuild_job
 
 from catkin_tools.notifications import notify
 
@@ -307,6 +306,7 @@ def build_isolated_workspace(
     # Find list of packages in the workspace
     packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(
         packages, context, workspace_packages)
+
     if not no_deps:
         # Extend packages to be built to include their deps
         packages_to_be_built.extend(packages_to_be_built_deps)
@@ -325,64 +325,6 @@ def build_isolated_workspace(
         log(clr('[build] No packages to be built.'))
         return
 
-    # Generate bootstrap, if necessary
-    setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
-    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
-        wide_log('[build] Preparing linked develspace...')
-        bootstrap_job = None
-
-        # If catkin is in the workspace, it needs to be built first, instead
-        pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
-
-        if 'catkin' in pkg_dict:
-            # Catkin can be used as the bootstrap
-            pkg_path, pkg = pkg_dict['catkin']
-            bootstrap_job = create_catkin_tools_bootstrap_job(
-                context, pkg, pkg_path, context.devel_space_abs)
-        else:
-            # Bootstrap package needed
-            generate_setup_bootstrap(context.build_space_abs, context.devel_space_abs, force_cmake)
-
-            bootstrap_pkg_path = get_bootstrap_path(context.devel_space_abs, mkdirs=True)
-            bootstrap_pkg = parse_package(bootstrap_pkg_path)
-
-            bootstrap_job = create_catkin_tools_bootstrap_job(
-                context,
-                bootstrap_pkg,
-                bootstrap_pkg_path,
-                context.devel_space_abs)
-
-        # Spin up status output thread
-        event_queue = Queue()
-        #status_thread = ConsoleStatusController(
-            #'build',
-            #['package', 'packages'],
-            #[bootstrap_job],
-            #event_queue,
-            #show_summary=False,
-            #show_active_status=not no_status,
-            #show_buffered_stdout=not quiet,
-            #show_stage_events=not quiet,
-            #pre_start_time=pre_start_time)
-        #status_thread.start()
-
-        all_succeeded = run_until_complete(execute_jobs(
-            'build',
-            [bootstrap_job],
-            {},
-            event_queue,
-            os.path.join(context.build_space_abs, '_logs'),
-            max_toplevel_jobs=n_jobs,
-            continue_on_failure=False,
-            continue_without_deps=False))
-
-        #status_thread.join()
-
-        if all_succeeded:
-            wide_log('[build] Succesfully prepared linked develspace.')
-        else:
-            sys.exit('[build] Could not prepare linked develspace.')
-
     # Assert start_with package is in the workspace
     verify_start_with_option(
         start_with,
@@ -395,7 +337,6 @@ def build_isolated_workspace(
     # which isn't parallel-safe. Catkin CMake only modifies this file if
     # it's package source path isn't found.
     if not context.install:
-        wide_log("[build] Checking devel manifest...")
         dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
         # If the file exists, get the current paths
         if os.path.exists(dot_catkin_file_path):
@@ -417,9 +358,9 @@ def build_isolated_workspace(
 
         # Write the new file if it's different, otherwise, leave it alone
         if dot_catkin_paths == new_dot_catkin_paths:
-            wide_log("[build] Devel manifest is up to date.")
+            wide_log("[build] Package table is up to date.")
         else:
-            wide_log("[build] Updating devel manifest.")
+            wide_log("[build] Updating package table.")
             open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
 
     # Remove packages before start_with
@@ -433,22 +374,73 @@ def build_isolated_workspace(
 
     # Get the names of all packages to be built
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
+    packages_to_be_built_deps_names = [p.name for _, p in packages_to_be_built_deps]
+
+    # Generate prebuild jobs, if necessary
+    prebuild_jobs = {}
+    setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
+        wide_log('[build] Preparing linked develspace...')
+
+        pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
+
+        if 'catkin' in packages_to_be_built_names or packages_to_be_built_deps_names:
+            # USe catkin as a prebuild package
+            pkg_path, pkg = pkg_dict['catkin']
+            prebuild_job = create_catkin_tools_prebuild_job(
+                context, pkg, pkg_path)
+        else:
+            # Generate explicit prebuild package
+            prebuild_pkg_path = generate_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
+            prebuild_pkg = parse_package(prebuild_pkg_path)
+
+            prebuild_job = create_catkin_tools_prebuild_job(
+                context,
+                prebuild_pkg,
+                prebuild_pkg_path)
+
+        # Add the prebuld job
+        prebuild_jobs[prebuild_job.jid] = prebuild_job
+
+    # Remove prebuild jobs from normal job list
+    for prebuild_jid, prebuild_job in prebuild_jobs.items():
+        if prebuild_jid in packages_to_be_built_names:
+            packages_to_be_built_names.remove(prebuild_jid)
+
+    # Initial jobs list is just the prebuild jobs
+    jobs = [] + list(prebuild_jobs.values())
+
+    # Get all build type plugins
+    build_job_creators = {
+        ep.name: ep.load()['create_build_job']
+        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+    }
+
+    # It's a problem if there aren't any build types available
+    if len(build_job_creators) == 0:
+        sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
 
     # Construct jobs
-    jobs = []
     for pkg_path, pkg in all_packages:
         if pkg.name not in packages_to_be_built_names:
             continue
+
         # Ignore metapackages
         if 'metapackage' in [e.tagname for e in pkg.exports]:
             continue
 
         # Get actual execution deps
-        deps = [p.name for _, p in get_cached_recursive_build_depends_in_workspace(
-            pkg, packages_to_be_built)]
+        deps = [
+            p.name for _, p
+            in get_cached_recursive_build_depends_in_workspace(pkg, packages_to_be_built)
+            if p.name not in prebuild_jobs
+        ]
 
-        # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        # All jobs depend on the prebuild job if it's defined
+        for j in prebuild_jobs.values():
+            deps.append(j.jid)
+
+        # Determine the job parameters
         build_job_kwargs = dict(
             context=context,
             package=pkg,
@@ -456,19 +448,21 @@ def build_isolated_workspace(
             dependencies=deps,
             force_cmake=force_cmake,
             pre_clean=pre_clean)
-        build_job = None
 
-        for entry_point in pkg_resources.iter_entry_points(group='catkin_tools.jobs'):
-            if build_type == entry_point.name:
-                loaded_ep = entry_point.load()
-                build_job = loaded_ep['create_build_job'](**build_job_kwargs)
+        # Create the job based on the build type
+        build_type = get_build_type(pkg)
 
-        if build_job is not None:
-            jobs.append(build_job)
+        if build_type in build_job_creators:
+            jobs.append(build_job_creators[build_type](**build_job_kwargs))
         else:
-            wide_log(clr("[build] @!@{yf}Warning:@| Skipping package '{}'"
-                         " because it has an unknown package build type: \"{}\"").format(
-                pkg.name, build_type))
+            wide_log(clr(
+                "[build] @!@{yf}Warning:@| Skipping package `{}` because it "
+                "has an unsupported package build type: `{}`"
+            ).format(pkg.name, build_type))
+
+            wide_log(clr("[build] Note: Available build types:"))
+            for bt_name in build_job_creators.keys():
+                wide_log(clr("[build]  - `{}`".format(bt_name)))
 
     # Queue for communicating status
     event_queue = Queue()

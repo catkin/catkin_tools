@@ -37,6 +37,7 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import configure_make_args
 
+from catkin_tools.common import get_build_type
 from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
@@ -47,8 +48,7 @@ from catkin_tools.context import Context
 
 import catkin_tools.execution.job_server as job_server
 
-from catkin_tools.jobs.job import get_build_type
-from catkin_tools.jobs.job import get_env_loader
+from catkin_tools.jobs.utils import get_env_loader
 
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata

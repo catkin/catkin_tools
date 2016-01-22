@@ -625,6 +625,10 @@ class Context(object):
         self.__install = value
 
     @property
+    def merge_install(self):
+        return not self.__isolate_install
+
+    @property
     def isolate_install(self):
         return self.__isolate_install
 
@@ -710,35 +714,62 @@ class Context(object):
     def blacklist(self, value):
         self.__blacklist = value
 
+    @property
+    def linked_devel_path(self):
+        """The path to the hidden directory in the develspace that
+        contains the symbollically-linked isolated develspaces."""
+        return os.path.join(self.devel_space_abs, '.catkin_tools')
+
+    def package_linked_devel_path(self, package):
+        """The path to the linked devel space for a given package."""
+        return os.path.join(self.linked_devel_path, package.name)
+
     def package_build_space(self, package):
+        """Get the build directory for a specific package."""
         return os.path.join(self.build_space_abs, package.name)
 
     def package_devel_space(self, package):
-        if self.isolate_devel:
-            return os.path.join(self.devel_space_abs, package.name)
-        else:
+        """Get the devel directory for a specific package.
+        This is the root of the FHS layout where products are generated.
+        """
+        if self.merge_devel:
             return self.devel_space_abs
+        elif self.isolate_devel:
+            return os.path.join(self.devel_space_abs, package.name)
+        elif self.link_devel:
+            return os.path.join(self.linked_devel_path, package.name)
+        else:
+            raise ValueError('Unkown devel space layout: {}'.format(self.devel_layout))
 
     def package_install_space(self, package):
-        if self.isolate_install:
+        """Get the install directory for a specific package.
+        This is the root of the FHS layout where products are installed.
+        """
+
+        if self.merge_install:
+            return self.install_space_abs
+        elif self.isolate_install:
             return os.path.join(self.install_space_abs, package.name)
         else:
-            return self.install_space_abs
+            raise ValueError('Unkown install space layout: {}'.format(self.devel_layout))
 
     def package_dest_path(self, package):
-        if self.install:
-            if self.destdir is None:
-                return self.package_install_space(package.name)
-            else:
-                return os.path.join(
-                    self.destdir,
-                    self.package_install_space(package.name).lstrip(os.sep)
-                )
+        """Get the intermediate destination into which a specific package is built."""
+
+        if self.destdir is None:
+            return self.package_final_path(package)
         else:
-            return self.package_devel_space(package.name)
+            return os.path.join(
+                self.destdir,
+                self.package_install_space(package).lstrip(os.sep))
 
     def package_final_path(self, package):
+        """Get the final destination into which a specific package is deployed."""
+
         if self.install:
-            return self.package_install_space(package.name)
+            return self.package_install_space(package)
         else:
-            return self.package_devel_space(package.name)
+            if self.link_devel:
+                return self.devel_space_abs
+            else:
+                return self.package_devel_space(package)
