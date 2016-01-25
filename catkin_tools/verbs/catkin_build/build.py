@@ -525,7 +525,7 @@ def build_isolated_workspace(
             # Create isolated devel setup if necessary
             if context.isolate_devel:
                 if not context.install:
-                    _create_unmerged_devel_setup(context)
+                    _create_unmerged_devel_setup(context, now_unbuilt_pkgs)
                 else:
                     _create_unmerged_devel_setup_for_install(context)
             return 0
@@ -537,41 +537,81 @@ def build_isolated_workspace(
         event_queue.put(None)
 
 
-def _create_unmerged_devel_setup(context):
+def _create_unmerged_devel_setup(context, unbuilt):
     # Find all of the leaf packages in the workspace
     # where leaf means that nothing in the workspace depends on it
 
-    # Find all packages in the source space
-    # Suppress warnings since this is an internal function whose goal is not to
-    # give feedback on the user's packages
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    ordered_packages = context.packages
+    workspace_packages = dict([(p.name, p) for pth, p in ordered_packages])
 
-    ordered_packages = topological_order_packages(workspace_packages)
-    workspace_packages = dict([(p.name, p) for pth, p in workspace_packages.items()])
-    dependencies = set([])
-    for name, pkg in workspace_packages.items():
-        dependencies.update([d.name for d in pkg.buildtool_depends + pkg.build_depends + pkg.run_depends])
-    leaf_packages = []
-    for name, pkg in workspace_packages.items():
-        if pkg.name not in dependencies:
-            leaf_packages.append(pkg.name)
-    assert leaf_packages, leaf_packages  # Defensive, there should always be at least one leaf
-    leaf_sources = []
-    for pkg_name in leaf_packages:
-        source_path = os.path.join(context.devel_space_abs, pkg_name, 'setup.sh')
-        if os.path.isfile(source_path):
-            leaf_sources.append('. {0}'.format(source_path))
+    # Get all packages which are dependencies of packages in the workspace which have been built
+    dependencies = set(sum([
+        [d.name for d in p.buildtool_depends + p.build_depends + p.run_depends]
+        for _, p in workspace_packages.items()
+        if p.name not in unbuilt
+    ], []))
+
+    # Compute the packages on which no other packages depend
+    leaf_packages = [
+        pkg.name
+        for name, pkg in workspace_packages.items()
+        if pkg.name not in dependencies
+    ]
+    leaf_paths = [
+        os.path.join(context.devel_space_abs, p, 'setup.sh')
+        for p in leaf_packages
+    ]
+    leaf_sources = [
+        '. {}'.format(source_path)
+        for source_path in leaf_paths
+        if os.path.isfile(source_path)
+    ]
+
     # In addition to the leaf packages, we need to source the recursive run depends of the leaf packages
-    run_depends = get_recursive_run_depends_in_workspace(
+    run_depends_packages = get_recursive_run_depends_in_workspace(
         [workspace_packages[p] for p in leaf_packages], ordered_packages)
-    run_depends_sources = []
-    for run_dep_name in [p.name for pth, p in run_depends]:
-        source_path = os.path.join(context.devel_space_abs, run_dep_name, 'setup.sh')
-        if os.path.isfile(source_path):
-            run_depends_sources.append('. {0}'.format(source_path))
+    run_depends_paths = [
+        os.path.join(context.devel_space_abs, pth, 'setup.sh')
+        for pth, pkg in run_depends_packages
+    ]
+    run_depends_sources = [
+        '. {}'.format(source_path)
+        for source_path in run_depends_paths
+        if os.path.isfile(source_path)
+    ]
+
     # Create the setup.sh file
     setup_sh_path = os.path.join(context.devel_space_abs, 'setup.sh')
-    env_file = """\
+    env_file = SETUP_SH_TEMPLATE.format(
+        first_source=leaf_sources[0],
+        leaf_sources='\n'.join(leaf_sources[1:]),
+        run_depends_sources='\n'.join(run_depends_sources)
+    )
+    with open(setup_sh_path, 'w') as f:
+        f.write(env_file)
+    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+    # Create setup.bash file
+    setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
+    with open(setup_bash_path, 'w') as f:
+        f.write(SETUP_BASH_TEMPLATE)
+    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+    # Create setup.zsh file
+    setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
+    with open(setup_zsh_path, 'w') as f:
+        f.write(SETUP_ZSH_TEMPLATE)
+    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+
+def _create_unmerged_devel_setup_for_install(context):
+    """Create non-functioning placeholder scripts in develspace."""
+    for path in [os.path.join(context.devel_space_abs, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
+        with open(path, 'w') as f:
+            f.write(SETUP_PLACEHOLDER_TEMPLATE)
+
+
+SETUP_SH_TEMPLATE = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -592,19 +632,9 @@ set -- $@ "--extend"
 
 # And now the setup.sh for each of their recursive run dependencies
 {run_depends_sources}
-""".format(
-        first_source=leaf_sources[0],
-        leaf_sources='\n'.join(leaf_sources[1:]),
-        run_depends_sources='\n'.join(run_depends_sources)
-    )
-    with open(setup_sh_path, 'w') as f:
-        f.write(env_file)
-    # Make this file executable
-    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
-    # Create the setup.bash file
-    setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
-    with open(setup_bash_path, 'w') as f:
-        f.write("""\
+"""
+
+SETUP_BASH_TEMPLATE = """\
 #!/usr/bin/env bash
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -613,12 +643,9 @@ CATKIN_SHELL=bash
 # source setup.sh from same directory as this file
 _BUILD_SETUP_DIR=$(builtin cd "`dirname "${BASH_SOURCE[0]}"`" && pwd)
 . "$_BUILD_SETUP_DIR/setup.sh"
-""")
-    # Make this file executable
-    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
-    setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
-    with open(setup_zsh_path, 'w') as f:
-        f.write("""\
+"""
+
+SETUP_ZSH_TEMPLATE = """\
 #!/usr/bin/env zsh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -629,19 +656,13 @@ _BUILD_SETUP_DIR=$(builtin cd -q "`dirname "$0"`" && pwd)
 emulate sh # emulate POSIX
 . "$_BUILD_SETUP_DIR/setup.sh"
 emulate zsh # back to zsh mode
-""")
-    # Make this file executable
-    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+"""
 
-
-def _create_unmerged_devel_setup_for_install(context):
-    for path in [os.path.join(context.devel_space_abs, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
-        with open(path, 'w') as f:
-            f.write("""\
+SETUP_PLACEHOLDER_TEMPLATE = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
 echo "Error: This workspace was built with the '--install' option."
 echo "       You should source the setup files in the install space instead."
 echo "       Your environment has not been changed."
-""")
+"""
