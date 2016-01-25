@@ -3,3 +3,4 @@ catkin_pkg
 setuptools
 sphinxcontrib-ansi
 sphinxcontrib-programoutput
+trollius
