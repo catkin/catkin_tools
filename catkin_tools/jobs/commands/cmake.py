@@ -47,6 +47,10 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
     into the created protocol.
     """
 
+    def abspath(self, groups):
+        """Group filter that turns source-relative paths into absolute paths."""
+        return (groups[0] if groups[0].startswith(os.sep) else os.path.join(self.source_path, groups[0]),) + groups[1:]
+
     def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs):
         super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
         self.source_path = source_path
@@ -55,6 +59,24 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         # until we have received them completely
         self.stdout_tail = b''
         self.stderr_tail = b''
+
+        # Line formatting filters
+        # Each is a 3-tuple:
+        #  - regular expression (with captured groups)
+        #  - output formatting line (subs captured groups)
+        #  - functor which filters captured groups
+        filters = [
+            ('^-- :(.+)', '@{cf}--@| :@{yf}{}@|', None),
+            ('^-- (.+)', '@{cf}--@| {}', None),
+            ('CMake Error at (.+):(.+)', '@{rf}@!CMake Error@| at {}:{}', self.abspath),
+            ('CMake Warning at (.+):(.+)', '@{yf}@!CMake Warning@| at {}:{}', self.abspath),
+            ('CMake Warning (dev) at (.+):(.+)', '@{yf}@!CMake Warning (dev)@| at {}:{}', self.abspath),
+            ('(?i)(warning.*)', '@(yf){}@|', None),
+            ('(?i)ERROR:(.*)', '@!@(rf)ERROR:@|{}@|', None),
+            ('Call Stack \(most recent call first\):(.*)', '@{cf}Call Stack (most recent call first):@|{}', None),
+        ]
+
+        self.filters = [(re.compile(p), r, f) for (p, r, f) in filters]
 
     def on_stdout_received(self, data):
         data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
@@ -114,45 +136,20 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         :type line: str
         """
         # return line
-        cline = sanitize(line)
+        cline = sanitize(line).rstrip()
 
-        if len(cline.strip()) == 0:
-            return cline
+        if len(cline.strip()) > 0:
+            for p, r, f in self.filters:
+                match = p.match(cline)
+                if match is not None:
+                    cline = fmt(r, reset=False)
+                    if f is not None:
+                        cline = cline.format(*f(match.groups()))
+                    else:
+                        cline = cline.format(*match.groups())
+                    break
 
-        if line.startswith('-- '):
-            cline = '@{cf}--@| ' + cline[len('-- '):]
-            if ':' in cline:
-                split_cline = cline.split(':', 1)
-                if len(split_cline[1].strip()) > 0:
-                    cline = split_cline[0] + (':@{yf}%s@|' % split_cline[1])
-        elif line.lower().startswith('warning'):
-            # WARNING
-            cline = fmt('@{yf}', reset=False) + cline
-        elif line.startswith('CMake Warning at '):
-            # CMake Warning at...
-            cline = cline.replace('CMake Warning at ', '@{yf}@!CMake Warning@| at ' + self.source_path + os.path.sep)
-        elif line.startswith('CMake Warning (dev) at '):
-            # CMake Warning at...
-            cline = cline.replace(
-                'CMake Warning (dev) at ', '@{yf}@!CMake Warning (dev)@| at ' + self.source_path + os.path.sep)
-        elif line.startswith('CMake Warning'):
-            # CMake Warning...
-            cline = cline.replace('CMake Warning', '@{yf}@!CMake Warning@|')
-        elif line.startswith('ERROR:'):
-            # ERROR:
-            cline = cline.replace('ERROR:', '@!@{rf}ERROR:@|')
-        elif line.startswith('CMake Error at '):
-            # CMake Error...
-            cline = cline.replace('CMake Error at ', '@{rf}@!CMake Error@| at ' + self.source_path + os.path.sep)
-        elif line.startswith('CMake Error'):
-            # CMake Error...
-            cline = cline.replace('CMake Error', '@{rf}@!CMake Error@|')
-        elif line.startswith('Call Stack (most recent call first):'):
-            # CMake Call Stack
-            cline = cline.replace('Call Stack (most recent call first):',
-                                  '@{cf}@_Call Stack (most recent call first):@|')
-
-        return fmt(cline, reset=False)
+        return cline + '\r\n'
 
 
 class CMakeMakeIOBufferProtocol(IOBufferProtocol):
