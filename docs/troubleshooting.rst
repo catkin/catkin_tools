@@ -34,3 +34,10 @@ Packages Are Being Built Out of Order
   a package can't be found.
 - Run ``catkin list --deps /path/to/ws/src`` to list the dependencies of each
   package and look for errors.
+
+
+Migration Problems
+^^^^^^^^^^^^^^^^^^
+
+For troubleshooting problems when migrating from ``catkin_make`` or
+``catkin_make_isolated``, see :ref:`migration-troubleshooting`.
