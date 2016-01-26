@@ -10,9 +10,10 @@ Catkin Command Line Tools
 
    Installing <installing>
    quick_start
-   mechanics
-   config_summary
    cheat_sheet
+   Migration Guide <migration>
+   mechanics
+   Workspace Configuration <config_summary>
    build_types
    Troubleshooting <troubleshooting>
 
@@ -64,8 +65,14 @@ This Python package provides command line tools for working with the catkin meta
 .. note::
 
   This is the documentation for the ``catkin`` command-line tool and **not**
-  the Catkin package specification documentation. For documentation on writing
+  the Catkin CMake documentation. For documentation on creating
   catkin packages, see: http://docs.ros.org/api/catkin/html/
+
+.. note::
+
+  Users of ``catkin_make`` and ``catkin_make_isolated`` should go to the
+  :doc:`Migration Guide <migration>` for help transitioning to ``catkin
+  build``.
 
 The ``catkin`` command
 ^^^^^^^^^^^^^^^^^^^^^^

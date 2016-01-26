@@ -209,6 +209,17 @@ To clear the blacklist, you can use the ``--no-blacklist`` option:
 Note that you can still build packages on the blacklist and whitelist by
 passing their names to ``catkin build`` explicitly.
 
+Accelerated Building with Environment Caching
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each package is built in a special environment which is loaded from the
+current workspace and any workspaces that the current workspace is extending. 
+If you are confident that your workspace's environment is not changing during
+a build, you can tell ``catkin build`` to cache these environments with the
+``--cache-env`` option. This has the effect of dramatically reducing build times
+for workspaces where many packages are already built.
+
+
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -223,10 +234,12 @@ Full Command-Line Interface
                          [-b BUILD_SPACE | --default-build-space]
                          [-d DEVEL_SPACE | --default-devel-space]
                          [-i INSTALL_SPACE | --default-install-space]
-                         [-x SPACE_SUFFIX] [--isolate-devel | --merge-devel]
+                         [-x SPACE_SUFFIX]
+                         [--merge-devel | --link-devel | --isolate-devel]
                          [--install | --no-install]
-                         [--isolate-install | --merge-install]
-                         [--parallel-jobs PARALLEL_JOBS]
+                         [--isolate-install | --merge-install] [-j JOBS]
+                         [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                         [--env-cache | --no-env-cache]
                          [--cmake-args ARG [ARG ...] | --no-cmake-args]
                          [--make-args ARG [ARG ...] | --no-make-args]
                          [--catkin-make-args ARG [ARG ...] |
@@ -303,10 +316,13 @@ Full Command-Line Interface
     Devel Space:
       Options for configuring the structure of the devel space.
 
-      --isolate-devel       Build products from each catkin package into isolated
-                            devel spaces.
       --merge-devel         Build products from each catkin package into a single
                             merged devel spaces.
+      --link-devel          Build products from each catkin package into isolated
+                            spaces, then symbolically link them into a merged
+                            devel space.
+      --isolate-devel       Build products from each catkin package into isolated
+                            devel spaces.
 
     Install Space:
       Options for configuring the structure of the install space.
@@ -323,25 +339,35 @@ Full Command-Line Interface
     Build Options:
       Options for configuring the way packages are built.
 
-      --parallel-jobs PARALLEL_JOBS, --parallel PARALLEL_JOBS, -p PARALLEL_JOBS
-                            Maximum number of packages which could be built in
+      -j JOBS, --jobs JOBS  Maximum number of build jobs to be distributed across
+                            active packages. (default is cpu count)
+      -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
+                            Maximum number of packages allowed to be built in
                             parallel (default is cpu count)
+      --jobserver           Use the internal GNU Make job server which will limit
+                            the number of Make jobs across all active packages.
+      --no-jobserver        Disable the internal GNU Make job server, and use an
+                            external one (like distcc, for example).
+      --env-cache           Re-use cached environment variables when re-sourcing a
+                            resultspace that has been loaded at a different stage
+                            in the task.
+      --no-env-cache        Don't cache environment variables when re-sourcing the
+                            same resultspace.
       --cmake-args ARG [ARG ...]
-                            Arbitrary arguments which are passes to CMake. It must
-                            be passed after other arguments since it collects all
-                            following options.
+                            Arbitrary arguments which are passes to CMake. It
+                            collects all of following arguments until a "--" is
+                            read.
       --no-cmake-args       Pass no additional arguments to CMake.
       --make-args ARG [ARG ...]
-                            Arbitrary arguments which are passes to make.It must
-                            be passed after other arguments since it collects all
-                            following options.
+                            Arbitrary arguments which are passes to make.It
+                            collects all of following arguments until a "--" is
+                            read.
       --no-make-args        Pass no additional arguments to make (does not affect
                             --catkin-make-args).
       --catkin-make-args ARG [ARG ...]
                             Arbitrary arguments which are passes to make but only
-                            for catkin packages.It must be passed after other
-                            arguments since it collects all following options.
+                            for catkin packages.It collects all of following
+                            arguments until a "--" is read.
       --no-catkin-make-args
                             Pass no additional arguments to make for catkin
                             packages (does not affect --make-args).
-

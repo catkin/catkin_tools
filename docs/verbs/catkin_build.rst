@@ -347,6 +347,9 @@ number of jobs which weren't attempted due to failed dependencies.
     [build]   Abandoned: 1 jobs were abandoned.
     [build]   Failed:    2 jobs failed.
 
+A more detailed summary can also be printed, which lists the result for each
+package in the workspace.
+
 Building Subsets of Packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Consider a Catkin workspace with a **source space** populated with the following Catkin packages which have yet to be built:
@@ -578,20 +581,49 @@ you can pass flags directly to ``make`` with the ``--make-args`` option.
     passed to the ``--make-args`` option.
 
 
+Configuring Memory Use
+----------------------
+
+In addition to CPU and load limits, ``catkin build`` can also limit the number of
+running jobs based on the available memory, using the hidden ``--mem-limit`` flag.
+This flag requires installing the Python ``psutil`` module and is useful on systems
+without swap partitions or other situations where memory use needs to be limited.
+
+Memory is specified either by percent or by the number of bytes.
+
+For example, to specify that ``catkin build`` should not start additional parallel jobs
+when 50% of the available memory is used, you could run:
+
+.. code-block:: bash
+  
+    $ catkin build --mem-limit 50%
+
+Alternatively, if it sohuld not start additional jobs when over 4GB of memory
+is used, you can specifiy:
+
+.. code-block:: bash
+  
+    $ catkin build --mem-limit 4G
+
+
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
     usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
-                        [--dry-run] [--this] [--no-deps]
-                        [--start-with PKGNAME | --start-with-this | --continue-on-failure]
-                        [--force-cmake] [--no-install-lock] [--save-config]
-                        [--parallel-jobs PARALLEL_JOBS]
-                        [--cmake-args ARG [ARG ...] | --no-cmake-args]
-                        [--make-args ARG [ARG ...] | --no-make-args]
-                        [--catkin-make-args ARG [ARG ...] | --no-catkin-make-args]
-                        [--verbose] [--interleave-output] [--no-status] [--no-notify]
+                        [--dry-run] [--get-env PKGNAME] [--this] [--no-deps]
+                        [--unbuilt] [--start-with PKGNAME | --start-with-this]
+                        [--continue-on-failure] [--force-cmake] [--pre-clean]
+                        [--no-install-lock] [--save-config] [-j JOBS]
+                        [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                        [--env-cache | --no-env-cache] [--cmake-args ARG [ARG ...]
+                        | --no-cmake-args] [--make-args ARG [ARG ...] |
+                        --no-make-args] [--catkin-make-args ARG [ARG ...] |
+                        --no-catkin-make-args] [--verbose] [--interleave-output]
+                        [--no-status] [--summarize] [--no-summarize]
+                        [--override-build-tool-check]
+                        [--limit-status-rate LIMIT_STATUS_RATE] [--no-notify]
                         [PKGNAME [PKGNAME ...]]
 
     Build one or more packages in a catkin workspace. This invokes `CMake`,
@@ -610,6 +642,8 @@ Full Command-Line Interface
                             profile)
       --dry-run, -n         List the packages which will be built with the given
                             arguments without building them.
+      --get-env PKGNAME     Print the environment in which PKGNAME is built to
+                            stdout.
 
     Packages:
       Control which packages get built.
@@ -620,6 +654,7 @@ Full Command-Line Interface
       --this                Build the package containing the current working
                             directory.
       --no-deps             Only build specified packages, not their dependencies.
+      --unbuilt             Build packages which have yet to be built.
       --start-with PKGNAME  Build a given package and those which depend on it,
                             skipping any before it.
       --start-with-this     Similar to --start-with, starting with the package
@@ -633,17 +668,29 @@ Full Command-Line Interface
       Control the build behavior.
 
       --force-cmake         Runs cmake explicitly for each catkin package.
+      --pre-clean           Runs `make clean` before building each package.
       --no-install-lock     Prevents serialization of the install steps, which is
                             on by default to prevent file install collisions
 
     Config:
-      Parameters for the underlying buildsystem.
+      Parameters for the underlying build system.
 
       --save-config         Save any configuration options in this section for the
                             next build invocation.
-      --parallel-jobs PARALLEL_JOBS, --parallel PARALLEL_JOBS, -p PARALLEL_JOBS
-                            Maximum number of packages which could be built in
+      -j JOBS, --jobs JOBS  Maximum number of build jobs to be distributed across
+                            active packages. (default is cpu count)
+      -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
+                            Maximum number of packages allowed to be built in
                             parallel (default is cpu count)
+      --jobserver           Use the internal GNU Make job server which will limit
+                            the number of Make jobs across all active packages.
+      --no-jobserver        Disable the internal GNU Make job server, and use an
+                            external one (like distcc, for example).
+      --env-cache           Re-use cached environment variables when re-sourcing a
+                            resultspace that has been loaded at a different stage
+                            in the task.
+      --no-env-cache        Don't cache environment variables when re-sourcing the
+                            same resultspace.
       --cmake-args ARG [ARG ...]
                             Arbitrary arguments which are passes to CMake. It
                             collects all of following arguments until a "--" is
@@ -673,4 +720,17 @@ Full Command-Line Interface
                             commands are running at the same time.
       --no-status           Suppresses status line, useful in situations where
                             carriage return is not properly supported.
-      --no-notify           Suppresses system popup notification.
+      --summarize, --summary, -s
+                            Adds a build summary to the end of a build; defaults
+                            to on with --continue-on-failure, off otherwise
+      --no-summarize, --no-summary
+                            Explicitly disable the end of build summary
+      --override-build-tool-check
+                            use to override failure due to using differnt build
+                            tools on the same workspace.
+      --limit-status-rate LIMIT_STATUS_RATE, --status-rate LIMIT_STATUS_RATE
+                            Limit the update rate of the status bar to this
+                            frequency. Zero means unlimited. Must be positive,
+                            default is 10 Hz.
+      --no-notify           Suppresses system pop-up notification.
+
