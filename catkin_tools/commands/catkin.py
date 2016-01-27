@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import argparse
+from datetime import date
 import os
 import pkg_resources
 import sys
@@ -183,8 +184,9 @@ def catkin_main(sysargs):
 
     # Check for version
     if '--version' in sysargs:
-        print('catkin_tools {} (C) 2014-2016 Open Source Robotics Foundation'.format(
-            pkg_resources.get_distribution('catkin_tools').version)
+        print('catkin_tools {} (C) 2014-{} Open Source Robotics Foundation'.format(
+            pkg_resources.get_distribution('catkin_tools').version,
+            date.today().year)
         )
         print('Released under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
         sys.exit(0)
