@@ -43,6 +43,7 @@ from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import format_env_dict
+from catkin_tools.common import wide_log
 
 from catkin_tools.context import Context
 
@@ -287,7 +288,8 @@ def main(opts):
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
 
     # Initialize the build configuration
-    make_args, makeflags, cli_flags, jobserver = configure_make_args(ctx.make_args, ctx.use_internal_make_jobserver)
+    make_args, makeflags, cli_flags, jobserver = configure_make_args(
+        ctx.make_args, ctx.jobs_args, ctx.use_internal_make_jobserver)
 
     # Set the jobserver memory limit
     if jobserver and opts.mem_limit:
@@ -359,13 +361,18 @@ def main(opts):
     mark_space_as_built_by(ctx.build_space_abs, 'catkin build')
     mark_space_as_built_by(ctx.devel_space_abs, 'catkin build')
 
-    # Always save the last context under the build verb
-    update_metadata(ctx.workspace, ctx.profile, 'build', ctx.get_stored_dict())
-
+    # Get the last build context
     build_metadata = get_metadata(ctx.workspace, ctx.profile, 'build')
+
+    if build_metadata.get('cmake_args') != ctx.cmake_args or build_metadata.get('cmake_args') != opts.cmake_args:
+        opts.force_cmake = True
+
     if build_metadata.get('needs_force', False):
         opts.force_cmake = True
         update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': False})
+
+    # Always save the last context under the build verb
+    update_metadata(ctx.workspace, ctx.profile, 'build', ctx.get_stored_dict())
 
     # Save the context as the configuration
     if opts.save_config:

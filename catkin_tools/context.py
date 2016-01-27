@@ -65,6 +65,7 @@ class Context(object):
         'isolate_install',
         'cmake_args',
         'make_args',
+        'jobs_args',
         'use_internal_make_jobserver',
         'use_env_cache',
         'catkin_make_args',
@@ -200,6 +201,7 @@ class Context(object):
         isolate_install=False,
         cmake_args=None,
         make_args=None,
+        jobs_args=None,
         use_internal_make_jobserver=True,
         use_env_cache=False,
         catkin_make_args=None,
@@ -234,6 +236,8 @@ class Context(object):
         :type cmake_args: list
         :param make_args: extra make arguments to be passed to make for each package
         :type make_args: list
+        :param jobs_args: -j and -l jobs args
+        :type jobs_args: list
         :param use_internal_make_jobserver: true if this configuration should use an internal make jobserv
         :type use_internal_make_jobserver: bool
         :param use_env_cache: true if this configuration should cache job environments loaded from resultspaces
@@ -281,6 +285,7 @@ class Context(object):
         # Handle additional cmake and make arguments
         self.cmake_args = cmake_args or []
         self.make_args = make_args or []
+        self.jobs_args = jobs_args or []
         self.use_internal_make_jobserver = use_internal_make_jobserver
         self.use_env_cache = use_env_cache
         self.catkin_make_args = catkin_make_args or []
@@ -445,7 +450,7 @@ class Context(object):
             'extend': extend_value,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
             'cmake_args': ' '.join(self.__cmake_args or ['None']),
-            'make_args': ' '.join(self.__make_args or ['None']),
+            'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
             'build_missing': existence_str(self.build_space_abs),
@@ -657,6 +662,16 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__make_args = value
+
+    @property
+    def jobs_args(self):
+        return self.__jobs_args
+
+    @jobs_args.setter
+    def jobs_args(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__jobs_args = value
 
     @property
     def use_internal_make_jobserver(self):
