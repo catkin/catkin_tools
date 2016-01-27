@@ -146,6 +146,8 @@ def catkin_main(sysargs):
         help="Lists the current verb aliases and then quits, all other arguments are ignored")
     add('--test-colors', action='store_true', default=False,
         help="Prints a color test pattern to the screen and then quits, all other arguments are ignored")
+    add('--version', action='store_true', default=False,
+        help="Prints the catkin_tools version.")
     color_control_group = parser.add_mutually_exclusive_group()
     add = color_control_group.add_argument
     add('--force-color', action='store_true', default=False,
@@ -178,6 +180,14 @@ def catkin_main(sysargs):
 
     if no_color or not force_color and not is_tty(sys.stdout):
         set_color(False)
+
+    # Check for version
+    if '--version' in sysargs:
+        print('catkin_tools {} (C) 2014-2016 Open Source Robotics Foundation'.format(
+            pkg_resources.get_distribution('catkin_tools').version)
+        )
+        print('Released under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+        sys.exit(0)
 
     # Check for --test-colors
     for arg in sysargs:
