@@ -384,12 +384,7 @@ def build_isolated_workspace(
 
         pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
 
-        if 'catkin' in packages_to_be_built_names or packages_to_be_built_deps_names:
-            # USe catkin as a prebuild package
-            pkg_path, pkg = pkg_dict['catkin']
-            prebuild_job = create_catkin_tools_prebuild_job(
-                context, pkg, pkg_path)
-        else:
+        if 'catkin' not in packages_to_be_built_names and 'catkin' not in packages_to_be_built_deps_names:
             # Generate explicit prebuild package
             prebuild_pkg_path = generate_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
             prebuild_pkg = parse_package(prebuild_pkg_path)
@@ -399,8 +394,8 @@ def build_isolated_workspace(
                 prebuild_pkg,
                 prebuild_pkg_path)
 
-        # Add the prebuld job
-        prebuild_jobs[prebuild_job.jid] = prebuild_job
+            # Add the prebuld job
+            prebuild_jobs[prebuild_job.jid] = prebuild_job
 
     # Remove prebuild jobs from normal job list
     for prebuild_jid, prebuild_job in prebuild_jobs.items():
