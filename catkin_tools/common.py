@@ -175,14 +175,21 @@ def get_cached_recursive_build_depends_in_workspace(package, workspace_packages)
     return __recursive_build_depends_cache[workspace_key][package.name]
 
 
-def get_recursive_depends_in_workspace(packages, ordered_packages, include_function, exclude_function):
+def get_recursive_depends_in_workspace(
+        packages,
+        ordered_packages,
+        root_include_function,
+        include_function,
+        exclude_function):
     """Computes the recursive dependencies of a package in a workspace based on
     include and exclude functions of each package's dependencies.
 
     :param package: package for which the recursive depends should be calculated
     :type package: :py:class:`catkin_pkg.package.Package`
-    :param ordered_packages: packages in the workspace, ordered topologically,
+    :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    :param root_include_function: a function which take a package and returns a list of root packages to include
+    :type root_include_function: callable
     :param include_function: a function which take a package and returns a list of packages to include
     :type include_function: callable
     :param exclude_function: a function which take a package and returns a list of packages to exclude
@@ -195,14 +202,14 @@ def get_recursive_depends_in_workspace(packages, ordered_packages, include_funct
     """
 
     # Get a package name map
-    workspace_packages_by_name = dict([
-        (pkg.name, (pth, pkg))
+    workspace_packages_by_name = {
+        pkg.name: (pth, pkg)
         for pth, pkg in ordered_packages
-    ])
+    }
 
     # Initialize working sets
     pkgs_to_check = set([
-        pkg.name for pkg in sum([include_function(p) for p in packages], [])
+        pkg.name for pkg in sum([root_include_function(p) for p in packages], [])
     ])
     checked_pkgs = set()
     recursive_deps = set()
@@ -243,7 +250,7 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
 
     :param package: package for which the recursive depends should be calculated
     :type package: :py:class:`catkin_pkg.package.Package`
-    :param ordered_packages: packages in the workspace, ordered topologically,
+    :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
     :returns: list of package path, package object tuples which are the
         recursive build depends for the given package. These are in the
@@ -254,7 +261,16 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
     return get_recursive_depends_in_workspace(
         [package],
         ordered_packages,
-        include_function=lambda p: p.build_depends + p.buildtool_depends + p.test_depends,
+        root_include_function=lambda p: (
+            p.build_depends +
+            p.buildtool_depends +
+            p.test_depends +
+            p.run_depends),
+        include_function=lambda p: (
+            p.build_depends +
+            p.buildtool_depends +
+            p.test_depends +
+            p.run_depends),
         exclude_function=lambda p: []
     )
 
@@ -265,7 +281,7 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
 
     :param packages: packages for which the recursive depends should be calculated
     :type packages: list of :py:class:`catkin_pkg.package.Package`
-    :param ordered_packages: packages in the workspace, ordered topologically,
+    :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
     :returns: list of package path, package object tuples which are the
@@ -276,7 +292,8 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return get_recursive_depends_in_workspace(
         packages,
         ordered_packages,
-        include_function=lambda p: p.run_depends + p.exec_depends,
+        root_include_function=lambda p: p.run_depends,
+        include_function=lambda p: p.run_depends,
         exclude_function=lambda p: p.buildtool_depends + p.build_depends
     )
 
@@ -287,7 +304,7 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
 
     :param package: package for which the recursive depends should be calculated
     :type package: :py:class:`catkin_pkg.package.Package`
-    :param ordered_packages: packages in the workspace, ordered topologically,
+    :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
     :returns: list of package path, package object tuples which are the
