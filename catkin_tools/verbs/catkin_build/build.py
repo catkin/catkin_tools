@@ -61,7 +61,6 @@ from catkin_tools.execution.executor import run_until_complete
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.cmake import create_cmake_build_job
 from catkin_tools.jobs.catkin import generate_prebuild_package
-from catkin_tools.jobs.catkin import create_catkin_tools_prebuild_job
 
 from catkin_tools.notifications import notify
 
@@ -384,18 +383,26 @@ def build_isolated_workspace(
 
         pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
 
-        if 'catkin' not in packages_to_be_built_names and 'catkin' not in packages_to_be_built_deps_names:
+        if 'catkin' in packages_to_be_built_names + packages_to_be_built_deps_names:
+            # Use catkin as the prebuild package
+            prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+        else:
             # Generate explicit prebuild package
             prebuild_pkg_path = generate_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
             prebuild_pkg = parse_package(prebuild_pkg_path)
 
-            prebuild_job = create_catkin_tools_prebuild_job(
-                context,
-                prebuild_pkg,
-                prebuild_pkg_path)
+        # Create the prebuild job
+        prebuild_job = create_catkin_build_job(
+            context,
+            prebuild_pkg,
+            prebuild_pkg_path,
+            dependencies=[],
+            force_cmake=force_cmake,
+            pre_clean=pre_clean,
+            prebuild=True)
 
-            # Add the prebuld job
-            prebuild_jobs[prebuild_job.jid] = prebuild_job
+        # Add the prebuld job
+        prebuild_jobs[prebuild_job.jid] = prebuild_job
 
     # Remove prebuild jobs from normal job list
     for prebuild_jid, prebuild_job in prebuild_jobs.items():

@@ -300,7 +300,7 @@ def ctr_nuke(logger, event_queue, prefix):
     return 0
 
 
-def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean):
+def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, prebuild=False):
     """Job class for building catkin packages"""
 
     # Package source space path
@@ -309,7 +309,10 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # Package build space path
     build_space = context.package_build_space(package)
     # Package devel space path
-    devel_space = context.package_devel_space(package)
+    if prebuild:
+        devel_space = context.devel_space_abs
+    else:
+        devel_space = context.package_devel_space(package)
     # Package install space path
     install_space = context.package_install_space(package)
 
@@ -398,7 +401,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     ))
 
     # Symlink command if using a linked develspace
-    if context.link_devel:
+    if context.link_devel and not prebuild:
         stages.append(FunctionStage(
             'symlink',
             link_devel_products,
@@ -423,65 +426,6 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     return Job(
         jid=package.name,
         deps=dependencies,
-        env_loader=get_env_loader(package, context),
-        stages=stages)
-
-
-def create_catkin_tools_prebuild_job(context, package, package_path):
-    """Job class for building catkin packages"""
-
-    # Package source space path
-    pkg_dir = os.path.join(context.source_space_abs, package_path)
-
-    # Package build space path
-    build_space = context.package_build_space(package)
-    # Package devel space path (prebuild always goes to the root develspace)
-    devel_space = context.devel_space_abs
-    # Package install space path
-    install_space = context.package_install_space(package)
-
-    # Create job stages
-    stages = []
-
-    # Create package build space
-    stages.append(FunctionStage(
-        'mkdir',
-        makedirs,
-        path=build_space
-    ))
-
-    # CMake command
-    makefile_path = os.path.join(build_space, 'Makefile')
-    stages.append(CommandStage(
-        'cmake',
-        [
-            CMAKE_EXEC,
-            pkg_dir,
-            '--no-warn-unused-cli',
-            '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-            '-DCMAKE_INSTALL_PREFIX=' + install_space
-        ] + context.cmake_args,
-        cwd=build_space,
-        logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
-    ))
-
-    # Make command
-    make_args = handle_make_arguments(
-        context.make_args +
-        context.catkin_make_args)
-    env_overrides = ctr_env if 'test' in make_args else {}
-
-    stages.append(CommandStage(
-        'make',
-        [MAKE_EXEC] + make_args,
-        cwd=build_space,
-        env_overrides=env_overrides,
-        logger_factory=CMakeMakeIOBufferProtocol.factory
-    ))
-
-    return Job(
-        jid=package.name,
-        deps=[],
         env_loader=get_env_loader(package, context),
         stages=stages)
 
