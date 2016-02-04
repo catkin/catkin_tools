@@ -79,6 +79,15 @@ class PermissiveInstall(install):
                 log.info("changing permissions of %s to %o" % (file, mode))
                 os.chmod(file, mode)
 
+        # Provide information about bash completion after default install.
+        if (sys.platform.startswith("linux") and
+                self.install_data == "/usr/local"):
+            log.info("For tab completion, add the following line to .bashrc:\n"
+                     "source {}".format(
+                            os.path.join(self.install_data,
+                                         'etc/bash_completion.d',
+                                         'catkin_tools-completion.bash')))
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--prefix', default='',
