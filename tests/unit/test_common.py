@@ -10,6 +10,8 @@ def test_get_recursive_build_depends_in_workspace_with_test_depend():
     pkg1.buildtool_depends = []
     pkg1.test_depends = []
     pkg1.run_depends = []
+    pkg1.exec_depends = []
+    pkg1.build_export_depends = []
 
     pkg2 = mock.Mock()
     pkg2.name = 'pkg2'
@@ -17,6 +19,8 @@ def test_get_recursive_build_depends_in_workspace_with_test_depend():
     pkg2.buildtool_depends = []
     pkg2.test_depends = []
     pkg2.run_depends = []
+    pkg2.exec_depends = []
+    pkg2.build_export_depends = []
 
     pkg1.test_depends.append(pkg2)
 

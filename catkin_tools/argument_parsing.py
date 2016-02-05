@@ -103,6 +103,41 @@ def add_cmake_and_make_and_catkin_make_args(parser):
         help='Pass no additional arguments to make for catkin packages (does not affect --make-args).')
 
 
+def split_arguments(args, splitter_name=None, splitter_index=None):
+    """Split list of args into (other, split_args, other) between splitter_name/index and `--`
+
+    :param args: list of all arguments
+    :type args: list of str
+    :param splitter_name: optional argument used to split out specific args
+    :type splitter_name: str
+    :param splitter_index: specific index at which to split
+    :type splitter_index: int
+
+    :returns: tuple (other, split_args)
+    """
+
+    if splitter_index is None:
+        if splitter_name not in args:
+            return args, []
+        splitter_index = args.index(splitter_name)
+
+    start_index = splitter_index + 1
+    end_index = args.index('--', start_index) if '--' in args[start_index:] else None
+
+    if end_index:
+        return (
+            args[0:splitter_index],
+            args[start_index:end_index],
+            args[(end_index + 1):]
+        )
+    else:
+        return (
+            args[0:splitter_index],
+            args[start_index:],
+            []
+        )
+
+
 def _extract_cmake_and_make_arguments(args, extract_catkin_make):
     """Extract arguments which are meant to be passed to CMake and GNU Make
     through the catkin_tools command line interface.
@@ -112,6 +147,7 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
     :returns: tuple of separate args, cmake_args, make args, and catkin make args
     :rtype: tuple
     """
+
     cmake_args = []
     make_args = []
     catkin_make_args = []
@@ -122,32 +158,25 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
         arg_types['--cmake-args'] = cmake_args
     if '--no-make-args' not in args:
         arg_types['--make-args'] = make_args
-
-    if extract_catkin_make and '--no-catkin_make_args' not in args:
+    if '--no-catkin_make_args' not in args and extract_catkin_make:
         arg_types['--catkin-make-args'] = catkin_make_args
 
-    # Determine where each arg type starts
-    # Map from arg indices to arg types
-    arg_indexes = {}
-    for arg_type in arg_types.keys():
-        if arg_type in args:
-            arg_indexes[args.index(arg_type)] = arg_type
+    # Get the splitter indexes for each type (multiples allowed) starting at the end
+    ordered_splitters = reversed([
+        (i, t)
+        for i, t in enumerate(args)
+        if t in arg_types
+    ])
+    # Extract explicit specific args
+    head_args = args
+    tail_args = []
+    for index, name in ordered_splitters:
+        # Update whole args list, get specific args
+        head_args, specific, tail = split_arguments(head_args, splitter_index=index)
+        tail_args.extend(tail)
+        arg_types[name][0:0] = specific
 
-    def split_arguments(args, splitter_name):
-        if splitter_name not in args:
-            return args, None
-        start_index = args.index(splitter_name)
-        end_index = args.index('--', start_index + 1) if '--' in args else None
-
-        if end_index:
-            return args[0:index] + args[end_index + 1:], args[index + 1:end_index]
-        else:
-            return args[0:index], args[index + 1:]
-
-    for index in reversed(sorted(arg_indexes.keys())):
-        arg_type = arg_indexes[index]
-        args, specific_args = split_arguments(args, arg_type)
-        arg_types[arg_type].extend(specific_args)
+    args = head_args + tail_args
 
     # classify -D* and -G* arguments as cmake specific arguments
     if '--cmake-args' in arg_types:
@@ -159,7 +188,7 @@ def _extract_cmake_and_make_arguments(args, extract_catkin_make):
         cmake_args = None
     if '--no-make-args' not in args and len(make_args) == 0:
         make_args = None
-    if extract_catkin_make and '--no-catkin-make-args' not in args and len(catkin_make_args) == 0:
+    if '--no-catkin-make-args' not in args and len(catkin_make_args) == 0 and extract_catkin_make:
         catkin_make_args = None
 
     return args, cmake_args, make_args, catkin_make_args
@@ -278,7 +307,7 @@ def handle_make_arguments(
     return make_args
 
 
-def configure_make_args(make_args, use_internal_make_jobserver):
+def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
     """Initialize the internal GNU Make jobserver or configure it as a pass-through
 
     :param make_args: arguments to be passed to GNU Make
@@ -309,7 +338,7 @@ def configure_make_args(make_args, use_internal_make_jobserver):
         jobs_flags.update(makeflags_jobs_flags_dict)
 
     # Extract make jobs flags (these override MAKEFLAGS)
-    cli_jobs_flags = extract_jobs_flags(' '.join(make_args))
+    cli_jobs_flags = jobs_args
     using_cli_flags = len(cli_jobs_flags) > 0
     if cli_jobs_flags:
         jobs_flags.update(extract_jobs_flags_values(' '.join(cli_jobs_flags)))
@@ -354,10 +383,16 @@ def argument_preprocessor(args):
     if len(jobs_args) > 0:
         # Remove jobs flags from cli args if they're present
         args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
+    elif make_args is not None:
+        jobs_args = extract_jobs_flags(' '.join(make_args))
+        if len(jobs_args) > 0:
+            # Remove jobs flags from cli args if they're present
+            make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
 
     extras = {
         'cmake_args': cmake_args,
-        'make_args': (make_args or []) + jobs_args,
+        'make_args': make_args,
+        'jobs_args': jobs_args,
         'catkin_make_args': catkin_make_args,
     }
 

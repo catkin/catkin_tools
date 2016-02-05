@@ -37,16 +37,16 @@ _catkin()
   catkin_opts="--force-color --no-color --test-colors"
 
   # complete popular catkin build options
-  catkin_build_opts="--dry-run --this --no-deps --start-with-this --continue-on-failure --force-cmake --verbose --interleave-output --no-status --summarize --no-notify"
+  catkin_build_opts="--help --dry-run --this --no-deps --unbuilt --start-with-this --continue-on-failure --force-cmake --pre-clean --get-env --verbose --interleave-output --no-status --summarize --no-notify --env-cache --no-env-cache"
 
   # complete popular catkin clean options
-  catkin_clean_opts="--all --build --devel --install --cmake-cache --setup-files --orphans"
+  catkin_clean_opts="--help --all --build --devel --install --cmake-cache --setup-files --orphans"
 
   # complete popular catkin config options
-  catkin_config_opts="--init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix"
+  catkin_config_opts="--help --init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix --merge-devel --link-devel --isolate-devel"
 
   # complete popular catkin create options
-  catkin_create_pkg_opts="--version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
+  catkin_create_pkg_opts="--help --version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
 
   # complete catkin profile subcommands
   catkin_profile_args="add list remove rename set"

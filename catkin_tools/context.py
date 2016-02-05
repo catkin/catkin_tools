@@ -60,11 +60,12 @@ class Context(object):
         'build_space',
         'devel_space',
         'install_space',
-        'isolate_devel',
+        'devel_layout',
         'install',
         'isolate_install',
         'cmake_args',
         'make_args',
+        'jobs_args',
         'use_internal_make_jobserver',
         'use_env_cache',
         'catkin_make_args',
@@ -195,11 +196,12 @@ class Context(object):
         build_space=None,
         devel_space=None,
         install_space=None,
-        isolate_devel=False,
+        devel_layout=None,
         install=False,
         isolate_install=False,
         cmake_args=None,
         make_args=None,
+        jobs_args=None,
         use_internal_make_jobserver=True,
         use_env_cache=False,
         catkin_make_args=None,
@@ -234,6 +236,8 @@ class Context(object):
         :type cmake_args: list
         :param make_args: extra make arguments to be passed to make for each package
         :type make_args: list
+        :param jobs_args: -j and -l jobs args
+        :type jobs_args: list
         :param use_internal_make_jobserver: true if this configuration should use an internal make jobserv
         :type use_internal_make_jobserver: bool
         :param use_env_cache: true if this configuration should cache job environments loaded from resultspaces
@@ -274,13 +278,14 @@ class Context(object):
         self.blacklist = blacklist or []
 
         # Handle build options
-        self.isolate_devel = isolate_devel
+        self.devel_layout = devel_layout if devel_layout else 'merged'
         self.install = install
         self.isolate_install = isolate_install
 
         # Handle additional cmake and make arguments
         self.cmake_args = cmake_args or []
         self.make_args = make_args or []
+        self.jobs_args = jobs_args or []
         self.use_internal_make_jobserver = use_internal_make_jobserver
         self.use_env_cache = use_env_cache
         self.catkin_make_args = catkin_make_args or []
@@ -403,7 +408,7 @@ class Context(object):
                 clr("@{cf}DESTDIR:@|                     @{yf}{_Context__destdir}@|"),
             ],
             [
-                clr("@{cf}Isolate Develspaces:@|         @{yf}{_Context__isolate_devel}@|"),
+                clr("@{cf}Devel Space Layout:@|          @{yf}{_Context__devel_layout}@|"),
                 clr("@{cf}Install Packages:@|            @{yf}{_Context__install}@|"),
                 clr("@{cf}Isolate Installs:@|            @{yf}{_Context__isolate_install}@|"),
             ],
@@ -445,7 +450,7 @@ class Context(object):
             'extend': extend_value,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
             'cmake_args': ' '.join(self.__cmake_args or ['None']),
-            'make_args': ' '.join(self.__make_args or ['None']),
+            'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
             'build_missing': existence_str(self.build_space_abs),
@@ -593,14 +598,26 @@ class Context(object):
         self.__destdir = value
 
     @property
-    def isolate_devel(self):
-        return self.__isolate_devel
+    def devel_layout(self):
+        return self.__devel_layout
 
-    @isolate_devel.setter
-    def isolate_devel(self, value):
+    @devel_layout.setter
+    def devel_layout(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__isolate_devel = value
+        self.__devel_layout = value
+
+    @property
+    def merge_devel(self):
+        return self.devel_layout == 'merged'
+
+    @property
+    def link_devel(self):
+        return self.devel_layout == 'linked'
+
+    @property
+    def isolate_devel(self):
+        return self.devel_layout == 'isolated'
 
     @property
     def install(self):
@@ -611,6 +628,10 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__install = value
+
+    @property
+    def merge_install(self):
+        return not self.__isolate_install
 
     @property
     def isolate_install(self):
@@ -641,6 +662,16 @@ class Context(object):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
         self.__make_args = value
+
+    @property
+    def jobs_args(self):
+        return self.__jobs_args
+
+    @jobs_args.setter
+    def jobs_args(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__jobs_args = value
 
     @property
     def use_internal_make_jobserver(self):
@@ -698,35 +729,62 @@ class Context(object):
     def blacklist(self, value):
         self.__blacklist = value
 
+    @property
+    def linked_devel_path(self):
+        """The path to the hidden directory in the develspace that
+        contains the symbollically-linked isolated develspaces."""
+        return os.path.join(self.devel_space_abs, '.catkin_tools')
+
+    def package_linked_devel_path(self, package):
+        """The path to the linked devel space for a given package."""
+        return os.path.join(self.linked_devel_path, package.name)
+
     def package_build_space(self, package):
+        """Get the build directory for a specific package."""
         return os.path.join(self.build_space_abs, package.name)
 
     def package_devel_space(self, package):
-        if self.isolate_devel:
-            return os.path.join(self.devel_space_abs, package.name)
-        else:
+        """Get the devel directory for a specific package.
+        This is the root of the FHS layout where products are generated.
+        """
+        if self.merge_devel:
             return self.devel_space_abs
+        elif self.isolate_devel:
+            return os.path.join(self.devel_space_abs, package.name)
+        elif self.link_devel:
+            return os.path.join(self.linked_devel_path, package.name)
+        else:
+            raise ValueError('Unkown devel space layout: {}'.format(self.devel_layout))
 
     def package_install_space(self, package):
-        if self.isolate_install:
+        """Get the install directory for a specific package.
+        This is the root of the FHS layout where products are installed.
+        """
+
+        if self.merge_install:
+            return self.install_space_abs
+        elif self.isolate_install:
             return os.path.join(self.install_space_abs, package.name)
         else:
-            return self.install_space_abs
+            raise ValueError('Unkown install space layout: {}'.format(self.devel_layout))
 
     def package_dest_path(self, package):
-        if self.install:
-            if self.destdir is None:
-                return self.package_install_space(package.name)
-            else:
-                return os.path.join(
-                    self.destdir,
-                    self.package_install_space(package.name).lstrip(os.sep)
-                )
+        """Get the intermediate destination into which a specific package is built."""
+
+        if self.destdir is None:
+            return self.package_final_path(package)
         else:
-            return self.package_devel_space(package.name)
+            return os.path.join(
+                self.destdir,
+                self.package_install_space(package).lstrip(os.sep))
 
     def package_final_path(self, package):
+        """Get the final destination into which a specific package is deployed."""
+
         if self.install:
-            return self.package_install_space(package.name)
+            return self.package_install_space(package)
         else:
-            return self.package_devel_space(package.name)
+            if self.link_devel:
+                return self.devel_space_abs
+            else:
+                return self.package_devel_space(package)

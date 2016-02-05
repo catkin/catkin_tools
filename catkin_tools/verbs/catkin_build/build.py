@@ -42,8 +42,11 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
+from catkin_pkg.package import parse_package
+
 from catkin_tools.common import FakeLock
 from catkin_tools.common import format_time_delta
+from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
@@ -55,11 +58,14 @@ from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
-from catkin_tools.jobs.job import get_build_type
+from catkin_tools.jobs.catkin import create_catkin_build_job
+from catkin_tools.jobs.cmake import create_cmake_build_job
+from catkin_tools.jobs.catkin import generate_prebuild_package
 
 from catkin_tools.notifications import notify
 
 from .color import clr
+
 
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
@@ -199,6 +205,8 @@ def build_isolated_workspace(
     :type force_color: bool
     :param quiet: suppresses the output of commands unless there is an error
     :type quiet: bool
+    :param interleave_output: prints the output of commands as they are received
+    :type interleave_output: bool
     :param no_status: disables status bar
     :type no_status: bool
     :param limit_status_rate: rate to which status updates are limited; the default 0, places no limit.
@@ -297,6 +305,7 @@ def build_isolated_workspace(
     # Find list of packages in the workspace
     packages_to_be_built, packages_to_be_built_deps, all_packages = determine_packages_to_be_built(
         packages, context, workspace_packages)
+
     if not no_deps:
         # Extend packages to be built to include their deps
         packages_to_be_built.extend(packages_to_be_built_deps)
@@ -327,7 +336,6 @@ def build_isolated_workspace(
     # which isn't parallel-safe. Catkin CMake only modifies this file if
     # it's package source path isn't found.
     if not context.install:
-        wide_log("[build] Checking devel manifest...")
         dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
         # If the file exists, get the current paths
         if os.path.exists(dot_catkin_file_path):
@@ -349,9 +357,9 @@ def build_isolated_workspace(
 
         # Write the new file if it's different, otherwise, leave it alone
         if dot_catkin_paths == new_dot_catkin_paths:
-            wide_log("[build] Devel manifest is up to date.")
+            wide_log("[build] Package table is up to date.")
         else:
-            wide_log("[build] Updating devel manifest.")
+            wide_log("[build] Updating package table.")
             open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
 
     # Remove packages before start_with
@@ -365,22 +373,76 @@ def build_isolated_workspace(
 
     # Get the names of all packages to be built
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
+    packages_to_be_built_deps_names = [p.name for _, p in packages_to_be_built_deps]
+
+    # Generate prebuild jobs, if necessary
+    prebuild_jobs = {}
+    setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
+        wide_log('[build] Preparing linked develspace...')
+
+        pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
+
+        if 'catkin' in packages_to_be_built_names + packages_to_be_built_deps_names:
+            # Use catkin as the prebuild package
+            prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+        else:
+            # Generate explicit prebuild package
+            prebuild_pkg_path = generate_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
+            prebuild_pkg = parse_package(prebuild_pkg_path)
+
+        # Create the prebuild job
+        prebuild_job = create_catkin_build_job(
+            context,
+            prebuild_pkg,
+            prebuild_pkg_path,
+            dependencies=[],
+            force_cmake=force_cmake,
+            pre_clean=pre_clean,
+            prebuild=True)
+
+        # Add the prebuld job
+        prebuild_jobs[prebuild_job.jid] = prebuild_job
+
+    # Remove prebuild jobs from normal job list
+    for prebuild_jid, prebuild_job in prebuild_jobs.items():
+        if prebuild_jid in packages_to_be_built_names:
+            packages_to_be_built_names.remove(prebuild_jid)
+
+    # Initial jobs list is just the prebuild jobs
+    jobs = [] + list(prebuild_jobs.values())
+
+    # Get all build type plugins
+    build_job_creators = {
+        ep.name: ep.load()['create_build_job']
+        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+    }
+
+    # It's a problem if there aren't any build types available
+    if len(build_job_creators) == 0:
+        sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
 
     # Construct jobs
-    jobs = []
     for pkg_path, pkg in all_packages:
         if pkg.name not in packages_to_be_built_names:
             continue
+
         # Ignore metapackages
         if 'metapackage' in [e.tagname for e in pkg.exports]:
             continue
 
         # Get actual execution deps
-        deps = [p.name for _, p in get_cached_recursive_build_depends_in_workspace(
-            pkg, packages_to_be_built)]
+        deps = [
+            p.name for _, p
+            in get_cached_recursive_build_depends_in_workspace(pkg, packages_to_be_built)
+            if p.name not in prebuild_jobs
+        ]
 
-        # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        # All jobs depend on the prebuild job if it's defined
+        for j in prebuild_jobs.values():
+            deps.append(j.jid)
+
+        # Determine the job parameters
         build_job_kwargs = dict(
             context=context,
             package=pkg,
@@ -388,19 +450,21 @@ def build_isolated_workspace(
             dependencies=deps,
             force_cmake=force_cmake,
             pre_clean=pre_clean)
-        build_job = None
 
-        for entry_point in pkg_resources.iter_entry_points(group='catkin_tools.jobs'):
-            if build_type == entry_point.name:
-                loaded_ep = entry_point.load()
-                build_job = loaded_ep['create_build_job'](**build_job_kwargs)
+        # Create the job based on the build type
+        build_type = get_build_type(pkg)
 
-        if build_job is not None:
-            jobs.append(build_job)
+        if build_type in build_job_creators:
+            jobs.append(build_job_creators[build_type](**build_job_kwargs))
         else:
-            wide_log(clr("[build] @!@{yf}Warning:@| Skipping package '{}'"
-                         " because it has an unknown package build type: \"{}\"").format(
-                pkg.name, build_type))
+            wide_log(clr(
+                "[build] @!@{yf}Warning:@| Skipping package `{}` because it "
+                "has an unsupported package build type: `{}`"
+            ).format(pkg.name, build_type))
+
+            wide_log(clr("[build] Note: Available build types:"))
+            for bt_name in build_job_creators.keys():
+                wide_log(clr("[build]  - `{}`".format(bt_name)))
 
     # Queue for communicating status
     event_queue = Queue()
@@ -463,7 +527,7 @@ def build_isolated_workspace(
             # Create isolated devel setup if necessary
             if context.isolate_devel:
                 if not context.install:
-                    _create_unmerged_devel_setup(context)
+                    _create_unmerged_devel_setup(context, now_unbuilt_pkgs)
                 else:
                     _create_unmerged_devel_setup_for_install(context)
             return 0
@@ -475,41 +539,81 @@ def build_isolated_workspace(
         event_queue.put(None)
 
 
-def _create_unmerged_devel_setup(context):
+def _create_unmerged_devel_setup(context, unbuilt):
     # Find all of the leaf packages in the workspace
     # where leaf means that nothing in the workspace depends on it
 
-    # Find all packages in the source space
-    # Suppress warnings since this is an internal function whose goal is not to
-    # give feedback on the user's packages
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    ordered_packages = context.packages
+    workspace_packages = dict([(p.name, p) for pth, p in ordered_packages])
 
-    ordered_packages = topological_order_packages(workspace_packages)
-    workspace_packages = dict([(p.name, p) for pth, p in workspace_packages.items()])
-    dependencies = set([])
-    for name, pkg in workspace_packages.items():
-        dependencies.update([d.name for d in pkg.buildtool_depends + pkg.build_depends + pkg.run_depends])
-    leaf_packages = []
-    for name, pkg in workspace_packages.items():
-        if pkg.name not in dependencies:
-            leaf_packages.append(pkg.name)
-    assert leaf_packages, leaf_packages  # Defensive, there should always be at least one leaf
-    leaf_sources = []
-    for pkg_name in leaf_packages:
-        source_path = os.path.join(context.devel_space_abs, pkg_name, 'setup.sh')
-        if os.path.isfile(source_path):
-            leaf_sources.append('. {0}'.format(source_path))
+    # Get all packages which are dependencies of packages in the workspace which have been built
+    dependencies = set(sum([
+        [d.name for d in p.buildtool_depends + p.build_depends + p.run_depends]
+        for _, p in workspace_packages.items()
+        if p.name not in unbuilt
+    ], []))
+
+    # Compute the packages on which no other packages depend
+    leaf_packages = [
+        pkg.name
+        for name, pkg in workspace_packages.items()
+        if pkg.name not in dependencies
+    ]
+    leaf_paths = [
+        os.path.join(context.devel_space_abs, p, 'setup.sh')
+        for p in leaf_packages
+    ]
+    leaf_sources = [
+        '. {}'.format(source_path)
+        for source_path in leaf_paths
+        if os.path.isfile(source_path)
+    ]
+
     # In addition to the leaf packages, we need to source the recursive run depends of the leaf packages
-    run_depends = get_recursive_run_depends_in_workspace(
+    run_depends_packages = get_recursive_run_depends_in_workspace(
         [workspace_packages[p] for p in leaf_packages], ordered_packages)
-    run_depends_sources = []
-    for run_dep_name in [p.name for pth, p in run_depends]:
-        source_path = os.path.join(context.devel_space_abs, run_dep_name, 'setup.sh')
-        if os.path.isfile(source_path):
-            run_depends_sources.append('. {0}'.format(source_path))
+    run_depends_paths = [
+        os.path.join(context.devel_space_abs, pth, 'setup.sh')
+        for pth, pkg in run_depends_packages
+    ]
+    run_depends_sources = [
+        '. {}'.format(source_path)
+        for source_path in run_depends_paths
+        if os.path.isfile(source_path)
+    ]
+
     # Create the setup.sh file
     setup_sh_path = os.path.join(context.devel_space_abs, 'setup.sh')
-    env_file = """\
+    env_file = SETUP_SH_TEMPLATE.format(
+        first_source=leaf_sources[0],
+        leaf_sources='\n'.join(leaf_sources[1:]),
+        run_depends_sources='\n'.join(run_depends_sources)
+    )
+    with open(setup_sh_path, 'w') as f:
+        f.write(env_file)
+    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+    # Create setup.bash file
+    setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
+    with open(setup_bash_path, 'w') as f:
+        f.write(SETUP_BASH_TEMPLATE)
+    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+    # Create setup.zsh file
+    setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
+    with open(setup_zsh_path, 'w') as f:
+        f.write(SETUP_ZSH_TEMPLATE)
+    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+
+
+def _create_unmerged_devel_setup_for_install(context):
+    """Create non-functioning placeholder scripts in develspace."""
+    for path in [os.path.join(context.devel_space_abs, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
+        with open(path, 'w') as f:
+            f.write(SETUP_PLACEHOLDER_TEMPLATE)
+
+
+SETUP_SH_TEMPLATE = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -530,19 +634,9 @@ set -- $@ "--extend"
 
 # And now the setup.sh for each of their recursive run dependencies
 {run_depends_sources}
-""".format(
-        first_source=leaf_sources[0],
-        leaf_sources='\n'.join(leaf_sources[1:]),
-        run_depends_sources='\n'.join(run_depends_sources)
-    )
-    with open(setup_sh_path, 'w') as f:
-        f.write(env_file)
-    # Make this file executable
-    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
-    # Create the setup.bash file
-    setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
-    with open(setup_bash_path, 'w') as f:
-        f.write("""\
+"""
+
+SETUP_BASH_TEMPLATE = """\
 #!/usr/bin/env bash
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -551,12 +645,9 @@ CATKIN_SHELL=bash
 # source setup.sh from same directory as this file
 _BUILD_SETUP_DIR=$(builtin cd "`dirname "${BASH_SOURCE[0]}"`" && pwd)
 . "$_BUILD_SETUP_DIR/setup.sh"
-""")
-    # Make this file executable
-    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
-    setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
-    with open(setup_zsh_path, 'w') as f:
-        f.write("""\
+"""
+
+SETUP_ZSH_TEMPLATE = """\
 #!/usr/bin/env zsh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
@@ -567,19 +658,13 @@ _BUILD_SETUP_DIR=$(builtin cd -q "`dirname "$0"`" && pwd)
 emulate sh # emulate POSIX
 . "$_BUILD_SETUP_DIR/setup.sh"
 emulate zsh # back to zsh mode
-""")
-    # Make this file executable
-    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
+"""
 
-
-def _create_unmerged_devel_setup_for_install(context):
-    for path in [os.path.join(context.devel_space_abs, f) for f in ['setup.sh', 'setup.bash', 'setup.zsh']]:
-        with open(path, 'w') as f:
-            f.write("""\
+SETUP_PLACEHOLDER_TEMPLATE = """\
 #!/usr/bin/env sh
 # generated from within catkin_tools/verbs/catkin_build/build.py
 
 echo "Error: This workspace was built with the '--install' option."
 echo "       You should source the setup files in the install space instead."
 echo "       Your environment has not been changed."
-""")
+"""

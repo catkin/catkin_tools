@@ -13,19 +13,25 @@
 # limitations under the License.
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 
+
 from catkin_tools.argument_parsing import handle_make_arguments
+
+from catkin_tools.common import mkdir_p
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.make import MAKE_EXEC
 
-from .job import get_env_loader
-from .job import makedirs
+from .utils import get_env_loader
+from .utils import makedirs
+from .utils import rmdirs
+from .utils import rmfile
 
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
@@ -42,6 +48,34 @@ try:
 except NameError:
     class FileNotFoundError(OSError):
         pass
+
+
+INSTALL_MANIFEST_FILENAME = 'install_manifest.txt'
+
+
+def copy_install_manifest(
+        logger, event_queue,
+        src_install_manifest_path,
+        dst_install_manifest_path):
+    """Copy the install manifest file from one path to another,"""
+
+    # Get file paths
+    src_install_manifest_file_path = os.path.join(src_install_manifest_path, INSTALL_MANIFEST_FILENAME)
+    dst_install_manifest_file_path = os.path.join(dst_install_manifest_path, INSTALL_MANIFEST_FILENAME)
+
+    # Create the directory for the manifest if it doesn't exist
+    mkdir_p(dst_install_manifest_path)
+
+    if os.path.exists(src_install_manifest_file_path):
+        # Copy the install manifest
+        shutil.copyfile(src_install_manifest_file_path, dst_install_manifest_file_path)
+    else:
+        # Didn't actually install anything, so create an empty manifest for completeness
+        logger.err("Warning: No targets installed.")
+        with open(dst_install_manifest_file_path, 'a'):
+            os.utime(dst_install_manifest_file_path, None)
+
+    return 0
 
 
 def get_python_install_dir():
@@ -66,11 +100,12 @@ def get_python_install_dir():
 
 
 def get_multiarch():
+    """This function returns the suffix for lib directories on supported
+    systems or an empty string it uses two step approach to look for multiarch:
+    first run gcc -print-multiarch and if failed try to run
+    dpkg-architecture."""
     if not sys.platform.lower().startswith('linux'):
         return ''
-    # this function returns the suffix for lib directories on supported systems or an empty string
-    # it uses two step approach to look for multiarch: first run gcc -print-multiarch and if
-    # failed try to run dpkg-architecture
     error_thrown = False
     try:
         p = subprocess.Popen(
@@ -90,57 +125,6 @@ def get_multiarch():
     decoded = out.decode().strip()
     assert(not decoded or decoded.count('-') == 2)
     return decoded
-
-
-SETUP_FILE_TEMPLATE = """\
-#!/usr/bin/env sh
-# generated from catkin_tools.jobs.cmake python module
-
-# remember type of shell if not already set
-if [ -z "$CATKIN_SHELL" ]; then
-  CATKIN_SHELL=sh
-fi
-
-# detect if running on Darwin platform
-_UNAME=`uname -s`
-IS_DARWIN=0
-if [ "$_UNAME" = "Darwin" ]; then
-  IS_DARWIN=1
-fi
-
-# Prepend to the environment
-export CMAKE_PREFIX_PATH="{cmake_prefix_path}$CMAKE_PREFIX_PATH"
-if [ $IS_DARWIN -eq 0 ]; then
-  export LD_LIBRARY_PATH="{ld_path}$LD_LIBRARY_PATH"
-else
-  export DYLD_LIBRARY_PATH="{ld_path}$DYLD_LIBRARY_PATH"
-fi
-export CPATH="{cpath}$CPATH"
-export LIBRARY_PATH="{library_path}$LIBRARY_PATH"
-export PATH="{path}$PATH"
-export PKG_CONFIG_PATH="{pkgcfg_path}$PKG_CONFIG_PATH"
-export PYTHONPATH="{pythonpath}$PYTHONPATH"
-"""
-
-ENV_FILE_TEMPLATE = """\
-#!/usr/bin/env sh
-# generated from catkin_tools.jobs.cmake
-
-if [ $# -eq 0 ] ; then
-  /bin/echo "Usage: env.sh COMMANDS"
-  /bin/echo "Calling env.sh without arguments is not supported anymore. Instead\
-spawn a subshell and source a setup file manually."
-  exit 1
-fi
-
-# ensure to not use different shell type which was set before
-CATKIN_SHELL=sh
-
-# source setup.sh from same directory as this file
-_CATKIN_SETUP_DIR=$(cd "`dirname "$0"`" > /dev/null && pwd)
-. "$_CATKIN_SETUP_DIR/setup.sh"
-exec "$@"
-"""
 
 
 def generate_env_file(logger, event_queue, context, install_target):
@@ -183,7 +167,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
         setup_file_needed = context.isolate_install or not os.path.exists(setup_file_path)
     else:
         # Do not replace existing setup.sh if devel space is merged
-        setup_file_needed = context.isolate_devel or not os.path.exists(setup_file_path)
+        setup_file_needed = not context.link_devel and context.isolate_devel or not os.path.exists(setup_file_path)
 
     if not setup_file_needed:
         logger.out("Setup file does not need to be generated.")
@@ -248,7 +232,8 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     stages.append(FunctionStage(
         'mkdir',
         makedirs,
-        path=build_space))
+        path=build_space
+    ))
 
     # CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
@@ -298,18 +283,28 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         locked_resource='installspace'
     ))
 
+    # Copy install manifest
+    stages.append(FunctionStage(
+        'register',
+        copy_install_manifest,
+        src_install_manifest_path=build_space,
+        dst_install_manifest_path=context.package_linked_devel_path(package)
+    ))
+
     # Determine the location where the setup.sh file should be created
     stages.append(FunctionStage(
         'setupgen',
         generate_setup_file,
         context=context,
-        install_target=dest_path))
+        install_target=dest_path
+    ))
 
     stages.append(FunctionStage(
         'envgen',
         generate_env_file,
         context=context,
-        install_target=dest_path))
+        install_target=dest_path
+    ))
 
     return Job(
         jid=package.name,
@@ -318,8 +313,134 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         stages=stages)
 
 
+def create_cmake_clean_job(context, package_name, dependencies):
+    """Factory for a Job to clean cmake packages"""
+
+    # Determine install target
+    install_target = context.install_space_abs if context.install else context.devel_space_abs
+
+    # Setup build variables
+    build_space = get_package_build_space_path(context.build_space_abs, package_name)
+
+    # Read install manifest
+    install_manifest_path = os.path.join(
+        context.package_linked_devel_path(package),
+        INSTALL_MANIFEST_FILENAME)
+    installed_files = set()
+    if os.path.exists(install_manifest_path):
+        with open(install_manifest_path) as f:
+            installed_files = set([line.strip() for line in f.readlines()])
+
+    # List of directories to check for removed files
+    dirs_to_check = set()
+
+    # Stages for this clean job
+    stages = []
+
+    for installed_file in installed_files:
+        # Make sure the file is given by an absolute path and it exists
+        if not os.path.isabs(installed_file) or not os.path.exists(installed_file):
+            continue
+
+        # Add stages to remove the file or directory
+        if os.path.isdir(installed_file):
+            stages.append(FunctionStage('rmdir', rmdirs, path=installed_file))
+        else:
+            stages.append(FunctionStage('rm', rmfile, path=installed_file))
+
+        # Check if directories that contain this file will be empty once it's removed
+        path = installed_file
+        # Only look in the devel space
+        while path != self.context.devel_space_abs:
+            # Pop up a directory
+            path, dirname = os.path.split(path)
+
+            # Skip if this path isn't a directory
+            if not os.path.isdir(path):
+                continue
+
+            dirs_to_check.add(path)
+
+    # For each directory which may be empty after cleaning, visit them depth-first and count their descendants
+    dir_descendants = dict()
+    dirs_to_remove = set()
+    for path in sorted(dirs_to_check, key=lambda k: -len(k.split(os.path.sep))):
+        # Get the absolute path to all the files currently in this directory
+        files = [os.path.join(path, f) for f in os.listdir(path)]
+        # Filter out the files which we intend to remove
+        files = [f for f in files if f not in installed_files]
+        # Compute the minimum number of files potentially contained in this path
+        dir_descendants[path] = sum([(dir_descendants.get(f, 1) if os.path.isdir(f) else 1) for f in files])
+
+        # Schedule the directory for removal if removal of the given files will make it empty
+        if dir_descendants[path] == 0:
+            dirs_to_remove.add(path)
+
+    for generated_dir in dirs_to_remove:
+        stages.append(FunctionStage('rmdir', rmdirs, path=generated_dir))
+
+    stages.append(FunctionStage('rmbuild', rmdirs, path=build_space))
+
+    return Job(
+        jid=package_name,
+        deps=dependencies,
+        stages=stages)
+
+
 description = dict(
     build_type='cmake',
     description="Builds a plain CMake package.",
     create_build_job=create_cmake_build_job
 )
+
+
+SETUP_FILE_TEMPLATE = """\
+#!/usr/bin/env sh
+# generated from catkin_tools.jobs.cmake python module
+
+# remember type of shell if not already set
+if [ -z "$CATKIN_SHELL" ]; then
+  CATKIN_SHELL=sh
+fi
+
+# detect if running on Darwin platform
+_UNAME=`uname -s`
+IS_DARWIN=0
+if [ "$_UNAME" = "Darwin" ]; then
+  IS_DARWIN=1
+fi
+
+# Prepend to the environment
+export CMAKE_PREFIX_PATH="{cmake_prefix_path}$CMAKE_PREFIX_PATH"
+if [ $IS_DARWIN -eq 0 ]; then
+  export LD_LIBRARY_PATH="{ld_path}$LD_LIBRARY_PATH"
+else
+  export DYLD_LIBRARY_PATH="{ld_path}$DYLD_LIBRARY_PATH"
+fi
+export CPATH="{cpath}$CPATH"
+export LIBRARY_PATH="{library_path}$LIBRARY_PATH"
+export PATH="{path}$PATH"
+export PKG_CONFIG_PATH="{pkgcfg_path}$PKG_CONFIG_PATH"
+export PYTHONPATH="{pythonpath}$PYTHONPATH"
+"""
+
+
+ENV_FILE_TEMPLATE = """\
+#!/usr/bin/env sh
+# generated from catkin_tools.jobs.cmake
+
+if [ $# -eq 0 ] ; then
+  /bin/echo "Usage: env.sh COMMANDS"
+  /bin/echo "Calling env.sh without arguments is not supported anymore. Instead\
+spawn a subshell and source a setup file manually."
+  exit 1
+fi
+
+# ensure to not use different shell type which was set before
+CATKIN_SHELL=sh
+
+# source setup.sh from same directory as this file
+_CATKIN_SETUP_DIR=$(cd "`dirname "$0"`" > /dev/null && pwd)
+. "$_CATKIN_SETUP_DIR/setup.sh"
+exec "$@"
+"""
