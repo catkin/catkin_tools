@@ -1,0 +1,31 @@
+.
+├── build
+│   ├── .built_by
+│   ├── .catkin_tools.yaml
+│   ├── _logs
+│   ├── pkg_a
+│   ├── pkg_b
+│   ├── pkg_c
+│   └── pkg_d
+├── .catkin_tools
+│   ├── default
+│   └── README
+├── devel
+│   ├── .built_by
+│   ├── .catkin
+│   ├── env.sh
+│   ├── etc
+│   ├── lib
+│   ├── .rosinstall
+│   ├── setup.bash
+│   ├── setup.sh
+│   ├── _setup_util.py
+│   ├── setup.zsh
+│   └── share
+└── src
+    ├── pkg_a
+    ├── pkg_b
+    ├── pkg_c
+    └── pkg_d
+
+17 directories, 11 files

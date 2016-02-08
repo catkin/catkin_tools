@@ -1,0 +1,25 @@
+usage: catkin list [-h] [--workspace WORKSPACE] [--profile PROFILE] [--deps]
+                   [--depends-on [DEPENDS_ON [DEPENDS_ON ...]]] [--quiet]
+                   [--unformatted]
+                   [folders [folders ...]]
+
+Lists catkin packages in the workspace or other arbitray folders.
+
+positional arguments:
+  folders               Folders in which to find packages. (default: workspace
+                        source space)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --profile PROFILE     The name of a config profile to use (default: active
+                        profile)
+  --deps, --dependencies
+                        List dependencies of each package.
+  --depends-on [DEPENDS_ON [DEPENDS_ON ...]]
+                        List all packages that depend on supplied argument
+                        package(s).
+  --quiet               Don't print out detected package warnings.
+  --unformatted, -u     Print list without punctuation and additional details.

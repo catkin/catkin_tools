@@ -109,6 +109,7 @@ setup(
             'notifications/resources/linux/catkin_icon.png',
             'notifications/resources/linux/catkin_icon_red.png',
             'verbs/catkin_shell_verbs.bash',
+            'docs/examples',
         ] + osx_notification_resources
     },
     data_files=get_data_files(prefix),

@@ -32,6 +32,13 @@ Operational Differences
   built before the current package.
 - ``catkin_tools`` and ``catkin_make`` can use the same source space, but they
   must use different build, devel, and install spaces.
+- ``catkin build`` generates ``.catkin`` files and subsequently
+  ``ROS_PACKAGE_PATH`` variables where each source package is listed, individually,
+  instead of just listing the source space for the workspace.
+- ``catkin build`` passes CMake command line arguments to multiple packages.
+  Since not all packages accept the same CMake arguments, the ``cmake`` command
+  is invoked with ``--no-warn-unused-cli``. This means there will be no warnings
+  for unused variables passed to ``cmake``.
 
 IDE Integration
 ^^^^^^^^^^^^^^^
