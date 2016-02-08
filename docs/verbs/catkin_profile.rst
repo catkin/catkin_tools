@@ -170,93 +170,36 @@ The ``profile`` verb can also be used for renaming and removing profiles:
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: text
-
-    usage: catkin profile [-h] [--workspace WORKSPACE]
-                          {list,set,add,rename,remove} ...
-
-    Manage metadata profiles for a catkin workspace
-
-    positional arguments:
-      {list,set,add,rename,remove}
-                            sub-command help
-        list                List the available profiles.
-        set                 Set the active profile by name.
-        add                 Add a new profile by name.
-        rename              Rename a given profile.
-        remove              Remove a profile by name.
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --workspace WORKSPACE, -w WORKSPACE
-                            The path to the catkin workspace. Default: current
-                            working directory
+.. literalinclude:: cli/catkin_profile.txt
+   :language: text
 
 ``catkin profile list``
 -----------------------
 
-.. code-block:: text
-
-    usage: catkin profile list [-h]
-
-    optional arguments:
-      -h, --help  show this help message and exit
+.. literalinclude:: cli/catkin_profile_list.txt
+   :language: text
 
 ``catkin profile set``
 -----------------------
 
-.. code-block:: text
-
-    usage: catkin profile set [-h] name
-
-    positional arguments:
-      name        The profile to activate.
-
-    optional arguments:
-      -h, --help  show this help message and exit
+.. literalinclude:: cli/catkin_profile_set.txt
+   :language: text
 
 ``catkin profile add``
 -----------------------
 
-.. code-block:: text
-
-    usage: catkin profile add [-h] [-f] [--copy BASE_PROFILE | --copy-active] name
-
-    positional arguments:
-      name                 The new profile name.
-
-    optional arguments:
-      -h, --help           show this help message and exit
-      -f, --force          Overwrite an existing profile.
-      --copy BASE_PROFILE  Copy the settings from an existing profile. (default:
-                           None)
-      --copy-active        Copy the settings from the active profile.
+.. literalinclude:: cli/catkin_profile_add.txt
+   :language: text
 
 ``catkin profile rename``
 -------------------------
 
-.. code-block:: text
-
-    usage: catkin profile rename [-h] [-f] current_name new_name
-
-    positional arguments:
-      current_name  The current name of the profile to be renamed.
-      new_name      The new name for the profile.
-
-    optional arguments:
-      -h, --help    show this help message and exit
-      -f, --force   Overwrite an existing profile.
+.. literalinclude:: cli/catkin_profile_rename.txt
+   :language: text
 
 ``catkin profile remove``
 -------------------------
 
-.. code-block:: text
-
-    usage: catkin profile remove [-h] [name [name ...]]
-
-    positional arguments:
-      name        One or more profile names to remove.
-
-    optional arguments:
-      -h, --help  show this help message and exit
+.. literalinclude:: cli/catkin_profile_remove.txt
+   :language: text
 

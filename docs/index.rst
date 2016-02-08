@@ -9,11 +9,11 @@ Catkin Command Line Tools
    :maxdepth: 2
 
    Installing <installing>
+   History <history>
    quick_start
    cheat_sheet
    Migration Guide <migration>
    mechanics
-   Workspace Configuration <config_summary>
    build_types
    Troubleshooting <troubleshooting>
 
@@ -56,7 +56,10 @@ Catkin Command Line Tools
    development/adding_build_types
    Adding New Verbs <development/extending_the_catkin_command>
 
-This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces. 
+This Python package provides command line tools for working with the catkin
+meta-buildsystem and catkin workspaces. These tools are separate from the
+Catkin CMake macros used in Catkin source packages. For documentation on
+creating catkin packages, see: http://docs.ros.org/api/catkin/html/
 
 .. note::
 
@@ -64,17 +67,11 @@ This Python package provides command line tools for working with the catkin meta
 
 .. note::
 
-  This is the documentation for the ``catkin`` command-line tool and **not**
-  the Catkin CMake documentation. For documentation on creating
-  catkin packages, see: http://docs.ros.org/api/catkin/html/
-
-.. note::
-
   Users of ``catkin_make`` and ``catkin_make_isolated`` should go to the
   :doc:`Migration Guide <migration>` for help transitioning to ``catkin
   build``.
 
-The ``catkin`` command
+The ``catkin`` Command
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. .. raw:: html
@@ -95,14 +92,12 @@ such as ``git`` or ``apt-get``.  Verbs include actions such as ``build`` which
 builds a catkin workspace or ``list`` which simply lists the catkin packages
 found in one or more folders.
 
-Additionally, global options can be provided before the verb, options like
-``-d`` for debug level verbosity or ``-h`` for help on the ``catkin`` CLI tool
-itself.  Verbs can take arbitrary arguments and options, but they must all come
+Verbs can take arbitrary arguments and options, but they must all come
 after the verb.  For more help on the usage of a particular verb, simply pass
 the ``-h`` or ``--help`` option after the verb.
 
-Built-in ``catkin`` command verbs
----------------------------------
+Built-in ``catkin`` Verbs
+-------------------------
 
 Each of the following verbs is built-in to the ``catkin`` command and has its own detailed documentation:
 
@@ -110,13 +105,19 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 - :doc:`config -- Configure a catkin workspace's layout and settings <verbs/catkin_config>`
 - :doc:`clean -- Clean products generated in a catkin workspace <verbs/catkin_clean>`
 - :doc:`create -- Create structures like Catkin packages <verbs/catkin_create>`
+- :doc:`env -- Run commands with a modified environemnt <verbs/catkin_env>`
 - :doc:`init -- Initialize a catkin workspace <verbs/catkin_init>`
 - :doc:`list -- Find and list information about catkin packages in a workspace <verbs/catkin_list>`
 - :doc:`locate -- Get important workspace directory paths <verbs/catkin_locate>`
 - :doc:`profile -- Manage different named configuration profiles <verbs/catkin_profile>`
 
-Shell support in ``catkin`` command
------------------------------------
+Contributed Third Party Verbs
+-----------------------------
+
+- `lint -- Check catkin packages for common errors <https://github.com/fkie/catkin_lint>`_
+
+Shell Support for the ``catkin`` Command
+----------------------------------------
 
 If you are using ``bash`` or ``zsh``, then you can source an extra setup file to gain access to some additional verbs.
 For more information see: :doc:`advanced/catkin_shell_verbs`.
@@ -125,4 +126,5 @@ For more information see: :doc:`advanced/catkin_shell_verbs`.
 Extending the ``catkin`` command
 --------------------------------
 
-If you would like to add a verb to the ``catkin`` command without modifying its source, please read :doc:`development/extending_the_catkin_command`.
+If you would like to add a verb to the ``catkin`` command without modifying its
+source, please read :doc:`Adding New Verbs <development/extending_the_catkin_command>`.

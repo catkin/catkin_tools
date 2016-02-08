@@ -19,17 +19,5 @@ of that workspace.
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: text
-
-    usage: catkin init [-h] [--workspace WORKSPACE] [--profile PROFILE] [--reset]
-
-    Initializes a given folder as a catkin workspace
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --workspace WORKSPACE, -w WORKSPACE
-                            The path to the catkin_tools workspace or a directory
-                            contained within it (default: ".")
-      --reset               Reset (delete) all of the metadata for the given
-                            workspace.
-
+.. literalinclude:: cli/catkin_init.txt
+   :language: text

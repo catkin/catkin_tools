@@ -1,0 +1,122 @@
+usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
+                    [--dry-run] [--get-env PKGNAME] [--this] [--no-deps]
+                    [--unbuilt] [--start-with PKGNAME | --start-with-this]
+                    [--continue-on-failure] [--force-cmake] [--pre-clean]
+                    [--no-install-lock] [--save-config] [-j JOBS]
+                    [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                    [--env-cache | --no-env-cache] [--cmake-args ARG [ARG ...]
+                    | --no-cmake-args] [--make-args ARG [ARG ...] |
+                    --no-make-args] [--catkin-make-args ARG [ARG ...] |
+                    --no-catkin-make-args] [--verbose] [--interleave-output]
+                    [--no-status] [--summarize] [--no-summarize]
+                    [--override-build-tool-check]
+                    [--limit-status-rate LIMIT_STATUS_RATE] [--no-notify]
+                    [PKGNAME [PKGNAME ...]]
+
+Build one or more packages in a catkin workspace. This invokes `CMake`,
+`make`, and optionally `make install` for either all or the specified packages
+in a catkin workspace. Arguments passed to this verb can temporarily override
+persistent options stored in the catkin profile config. If you want to save
+these options, use the --save-config argument. To see the current config, use
+the `catkin config` command.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --profile PROFILE     The name of a config profile to use (default: active
+                        profile)
+  --dry-run, -n         List the packages which will be built with the given
+                        arguments without building them.
+  --get-env PKGNAME     Print the environment in which PKGNAME is built to
+                        stdout.
+
+Packages:
+  Control which packages get built.
+
+  PKGNAME               Workspace packages to build, package dependencies are
+                        built as well unless --no-deps is used. If no packages
+                        are given, then all the packages are built.
+  --this                Build the package containing the current working
+                        directory.
+  --no-deps             Only build specified packages, not their dependencies.
+  --unbuilt             Build packages which have yet to be built.
+  --start-with PKGNAME  Build a given package and those which depend on it,
+                        skipping any before it.
+  --start-with-this     Similar to --start-with, starting with the package
+                        containing the current directory.
+  --continue-on-failure, -c
+                        Try to continue building packages whose dependencies
+                        built successfully even if some other requested
+                        packages fail to build.
+
+Build:
+  Control the build behavior.
+
+  --force-cmake         Runs cmake explicitly for each catkin package.
+  --pre-clean           Runs `make clean` before building each package.
+  --no-install-lock     Prevents serialization of the install steps, which is
+                        on by default to prevent file install collisions
+
+Config:
+  Parameters for the underlying build system.
+
+  --save-config         Save any configuration options in this section for the
+                        next build invocation.
+  -j JOBS, --jobs JOBS  Maximum number of build jobs to be distributed across
+                        active packages. (default is cpu count)
+  -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
+                        Maximum number of packages allowed to be built in
+                        parallel (default is cpu count)
+  --jobserver           Use the internal GNU Make job server which will limit
+                        the number of Make jobs across all active packages.
+  --no-jobserver        Disable the internal GNU Make job server, and use an
+                        external one (like distcc, for example).
+  --env-cache           Re-use cached environment variables when re-sourcing a
+                        resultspace that has been loaded at a different stage
+                        in the task.
+  --no-env-cache        Don't cache environment variables when re-sourcing the
+                        same resultspace.
+  --cmake-args ARG [ARG ...]
+                        Arbitrary arguments which are passes to CMake. It
+                        collects all of following arguments until a "--" is
+                        read.
+  --no-cmake-args       Pass no additional arguments to CMake.
+  --make-args ARG [ARG ...]
+                        Arbitrary arguments which are passes to make.It
+                        collects all of following arguments until a "--" is
+                        read.
+  --no-make-args        Pass no additional arguments to make (does not affect
+                        --catkin-make-args).
+  --catkin-make-args ARG [ARG ...]
+                        Arbitrary arguments which are passes to make but only
+                        for catkin packages.It collects all of following
+                        arguments until a "--" is read.
+  --no-catkin-make-args
+                        Pass no additional arguments to make for catkin
+                        packages (does not affect --make-args).
+
+Interface:
+  The behavior of the command-line interface.
+
+  --verbose, -v         Print output from commands in ordered blocks once the
+                        command finishes.
+  --interleave-output, -i
+                        Prevents ordering of command output when multiple
+                        commands are running at the same time.
+  --no-status           Suppresses status line, useful in situations where
+                        carriage return is not properly supported.
+  --summarize, --summary, -s
+                        Adds a build summary to the end of a build; defaults
+                        to on with --continue-on-failure, off otherwise
+  --no-summarize, --no-summary
+                        Explicitly disable the end of build summary
+  --override-build-tool-check
+                        use to override failure due to using differnt build
+                        tools on the same workspace.
+  --limit-status-rate LIMIT_STATUS_RATE, --status-rate LIMIT_STATUS_RATE
+                        Limit the update rate of the status bar to this
+                        frequency. Zero means unlimited. Must be positive,
+                        default is 10 Hz.
+  --no-notify           Suppresses system pop-up notification.

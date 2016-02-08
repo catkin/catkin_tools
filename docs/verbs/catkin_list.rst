@@ -22,23 +22,5 @@ pipe-based programs.
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: text
-
-    usage: catkin list [-h] [--deps] [--depends-on [DEPENDS_ON [DEPENDS_ON ...]]]
-                       [folders [folders ...]]
-
-    Lists catkin packages in the workspace or other arbitray folders.
-
-    positional arguments:
-      folders               Folders in which to find packages. (default: cwd)
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --deps, --dependencies
-                            List dependencies of each package.
-      --depends-on [DEPENDS_ON [DEPENDS_ON ...]]
-                            List all packages that depend on supplied argument
-                            package(s).
-      --quiet               Don't print out detected package warnings.
-      --unformatted, -u     Print list without punctuation and additional details.
-
+.. literalinclude:: cli/catkin_list.txt
+   :language: text

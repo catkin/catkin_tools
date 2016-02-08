@@ -1,0 +1,19 @@
+usage: catkin profile [-h] [--workspace WORKSPACE]
+                      {list,set,add,rename,remove} ...
+
+Manage config profiles for a catkin workspace.
+
+positional arguments:
+  {list,set,add,rename,remove}
+                        sub-command help
+    list                List the available profiles.
+    set                 Set the active profile by name.
+    add                 Add a new profile by name.
+    rename              Rename a given profile.
+    remove              Remove a profile by name.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin workspace. Default: current
+                        working directory

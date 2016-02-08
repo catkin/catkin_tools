@@ -1,84 +1,86 @@
 Workspace Mechanics
 ===================
 
-This chapter defines how Catkin workspaces are organized and used, as well as
-some standardized nomenclature for describing elements of a Catkin workspace.
-Unlike integrated development environments (IDEs) which normally only manage
-single projects, the purpose of Catkin is to enable the simultaneous
-compilation of numerous independently-authored projects. As such, these
-projects need to be organized in a "workspace" which contains both the source
-and build products for a collection of "packages."
+This chapter defines the organization, composition, and use of Catkin
+workspaces. Catkin workspaces enable rapid simulatnous building and
+executing of numerous interdependent projects. These projects do not need to
+share the sme buildtool, but they do need to be able to either build or install
+to a FHS tree.
 
+Unlike integrated development
+environments (IDEs) which normally only manage single projects, the purpose of
+Catkin is to enable the simultaneous compilation of numerous
+independently-authored projects. 
 
 Anatomy of a Catkin Workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A standard catkin workspace, as defined by `REP-0128
-<http://www.ros.org/reps/rep-0128.html>`_, is a folder with a prescribed set
-"spaces", each of which is normally a folder within the workspace:
+<http://www.ros.org/reps/rep-0128.html>`_, is a directory with a prescribed set
+of "spaces", each of which is contained within a directory under the workspace
+root. The spaces that comprise the workspace are described in the following
+sections.
 
-- **source space** -- default: ``./src``
-- **build space** -- default: ``./build``
-- **devel space** -- default: ``./devel``
-- **install space** -- default: ``./install``
+===============  ===============  ======================================================
+ Space            Default Path     Contents
+===============  ===============  ======================================================
+ Source Space     ``./src``        All source packages.
+ Build Space      ``./build``      Intermediate build products for each package.
+ Devel Space      ``./devel``      FHS tree containing all final build products.
+ Install Space    ``./install``    FHS tree containing products of ``install`` targets.
+===============  ===============  ======================================================
 
-Though there are standard conventions for the layout and names of the
-workspace's various spaces, they can be renamed for a given build
-using the ``catkin config`` verb.
+In addition to these user-facing directories, ``catkin_tools`` also creates a
+hidden ``.catkin_tools`` directory, which stores persistent build
+configuration. 
 
 source space
 ------------
 
-The **source space** is where the code for your packages resides and normally
-is in the folder ``/path/to/workspace/src``.  The build command considers
-**source space** to be read-only, in that during a build no files or folders
-should be created or modified in that folder.  Therefore catkin workspaces
-are said to be built "out of source", which simply means that the folder in
-which you build your code is not under or part of the folder with contains
-the source code.
+The **source space** contains all of the source packages to be built in the
+workspace, as such, it is the only directory required to build a workspace. The
+**source space** is also the only directory in the catkin workspace which is not
+modified by any ``catkin`` command verb. No build products are written to the
+source space, they are all built "out-of-source" in the **build space**,
+described in the next section.
 
 build space
 -----------
 
-Temporary build files are put into the **build space**, which by default is in
-the ``/path/to/workspace/build`` folder.  The **build space** is the working
-directory in which commands like ``cmake`` and ``make`` are run.
+Intermediate build products are written in the **build space**. The **build
+space** contains an isolated build directory for each package, as well as
+the log files which capture the output from each build stage. It is from these
+directories where commands like ``cmake`` and ``make`` are run.
 
 devel space
 -----------
 
-Generated files, like executables, libraries, pkg-config files, CMake config
-files, or message code, are placed in the **devel space**.
-By convention the **devel space** is located as a peer to the **source
-space** and **build space** in the ``/path/to/workspace/devel`` folder.
-The layout of the **devel space** is intended to mimic the root of an `FHS
-filesystem <https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard>`_,
-with folders like ``include``, ``lib``, ``bin``, and ``share``. Running code is
-possible from **devel space** because references to the **source space** are
-created.
+Build products like executables, libraries, pkg-config files, and CMake config
+files, are generated in the **devel space**. The **devel space** is organized
+as an `FHS <https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard>`_
+tree.
+
+Some buildtools simply treat the **devel space** as an install prefix, but other
+buildtools like ``catkin``, itself, can build targets directly into the **devel
+space** in order to skip the additional install step. For such packages, executing
+programs from the develspace sometimes requires that the source space is still
+available.
+
+At the root of the **devel space** is a set of environment setup files which can
+be "sourced" in order to properly execute the space's products.
 
 install space
 -------------
 
-Finally, if the packages in the workspace are setup for installing, the
-``--install`` option can be invoked to install the packages to the
-``CMAKE_INSTALL_PREFIX``, which in `REP-0128
-<http://www.ros.org/reps/rep-0128.html>`_ terms is the **install space**.
-The **install space**, like the **devel space**, has an FHS layout along with
-some generated setup files.
-The **install space** is set to ``/path/to/workspace/install`` by changing
-the ``CMAKE_INSTALL_PREFIX`` by default.
-This is done to prevent users from accidentally trying to install to the
-normal ``CMAKE_INSTALL_PREFIX`` path, ``/usr/local``.
-Unlike the **devel space**, the **install space** is completely standalone
-and does not require the **source space** or **build space** to function, and
-is suitable for packaging.
+Finally, if the workspace is configured to install packages, the each will be
+installed into the **install space**. The **install space** has an FHS layout
+like the **devel space**, except it is entirely self-contained.
 
-Additional Workspace Directories with ``catkin_tools``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Additional Files Generated by ``catkin_tools``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Hidden Marker / Config Directory
---------------------------------
+Configuration Directory
+-----------------------
 
 In addition to the standard workspace structure, ``catkin_tools`` also adds a
 marker directory called ``.catkin_tools`` at the root of the workspace. This
@@ -93,19 +95,35 @@ the active configuration profile if it is different than ``default``.
 Build Log Directory
 -------------------
 
-Another addition is the ``build_logs`` directory which is generated in the
-**build space** and contains individual build logs for each package.
+The ``catkin`` command also generates a log directory called ``_logs`` in the
+**build space** and contains individual build logs for each package. Logs for
+each package are written in subdirectories with the same name as the package.
+
+The latest log for each verb and stage in a given package's log directory is
+also written with the format:
+
+.. code-block:: bash
+
+   {VERB}.{STAGE}.log
+
+Each previous logfile has the following format, where ``{INDEX}`` begins at
+``000`` and increases with each execution of that verb and stage:
+
+.. code-block:: bash
+
+   {VERB}.{STAGE}.{INDEX}.log
 
 
 Environment Setup Files
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-In addition to the FHS folders, some setup scripts are generated in the **devel
-space**, e.g. ``setup.bash`` or ``setup.zsh``.
-These setup scripts are intended to make it easier to use the resulting **devel
-space** for building on top of the packages that were just built or for running
-programs built by those packages.
-The setup script can be used like this in ``bash``:
+The FHS trees of the **devel space** and **install space** also contain several
+environemnt "setup" scripts. These setup scripts are intended to make it easier
+to use the resulting FHS tree for building other source code or for running
+programs built by the packages in the workspace.
+
+The setup script can be used
+like this in ``bash``:
 
 .. code-block:: bash
 
@@ -117,14 +135,44 @@ Or like this in ``zsh``:
 
     % source /path/to/workspace/devel/setup.zsh
 
-Sourcing these setup scripts adds this workspace and any "underlaid"
-workspaces to your environment, prefixing the ``CMAKE_PREFIX_PATH``,
-``PKG_CONFIG_PATH``, ``PATH``, ``LD_LIBRARY_PATH``, ``CPATH``, and
-``PYTHONPATH`` with local workspace folders.
+Sourcing these setup scripts adds this workspace and any "underlaid" workspaces
+to your environment, prefixing several environment variables with the
+appropriate local workspace folders. 
 
-The setup scripts will also execute any shell hooks exported by packages in the
-workspace, which is how ``roslib``, for example, sets the ``ROS_PACKAGE_PATH``
-environment variable.
+============================= ==================================================
+ Environment Variable         | Description
+============================= ==================================================
+ CMAKE_PREFIX_PATH_           | Used by CMake to find development packages, \
+                              | and used by Catkin for workspace chaining.
+----------------------------- --------------------------------------------------
+ CPATH_                       | Used by GCC to search for development headers.
+----------------------------- --------------------------------------------------
+ LD_LIBRARY_PATH_ [1]_        | Search path for dynamically loadable libraries.
+----------------------------- --------------------------------------------------
+ DYLD_LIBRARY_PATH_ [2]_      | Search path for dynamically loadable libraries.
+----------------------------- --------------------------------------------------
+ PATH_                        | Search path for executables.
+----------------------------- --------------------------------------------------
+ PKG_CONFIG_PATH_             | Search path for ``pkg-config`` files.
+----------------------------- --------------------------------------------------
+ PYTHONPATH_                  | Search path for Python modules.                
+============================= ==================================================
+
+.. _CMAKE_PREFIX_PATH: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
+.. _CPATH: https://gcc.gnu.org/onlinedocs/cpp/Environment-Variables.html
+.. _LD_LIBRARY_PATH: http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html#AEN80
+.. _DYLD_LIBRARY_PATH: https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html
+.. _PATH: https://en.wikipedia.org/wiki/PATH_(variable)
+.. _PKG_CONFIG_PATH: http://linux.die.net/man/1/pkg-config
+.. _PYTHONPATH: https://docs.python.org/2/using/cmdline.html#envvar-PYTHONPATH
+
+.. [1] GNU/Linux Only
+.. [2] Mac OS X Only
+.. [3] Windows Only
+
+The setup scripts will also execute any Catkin "env-hooks" exported by packages
+in the workspace. For example, this is how ``roslib`` sets the
+``ROS_PACKAGE_PATH`` environment variable.
 
 .. note::
 
@@ -137,158 +185,152 @@ environment variable.
     loose the functionality provided by them, namely extending the environment
     and executing environment hooks.
 
-Workspace Packages and Dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Source Packages and Dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A workspace's packages consist of any packages found in the **source space**.
-A package is any folder which contains a ``package.xml`` as defined in
-`REP-0127 <http://www.ros.org/reps/rep-0127.html>`_.
+A package is any folder which contains a ``package.xml`` as defined by the ROS
+community in ROS Enhancement Proposals
+`REP-0127 <https://github.com/ros-infrastructure/rep/blob/master/rep-0127.rst>`_ 
+and
+`REP-0140 <https://github.com/ros-infrastructure/rep/blob/master/rep-0140.rst>`_.
 
-The ``catkin build`` command determines the order in which packages are built
-based on the ``depend``, ``build_depend``, ``run_depend``, and ``build_type``
-tags in a package's ``package.xml`` file.
+The ``catkin build`` command builds packages in the topological order
+determined by the dependencies listed in the package's ``package.xml`` file.
+For more information on which dependencies contribute to the build order, see
+the :doc:`build verb documentation<verbs/catkin_build>`.
 
-- The ``*_depend`` tags are used to determine the topological build order of
-  the packages.
-- The ``build_type`` tag is used to determine which build work flow to use on
-  the package.
+Additionally, the ``build_type`` tag is used to determine which build stages to
+use on the package. Supported build types are listed in :doc:`Build Types
+<build_types>`.  Packages without a ``build_type`` tag are assumed to be catkin
+packages.
 
-Packages without an explicitly defined ``build_type`` tag are assumed to be
-catkin packages, but plain CMake packages can be built by adding a
-``package.xml`` file to the root of their source tree with the ``build_type``
-flag set to ``cmake`` and appropriate ``build_depend`` and ``run_depend`` tags
-set, as described in `REP-0136 <http://www.ros.org/reps/rep-0136.html>`_.
-This has been done in the past for building packages like ``opencv``, ``pcl``,
-and ``flann``.
+For example, plain CMake packages can be built by adding a ``package.xml`` file
+to the root of their source tree with the ``build_type`` flag set to ``cmake``
+and appropriate ``build_depend`` and ``run_depend`` tags set, as described in
+`REP-0136 <http://www.ros.org/reps/rep-0136.html>`_.  This can been done to
+build packages like ``opencv``, ``pcl``, and ``flann``.
 
-Understanding the Build Process
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Workspace Configuration
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Legacy Catkin Workflow
+Most ``catkin`` commands which modify a workspace's configuration will
+display the standard configuration summary, as shown below:
+
+.. code-block:: bash
+
+    $ cd /tmp/path/to/my_catkin_ws
+    $ catkin config
+    --------------------------------------------------------------
+    Profile:                     default
+    Extending:                   None
+    Workspace:                   /tmp/path/to/my_catkin_ws
+    Source Space:       [exists] /tmp/path/to/my_catkin_ws/src
+    Build Space:       [missing] /tmp/path/to/my_catkin_ws/build
+    Devel Space:       [missing] /tmp/path/to/my_catkin_ws/devel
+    Install Space:     [missing] /tmp/path/to/my_catkin_ws/install
+    DESTDIR:                     None
+    --------------------------------------------------------------
+    Devel Space Layout:          merged
+    Install Packages:            False
+    Isolate Installs:            False
+    --------------------------------------------------------------
+    Additional CMake Args:       None
+    Additional Make Args:        None
+    Additional catkin Make Args: None
+    Internal Make Job Server:    True
+    Cache Job Environments:      False
+    --------------------------------------------------------------
+    Whitelisted Packages:        None
+    Blacklisted Packages:        None
+    --------------------------------------------------------------
+    Workspace configuration appears valid.
+    --------------------------------------------------------------
+
+This summary describes the layout of the workspace as well as other important
+settings which influence build and execution behavior. Each of these options
+can be modified either with the ``config`` verb's options described in the full
+command-line usage or by changing environment variables. The summary is
+composed of the following sections:
+
+Overview Section
+----------------
+
+- **Profile** -- The name of this configuration.
+- **Extending** -- Describes if your current configuration will extend another Catkin workspace, and through which mechanism it determined the location of the extended workspace:
+
+  - *No Chaining*
+
+    .. code-block:: bash
+
+          Extending:                   None
+
+  - *Implicit Chaining* -- Derived from the ``CMAKE_PREFIX_PATH`` environment or cache variable.
+
+    .. code-block:: bash
+
+          Extending:             [env] /opt/ros/hydro
+
+    .. code-block:: bash
+.
+          Extending:          [cached] /opt/ros/hydro
+
+  - *Explicit Chaining* -- Specified by ``catkin config --extend``
+
+    .. code-block:: bash
+
+          Extending:        [explicit] /opt/ros/hydro
+
+- **[* Space]** -- Lists the paths to each of the catkin "spaces" and whether or not they exist
+- **DESTDIR** -- An optional prefix to the **install space** as defined by `GNU Standards <https://www.gnu.org/prep/standards/html_node/DESTDIR.html>`_
+
+Build Product Layout Section
+----------------------------
+
+- **Devel Space Layout** -- The organization of the **devel space**.
+
+  - *Merged* -- Write products from all packages to a single FHS tree. This is most similar to the behavior of ``catkin_make``.
+  - *Isolated* -- Write products from each package into independent isolated FHS trees. this is most similar to the behavior of ``catkin_make_isolated``.
+  - *Linked* -- Write products from each package into independent isolated FHS trees, and symbolically link them into a merged FHS tree.
+
+- **Install Packages** -- Enable creating and installation into the **install space**
+- **Isolate Installs** -- Installs products into individual FHS subdirectories in the **install space**
+
+Build Tool Arguments Section
+----------------------------
+
+- **Additional CMake Args** -- Arguments to be passed to CMake during the *configuration* step for all packages to be built.
+- **Additional Make Args** -- Arguments to be passed to Make during the *build* step for all packages to be built.
+- **Additional catkin Make Args** -- Similar to **Additional Make Args** but only applies to Catkin packages.
+- **Internal Make Job Server** -- Whether or not the internal job server should be used to coordinate parallel build jobs.
+- **Cache Job Environments** -- Whether or not environment variables should be cached between build jobs.
+
+Package Filter Section
 ----------------------
 
-The core Catkin meta-buildsystem was originally designed in order to
-efficiently build numerous inter-dependent, but separately developed, CMake
-projects. This was developed by the Robot Operating System (ROS)
-community, originally as a successor to the standard meta-buildtool
-``rosbuild``. The ROS community's distributed development model with many
-modular projects and the need for building distributable binary packages
-motivated the design of a system which efficiently merged numerous disparate
-projects so that they utilize a single target dependency tree and build space.
+- **Package Whitelist** -- Packages that will be built with a bare call to ``catkin build``.
+- **Package Blacklist** -- Packages that will *not* be built unless explicitly named.
 
-To facilitate this "merged" build process, a workspace's **source space**
-would contain boiler-plate "top-level" ``CMakeLists.txt`` which automatically
-added all of the Catkin CMake projects below it to the single large CMake
-project.
+Notes Section
+-------------
 
-Then the user would build this collection of projects like a single unified
-CMake project with a workflow similar to the standard CMake out-of-source build
-workflow. They would all be configured with one invocation of ``cmake`` and
-subsequently targets would be built with one or more invocations of ``make``:
+The summary will sometimes contain notes about the workspace or the action that
+you're performing, or simply tell you that the workspace configuration appears
+valid.
 
-.. code-block:: bash
+Warnings Section
+----------------
 
-    $ mkdir build
-    $ cd build
-    $ cmake ../src
-    $ make
+If something is wrong with your configuration such as a missing source space,
+an additional section will appear at the bottom of the summary with details on
+what is wrong and how you can fix it.
 
-In order to help automate the merged build process, Catkin was distributed
-with a command-line tool called ``catkin_make``.
-This command automated the above CMake work flow while setting some
-variables according to standard conventions.
-These defaults would result in the execution of the following commands:
+Workspace Chaining / Extending
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: bash
-
-    $ mkdir build
-    $ cd build
-    $ cmake ../src -DCATKIN_DEVEL_SPACE=../devel -DCMAKE_INSTALL_PREFIX=../install
-    $ make -j<number of cores> -l<number of cores> [optional target, e.g. install]
-
-An advantage of this approach is that the total configuration would be smaller
-than configuring each package individually and that the Make targets can be
-parallelized even amongst dependent packages.
-
-In practice, however, it also means that in large workspaces, modification of the
-CMakeLists.txt of one package would necessitate the reconfiguration of all packages
-in the entire workspace.
-
-A critical flaw of this approach, however, is that there is no fault isolation.
-An error in a leaf package (package with no dependencies) will prevent all
-packages from configuring. Packages might have colliding target names. The
-merged build process can even cause CMake errors to go undetected if one package
-defines variables needed by another one, and can depend on the order in which
-independent packages are built. Since packages are merged into a single CMake
-invocation, this approach also requires developers to specify explicit
-dependencies on some targets inside of their dependencies.
-
-Another disadvantage of the merged build process is that it can only work on a
-homogeneous workspace consisting only of Catkin CMake packages.
-Other types of packages like plain CMake packages and autotools packages cannot
-be integrated into a single configuration and a single build step.
-
-Isolated Catkin Workflow
-------------------------
-
-The numerous drawbacks of the merged build process and the ``catkin_make`` tool
-motivated the development of the ``catkin_make_isolated`` tool.
-In contrast to ``catkin_make``, the ``catkin_make_isolated`` command uses an
-isolated build process, wherein each package is independently configured,
-built, and loaded into the environment.
-
-This way, each package is built in isolation and the next packages are built on
-the atomic result of the current one. This resolves the issues with target
-collisions, target dependency management, and other undesirable cross-talk 
-between projects.
-This also allows for the homogeneous automation of other buildtools like the
-plain CMake or autotools.
-
-The isolated workflow also enabled the following features:
-
-- Allowing building of *part* of a workspace
-- Building Catkin and non-Catkin projects into a single **devel space**
-- Building packages without re-configuring or re-building their dependencies
-- Removing the requirement that all packages in the workspace are free
-  of CMake errors before any packages can be built 
-
-There are, however, still some problems with ``catkin_make_isolated``. First,
-it is dramatically slower than ``catkin_make`` since it cannot parallelize the
-building of targets or even packages which do not depend on each other.
-It also lacks robustness to changes in the list of packages in the
-workspace. Since it is a "released" tool, it also has strict API stability
-requirements.
-
-Parallel Isolated Catkin Workflow and ``catkin build``
-------------------------------------------------------
-
-The limitations of ``catkin_make_isolated`` and the need for additional
-high-level build tools lead to the development of a parallel version of 
-catkin make isolated, or ``pcmi``, as part of `Project
-Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
-``pcmi`` later became the ``build`` verb of the ``catkin`` command included
-in this project.
-
-As such, the principle behavior of the ``build`` verb is to build each
-package in isolation and in topological order while parallelizing the
-building of packages which do not depend on each other.
-
-Other functional improvements over ``catkin_make`` and ``catkin_make_isolated``
-include the following:
-
-- The use of sub-command "verbs" for better organization of build options and 
-  build-related functions
-- Robustly adapting a build when packages are added to or removed from the
-  **source space**
-- Context-aware building of a given package based on the working directory
-- Utilization of persistent build metadata which catches common errors
-- Support for different build "profiles" in a single workspace
-- Explicit control of workspace chaining
-- Additional error-checking for common environment configuration errors
-- Numerous other command-line user-interface improvements
-
-Workspace Chaining and the Importance of CMAKE_PREFIX_PATH
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+An important property listed in the configuration configuration which deserves
+attention is the summary value of the ``Extending`` property. This affects
+which other collections of libraries and packages which will be visible to your
+workspace.  This is process called "workspace chaining." 
 
 Above, it's mentioned that the Catkin setup files export numerous environment
 variables, including ``CMAKE_PREFIX_PATH``. Since CMake 2.6.0, the
@@ -337,4 +379,63 @@ command adds an explicit extension interface to override the value of
   build in one workspace will not cause products in any other workspace to be
   built.
 
+The information about which workspace to extend can come from a few different
+sources, and can be classified in one of three ways:
+
+No Chaining
+-----------
+
+This is what is shown in the above example configuration and it implies that
+there are no other Catkin workspaces which this workspace extends. The user has
+neither explicitly specified a workspace to extend, and the
+``CMAKE_PREFIX_PATH`` environment variable is empty:
+
+.. code-block:: bash
+
+      Extending:                   None
+
+Implicit Chaining via ``CMAKE_PREFIX_PATH`` Environment or Cache Variable
+-------------------------------------------------------------------------
+
+In this case, the ``catkin`` command is *implicitly* assuming that you want
+to build this workspace against resources which have been built into the
+directories listed in your ``CMAKE_PREFIX_PATH`` environment variable. As
+such, you can control this value simply by changing this environment
+variable.
+
+For example, ROS users who load their system's installed ROS environment by
+calling something similar to ``source /opt/ros/hydro/setup.bash`` will
+normally see an ``Extending`` value such as:
+
+.. code-block:: bash
+
+      Extending:             [env] /opt/ros/hydro
+
+If you don't want to extend the given workspace, unsetting the
+``CMAKE_PREFIX_PATH`` environment variable will change it back to none. You can
+also alternatively
+
+Once you have built your workspace once, this ``CMAKE_PREFIX_PATH`` will be
+cached by the underlying CMake buildsystem. As such, the ``Extending`` status
+will subsequently describe this as the "cached" extension path:
+
+.. code-block:: bash
+
+      Extending:          [cached] /opt/ros/hydro
+
+Once the extension mode is cached like this, you must use ``catkin clean`` to
+before changing it to something else.
+
+Explicit Chaining via ``catkin config --extend``
+------------------------------------------------
+
+This behaves like the above implicit chaining except it means that this
+workspace is *explicitly* extending another workspace and the workspaces
+which the other workspace extends, recursively.  This can be set with the
+``catkin config --extend`` command. It will override the value of
+``CMAKE_PREFIX_PATH`` and persist between builds.
+
+.. code-block:: bash
+
+      Extending:        [explicit] /tmp/path/to/other_ws
 

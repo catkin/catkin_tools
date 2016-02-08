@@ -33,8 +33,6 @@ Build Stages
 ==============  ============  ==================================================
  ``mkdir``                    | Create package build space if it doesn't exist.
 ----------------------------  --------------------------------------------------
- ``buildenvgen``              | Generate environment setup file for building.
-----------------------------  --------------------------------------------------
  ``cmake``       ``check``    | Run CMake configure step **once** for the
                               | first build and the ``cmake_check_build_system``
                               | target for subsequent builds unless the

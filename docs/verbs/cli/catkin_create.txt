@@ -1,0 +1,10 @@
+usage: catkin create [-h] {pkg} ...
+
+Creates catkin workspace resources like packages.
+
+positional arguments:
+  {pkg}       sub-command help
+    pkg       Create a new catkin package.
+
+optional arguments:
+  -h, --help  show this help message and exit
