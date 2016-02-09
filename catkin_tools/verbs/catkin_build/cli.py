@@ -245,6 +245,7 @@ def main(opts):
         logging.basicConfig(level=opts.develdebug.upper())
 
     # Set color options
+    opts.force_color = os.environ.get('CATKIN_TOOLS_FORCE_COLOR', opts.force_color)
     if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
         set_color(True)
     else:
