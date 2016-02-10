@@ -80,7 +80,7 @@ class PermissiveInstall(install):
                 os.chmod(file, mode)
 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--prefix', default='',
                     help='prefix to install data files')
 opts, _ = parser.parse_known_args(sys.argv)
