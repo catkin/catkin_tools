@@ -93,7 +93,7 @@ To enable tab completion, add the following to your '~/.bashrc':
            'etc/bash_completion.d',
            'catkin_tools-completion.bash')))
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--prefix', default='',
                     help='prefix to install data files')
 opts, _ = parser.parse_known_args(sys.argv)
