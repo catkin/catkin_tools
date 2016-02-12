@@ -24,14 +24,16 @@ from catkin_tools.argument_parsing import handle_make_arguments
 from catkin_tools.common import mkdir_p
 
 from .commands.cmake import CMAKE_EXEC
+from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
 from .utils import get_env_loader
 from .utils import makedirs
-from .utils import rmdirs
 from .utils import rmfile
+from .utils import rmfiles
 
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
@@ -50,9 +52,6 @@ except NameError:
         pass
 
 
-INSTALL_MANIFEST_FILENAME = 'install_manifest.txt'
-
-
 def copy_install_manifest(
         logger, event_queue,
         src_install_manifest_path,
@@ -60,8 +59,8 @@ def copy_install_manifest(
     """Copy the install manifest file from one path to another,"""
 
     # Get file paths
-    src_install_manifest_file_path = os.path.join(src_install_manifest_path, INSTALL_MANIFEST_FILENAME)
-    dst_install_manifest_file_path = os.path.join(dst_install_manifest_path, INSTALL_MANIFEST_FILENAME)
+    src_install_manifest_file_path = os.path.join(src_install_manifest_path, CMAKE_INSTALL_MANIFEST_FILENAME)
+    dst_install_manifest_file_path = os.path.join(dst_install_manifest_path, CMAKE_INSTALL_MANIFEST_FILENAME)
 
     # Create the directory for the manifest if it doesn't exist
     mkdir_p(dst_install_manifest_path)
@@ -288,7 +287,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         'register',
         copy_install_manifest,
         src_install_manifest_path=build_space,
-        dst_install_manifest_path=context.package_linked_devel_path(package)
+        dst_install_manifest_path=context.package_metadata_path(package)
     ))
 
     # Determine the location where the setup.sh file should be created
@@ -313,84 +312,59 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         stages=stages)
 
 
-def create_cmake_clean_job(context, package_name, dependencies):
-    """Factory for a Job to clean cmake packages"""
+def create_cmake_clean_job(
+        context,
+        package,
+        package_path,
+        dependencies,
+        dry_run,
+        clean_build,
+        clean_devel,
+        clean_install):
+    """Generate a Job to clean a cmake package"""
 
-    # Determine install target
-    install_target = context.install_space_abs if context.install else context.devel_space_abs
-
-    # Setup build variables
-    build_space = get_package_build_space_path(context.build_space_abs, package_name)
-
-    # Read install manifest
-    install_manifest_path = os.path.join(
-        context.package_linked_devel_path(package),
-        INSTALL_MANIFEST_FILENAME)
-    installed_files = set()
-    if os.path.exists(install_manifest_path):
-        with open(install_manifest_path) as f:
-            installed_files = set([line.strip() for line in f.readlines()])
-
-    # List of directories to check for removed files
-    dirs_to_check = set()
-
-    # Stages for this clean job
     stages = []
 
-    for installed_file in installed_files:
-        # Make sure the file is given by an absolute path and it exists
-        if not os.path.isabs(installed_file) or not os.path.exists(installed_file):
-            continue
+    if clean_install and context.install:
+        installed_files = get_installed_files(context.package_metadata_path(package))
+        stages.append(FunctionStage(
+            'cleaninstall',
+            rmfiles,
+            paths=sorted(installed_files),
+            remove_empty=True,
+            empty_root=context.install_space_abs,
+            dry_run=dry_run))
 
-        # Add stages to remove the file or directory
-        if os.path.isdir(installed_file):
-            stages.append(FunctionStage('rmdir', rmdirs, path=installed_file))
-        else:
-            stages.append(FunctionStage('rm', rmfile, path=installed_file))
+    if clean_devel and not context.install:
+        installed_files = get_installed_files(context.package_metadata_path(package))
+        stages.append(FunctionStage(
+            'cleandevel',
+            rmfiles,
+            paths=sorted(installed_files),
+            remove_empty=True,
+            empty_root=context.devel_space_abs,
+            dry_run=dry_run))
 
-        # Check if directories that contain this file will be empty once it's removed
-        path = installed_file
-        # Only look in the devel space
-        while path != self.context.devel_space_abs:
-            # Pop up a directory
-            path, dirname = os.path.split(path)
-
-            # Skip if this path isn't a directory
-            if not os.path.isdir(path):
-                continue
-
-            dirs_to_check.add(path)
-
-    # For each directory which may be empty after cleaning, visit them depth-first and count their descendants
-    dir_descendants = dict()
-    dirs_to_remove = set()
-    for path in sorted(dirs_to_check, key=lambda k: -len(k.split(os.path.sep))):
-        # Get the absolute path to all the files currently in this directory
-        files = [os.path.join(path, f) for f in os.listdir(path)]
-        # Filter out the files which we intend to remove
-        files = [f for f in files if f not in installed_files]
-        # Compute the minimum number of files potentially contained in this path
-        dir_descendants[path] = sum([(dir_descendants.get(f, 1) if os.path.isdir(f) else 1) for f in files])
-
-        # Schedule the directory for removal if removal of the given files will make it empty
-        if dir_descendants[path] == 0:
-            dirs_to_remove.add(path)
-
-    for generated_dir in dirs_to_remove:
-        stages.append(FunctionStage('rmdir', rmdirs, path=generated_dir))
-
-    stages.append(FunctionStage('rmbuild', rmdirs, path=build_space))
+    if clean_build:
+        build_space = context.package_build_space(package)
+        stages.append(FunctionStage(
+            'rmbuild',
+            rmfiles,
+            paths=[build_space],
+            dry_run=dry_run))
 
     return Job(
-        jid=package_name,
+        jid=package.name,
         deps=dependencies,
+        env_loader=get_env_loader(package, context),
         stages=stages)
 
 
 description = dict(
     build_type='cmake',
     description="Builds a plain CMake package.",
-    create_build_job=create_cmake_build_job
+    create_build_job=create_cmake_build_job,
+    create_clean_job=create_cmake_clean_job
 )
 
 

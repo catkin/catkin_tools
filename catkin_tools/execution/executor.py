@@ -215,6 +215,10 @@ def execute_jobs(
     # List of jobs whose deps failed
     abandoned_jobs = []
 
+    # Make sure job server has been initialized
+    if not job_server.initialized():
+        raise RuntimeError('JobServer has not been initialized.')
+
     # Create a thread pool executor for blocking python stages in the asynchronous jobs
     threadpool = ThreadPoolExecutor(max_workers=job_server.max_jobs())
 
