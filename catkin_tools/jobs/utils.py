@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import os
+import shutil
 import stat
 
 from catkin_tools.common import mkdir_p
@@ -24,6 +25,7 @@ from catkin_tools.resultspace import get_resultspace_environment
 
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.events import ExecutionEvent
 
 from .commands.cmake import CMAKE_EXEC
 
@@ -94,25 +96,79 @@ def rmfile(logger, event_queue, path):
     return 0
 
 
-def rmdirs(logger, event_queue, path):
+def rmdirs(logger, event_queue, paths):
     """FunctionStage functor that removes a directory tree."""
-    if os.path.exists(path):
-        shutil.rmtree(path)
+    return rmfiles(logger, event_queue, paths, remove_empty=False)
+
+
+def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root='/'):
+    """FunctionStage functor that removes a list of files and directories.
+
+    If remove_empty is True, then this will also remove directories which
+    become emprt after deleting the files in `paths`. It will delete files up
+    to the path specified by `empty_root`.
+    """
+
+    # Determine empty directories
+    if remove_empty:
+        # First get a list of directories to check
+        dirs_to_check = set()
+
+        for path in paths:
+            # Make sure the file is given by an absolute path and it exists
+            if not os.path.isabs(path) or not os.path.exists(path):
+                continue
+
+            # Only look in the devel space
+            while empty_root.find(path) != 0:
+                # Pop up a directory
+                path, dirname = os.path.split(path)
+
+                # Skip if this path isn't a directory
+                if not os.path.isdir(path):
+                    continue
+
+                dirs_to_check.add(path)
+
+        # For each directory which may be empty after cleaning, visit them
+        # depth-first and count their descendants
+        dir_descendants = dict()
+        for path in sorted(dirs_to_check, key=lambda k: -len(k.split(os.path.sep))):
+            # Get the absolute path to all the files currently in this directory
+            files = [os.path.join(path, f) for f in os.listdir(path)]
+            # Filter out the files which we intend to remove
+            files = [f for f in files if f not in paths]
+            # Compute the minimum number of files potentially contained in this path
+            dir_descendants[path] = sum([
+                (dir_descendants.get(f, 1) if os.path.isdir(f) else 1)
+                for f in files
+            ])
+
+            # Schedule the directory for removal if removal of the given files will make it empty
+            if dir_descendants[path] == 0:
+                paths.append(path)
+
+    # REmove the paths
+    for index, path in enumerate(paths):
+
+        # Remove the path
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                logger.out('Removing directory: {}'.format(path))
+                if not dry_run:
+                    shutil.rmtree(path)
+            else:
+                logger.out('     Removing file: {}'.format(path))
+                if not dry_run:
+                    os.remove(path)
+        else:
+            logger.err('Warning: File {} could not be deleted because it does not exist.'.format(path))
+
+        # Report progress
+        event_queue.put(ExecutionEvent(
+            'STAGE_PROGRESS',
+            job_id=logger.job_id,
+            stage_label=logger.stage_label,
+            percent=str(index / float(len(paths)))))
+
     return 0
-
-
-def create_clean_buildspace_job(context, package, dependencies):
-    """Create a job to remove a buildspace only."""
-    build_space = context.package_build_space(package)
-    if not os.path.exists(build_space):
-        # No-op
-        return Job(jid=package.name, deps=dependencies, stages=[])
-
-    stages = []
-
-    stages.append(FunctionStage('rmbuild', rmdirs, path=build_space))
-
-    return Job(
-        jid=package.name,
-        deps=dependencies,
-        stages=stages)

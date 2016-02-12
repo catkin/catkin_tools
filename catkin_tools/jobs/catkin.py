@@ -30,13 +30,15 @@ from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
+from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
 from .utils import get_env_loader
 from .utils import makedirs
-from .utils import rmdirs
+from .utils import rmfiles
 
 
 def generate_prebuild_package(build_space_abs, devel_space_abs, force):
@@ -50,7 +52,7 @@ def generate_prebuild_package(build_space_abs, devel_space_abs, force):
     """
 
     # Get the path to the prebuild package
-    prebuild_path = os.path.join(devel_space_abs, '.catkin_tools', 'catkin_tools_prebuild')
+    prebuild_path = os.path.join(devel_space_abs, '.private', 'catkin_tools_prebuild')
     if not os.path.exists(prebuild_path):
         mkdir_p(prebuild_path)
 
@@ -75,9 +77,10 @@ def generate_prebuild_package(build_space_abs, devel_space_abs, force):
 def clean_linked_files(
         logger,
         event_queue,
-        devel_space_abs,
+        metadata_path,
         files_that_collide,
-        files_to_clean):
+        files_to_clean,
+        dry_run):
     """Removes a list of files and adjusts collison counts for colliding files.
 
     This function synchronizes access to the devel collisions file.
@@ -88,7 +91,7 @@ def clean_linked_files(
     """
 
     # Get paths
-    devel_collisions_file_path = os.path.join(devel_space_abs, 'devel_collisions.txt')
+    devel_collisions_file_path = os.path.join(metadata_path, 'devel_collisions.txt')
 
     # Map from dest files to number of collisions
     dest_collisions = dict()
@@ -115,12 +118,13 @@ def clean_linked_files(
         if n_collisions == 0:
             logger.out('Unlinking %s' % (dest_file))
             # Remove this link
-            os.unlink(dest_file)
-            # Remove any non-empty directories containing this file
-            try:
-                os.removedirs(os.path.split(dest_file)[0])
-            except OSError:
-                pass
+            if not dry_run:
+                os.unlink(dest_file)
+                # Remove any non-empty directories containing this file
+                try:
+                    os.removedirs(os.path.split(dest_file)[0])
+                except OSError:
+                    pass
 
         # Update collisions
         if n_collisions > 1:
@@ -131,31 +135,40 @@ def clean_linked_files(
             del dest_collisions[dest_file]
 
     # Load destination collisions file
-    with open(devel_collisions_file_path, 'w') as collisions_file:
-        collisions_writer = csv.writer(collisions_file, delimiter=' ', quotechar='"')
-        for dest_file, count in dest_collisions.items():
-            collisions_writer.writerow([dest_file, count])
+    if not dry_run:
+        with open(devel_collisions_file_path, 'w') as collisions_file:
+            collisions_writer = csv.writer(collisions_file, delimiter=' ', quotechar='"')
+            for dest_file, count in dest_collisions.items():
+                collisions_writer.writerow([dest_file, count])
 
 
 def unlink_devel_products(
         logger,
         event_queue,
         devel_space_abs,
-        package_name):
+        private_devel_path,
+        metadata_path,
+        package_metadata_path,
+        dry_run):
     """
     Remove all files listed in the devel manifest for the given package, as
     well as any empty directories containing those files.
 
     :param devel_space_abs: Path to a merged devel space.
-    :param package_name: Name of the package whose files should be unlinked.
+    :param private_devel_path: Path to the private devel space
+    :param devel_manifest_path: Path to the directory containing the package's
+    catkin_tools metadata
     """
 
-    # Get paths
-    linked_devel_path = get_linked_devel_package_path(devel_space_abs, package_name)
-    devel_manifest_path = get_linked_devel_manifest_path(devel_space_abs, package_name)
-
-    if not os.path.exists(linked_devel_path) or not os.path.exists(devel_manifest_path):
+    # Check paths
+    if not os.path.exists(private_devel_path):
+        logger.err('Warning: No private devel path found at `{}`'.format(private_devel_path))
         return 0
+
+    devel_manifest_file_path = os.path.join(package_metadata_path, DEVEL_MANIFEST_FILENAME)
+    if not os.path.exists(devel_manifest_file_path):
+        logger.err('Error: No devel manifest found at `{}`'.format(devel_manifest_file_path))
+        return 1
 
     # List of files to clean
     files_to_clean = []
@@ -181,7 +194,7 @@ def unlink_devel_products(
 
     # Remove all listed symli and empty directories which have been removed
     # after this build, and update the collision file
-    clean_linked_files(logger, event_queue, devel_space_abs, [], files_to_clean)
+    clean_linked_files(logger, event_queue, metadata_path, [], files_to_clean, dry_run)
 
     return 0
 
@@ -192,12 +205,16 @@ def link_devel_products(
         package_path,
         devel_manifest_path,
         source_devel_path,
-        dest_devel_path):
+        dest_devel_path,
+        metadata_path):
     """Link files from an isolated devel space into a merged one.
 
     This creates directories and symlinks in a merged devel space to a
     package's linked devel space.
     """
+
+    # Create the devel manifest path if necessary
+    mkdir_p(devel_manifest_path)
 
     # Construct manifest file path
     devel_manifest_file_path = os.path.join(devel_manifest_path, DEVEL_MANIFEST_FILENAME)
@@ -274,7 +291,7 @@ def link_devel_products(
 
     # Remove all listed symlinks and empty directories which have been removed
     # after this build, and update the collision file
-    clean_linked_files(logger, event_queue, dest_devel_path, files_that_collide, files_to_clean)
+    clean_linked_files(logger, event_queue, metadata_path, files_that_collide, files_to_clean, dry_run=False)
 
     # Save the list of symlinked files
     with open(devel_manifest_file_path, 'w') as devel_manifest:
@@ -408,9 +425,10 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             locked_resource='symlink-collisions-file',
             package=package,
             package_path=package_path,
-            devel_manifest_path=context.package_linked_devel_path(package),
+            devel_manifest_path=context.package_metadata_path(package),
             source_devel_path=context.package_devel_space(package),
-            dest_devel_path=context.devel_space_abs
+            dest_devel_path=context.devel_space_abs,
+            metadata_path=context.metadata_path()
         ))
 
     # Make install command, if installing
@@ -430,73 +448,88 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         stages=stages)
 
 
-def create_catkin_clean_job(context, package, package_path, dependencies):
+def create_catkin_clean_job(
+        context,
+        package,
+        package_path,
+        dependencies,
+        dry_run,
+        clean_build,
+        clean_devel,
+        clean_install):
     """Generate a Job that cleans a catkin package"""
 
     stages = []
 
-    # If the build space doesn't exist, do nothing
     build_space = context.package_build_space(package)
-    if not os.path.exists(build_space):
-        return Job(jid=package_name, deps=dependencies, stages=[])
 
-    # For isolated devel space, remove it entirely
-    if context.isolate_devel:
-        devel_space = os.path.join(context.devel_space_abs, package_name)
-
-        stages.append(FunctionStage('clean', rmdirs, path=devel_space))
-
-        return Job(
-            jid=package_name,
-            deps=dependencies,
-            stages=stages)
-
-    elif context.link_devel:
-        devel_space = os.path.join(build_space, 'devel')
-    else:
-        devel_space = context.devel_space_abs
-
-    # For isolated install space, remove it entirely
-    if context.isolate_install:
-        install_space = os.path.join(context.install_space_abs, package_name)
-
-        stages.append(FunctionStage('clean', rmdirs, path=install_space))
-
-        return Job(
-            jid=package_name,
-            deps=dependencies,
-            stages=stages)
-    else:
-        install_space = context.install_space_abs
-
-    if context.link_devel:
-        # Remove symlinked products
+    # Remove installed files
+    if clean_install:
+        installed_files = get_installed_files(context.package_metadata_path(package))
         stages.append(FunctionStage(
-            'unlink',
-            unlink_devel_products,
-            devel_space_abs=context.devel_space_abs,
-            package_name=package_name,
-            locked_resource='symlink-collisions-file'
-        ))
+            'cleaninstall',
+            rmfiles,
+            paths=sorted(installed_files),
+            remove_empty=True,
+            empty_root=context.install_space_abs,
+            dry_run=dry_run))
 
-        # Remove devel space
-        stages.append(FunctionStage(
-            'rmdevel', rmdirs,
-            path=context.package_devel_space(package)))
+    # Remove products in develspace
+    if clean_devel:
+        if context.merge_devel:
+            # Remove build targets from devel space
+            stages.append(CommandStage(
+                'clean',
+                [MAKE_EXEC, 'clean'] + make_args,
+                cwd=build_space,
+            ))
+        elif context.link_devel:
+            # Remove symlinked products
+            stages.append(FunctionStage(
+                'unlink',
+                unlink_devel_products,
+                locked_resource='symlink-collisions-file',
+                devel_space_abs=context.devel_space_abs,
+                private_devel_path=context.package_private_devel_path(package),
+                metadata_path=context.metadata_path(),
+                package_metadata_path=context.package_metadata_path(package),
+                dry_run=dry_run
+            ))
+
+            # Remove devel space
+            stages.append(FunctionStage(
+                'rmdevel',
+                rmfiles,
+                paths=[context.package_private_devel_path(package)],
+                dry_run=dry_run))
+        elif context.isolate_devel:
+            # Remove devel space
+            stages.append(FunctionStage(
+                'rmdevel',
+                rmfiles,
+                paths=[context.package_devel_space(package)],
+                dry_run=dry_run))
 
     # Remove build space
-    stages.append(FunctionStage('rmbuild', rmdirs, path=build_space))
+    if clean_build:
+        stages.append(FunctionStage(
+            'rmbuild',
+            rmfiles,
+            paths=[build_space],
+            dry_run=dry_run))
 
     return Job(
-        jid=package_name,
+        jid=package.name,
         deps=dependencies,
+        env_loader=get_env_loader(package, context),
         stages=stages)
 
 
 description = dict(
     build_type='catkin',
     description="Builds a catkin package.",
-    create_build_job=create_catkin_build_job
+    create_build_job=create_catkin_build_job,
+    create_clean_job=create_catkin_clean_job
 )
 
 

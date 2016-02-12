@@ -730,14 +730,14 @@ class Context(object):
         self.__blacklist = value
 
     @property
-    def linked_devel_path(self):
+    def private_devel_path(self):
         """The path to the hidden directory in the develspace that
         contains the symbollically-linked isolated develspaces."""
-        return os.path.join(self.devel_space_abs, '.catkin_tools')
+        return os.path.join(self.devel_space_abs, '.private')
 
-    def package_linked_devel_path(self, package):
+    def package_private_devel_path(self, package):
         """The path to the linked devel space for a given package."""
-        return os.path.join(self.linked_devel_path, package.name)
+        return os.path.join(self.private_devel_path, package.name)
 
     def package_build_space(self, package):
         """Get the build directory for a specific package."""
@@ -752,7 +752,7 @@ class Context(object):
         elif self.isolate_devel:
             return os.path.join(self.devel_space_abs, package.name)
         elif self.link_devel:
-            return os.path.join(self.linked_devel_path, package.name)
+            return os.path.join(self.private_devel_path, package.name)
         else:
             raise ValueError('Unkown devel space layout: {}'.format(self.devel_layout))
 
@@ -788,3 +788,13 @@ class Context(object):
                 return self.devel_space_abs
             else:
                 return self.package_devel_space(package)
+
+    def metadata_path(self):
+        """Get the path to the metadata directory for this profile."""
+        profile_path, _ = metadata.get_paths(self.workspace, self.profile)
+        return profile_path
+
+    def package_metadata_path(self, package):
+        """Get the workspace and profile-specific metadata path for a package"""
+        profile_path, _ = metadata.get_paths(self.workspace, self.profile)
+        return os.path.join(profile_path, 'packages', package.name)

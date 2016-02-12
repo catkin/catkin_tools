@@ -378,12 +378,13 @@ def build_isolated_workspace(
     # Generate prebuild jobs, if necessary
     prebuild_jobs = {}
     setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
-    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
+    build_catkin_package = 'catkin' in packages_to_be_built_names + packages_to_be_built_deps_names
+    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0) or build_catkin_package):
         wide_log('[build] Preparing linked develspace...')
 
         pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
 
-        if 'catkin' in packages_to_be_built_names + packages_to_be_built_deps_names:
+        if build_catkin_package:
             # Use catkin as the prebuild package
             prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
         else:
@@ -504,7 +505,7 @@ def build_isolated_workspace(
                 jobs,
                 locks,
                 event_queue,
-                os.path.join(context.build_space_abs, '_logs'),
+                os.path.join(context.metadata_path(), 'logs'),
                 max_toplevel_jobs=n_jobs,
                 continue_on_failure=continue_on_failure,
                 continue_without_deps=False))
