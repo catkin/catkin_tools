@@ -365,9 +365,11 @@ def main(opts):
     # Get the last build context
     build_metadata = get_metadata(ctx.workspace, ctx.profile, 'build')
 
-    if build_metadata.get('cmake_args') != ctx.cmake_args or build_metadata.get('cmake_args') != opts.cmake_args:
+    # Force cmake if the CMake arguments have changed
+    if build_metadata.get('cmake_args') != ctx.cmake_args:
         opts.force_cmake = True
 
+    # Check if some other verb has changed the workspace in such a way that it needs to be forced
     if build_metadata.get('needs_force', False):
         opts.force_cmake = True
         update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': False})

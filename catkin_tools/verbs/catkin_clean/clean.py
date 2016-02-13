@@ -166,7 +166,7 @@ def clean_packages(
         event_queue,
         show_notifications=False,
         show_active_status=False,
-        show_buffered_stdout=True,
+        show_buffered_stdout=verbose or False,
         show_buffered_stderr=True,
         show_live_stdout=False,
         show_live_stderr=False,
