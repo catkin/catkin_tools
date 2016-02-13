@@ -90,8 +90,8 @@ To enable tab completion, add the following to your '~/.bashrc':
 
 ----------------------------------------------------------------
 """.format(os.path.join(self.install_data,
-           'etc/bash_completion.d',
-           'catkin_tools-completion.bash')))
+                        'etc/bash_completion.d',
+                        'catkin_tools-completion.bash')))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--prefix', default='',

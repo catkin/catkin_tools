@@ -326,6 +326,7 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
 
     return recursive_dependants
 
+
 def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
     """Calculates the recursive run dependants of a package which are also in
     the ordered_packages
@@ -353,6 +354,7 @@ def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
             recursive_dependants.insert(0, (pth, pkg))
 
     return recursive_dependants
+
 
 def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
