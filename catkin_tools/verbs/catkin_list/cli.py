@@ -44,15 +44,15 @@ def prepare_arguments(parser):
     information_group = parser.add_argument_group('Information', 'Control which information is shown.')
     group = information_group.add_mutually_exclusive_group()
     group.add_argument('--deps', '--dependencies', default=False, action='store_true',
-        help="Show direct dependencies of each package.")
+                       help="Show direct dependencies of each package.")
     group.add_argument('--rdeps', '--recursive-dependencies', default=False, action='store_true',
-        help="Show recursive dependencies of each package.")
+                       help="Show recursive dependencies of each package.")
 
     packages_group = parser.add_argument_group('Packages', 'Control which packages are listed.')
     add = packages_group.add_argument
-    add('--depends-on', nargs='*',metavar='PKG',default=[],
+    add('--depends-on', nargs='*', metavar='PKG', default=[],
         help="Only show packages that directly depend on specific package(s).")
-    add('--rdepends-on','--recursive-depends-on', nargs='*',metavar='PKG',default=[],
+    add('--rdepends-on', '--recursive-depends-on', nargs='*', metavar='PKG', default=[],
         help="Only show packages that recursively depend on specific package(s).")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
@@ -101,12 +101,12 @@ def main(opts):
                         continue
                     rbd = get_recursive_build_dependants_in_workspace(pkg.name, ordered_packages)
                     rrd = get_recursive_run_dependants_in_workspace(pkg.name, ordered_packages)
-                    dependants.update([p.name for _,p in rbd])
-                    dependants.update([p.name for _,p in rrd])
+                    dependants.update([p.name for _, p in rbd])
+                    dependants.update([p.name for _, p in rrd])
 
                 filtered_packages = [
-                    (pth, pkg) 
-                    for pth, pkg in ordered_packages 
+                    (pth, pkg)
+                    for pth, pkg in ordered_packages
                     if pkg.name in dependants]
             else:
                 filtered_packages = ordered_packages
