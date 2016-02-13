@@ -326,6 +326,33 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
 
     return recursive_dependants
 
+def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive run dependants of a package which are also in
+    the ordered_packages
+
+    :param package: package for which the recursive depends should be calculated
+    :type package: :py:class:`catkin_pkg.package.Package`
+    :param ordered_packages: packages in the workspace, ordered topologically
+    :type ordered_packages: list(tuple(package path,
+        :py:class:`catkin_pkg.package.Package`))
+    :returns: list of package path, package object tuples which are the
+        recursive run depends for the given package
+    :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
+    """
+    recursive_dependants = list()
+
+    for pth, pkg in reversed(ordered_packages):
+        # Break if this is one to check
+        if pkg.name == package_name:
+            break
+
+        # Check if this package depends on the target package
+        deps = get_recursive_run_depends_in_workspace([pkg], ordered_packages)
+        deps_names = [p.name for _, p in deps]
+        if package_name in deps_names:
+            recursive_dependants.insert(0, (pth, pkg))
+
+    return recursive_dependants
 
 def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""

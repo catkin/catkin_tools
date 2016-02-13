@@ -76,7 +76,7 @@ def prepare_arguments(parser):
     add = basic_group.add_argument
     add('-a', '--all', action='store_true', default=False,
         help='Remove all of the generated spaces associated with the given or '
-        'active profile. This will remove everything but the source space and '
+        'active profile. This will remove everything except the source space and '
         'the hidden .catkin_tools directory.')
     add('-b', '--build', action='store_true', default=False,
         help='Remove the entire buildspace.')
@@ -84,6 +84,8 @@ def prepare_arguments(parser):
         help='Remove the entire develspace.')
     add('-i', '--install', action='store_true', default=False,
         help='Remove the entire installspace.')
+    add('-l', '--logs', action='store_true', default=False,
+        help='Remove the log directory.')
     add('--deinit', action='store_true', default=False,
         help='De-initialize the workspace, delete all build profiles and configuration.')
 
@@ -106,12 +108,10 @@ def prepare_arguments(parser):
     # Advanced group
     advanced_group = parser.add_argument_group(
         'Advanced',
-        "Clean only specific parts of the workspace for specified packages. These options will "
+        "Clean other specific parts of the workspace. These options will "
         "automatically enable the --force-cmake option for the next build "
         "invocation.")
     add = advanced_group.add_argument
-    add('-l', '--logs', action='store_true', default=False,
-        help='Only clear the catkin-generated logfiles.')
     add('--setup-files', action='store_true', default=False,
         help='Clear the catkin-generated setup files from the devel and install spaces.')
 
