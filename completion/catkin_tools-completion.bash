@@ -31,7 +31,7 @@ _catkin()
   prev=${COMP_WORDS[COMP_CWORD-1]}
 
   # complete to the following verbs
-  catkin_verbs="build clean config create init list profile"
+  catkin_verbs="build bt clean config create init list profile"
 
   # complete to verbs ifany of these are the previous word
   catkin_opts="--force-color --no-color --test-colors"
@@ -54,7 +54,7 @@ _catkin()
   if [[ ${COMP_CWORD} -eq 1 || ${catkin_opts} == *${prev}* ]] ; then
     COMPREPLY=($(compgen -W "${catkin_verbs}" -- ${cur}))
   else
-    if [[ "${COMP_WORDS[@]}" == *" build"* ]] ; then
+    if [[ "${COMP_WORDS[@]}" =~ ".* build|bt.*" ]] ; then
       if [[ ${cur} == -* ]]; then
         COMPREPLY=($(compgen -W "${catkin_build_opts}" -- ${cur}))
       else
