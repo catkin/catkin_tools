@@ -31,7 +31,9 @@ _catkin()
   prev=${COMP_WORDS[COMP_CWORD-1]}
 
   # complete to the following verbs
-  catkin_verbs="build bt clean config create init list profile"
+  catkin_verbs="build clean config create init list profile"
+  catkin_aliases="$(for a in $(catkin -a | awk '{print $1}'); do echo ${a//:}; done)"
+  catkin_verbs="${catkin_verbs} ${catkin_aliases}"
 
   # complete to verbs ifany of these are the previous word
   catkin_opts="--force-color --no-color --test-colors"
