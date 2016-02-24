@@ -166,6 +166,9 @@ class FunctionStage(Stage):
             raise ValueError('Function stage must be callable.')
         super(FunctionStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
 
+        self.args = args
+        self.kwargs = kwargs
+
         def function_proxy(logger, event_queue):
             return function(logger, event_queue, *args, **kwargs)
         self.function = function_proxy

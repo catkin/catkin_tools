@@ -147,6 +147,11 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         logger,
                         event_queue))
                 except:
+                    logger.err('Stage `{}` failed with arguments:'.format(stage.label))
+                    for arg_val in stage.args:
+                        logger.err('  {}'.format(arg_val))
+                    for arg_name, arg_val in stage.kwargs.items():
+                        logger.err('  {}: {}'.format(arg_name, arg_val))
                     logger.err(str(traceback.format_exc()))
                     retcode = 3
             else:

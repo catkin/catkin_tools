@@ -116,15 +116,22 @@ def clean_linked_files(
 
         # Check collisions
         if n_collisions == 0:
-            logger.out('Unlinking %s' % (dest_file))
+            logger.out('Unlinking: {}'.format(dest_file))
             # Remove this link
             if not dry_run:
-                os.unlink(dest_file)
-                # Remove any non-empty directories containing this file
-                try:
-                    os.removedirs(os.path.split(dest_file)[0])
-                except OSError:
-                    pass
+                if os.path.exists(dest_file):
+                    try:
+                        os.unlink(dest_file)
+                    except OSError:
+                        logger.err('Could not unlink: {}'.format(dest_file))
+                        raise
+                    # Remove any non-empty directories containing this file
+                    try:
+                        os.removedirs(os.path.split(dest_file)[0])
+                    except OSError:
+                        pass
+                else:
+                    logger.out('Already unlinked: {}')
 
         # Update collisions
         if n_collisions > 1:
@@ -273,7 +280,11 @@ def link_devel_products(
             else:
                 # Create the symlink
                 logger.out('Symlinking %s' % (dest_file))
-                os.symlink(source_file, dest_file)
+                try:
+                    os.symlink(source_file, dest_file)
+                except OSError:
+                    logger.err('Could not create symlink `{}` referencing `{}`'.format(dest_file, source_file))
+                    raise
 
     # Load the old list of symlinked files for this package
     if os.path.exists(devel_manifest_file_path):
@@ -291,7 +302,11 @@ def link_devel_products(
 
     # Remove all listed symlinks and empty directories which have been removed
     # after this build, and update the collision file
-    clean_linked_files(logger, event_queue, metadata_path, files_that_collide, files_to_clean, dry_run=False)
+    try:
+        clean_linked_files(logger, event_queue, metadata_path, files_that_collide, files_to_clean, dry_run=False)
+    except:
+        logger.err('Could not clean linked files.')
+        raise
 
     # Save the list of symlinked files
     with open(devel_manifest_file_path, 'w') as devel_manifest:
