@@ -4,7 +4,7 @@ Quickstart
 This chapter gives a high-level overview of how to use ``catkin_tools`` and the
 ``catkin`` command. This shows how to use the different command verbs to create
 and manipulate a workspace. For a more in-depth explanation of the mechanics of
-catkin workspaces, see :doc:`Workspace Mechanics <mechanics>`, and for thorogh
+catkin workspaces, see :doc:`Workspace Mechanics <mechanics>`, and for thorough
 usage details see the individual verb documentation.
 
 TL;DR
@@ -79,7 +79,7 @@ contains the current working directory.
 An important property which deserves attention is the summary value labeled
 ``Extending``. This describes other collections of libraries and packages which
 will be visible to your workspace. This is process called "workspace chaining."
-The value can be come from a few different sources, and can be classified in
+The value can come from a few different sources, and can be classified in
 one of the three following ways:
 
 - No chaining
@@ -126,7 +126,7 @@ trivial packages: ``pkg_a``, ``pkg_b``, and ``another_one``:
     Successfully created files in /tmp/path/to/my_catkin_ws/src/another_one. Please adjust the values in package.xml.
 
 After these operations, your workspace's local directory structure would look like
-the followng (to two levels deep):
+the following (up to two levels deep):
 
 .. code-block:: bash
 
@@ -144,12 +144,12 @@ Now that there are some packages in the workspace, Catkin has something to build
 
 .. note::
 
-    Catkin utilizes an "out-of-source" and "aggregated" build pattern. This
-    means that not only will temporary or final build products never be placed
-    in a package's source directory (or anywhere in the **source space** for
-    that matter), but also all build directories are aggregated in the **build
-    space** and all final build products (executables, libraries, etc.) will be
-    put in the **devel space**.
+    Catkin utilizes an "out-of-source" and "aggregated" build pattern. This 
+    means that temporary or final build products will never be placed in a 
+    package’s source directory or anywhere in the **source space**. Instead,
+    all build directories are aggregated in the **build space** and all final 
+    build products like executables, libraries, etc., will be put in the 
+    **devel space**.
 
 Building the Workspace
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -195,7 +195,7 @@ and build each of them.
 
 Calling ``catkin build`` will generate ``build`` and ``devel`` directories (as
 described in the config summary above) and result in a directory structure like
-the following (to one level deep):
+the following (one level deep):
 
 .. code-block:: bash
 
@@ -217,7 +217,7 @@ the build configuration see the :doc:`build verb <verbs/catkin_build>` and
 Loading the Workspace Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to properly "use" the products of the workspace, it's environment needs
+In order to properly "use" the products of the workspace, its environment needs
 to be loaded. Among other environment variables, sourcing a Catkin setup file
 modifies the ``CMAKE_PREFIX_PATH`` environment variable, which will affect
 workspace chaining as described in the earlier section.
