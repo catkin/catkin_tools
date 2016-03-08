@@ -84,11 +84,20 @@ _catkin()
       fi
       ;;
     config)
-      if [[ ${cur} != -* && "--whitelist --blacklist" == *$(_catkin_last_option)* ]] ; then
-        COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
-      else
-        local catkin_config_opts=$(catkin config --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
-        COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+      # list all options
+      local catkin_config_opts=$(catkin config --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+      COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+
+      # list package names when --whitelist or --blacklist was given as last option
+      if [[ ${cur} != -* && $(_catkin_last_option) == --*list ]] ; then
+        COMPREPLY+=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
+      fi
+
+      # list directory names when useful
+      if [[ ${prev} == --extend || ${prev} == --*-space ]] ; then
+        # add directory completion
+        compopt -o nospace 2>/dev/null
+        COMPREPLY+=($(compgen -d -S "/" -- ${cur}))
       fi
       ;;
     clean)
