@@ -43,7 +43,7 @@ _catkin_verb()
 _catkin_pkgs()
 {
   # return list of all packages
-  catkin --no-color list --unformatted --quiet
+  catkin --no-color list --unformatted --quiet 2> /dev/null
 }
 
 # TODO:
