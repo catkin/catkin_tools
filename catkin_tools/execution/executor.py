@@ -26,8 +26,8 @@ import trollius as asyncio
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import FIRST_COMPLETED
 
-from osrf_pycommon.process_utils import async_execute_process
-from osrf_pycommon.process_utils import get_loop
+from osrf_pycommon.process_utils.async_execute_process_trollius import async_execute_process
+from osrf_pycommon.process_utils.async_execute_process_trollius import get_loop
 
 from catkin_tools.common import FakeLock
 from catkin_tools.execution import job_server
