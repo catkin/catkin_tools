@@ -24,7 +24,7 @@ TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 BUILD = ['build', '--no-notify', '--no-status']
-CLEAN = ['clean', '--all', '--force']
+CLEAN = ['clean', '--force']
 
 BUILD_TYPES = ['cmake', 'catkin']
 
@@ -179,7 +179,7 @@ def test_unbuilt_linked():
                 assert os.path.exists(os.path.join('build', 'pkg_0'))
                 assert not os.path.exists(os.path.join('build', 'pkg_1'))
 
-                pkg_0_log_path = os.path.join('.catkin_tools', 'default', 'logs', 'pkg_0')
+                pkg_0_log_path = os.path.join('logs', 'pkg_0')
 
                 # build the unbuilt packages (rebuild deps)
                 pkg_0_log_files = os.listdir(pkg_0_log_path)
