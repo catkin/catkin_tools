@@ -89,6 +89,13 @@ def makedirs(logger, event_queue, path):
     return 0
 
 
+def copyfiles(logger, event_queue, source_paths, dest_path):
+    """FunctionStage functor that copies one or more files"""
+    for source_path in source_paths:
+        shutil.copy(source_path, dest_path)
+    return 0
+
+
 def rmfile(logger, event_queue, path):
     """FunctionStage functor that removes a file."""
     if os.path.exists(path):
