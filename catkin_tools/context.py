@@ -49,6 +49,7 @@ class Context(object):
     This context can be locked, so that changing the members is prevented.
     """
 
+    DEFAULT_LOG_SPACE = 'logs'
     DEFAULT_SOURCE_SPACE = 'src'
     DEFAULT_BUILD_SPACE = 'build'
     DEFAULT_DEVEL_SPACE = 'devel'
@@ -57,6 +58,7 @@ class Context(object):
     STORED_KEYS = [
         'extend_path',
         'source_space',
+        'log_space',
         'build_space',
         'devel_space',
         'install_space',
@@ -193,6 +195,7 @@ class Context(object):
         profile=None,
         extend_path=None,
         source_space=None,
+        log_space=None,
         build_space=None,
         devel_space=None,
         install_space=None,
@@ -220,6 +223,8 @@ class Context(object):
         :type extend_path: str
         :param source_space: relative location of source space, defaults to '<workspace>/src'
         :type source_space: str
+        :param log_space: relative location of log space, defaults to '<workspace>/logs'
+        :type log_space: str
         :param build_space: relativetarget location of build space, defaults to '<workspace>/build'
         :type build_space: str
         :param devel_space: relative target location of devel space, defaults to '<workspace>/devel'
@@ -268,6 +273,7 @@ class Context(object):
         self.profile = profile
 
         self.source_space = Context.DEFAULT_SOURCE_SPACE if source_space is None else source_space
+        self.log_space = Context.DEFAULT_LOG_SPACE + ss if ss or log_space is None else log_space
         self.build_space = Context.DEFAULT_BUILD_SPACE + ss if ss or build_space is None else build_space
         self.devel_space = Context.DEFAULT_DEVEL_SPACE + ss if ss or devel_space is None else devel_space
         self.install_space = Context.DEFAULT_INSTALL_SPACE + ss if ss or install_space is None else install_space
@@ -401,16 +407,18 @@ class Context(object):
                 clr("@{cf}Profile:@|                     @{yf}{profile}@|"),
                 clr("@{cf}Extending:@|        {extend_mode} @{yf}{extend}@|"),
                 clr("@{cf}Workspace:@|                   @{yf}{_Context__workspace}@|"),
+            ],
+            [
                 clr("@{cf}Source Space:@|      {source_missing} @{yf}{_Context__source_space_abs}@|"),
+                clr("@{cf}Log Space:@|         {log_missing} @{yf}{_Context__log_space_abs}@|"),
                 clr("@{cf}Build Space:@|       {build_missing} @{yf}{_Context__build_space_abs}@|"),
                 clr("@{cf}Devel Space:@|       {devel_missing} @{yf}{_Context__devel_space_abs}@|"),
                 clr("@{cf}Install Space:@|     {install_missing} @{yf}{_Context__install_space_abs}@|"),
-                clr("@{cf}DESTDIR:@|                     @{yf}{_Context__destdir}@|"),
+                clr("@{cf}DESTDIR:@|           {destdir_missing} @{yf}{_Context__destdir}@|")
             ],
             [
                 clr("@{cf}Devel Space Layout:@|          @{yf}{_Context__devel_layout}@|"),
-                clr("@{cf}Install Packages:@|            @{yf}{_Context__install}@|"),
-                clr("@{cf}Isolate Installs:@|            @{yf}{_Context__isolate_install}@|"),
+                clr("@{cf}Install Space Layout:@|        @{yf}{install_layout}@|"),
             ],
             [
                 clr("@{cf}Additional CMake Args:@|       @{yf}{cmake_args}@|"),
@@ -441,21 +449,31 @@ class Context(object):
             extend_value = 'None'
             extend_mode = clr('          ')
 
-        def existence_str(path):
-            return clr(' @{gf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
+        def existence_str(path, used=True):
+            if used:
+                return clr(' @{gf}[exists]@|' if os.path.exists(path) else '@{rf}[missing]@|')
+            else:
+                return clr(' @{bf}[unused]@|')
+
+        install_layout = 'None'
+        if self.__install:
+            install_layout = 'merged' if not self.__isolate_install else 'isolated'
 
         subs = {
             'profile': self.profile,
             'extend_mode': extend_mode,
             'extend': extend_value,
+            'install_layout': install_layout,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
             'cmake_args': ' '.join(self.__cmake_args or ['None']),
             'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
+            'log_missing': existence_str(self.log_space_abs),
             'build_missing': existence_str(self.build_space_abs),
             'devel_missing': existence_str(self.devel_space_abs),
-            'install_missing': existence_str(self.install_space_abs),
+            'install_missing': existence_str(self.install_space_abs, used=self.__install),
+            'destdir_missing': existence_str(self.destdir, used=self.destdir),
             'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
             'blacklisted_packages': ' '.join(self.__blacklist or ['None']),
         }
@@ -540,6 +558,21 @@ class Context(object):
         return self.workspace == find_enclosing_workspace(self.workspace)
 
     @property
+    def log_space_abs(self):
+        return self.__log_space_abs
+
+    @property
+    def log_space(self):
+        return self.__log_space
+
+    @log_space.setter
+    def log_space(self, value):
+        if self.__locked:
+            raise RuntimeError("Setting of context members is not allowed while locked.")
+        self.__log_space = value
+        self.__log_space_abs = os.path.join(self.__workspace, value)
+
+    @property
     def build_space_abs(self):
         return self.__build_space_abs
 
@@ -551,7 +584,6 @@ class Context(object):
     def build_space(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        # TODO: check that build space was not run with a different context before
         self.__build_space = value
         self.__build_space_abs = os.path.join(self.__workspace, value)
 
@@ -567,7 +599,6 @@ class Context(object):
     def devel_space(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        # TODO: check that devel space was not run with a different context before
         self.__devel_space = value
         self.__devel_space_abs = os.path.join(self.__workspace, value)
 
@@ -583,7 +614,6 @@ class Context(object):
     def install_space(self, value):
         if self.__locked:
             raise RuntimeError("Setting of context members is not allowed while locked.")
-        # TODO: check that install space was not run with a different context before
         self.__install_space = value
         self.__install_space_abs = os.path.join(self.__workspace, value)
 
@@ -794,7 +824,9 @@ class Context(object):
         profile_path, _ = metadata.get_paths(self.workspace, self.profile)
         return profile_path
 
-    def package_metadata_path(self, package):
+    def package_metadata_path(self, package=None):
         """Get the workspace and profile-specific metadata path for a package"""
         profile_path, _ = metadata.get_paths(self.workspace, self.profile)
+        if package is None:
+            return os.path.join(profile_path, 'packages')
         return os.path.join(profile_path, 'packages', package.name)

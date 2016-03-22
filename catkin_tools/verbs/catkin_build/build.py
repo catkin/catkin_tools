@@ -505,7 +505,7 @@ def build_isolated_workspace(
                 jobs,
                 locks,
                 event_queue,
-                os.path.join(context.metadata_path(), 'logs'),
+                context.log_space_abs,
                 max_toplevel_jobs=n_jobs,
                 continue_on_failure=continue_on_failure,
                 continue_without_deps=False))

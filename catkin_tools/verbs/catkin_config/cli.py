@@ -82,6 +82,12 @@ def prepare_arguments(parser):
         action='store_const', dest='source_space', default=None, const=Context.DEFAULT_SOURCE_SPACE,
         help='Use the default path to the source space ("src")')
     add = spaces_group.add_mutually_exclusive_group().add_argument
+    add('-l', '--log-space', default=None,
+        help='The path to the log space.')
+    add('--default-log-space',
+        action='store_const', dest='log_space', default=None, const=Context.DEFAULT_LOG_SPACE,
+        help='Use the default path to the log space ("logs")')
+    add = spaces_group.add_mutually_exclusive_group().add_argument
     add('-b', '--build-space', default=None,
         help='The path to the build space.')
     add('--default-build-space',
