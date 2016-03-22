@@ -20,10 +20,12 @@ from catkin_tools.argument_parsing import add_context_args
 
 from catkin_tools.context import Context
 
+from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import get_recursive_build_dependants_in_workspace
 from catkin_tools.common import get_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_dependants_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
+from catkin_tools.common import getcwd
 
 from catkin_pkg.packages import find_packages
 from catkin_pkg.package import InvalidPackage
@@ -54,6 +56,8 @@ def prepare_arguments(parser):
         help="Only show packages that directly depend on specific package(s).")
     add('--rdepends-on', '--recursive-depends-on', nargs='*', metavar='PKG', default=[],
         help="Only show packages that recursively depend on specific package(s).")
+    add('--this', action='store_true',
+        help="Show the package which contains the current working directory.")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -84,7 +88,7 @@ def main(opts):
         try:
             packages = find_packages(folder, warnings=warnings)
             ordered_packages = topological_order_packages(packages)
-            packages_by_name = {pkg.name: pkg for pth, pkg in ordered_packages}
+            packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
             if opts.depends_on or opts.rdepends_on:
 
@@ -96,7 +100,7 @@ def main(opts):
                     if is_dep:
                         dependants.add(pkg.name)
 
-                for pkg in [packages_by_name.get(n) for n in opts.rdepends_on]:
+                for pth, pkg in [packages_by_name.get(n) for n in opts.rdepends_on]:
                     if pkg is None:
                         continue
                     rbd = get_recursive_build_dependants_in_workspace(pkg.name, ordered_packages)
@@ -108,6 +112,17 @@ def main(opts):
                     (pth, pkg)
                     for pth, pkg in ordered_packages
                     if pkg.name in dependants]
+            elif opts.this:
+                this_package = find_enclosing_package(
+                    search_start_path=getcwd(),
+                    ws_path=ctx.workspace,
+                    warnings=[])
+                if this_package is None:
+                    sys.exit(1)
+                if this_package in packages_by_name:
+                    filtered_packages = [packages_by_name[this_package]]
+                else:
+                    filtered_packages = []
             else:
                 filtered_packages = ordered_packages
 
