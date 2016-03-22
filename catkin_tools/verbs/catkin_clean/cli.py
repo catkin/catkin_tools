@@ -74,18 +74,14 @@ def prepare_arguments(parser):
     # Basic group
     basic_group = parser.add_argument_group('Basic', 'Clean workspace subdirectories.')
     add = basic_group.add_argument
-    add('-a', '--all', action='store_true', default=False,
-        help='Remove all of the generated spaces associated with the given or '
-        'active profile. This will remove everything except the source space and '
-        'the hidden .catkin_tools directory.')
-    add('-b', '--build', action='store_true', default=False,
-        help='Remove the entire buildspace.')
-    add('-d', '--devel', action='store_true', default=False,
-        help='Remove the entire develspace.')
-    add('-i', '--install', action='store_true', default=False,
-        help='Remove the entire installspace.')
     add('-l', '--logs', action='store_true', default=False,
-        help='Remove the log directory.')
+        help='Remove the entire log space.')
+    add('-b', '--build', action='store_true', default=False,
+        help='Remove the entire build space.')
+    add('-d', '--devel', action='store_true', default=False,
+        help='Remove the entire devel space.')
+    add('-i', '--install', action='store_true', default=False,
+        help='Remove the entire install space.')
     add('--deinit', action='store_true', default=False,
         help='De-initialize the workspace, delete all build profiles and configuration.')
 
@@ -98,7 +94,7 @@ def prepare_arguments(parser):
     add = packages_group.add_argument
     add('packages', metavar='PKGNAME', nargs='*',
         help='Explicilty specify a list of specific packages to clean from the build, devel, and install space.')
-    add('--deps', action='store_true', default=False,
+    add('--dependants', '--deps', action='store_true', default=False,
         help='Clean the packages which depend on other packages to be cleaned.')
     add('--orphans', action='store_true', default=False,
         help='Remove products from packages are no longer in the source space. '
@@ -146,6 +142,7 @@ def main(opts):
     actions = ['all', 'build', 'devel', 'install', 'deinit', 'orphans',
                'setup_files', 'packages', 'logs']
 
+    log_exists = os.path.exists(ctx.log_space_abs)
     build_exists = os.path.exists(ctx.build_space_abs)
     devel_exists = os.path.exists(ctx.devel_space_abs)
     install_exists = os.path.exists(ctx.install_space_abs)
@@ -156,24 +153,26 @@ def main(opts):
         return 0
 
     # Default is to clean all products for this profile
-    if not any([v for (k, v) in vars(opts).items() if k in actions]):
-        opts.all = True
+    clean_all = not any([v for (k, v) in vars(opts).items() if k in actions])
 
     # Make sure the user intends to clena everything
-    if opts.all and not (opts.force or opts.dry_run):
+    if clean_all and not (opts.force or opts.dry_run):
         log(clr("[clean] @!@{yf}Warning:@| This will completely remove the "
-                "existing build, devel, and install spaces for this profile. "
+                "following directories. "
                 "Use `--force` to skip this check."))
+        if log_exists:
+            log(clr("[clean] Log Space:     @{yf}{}").format(ctx.log_space_abs))
         if build_exists:
-            log(clr("[clean]   Build Space:   @{yf}{}").format(ctx.build_space_abs))
+            log(clr("[clean] Build Space:   @{yf}{}").format(ctx.build_space_abs))
         if devel_exists:
-            log(clr("[clean]   Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
+            log(clr("[clean] Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
         if install_exists:
-            log(clr("[clean]   Install Space: @{yf}{}").format(ctx.install_space_abs))
+            log(clr("[clean] Install Space: @{yf}{}").format(ctx.install_space_abs))
 
         try:
-            opts.all = yes_no_loop("\n[clean] Are you sure you want to completely remove the directories listed above?")
-            if not opts.all:
+            clean_all = yes_no_loop(
+                "\n[clean] Are you sure you want to completely remove the directories listed above?")
+            if not clean_all:
                 log(clr("[clean] Not removing build, devel, or install spaces for this profile."))
         except KeyboardInterrupt:
             log("\n[clean] No actions performed.")
@@ -196,7 +195,7 @@ def main(opts):
     needs_force = False
 
     # Remove the requested spaces
-    if opts.all:
+    if clean_all:
         opts.build = opts.devel = opts.install = True
 
     try:
@@ -221,32 +220,34 @@ def main(opts):
                 if not opts.dry_run:
                     shutil.rmtree(ctx.build_space_abs)
 
+        # Setup file removal
+        if opts.setup_files:
+            if os.path.exists(ctx.devel_space_abs):
+                print("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
+                opts.packages.append('catkin')
+                opts.packages.append('catkin_tools_prebuild')
+            else:
+                print("[clean] No develspace exists, no setup files to clean.")
+
         # Find orphaned packages
         if ctx.link_devel and not any([opts.build, opts.devel]):
             if opts.orphans:
                 if os.path.exists(ctx.build_space_abs):
-                    # Initialize orphan list
-                    orphans = set()
+                    print("[clean] Determining orphaned packages...")
 
-                    # Get all enabled packages in source space
+                    # Get all existing packages in source space and the
                     # Suppress warnings since this is looking for packages which no longer exist
                     found_source_packages = [
-                        pkg.name for (path, pkg) in find_packages(ctx.source_space_abs, warnings=[]).items()]
+                        pkg.name for (path, pkg) in
+                        find_packages(ctx.source_space_abs, warnings=[]).items()]
+                    built_packages = [
+                        pkg.name for (path, pkg) in
+                        find_packages(ctx.package_metadata_path(), warnings=[]).items()]
 
                     # Look for orphaned products in the build space
-                    print("[clean] Determining orphaned packages...")
-                    for pkg_build_name in os.listdir(ctx.build_space_abs):
-                        if pkg_build_name not in exempt_build_files:
-                            if pkg_build_name not in found_source_packages:
-                                orphans.add(pkg_build_name)
-                                print("[clean] Orphaned build products: %s" % pkg_build_name)
-
-                    # Look for orphaned products in the develspace
-                    for pkg_devel_name in ctx.private_devel_path():
-                        if os.path.isdir(pkg_devel_name):
-                            if pkg_devel_name not in found_source_packages:
-                                orphans.add(pkg_devel_name)
-                                print("[clean] Orphaned devel products: %s" % pkg_devel_name)
+                    orphans = [p for p in built_packages
+                               if (p not in found_source_packages and p !=
+                                   'catkin_tools_prebuild')]
 
                     if len(orphans) > 0:
                         opts.packages.extend(list(orphans))
@@ -263,7 +264,7 @@ def main(opts):
                     needs_force = clean_packages(
                         ctx,
                         opts.packages,
-                        opts.deps,
+                        opts.dependants,
                         opts.verbose,
                         opts.dry_run)
                 except KeyboardInterrupt:
@@ -277,7 +278,7 @@ def main(opts):
 
         # Clean log files
         if opts.logs:
-            log_dir = os.path.join(ctx.metadata_path(), 'logs')
+            log_dir = ctx.log_space_abs
             if os.path.exists(log_dir):
                 print("[clean] Removing log files from: {}".format(log_dir))
                 if not opts.dry_run:
@@ -292,18 +293,6 @@ def main(opts):
             if not opts.dry_run:
                 shutil.rmtree(metadata_dir)
 
-        # Setup file removal
-        if opts.setup_files:
-            if os.path.exists(ctx.devel_space_abs):
-                print("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
-                for filename in setup_files:
-                    full_path = os.path.join(ctx.devel_space_abs, filename)
-                    if os.path.exists(full_path):
-                        print(" - Removing %s" % full_path)
-                        os.remove(full_path)
-                        needs_force = True
-            else:
-                print("[clean] No develspace exists, no setup files to clean.")
     except:
         needs_force = True
         raise

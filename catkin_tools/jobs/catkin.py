@@ -36,6 +36,7 @@ from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
+from .utils import copyfiles
 from .utils import get_env_loader
 from .utils import makedirs
 from .utils import rmfiles
@@ -213,7 +214,8 @@ def link_devel_products(
         devel_manifest_path,
         source_devel_path,
         dest_devel_path,
-        metadata_path):
+        metadata_path,
+        prebuild):
     """Link files from an isolated devel space into a merged one.
 
     This creates directories and symlinks in a merged devel space to a
@@ -232,6 +234,9 @@ def link_devel_products(
     files_to_clean = []
     # List of files that collide
     files_that_collide = []
+
+    # Select the blacklist
+    blacklist = DEVEL_LINK_PREBUILD_BLACKLIST if prebuild else DEVEL_LINK_BLACKLIST
 
     # Gather all of the files in the devel space
     for source_path, dirs, files in os.walk(source_devel_path):
@@ -253,8 +258,8 @@ def link_devel_products(
         # create symbolic links from the source to the dest
         for filename in files:
 
-            # Don't link files on the blacklist
-            if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in devel_link_blacklist:
+            # Don't link files on the blacklist unles this is a prebuild package
+            if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in blacklist:
                 continue
 
             source_file = os.path.join(source_path, filename)
@@ -341,12 +346,11 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # Package build space path
     build_space = context.package_build_space(package)
     # Package devel space path
-    if prebuild:
-        devel_space = context.devel_space_abs
-    else:
-        devel_space = context.package_devel_space(package)
+    devel_space = context.package_devel_space(package)
     # Package install space path
     install_space = context.package_install_space(package)
+    # Package metadata path
+    metadata_path = context.package_metadata_path(package)
 
     # Create job stages
     stages = []
@@ -356,6 +360,21 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         'mkdir',
         makedirs,
         path=build_space
+    ))
+
+    # Create package metadata dir
+    stages.append(FunctionStage(
+        'mkdir',
+        makedirs,
+        path=metadata_path
+    ))
+
+    # Copy source manifest
+    stages.append(FunctionStage(
+        'cache-manifest',
+        copyfiles,
+        source_paths=[os.path.join(context.source_space_abs, package_path, 'package.xml')],
+        dest_path=os.path.join(metadata_path, 'package.xml')
     ))
 
     # Define test results directory
@@ -433,7 +452,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     ))
 
     # Symlink command if using a linked develspace
-    if context.link_devel and not prebuild:
+    if context.link_devel:
         stages.append(FunctionStage(
             'symlink',
             link_devel_products,
@@ -443,7 +462,8 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             devel_manifest_path=context.package_metadata_path(package),
             source_devel_path=context.package_devel_space(package),
             dest_devel_path=context.devel_space_abs,
-            metadata_path=context.metadata_path()
+            metadata_path=context.metadata_path(),
+            prebuild=prebuild
         ))
 
     # Make install command, if installing
@@ -476,7 +496,10 @@ def create_catkin_clean_job(
 
     stages = []
 
+    # Package build space path
     build_space = context.package_build_space(package)
+    # Package metadata path
+    metadata_path = context.package_metadata_path(package)
 
     # Remove installed files
     if clean_install:
@@ -533,6 +556,14 @@ def create_catkin_clean_job(
             paths=[build_space],
             dry_run=dry_run))
 
+    # Remove cached metadata
+    if clean_build and clean_devel and clean_install:
+        stages.append(FunctionStage(
+            'rmmetadata',
+            rmfiles,
+            paths=[metadata_path],
+            dry_run=dry_run))
+
     return Job(
         jid=package.name,
         deps=dependencies,
@@ -557,18 +588,19 @@ unset ROS_TEST_RESULTS_DIR
 DEVEL_MANIFEST_FILENAME = 'devel_manifest.txt'
 
 # List of files which shouldn't be copied
-devel_link_blacklist = [
+DEVEL_LINK_PREBUILD_BLACKLIST = [
+    '.catkin',
+    '.rosinstall',
+]
+DEVEL_LINK_BLACKLIST = DEVEL_LINK_PREBUILD_BLACKLIST + [
     os.path.join('etc', 'catkin', 'profile.d', '05.catkin_make.bash'),
     os.path.join('etc', 'catkin', 'profile.d', '05.catkin_make_isolated.bash'),
     os.path.join('etc', 'catkin', 'profile.d', '05.catkin-test-results.sh'),
-    '.catkin',
-    '.rosinstall',
     'env.sh',
     'setup.bash',
     'setup.zsh',
     'setup.sh',
     '_setup_util.py',
-    DEVEL_MANIFEST_FILENAME
 ]
 
 # CMakeLists.txt for prebuild package

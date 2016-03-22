@@ -30,6 +30,7 @@ from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
+from .utils import copyfiles
 from .utils import get_env_loader
 from .utils import makedirs
 from .utils import rmfile
@@ -219,6 +220,8 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     devel_space = context.package_devel_space(package)
     # Package install space path
     install_space = context.package_install_space(package)
+    # Package metadata path
+    metadata_path = context.package_metadata_path(package)
 
     # Get actual staging path
     dest_path = context.package_dest_path(package)
@@ -232,6 +235,21 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         'mkdir',
         makedirs,
         path=build_space
+    ))
+
+    # Create package metadata dir
+    stages.append(FunctionStage(
+        'mkdir',
+        makedirs,
+        path=metadata_path
+    ))
+
+    # Copy source manifest
+    stages.append(FunctionStage(
+        'cache-manifest',
+        copyfiles,
+        source_paths=[os.path.join(context.source_space_abs, package_path, 'package.xml')],
+        dest_path=os.path.join(metadata_path, 'package.xml')
     ))
 
     # CMake command
@@ -323,6 +341,11 @@ def create_cmake_clean_job(
         clean_install):
     """Generate a Job to clean a cmake package"""
 
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Package metadata path
+    metadata_path = context.package_metadata_path(package)
+
     stages = []
 
     if clean_install and context.install:
@@ -346,11 +369,18 @@ def create_cmake_clean_job(
             dry_run=dry_run))
 
     if clean_build:
-        build_space = context.package_build_space(package)
         stages.append(FunctionStage(
             'rmbuild',
             rmfiles,
             paths=[build_space],
+            dry_run=dry_run))
+
+    # Remove cached metadata
+    if clean_build and clean_devel and clean_install:
+        stages.append(FunctionStage(
+            'rmmetadata',
+            rmfiles,
+            paths=[metadata_path],
             dry_run=dry_run))
 
     return Job(

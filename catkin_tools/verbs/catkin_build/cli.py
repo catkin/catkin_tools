@@ -369,6 +369,14 @@ def main(opts):
     if build_metadata.get('cmake_args') != ctx.cmake_args:
         opts.force_cmake = True
 
+    # Check the devel layout compatibility
+    last_devel_layout = build_metadata.get('devel_layout', 'merged')
+    if last_devel_layout != ctx.devel_layout:
+        sys.exit(clr(
+            "@{rf}@!Error:@|@{rf} The current devel space layout, `{}`,"
+            "is incompatible with the configured layout, `{}`.@|").format(
+            last_devel_layout, ctx.devel_layout))
+
     # Check if some other verb has changed the workspace in such a way that it needs to be forced
     if build_metadata.get('needs_force', False):
         opts.force_cmake = True

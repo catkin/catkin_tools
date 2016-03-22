@@ -59,8 +59,8 @@ def determine_packages_to_be_cleaned(context, include_dependants, packages):
     """
     start = time.time()
 
-    # Get all the packages in the context source space
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    # Get all the cached packages in the context source space
+    workspace_packages = find_packages(context.package_metadata_path(), exclude_subspaces=True, warnings=[])
     # Order the packages by topology
     ordered_packages = topological_order_packages(workspace_packages)
 
@@ -93,7 +93,7 @@ def determine_packages_to_be_cleaned(context, include_dependants, packages):
             dependants = get_recursive_build_dependants_in_workspace(package_name, ordered_packages)
             packages_to_be_cleaned.update([pkg.name for _, pkg in dependants])
 
-    return [workspace_packages_by_name[n] for n in packages_to_be_cleaned]
+    return [workspace_packages_by_name[n] for n in packages_to_be_cleaned if n in workspace_packages_by_name]
 
 
 def clean_packages(
@@ -187,7 +187,7 @@ def clean_packages(
             jobs,
             locks,
             event_queue,
-            os.path.join(context.metadata_path(), 'logs'),
+            context.log_space_abs,
             max_toplevel_jobs=1,
             continue_on_failure=True,
             continue_without_deps=False)
