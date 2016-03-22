@@ -584,22 +584,29 @@ def get_build_type(package):
 
 
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
-    """Get the package containing the current directory."""
+    """Get the package containing a specific directory.
 
-    search_start_path = search_start_path or getcwd(symlinks=symlinks)
-    child_path = ''
+    :param search_start_path: The path to crawl upward to find a package, CWD if None
+    :param ws_path: The path at which the search should stop
+    """
 
-    while True:
-        pkgs = find_packages(search_start_path, warnings=warnings)
+    search_path = search_start_path or getcwd(symlinks=symlinks)
+    stop_path = ws_path or '/'
+    child_path = '.'
 
-        # Check if the previous directory is a catkin package
+    while search_path != stop_path:
+        # Find packages under the search path
+        try:
+            pkgs = find_packages(search_path, warnings=warnings)
+        except:
+            return None
+
+        # Check if the directory is a catkin package
         if child_path in pkgs:
             return pkgs[child_path].name
 
-        # Update search path or end
-        (search_start_path, child_path) = os.path.split(search_start_path)
-        if len(child_path) == 0 or search_start_path == ws_path:
-            break
+        # Update search path
+        (search_path, child_path) = os.path.split(search_path)
 
     return None
 
