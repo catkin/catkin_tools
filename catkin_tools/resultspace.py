@@ -19,7 +19,6 @@ try:
 except ImportError:
     from hashlib import md5
 import os
-import re
 import subprocess
 
 try:
@@ -27,6 +26,7 @@ try:
 except ImportError:
     from pipes import quote as cmd_quote
 
+import trollius  # noqa
 from osrf_pycommon.process_utils import execute_process
 
 from .common import parse_env_str

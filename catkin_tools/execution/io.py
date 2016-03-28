@@ -17,6 +17,7 @@ import shutil
 
 from glob import glob
 
+import trollius  # noqa
 from osrf_pycommon.process_utils import AsyncSubprocessProtocol
 
 from catkin_tools.common import mkdir_p
