@@ -18,7 +18,8 @@ import os
 import re
 import sys
 
-import trollius  # noqa
+from shlex import split as cmd_split
+
 from osrf_pycommon.process_utils import execute_process
 
 from catkin_tools.common import format_env_dict
