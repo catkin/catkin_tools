@@ -36,7 +36,7 @@ before_install:
   # Install catkin_tools dependencies
   - source .travis.before_install.bash
   - pip install setuptools argparse catkin-pkg distribute PyYAML psutil trollius
-  - pip install git+https://github.com/osrf/osrf_pycommon.git
+  - pip install git+https://github.com/osrf/osrf_pycommon.git@use_trollius_loop_if_imported
 install:
   # Install catkin_tools
   - python setup.py develop
