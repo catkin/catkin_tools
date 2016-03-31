@@ -493,6 +493,8 @@ class Context(object):
         if value is not None:
             if not os.path.isabs(value):
                 value = os.path.join(self.workspace, value)
+            # remove double or trailing slashes
+            value = os.path.normpath(value)
             if not os.path.exists(value):
                 raise ValueError("Resultspace path '{0}' does not exist.".format(value))
         self.__extend_path = value
