@@ -370,7 +370,7 @@ def main(opts):
         opts.force_cmake = True
 
     # Check the devel layout compatibility
-    last_devel_layout = build_metadata.get('devel_layout', 'merged')
+    last_devel_layout = build_metadata.get('devel_layout', ctx.devel_layout)
     if last_devel_layout != ctx.devel_layout:
         sys.exit(clr(
             "@{rf}@!Error:@|@{rf} The current devel space layout, `{}`,"

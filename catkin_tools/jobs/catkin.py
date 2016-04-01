@@ -42,7 +42,7 @@ from .utils import makedirs
 from .utils import rmfiles
 
 
-def generate_prebuild_package(build_space_abs, devel_space_abs, force):
+def get_prebuild_package(build_space_abs, devel_space_abs, force):
     """This generates a minimal Catkin package used to generate Catkin
     environment setup files in a merged devel space.
 
@@ -282,6 +282,8 @@ def link_devel_products(
                         logger.err('Warning: Dest hash: {}'.format(dest_hash))
                     # Increment link collision counter
                     files_that_collide.append(dest_file)
+                else:
+                    logger.out('Linked: ({}, {})'.format(source_file, dest_file))
             else:
                 # Create the symlink
                 logger.out('Symlinking %s' % (dest_file))
@@ -302,7 +304,7 @@ def link_devel_products(
                 # print('Checking (%s, %s)' % (source_file, dest_file))
                 if (source_file, dest_file) not in products:
                     # Clean the file or decrement the collision count
-                    logger.out('Cleaning (%s, %s)' % (source_file, dest_file))
+                    logger.out('Cleaning: (%s, %s)' % (source_file, dest_file))
                     files_to_clean.append(dest_file)
 
     # Remove all listed symlinks and empty directories which have been removed
