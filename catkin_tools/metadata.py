@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import os
+import pkg_resources
 import shutil
 import yaml
 
@@ -128,6 +129,48 @@ def find_enclosing_workspace(search_start_path):
     return None
 
 
+def migrate_metadata(workspace_path, old_version):
+    """Migrate between metadata versions.
+    """
+
+    # Versions were added in 0.4.0, and the previously released version was 0.3.1
+    if old_version is None:
+        old_version = '0.3.1'
+
+    old_version = tuple((int(i) for i in old_version.split('.')))
+    metadata_root_path = get_metadata_root_path(workspace_path)
+    new_profiles_path = os.path.join(metadata_root_path, 'profiles')
+
+    # Restructure profiles directory
+    if old_version < (0, 4, 0):
+        for profile_name in os.listdir(metadata_root_path):
+
+            if profile_name == 'profiles':
+                continue
+
+            profile_path = os.path.join(metadata_root_path, profile_name)
+            if not os.path.isdir(profile_path):
+                continue
+
+            shutil.move(profile_path, os.path.join(new_profiles_path, profile_name))
+
+    # Update metadata
+    for profile_name in get_profile_names(workspace_path):
+        for verb in ['config', 'build']:
+            # Get the current metadata
+            metadata = get_metadata(workspace_path, profile_name, verb)
+
+            # Update devel layout for 0.3.1 -> 0.4.0
+            if old_version < (0, 4, 0):
+                isolated_devel = metadata.get('isolate_devel')
+                if isolated_devel is not None:
+                    del metadata['isolate_devel']
+                metadata['devel_layout'] = ('isolated' if isolated_devel else 'merged')
+
+            # Save the new metadata
+            update_metadata(workspace_path, profile_name, verb, metadata, no_init=True)
+
+
 def init_metadata_root(workspace_path, reset=False):
     """Create or reset a catkin_tools metadata directory with no content in a given path.
 
@@ -169,6 +212,22 @@ def init_metadata_root(workspace_path, reset=False):
     # Write the README file describing the directory
     with open(os.path.join(metadata_root_path, 'README'), 'w') as metadata_readme:
         metadata_readme.write(METADATA_README_TEXT)
+
+    # Check metadata version
+    last_version = None
+    current_version = pkg_resources.require("catkin_tools")[0].version
+    version_file_path = os.path.join(metadata_root_path, 'VERSION')
+
+    # Read the VERSION file
+    if os.path.exists(version_file_path):
+        with open(version_file_path, 'r') as metadata_version:
+            last_version = metadata_version.read()
+    if last_version != current_version:
+        migrate_metadata(workspace_path, last_version)
+
+    # Write the VERSION file
+    with open(version_file_path, 'w') as metadata_version:
+        metadata_version.write(current_version)
 
     # Add a catkin ignore file so we can store package.xml files for cleaned packages
     if not os.path.exists(os.path.join(metadata_root_path, 'CATKIN_IGNORE')):
@@ -314,7 +373,7 @@ def get_metadata(workspace_path, profile, verb):
         return yaml.load(metadata_file)
 
 
-def update_metadata(workspace_path, profile, verb, new_data={}):
+def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False):
     """Update the catkin_tools verb metadata for a given profile.
 
     :param workspace_path: The path to the root of a catkin workspace
@@ -330,8 +389,9 @@ def update_metadata(workspace_path, profile, verb, new_data={}):
     (metadata_path, metadata_file_path) = get_paths(workspace_path, profile, verb)
 
     # Make sure the metadata directory exists
-    init_metadata_root(workspace_path)
-    init_profile(workspace_path, profile)
+    if not no_init:
+        init_metadata_root(workspace_path)
+        init_profile(workspace_path, profile)
 
     # Get the curent metadata for this verb
     data = get_metadata(workspace_path, profile, verb) or dict()
