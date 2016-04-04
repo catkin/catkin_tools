@@ -112,11 +112,11 @@ def prepare_arguments(parser):
     devel_group = parser.add_argument_group(
         'Devel Space', 'Options for configuring the structure of the devel space.')
     add = devel_group.add_mutually_exclusive_group().add_argument
-    add('--merge-devel', dest='devel_layout', action='store_const', const='merged', default=None,
-        help='Build products from each catkin package into a single merged devel spaces.')
     add('--link-devel', dest='devel_layout', action='store_const', const='linked', default=None,
         help='Build products from each catkin package into isolated spaces,'
         ' then symbolically link them into a merged devel space.')
+    add('--merge-devel', dest='devel_layout', action='store_const', const='merged', default=None,
+        help='Build products from each catkin package into a single merged devel spaces.')
     add('--isolate-devel', dest='devel_layout', action='store_const', const='isolated', default=None,
         help='Build products from each catkin package into isolated devel spaces.')
 

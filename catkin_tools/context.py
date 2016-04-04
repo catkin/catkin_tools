@@ -284,7 +284,7 @@ class Context(object):
         self.blacklist = blacklist or []
 
         # Handle build options
-        self.devel_layout = devel_layout if devel_layout else 'merged'
+        self.devel_layout = devel_layout if devel_layout else 'linked'
         self.install = install
         self.isolate_install = isolate_install
 
