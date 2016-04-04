@@ -46,7 +46,7 @@ def get_env_loaders(package, context):
             sources.append(source_path)
     else:
         # Get the actual destination of this package
-        if context.link_devel:
+        if context.link_devel and not context.install:
             source_path = os.path.join(context.package_final_path(package), 'env.sh')
         else:
             source_path = os.path.join(context.package_dest_path(package), 'env.sh')

@@ -155,7 +155,12 @@ def clean_profile(opts, profile):
     logs_exists = os.path.exists(ctx.log_space_abs)
     build_exists = os.path.exists(ctx.build_space_abs)
     devel_exists = os.path.exists(ctx.devel_space_abs)
-    install_exists = os.path.exists(ctx.install_space_abs)
+
+    install_path = (
+        os.path.join(ctx.destdir, ctx.install_space_abs.lstrip(os.sep))
+        if ctx.destdir
+        else ctx.install_space_abs)
+    install_exists = os.path.exists(install_path)
 
     if not any([build_exists, devel_exists, install_exists, logs_exists]) and not opts.deinit:
         log("[clean] No subdirectoris for the `{}` profile exist. Nothing to be"
@@ -182,7 +187,7 @@ def clean_profile(opts, profile):
         if opts.devel and devel_exists:
             spaces_to_clean_msgs.append(clr("[clean] Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
         if opts.install and install_exists:
-            spaces_to_clean_msgs.append(clr("[clean] Install Space: @{yf}{}").format(ctx.install_space_abs))
+            spaces_to_clean_msgs.append(clr("[clean] Install Space: @{yf}{}").format(install_path))
 
     if len(spaces_to_clean_msgs) > 0:
         log("")
@@ -208,9 +213,9 @@ def clean_profile(opts, profile):
     try:
         # Remove all installspace files
         if opts.install and install_exists:
-            print("[clean] Removing installspace: %s" % ctx.install_space_abs)
+            print("[clean] Removing installspace: %s" % install_path)
             if not opts.dry_run:
-                shutil.rmtree(ctx.install_space_abs)
+                shutil.rmtree(install_path)
 
         # Remove all develspace files
         if opts.devel:
