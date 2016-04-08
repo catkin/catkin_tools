@@ -364,7 +364,7 @@ def main(opts):
     # Get the last build context
     build_metadata = get_metadata(ctx.workspace, ctx.profile, 'build')
 
-    if build_metadata.get('cmake_args') != ctx.cmake_args or build_metadata.get('cmake_args') != opts.cmake_args:
+    if build_metadata.get('cmake_args') != ctx.cmake_args:
         opts.force_cmake = True
 
     if build_metadata.get('needs_force', False):
