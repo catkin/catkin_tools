@@ -14,7 +14,6 @@
 
 """This modules implements the engine for cleaning packages in parallel"""
 
-import os
 import pkg_resources
 import sys
 import time
@@ -43,7 +42,6 @@ from catkin_tools.execution.executor import run_until_complete
 
 from catkin_tools.common import get_build_type
 from catkin_tools.common import get_recursive_build_dependants_in_workspace
-from catkin_tools.common import log
 from catkin_tools.common import wide_log
 
 

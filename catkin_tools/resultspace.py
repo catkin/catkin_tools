@@ -19,7 +19,6 @@ try:
 except ImportError:
     from hashlib import md5
 import os
-import re
 import subprocess
 
 try:
