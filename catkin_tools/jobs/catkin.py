@@ -243,7 +243,6 @@ def link_devel_products(
 
         # create directories in the destination develspace
         for dirname in dirs:
-            source_dir = os.path.join(source_path, dirname)
             dest_dir = os.path.join(dest_path, dirname)
 
             if not os.path.exists(dest_dir):

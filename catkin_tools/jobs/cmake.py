@@ -215,10 +215,6 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
 
     # Package build space path
     build_space = context.package_build_space(package)
-    # Package devel space path
-    devel_space = context.package_devel_space(package)
-    # Package install space path
-    install_space = context.package_install_space(package)
     # Package metadata path
     metadata_path = context.package_metadata_path(package)
 
