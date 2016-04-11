@@ -256,7 +256,7 @@ def link_devel_products(
         # create symbolic links from the source to the dest
         for filename in files:
 
-            # Don't link files on the blacklist unles this is a prebuild package
+            # Don't link files on the blacklist unless this is a prebuild package
             if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in blacklist:
                 continue
 
