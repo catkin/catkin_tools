@@ -310,7 +310,7 @@ class ConsoleStatusController(threading.Thread):
                 if jid in failed_jobs:
                     faileds[jid] = templates['failed']
                 elif jid in warned_jobs:
-                    successfuls[jid] = templates['warned']
+                    warneds[jid] = templates['warned']
                 else:
                     successfuls[jid] = templates['successful']
             else:
