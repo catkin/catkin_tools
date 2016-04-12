@@ -62,6 +62,7 @@ def yes_no_loop(question):
             return True
         log(clr("[clean] Please answer either \"yes\" or \"no\"."))
 
+
 def safe_rmtree(path, workspace_root, force):
     """Safely remove a path outside of the workspace root."""
 
@@ -316,8 +317,8 @@ def clean_profile(opts, profile):
 
         elif opts.orphans or len(opts.packages) > 0:
             log("[clean] Error: Individual packages can only be cleaned from "
-                  "workspaces with symbolically-linked develspaces (`catkin "
-                  "config --link-devel`).")
+                "workspaces with symbolically-linked develspaces (`catkin "
+                "config --link-devel`).")
 
     except:
         log("[clean] Failed to clean profile `{}`".format(profile))
