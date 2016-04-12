@@ -60,6 +60,22 @@ def yes_no_loop(question):
             return True
         log(clr("[clean] Please answer either \"yes\" or \"no\"."))
 
+def safe_rmtree(path, workspace_root, force):
+    """Safely remove a path outside of the workspace root."""
+
+    # Check if the path is inside the workspace
+    path_in_workspace = path.find(workspace_root) == 0
+
+    if not path_in_workspace and not force:
+        log(clr("[clean] Warning: `{}` is outside of the workspace root. (Use"
+                " --force to skip this check)".format(path)))
+        yes = yes_no_loop("Are you sure you want to entirely remove `{}`?".format(path))
+
+    if yes:
+        shutil.rmtree(path)
+    else:
+        log("[clean] Not removing `{}`".format(path))
+
 
 def prepare_arguments(parser):
     # Workspace / profile args
@@ -70,8 +86,10 @@ def prepare_arguments(parser):
         help='Show the effects of the clean action without modifying the workspace.')
     add('--verbose', '-v', action='store_true', default=False,
         help='Verbose status output.')
-    add('--force', '-f', '-y', action='store_true', default=False,
+    add('--yes', '-y', action='store_true', default=False,
         help='Assume "yes" to all interactive checks.')
+    add('--force', '-f', action='store_true', default=False,
+        help='Allow cleaning files outside of the workspace root.')
     add('--all-profiles', action='store_true', default=False,
         help='Apply the specified clean operation for all profiles in this workspace.')
 
@@ -179,7 +197,7 @@ def clean_profile(opts, profile):
 
     # Make sure the user intends to clena everything
     spaces_to_clean_msgs = []
-    if not (opts.force or opts.dry_run):
+    if not (opts.yes or opts.dry_run):
         if opts.logs and logs_exists:
             spaces_to_clean_msgs.append(clr("[clean] Log Space:     @{yf}{}").format(ctx.log_space_abs))
         if opts.build and build_exists:
@@ -192,8 +210,7 @@ def clean_profile(opts, profile):
     if len(spaces_to_clean_msgs) > 0:
         log("")
         log(clr("[clean] @!@{yf}Warning:@| This will completely remove the "
-                "following directories. "))
-        log(clr("[clean] Use `--force` to skip this check."))
+                "following directories. (Use `--yes` to skip this check)"))
         for msg in spaces_to_clean_msgs:
             log(msg)
         try:
@@ -215,14 +232,14 @@ def clean_profile(opts, profile):
         if opts.install and install_exists:
             print("[clean] Removing installspace: %s" % install_path)
             if not opts.dry_run:
-                shutil.rmtree(install_path)
+                safe_rmtree(install_path, ctx.workspace, opts.force)
 
         # Remove all develspace files
         if opts.devel:
             if devel_exists:
                 print("[clean] Removing develspace: %s" % ctx.devel_space_abs)
                 if not opts.dry_run:
-                    shutil.rmtree(ctx.devel_space_abs)
+                    safe_rmtree(ctx.devel_space_abs, ctx.workspace, opts.force)
             # Clear the cached metadata from the last build run
             _, build_metadata_file = get_metadata_paths(ctx.workspace, profile, 'build')
             if os.path.exists(build_metadata_file):
@@ -230,13 +247,13 @@ def clean_profile(opts, profile):
             # Clear the cached packages data, if it exists
             packages_metadata_path = ctx.package_metadata_path()
             if os.path.exists(packages_metadata_path):
-                shutil.rmtree(packages_metadata_path)
+                safe_rmtree(packages_metadata_path, ctx.workspace, opts.force)
 
         # Remove all buildspace files
         if opts.build and build_exists:
             print("[clean] Removing buildspace: %s" % ctx.build_space_abs)
             if not opts.dry_run:
-                shutil.rmtree(ctx.build_space_abs)
+                safe_rmtree(ctx.build_space_abs, ctx.workspace, opts.force)
 
         # Setup file removal
         if opts.setup_files:
@@ -251,7 +268,7 @@ def clean_profile(opts, profile):
         if opts.logs and logs_exists:
             print("[clean] Removing log space: {}".format(ctx.log_space_abs))
             if not opts.dry_run:
-                shutil.rmtree(ctx.log_space_abs)
+                safe_rmtree(ctx.log_space_abs, ctx.workspace, opts.force)
 
         # Find orphaned packages
         if ctx.link_devel and not any([opts.build, opts.devel]):
@@ -355,12 +372,11 @@ def main(opts):
 
     # Warn before nuking .catkin_tools
     if retcode == 0:
-        if opts.deinit and not opts.force:
+        if opts.deinit and not opts.yes:
             log("")
             log(clr("[clean] @!@{yf}Warning:@| If you deinitialize this workspace"
                     " you will lose all profiles and all saved build"
-                    " configuration."))
-            log(clr("[clean] Use `--force` to skip this check."))
+                    " configuration. (Use `--yes` to skip this check)"))
             try:
                 opts.deinit = yes_no_loop("\n[clean] Are you sure you want to deinitialize this workspace?")
                 if not opts.deinit:
@@ -375,6 +391,6 @@ def main(opts):
             metadata_dir = os.path.join(ctx.workspace, METADATA_DIR_NAME)
             print("[clean] Deinitializing workspace by removing catkin_tools config: %s" % metadata_dir)
             if not opts.dry_run:
-                shutil.rmtree(metadata_dir)
+                safe_rmtree(metadata_dir, ctx.workspace, opts.force)
 
     return retcode
