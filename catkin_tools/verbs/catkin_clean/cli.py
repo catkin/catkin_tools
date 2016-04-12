@@ -30,6 +30,7 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.context import Context
 
 from catkin_tools.common import log
+from catkin_tools.common import wide_log
 
 import catkin_tools.execution.job_server as job_server
 
@@ -150,13 +151,13 @@ def clean_profile(opts, profile):
 
     if not ctx:
         if not opts.workspace:
-            print(
+            log(
                 "[clean] Error: The current or desired workspace could not be "
                 "determined. Please run `catkin clean` from within a catkin "
                 "workspace or specify the workspace explicitly with the "
                 "`--workspace` option.")
         else:
-            print(
+            log(
                 "[clean] Error: Could not clean workspace \"%s\" because it "
                 "either does not exist or it has no catkin_tools metadata." %
                 opts.workspace)
@@ -230,14 +231,14 @@ def clean_profile(opts, profile):
     try:
         # Remove all installspace files
         if opts.install and install_exists:
-            print("[clean] Removing installspace: %s" % install_path)
+            log("[clean] Removing installspace: %s" % install_path)
             if not opts.dry_run:
                 safe_rmtree(install_path, ctx.workspace, opts.force)
 
         # Remove all develspace files
         if opts.devel:
             if devel_exists:
-                print("[clean] Removing develspace: %s" % ctx.devel_space_abs)
+                log("[clean] Removing develspace: %s" % ctx.devel_space_abs)
                 if not opts.dry_run:
                     safe_rmtree(ctx.devel_space_abs, ctx.workspace, opts.force)
             # Clear the cached metadata from the last build run
@@ -251,22 +252,22 @@ def clean_profile(opts, profile):
 
         # Remove all buildspace files
         if opts.build and build_exists:
-            print("[clean] Removing buildspace: %s" % ctx.build_space_abs)
+            log("[clean] Removing buildspace: %s" % ctx.build_space_abs)
             if not opts.dry_run:
                 safe_rmtree(ctx.build_space_abs, ctx.workspace, opts.force)
 
         # Setup file removal
         if opts.setup_files:
             if devel_exists:
-                print("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
+                log("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
                 opts.packages.append('catkin')
                 opts.packages.append('catkin_tools_prebuild')
             else:
-                print("[clean] No develspace exists, no setup files to clean.")
+                log("[clean] No develspace exists, no setup files to clean.")
 
         # Clean log files
         if opts.logs and logs_exists:
-            print("[clean] Removing log space: {}".format(ctx.log_space_abs))
+            log("[clean] Removing log space: {}".format(ctx.log_space_abs))
             if not opts.dry_run:
                 safe_rmtree(ctx.log_space_abs, ctx.workspace, opts.force)
 
@@ -274,7 +275,7 @@ def clean_profile(opts, profile):
         if ctx.link_devel and not any([opts.build, opts.devel]):
             if opts.orphans:
                 if os.path.exists(ctx.build_space_abs):
-                    print("[clean] Determining orphaned packages...")
+                    log("[clean] Determining orphaned packages...")
 
                     # Get all existing packages in source space and the
                     # Suppress warnings since this is looking for packages which no longer exist
@@ -293,9 +294,9 @@ def clean_profile(opts, profile):
                     if len(orphans) > 0:
                         opts.packages.extend(list(orphans))
                     else:
-                        print("[clean] No orphans in the workspace.")
+                        log("[clean] No orphans in the workspace.")
                 else:
-                    print("[clean] No buildspace exists, no potential for orphans.")
+                    log("[clean] No buildspace exists, no potential for orphans.")
 
             # Remove specific packages
             if len(opts.packages) > 0:
@@ -314,18 +315,18 @@ def clean_profile(opts, profile):
                     return False
 
         elif opts.orphans or len(opts.packages) > 0:
-            print("[clean] Error: Individual packages can only be cleaned from "
+            log("[clean] Error: Individual packages can only be cleaned from "
                   "workspaces with symbolically-linked develspaces (`catkin "
                   "config --link-devel`).")
 
     except:
-        print("[clean] Failed to clean profile `{}`".format(profile))
+        log("[clean] Failed to clean profile `{}`".format(profile))
         needs_force = True
         raise
 
     finally:
         if needs_force:
-            print(clr(
+            log(clr(
                 "[clean] @/@!Note:@| @/Parts of the workspace have been cleaned which will "
                 "necessitate re-configuring CMake on the next build.@|"))
             update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': True})
@@ -389,7 +390,7 @@ def main(opts):
         if opts.deinit:
             ctx = Context.load(opts.workspace, profile, opts, strict=True, load_env=False)
             metadata_dir = os.path.join(ctx.workspace, METADATA_DIR_NAME)
-            print("[clean] Deinitializing workspace by removing catkin_tools config: %s" % metadata_dir)
+            log("[clean] Deinitializing workspace by removing catkin_tools config: %s" % metadata_dir)
             if not opts.dry_run:
                 safe_rmtree(metadata_dir, ctx.workspace, opts.force)
 
