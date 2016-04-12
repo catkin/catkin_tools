@@ -184,11 +184,6 @@ def clean_profile(opts, profile):
         else ctx.install_space_abs)
     install_exists = os.path.exists(install_path)
 
-    if not any([build_exists, devel_exists, install_exists, logs_exists]) and not opts.deinit:
-        log("[clean] No subdirectoris for the `{}` profile exist. Nothing to be"
-            " done.".format(profile))
-        return True
-
     # Default is to clean all products for this profile
     no_specific_action = not any([
         v for (k, v) in vars(opts).items()
@@ -201,6 +196,7 @@ def clean_profile(opts, profile):
 
     # Make sure the user intends to clena everything
     spaces_to_clean_msgs = []
+
     if not (opts.yes or opts.dry_run):
         if opts.logs and logs_exists:
             spaces_to_clean_msgs.append(clr("[clean] Log Space:     @{yf}{}").format(ctx.log_space_abs))
@@ -210,6 +206,10 @@ def clean_profile(opts, profile):
             spaces_to_clean_msgs.append(clr("[clean] Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
         if opts.install and install_exists:
             spaces_to_clean_msgs.append(clr("[clean] Install Space: @{yf}{}").format(install_path))
+
+        if len(spaces_to_clean_msgs) == 0 and not opts.deinit:
+            log("[clean] Nothing to be cleaned for profile:  `{}`".format(profile))
+            return True
 
     if len(spaces_to_clean_msgs) > 0:
         log("")
