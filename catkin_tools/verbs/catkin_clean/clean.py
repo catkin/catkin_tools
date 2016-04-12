@@ -57,7 +57,6 @@ def determine_packages_to_be_cleaned(context, include_dependants, packages):
     :returns: full list of package names to be cleaned
     :rtype: list
     """
-    start = time.time()
 
     # Get all the cached packages in the context source space
     workspace_packages = find_packages(context.package_metadata_path(), exclude_subspaces=True, warnings=[])
@@ -200,4 +199,4 @@ def clean_packages(
 
     status_thread.join(1.0)
 
-    return True
+    return all_succeeded

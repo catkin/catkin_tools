@@ -35,6 +35,7 @@ from catkin_tools.common import wide_log
 import catkin_tools.execution.job_server as job_server
 
 from catkin_tools.metadata import get_paths as get_metadata_paths
+from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import update_metadata
 from catkin_tools.metadata import METADATA_DIR_NAME
 
@@ -311,7 +312,6 @@ def clean_profile(opts, profile):
                         opts.dry_run)
                 except KeyboardInterrupt:
                     wide_log("[build] User interrupted!")
-                    event_queue.put(None)
                     return False
 
         elif opts.orphans or len(opts.packages) > 0:
@@ -355,7 +355,7 @@ def main(opts):
 
     # Check for all profiles option
     if opts.all_profiles:
-        profiles = get_profile_names(workspace_path)
+        profiles = get_profile_names(opts.workspace)
     else:
         profiles = [opts.profile]
 

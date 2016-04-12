@@ -520,7 +520,7 @@ def create_catkin_clean_job(
             # Remove build targets from devel space
             stages.append(CommandStage(
                 'clean',
-                [MAKE_EXEC, 'clean'] + make_args,
+                [MAKE_EXEC, 'clean'],
                 cwd=build_space,
             ))
         elif context.link_devel:
