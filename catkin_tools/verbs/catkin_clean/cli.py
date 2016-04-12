@@ -69,6 +69,7 @@ def safe_rmtree(path, workspace_root, force):
     # Check if the path is inside the workspace
     path_in_workspace = path.find(workspace_root) == 0
 
+    yes = True
     if not path_in_workspace and not force:
         log(clr("[clean] Warning: `{}` is outside of the workspace root. (Use"
                 " --force to skip this check)".format(path)))
@@ -356,7 +357,7 @@ def main(opts):
 
     # Check for all profiles option
     if opts.all_profiles:
-        profiles = get_profile_names(opts.workspace)
+        profiles = get_profile_names(opts.workspace or os.getcwd())
     else:
         profiles = [opts.profile]
 

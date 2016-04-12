@@ -24,7 +24,7 @@ TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 BUILD = ['build', '--no-notify', '--no-status']
-CLEAN = ['clean', '--force']
+CLEAN = ['clean', '--yes']
 
 BUILD_TYPES = ['cmake', 'catkin']
 
