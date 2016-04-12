@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import sys
 
 from catkin_tools.common import string_type
 

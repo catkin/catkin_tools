@@ -14,12 +14,10 @@
 
 """This modules implements the engine for building packages in parallel"""
 
-import operator
 import os
 import pkg_resources
 import stat
 import sys
-import threading
 import time
 import traceback
 import yaml
@@ -50,8 +48,6 @@ from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
-from catkin_tools.common import remove_ansi_escape
-from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
 
 from catkin_tools.execution.controllers import ConsoleStatusController
@@ -60,10 +56,7 @@ from catkin_tools.execution.executor import run_until_complete
 
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.catkin import create_catkin_clean_job
-from catkin_tools.jobs.cmake import create_cmake_build_job
 from catkin_tools.jobs.catkin import get_prebuild_package
-
-from catkin_tools.notifications import notify
 
 from .color import clr
 

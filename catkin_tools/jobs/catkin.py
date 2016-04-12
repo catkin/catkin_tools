@@ -14,7 +14,6 @@
 
 import csv
 import os
-import threading
 
 try:
     from md5 import md5
@@ -30,7 +29,6 @@ from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
 
 from .commands.cmake import CMAKE_EXEC
-from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import get_installed_files
@@ -258,7 +256,7 @@ def link_devel_products(
         # create symbolic links from the source to the dest
         for filename in files:
 
-            # Don't link files on the blacklist unles this is a prebuild package
+            # Don't link files on the blacklist unless this is a prebuild package
             if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in blacklist:
                 continue
 

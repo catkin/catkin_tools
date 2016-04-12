@@ -33,7 +33,6 @@ from .commands.make import MAKE_EXEC
 from .utils import copyfiles
 from .utils import get_env_loader
 from .utils import makedirs
-from .utils import rmfile
 from .utils import rmfiles
 
 from catkin_tools.execution.jobs import Job

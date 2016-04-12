@@ -43,7 +43,6 @@ from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import format_env_dict
-from catkin_tools.common import wide_log
 
 from catkin_tools.context import Context
 
