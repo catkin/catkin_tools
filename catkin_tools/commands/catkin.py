@@ -172,7 +172,7 @@ def catkin_main(sysargs):
 
     # Get colors config
     no_color = False
-    force_color = False
+    force_color = os.environ.get('CATKIN_TOOLS_FORCE_COLOR', False)
     for arg in sysargs:
         if arg == '--no-color':
             no_color = True

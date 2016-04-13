@@ -19,8 +19,8 @@ try:
 except ImportError:
     from hashlib import md5
 import os
-import re
 import subprocess
+import sys
 
 try:
     from shlex import quote as cmd_quote

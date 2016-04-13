@@ -15,8 +15,6 @@
 from __future__ import print_function
 
 import os
-import time
-import threading
 import traceback
 
 from itertools import tee
@@ -147,6 +145,11 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         logger,
                         event_queue))
                 except:
+                    logger.err('Stage `{}` failed with arguments:'.format(stage.label))
+                    for arg_val in stage.args:
+                        logger.err('  {}'.format(arg_val))
+                    for arg_name, arg_val in stage.kwargs.items():
+                        logger.err('  {}: {}'.format(arg_name, arg_val))
                     logger.err(str(traceback.format_exc()))
                     retcode = 3
             else:
@@ -214,6 +217,10 @@ def execute_jobs(
     completed_jobs = {}
     # List of jobs whose deps failed
     abandoned_jobs = []
+
+    # Make sure job server has been initialized
+    if not job_server.initialized():
+        raise RuntimeError('JobServer has not been initialized.')
 
     # Create a thread pool executor for blocking python stages in the asynchronous jobs
     threadpool = ThreadPoolExecutor(max_workers=job_server.max_jobs())

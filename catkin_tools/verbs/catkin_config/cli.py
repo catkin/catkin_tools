@@ -82,6 +82,12 @@ def prepare_arguments(parser):
         action='store_const', dest='source_space', default=None, const=Context.DEFAULT_SOURCE_SPACE,
         help='Use the default path to the source space ("src")')
     add = spaces_group.add_mutually_exclusive_group().add_argument
+    add('-l', '--log-space', default=None,
+        help='The path to the log space.')
+    add('--default-log-space',
+        action='store_const', dest='log_space', default=None, const=Context.DEFAULT_LOG_SPACE,
+        help='Use the default path to the log space ("logs")')
+    add = spaces_group.add_mutually_exclusive_group().add_argument
     add('-b', '--build-space', default=None,
         help='The path to the build space.')
     add('--default-build-space',
@@ -106,11 +112,11 @@ def prepare_arguments(parser):
     devel_group = parser.add_argument_group(
         'Devel Space', 'Options for configuring the structure of the devel space.')
     add = devel_group.add_mutually_exclusive_group().add_argument
-    add('--merge-devel', dest='devel_layout', action='store_const', const='merged', default=None,
-        help='Build products from each catkin package into a single merged devel spaces.')
     add('--link-devel', dest='devel_layout', action='store_const', const='linked', default=None,
         help='Build products from each catkin package into isolated spaces,'
         ' then symbolically link them into a merged devel space.')
+    add('--merge-devel', dest='devel_layout', action='store_const', const='merged', default=None,
+        help='Build products from each catkin package into a single merged devel spaces.')
     add('--isolate-devel', dest='devel_layout', action='store_const', const='isolated', default=None,
         help='Build products from each catkin package into isolated devel spaces.')
 

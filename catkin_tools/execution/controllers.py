@@ -20,8 +20,6 @@ except ImportError:
     from Queue import Empty
 
 import math
-import os
-import operator
 import sys
 import threading
 import time
@@ -29,7 +27,6 @@ import time
 from catkin_tools.common import disable_wide_log
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import format_time_delta_short
-from catkin_tools.common import log
 from catkin_tools.common import remove_ansi_escape
 from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log

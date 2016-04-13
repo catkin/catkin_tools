@@ -43,7 +43,6 @@ from catkin_tools.common import is_tty
 from catkin_tools.common import log
 from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import format_env_dict
-from catkin_tools.common import wide_log
 
 from catkin_tools.context import Context
 
@@ -245,6 +244,7 @@ def main(opts):
         logging.basicConfig(level=opts.develdebug.upper())
 
     # Set color options
+    opts.force_color = os.environ.get('CATKIN_TOOLS_FORCE_COLOR', opts.force_color)
     if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
         set_color(True)
     else:
@@ -364,9 +364,19 @@ def main(opts):
     # Get the last build context
     build_metadata = get_metadata(ctx.workspace, ctx.profile, 'build')
 
-    if build_metadata.get('cmake_args') != ctx.cmake_args or build_metadata.get('cmake_args') != opts.cmake_args:
+    # Force cmake if the CMake arguments have changed
+    if build_metadata.get('cmake_args') != ctx.cmake_args:
         opts.force_cmake = True
 
+    # Check the devel layout compatibility
+    last_devel_layout = build_metadata.get('devel_layout', ctx.devel_layout)
+    if last_devel_layout != ctx.devel_layout:
+        sys.exit(clr(
+            "@{rf}@!Error:@|@{rf} The current devel space layout, `{}`,"
+            "is incompatible with the configured layout, `{}`.@|").format(
+            last_devel_layout, ctx.devel_layout))
+
+    # Check if some other verb has changed the workspace in such a way that it needs to be forced
     if build_metadata.get('needs_force', False):
         opts.force_cmake = True
         update_metadata(ctx.workspace, ctx.profile, 'build', {'needs_force': False})

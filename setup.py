@@ -13,6 +13,7 @@ install_requires = [
     'catkin-pkg > 0.2.9',
     'setuptools',
     'PyYAML',
+    'osrf-pycommon==0.1.2',
 ]
 if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
     install_requires.append('argparse')
@@ -89,10 +90,9 @@ To enable tab completion, add the following to your '~/.bashrc':
   source {0}
 
 ----------------------------------------------------------------
-""".format(os.path.join(
-                self.install_data,
-                'etc/bash_completion.d',
-                'catkin_tools-completion.bash')))
+""".format(os.path.join(self.install_data,
+                        'etc/bash_completion.d',
+                        'catkin_tools-completion.bash')))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--prefix', default=None,
