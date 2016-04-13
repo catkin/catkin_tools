@@ -89,15 +89,16 @@ To enable tab completion, add the following to your '~/.bashrc':
   source {0}
 
 ----------------------------------------------------------------
-""".format(os.path.join(self.install_data,
-           'etc/bash_completion.d',
-           'catkin_tools-completion.bash')))
+""".format(os.path.join(
+                self.install_data,
+                'etc/bash_completion.d',
+                'catkin_tools-completion.bash')))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--prefix', default='',
+parser.add_argument('--prefix', default=None,
                     help='prefix to install data files')
 opts, _ = parser.parse_known_args(sys.argv)
-prefix = opts.prefix
+prefix = opts.prefix or sys.prefix
 
 setup(
     name='catkin_tools',
