@@ -26,6 +26,7 @@ from catkin_tools.terminal_color import sanitize
 from catkin_tools.utils import which
 
 CMAKE_EXEC = which('cmake')
+CMAKE_INSTALL_MANIFEST_FILENAME = 'install_manifest.txt'
 
 
 def split_to_last_line_break(data):
@@ -171,3 +172,17 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
                 job_id=self.job_id,
                 stage_label=self.stage_label,
                 percent=str(progress_matches.groups()[0])))
+
+
+def get_installed_files(path):
+    """Get a set of files installed by a CMake package as specified by an
+    install_manifest.txt in a given directory."""
+
+    install_manifest_path = os.path.join(
+        path,
+        CMAKE_INSTALL_MANIFEST_FILENAME)
+    installed_files = set()
+    if os.path.exists(install_manifest_path):
+        with open(install_manifest_path) as f:
+            installed_files = set([line.strip() for line in f.readlines()])
+    return installed_files

@@ -9,6 +9,9 @@ from math import floor
 from ...workspace_factory import workspace_factory
 
 from ....utils import in_temporary_directory
+from ....utils import assert_cmd_success
+from ....utils import assert_cmd_failure
+from ....utils import assert_files_exist
 from ....utils import catkin_success
 from ....utils import catkin_failure
 from ....utils import redirected_stdio
@@ -21,7 +24,7 @@ TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 BUILD = ['build', '--no-notify', '--no-status']
-CLEAN = ['clean', '--all']  # , '--force']  # , '--no-notify', '--no-color', '--no-status']
+CLEAN = ['clean', '--yes']
 
 BUILD_TYPES = ['cmake', 'catkin']
 
@@ -160,6 +163,40 @@ def test_build_start_with():
                 assert os.path.exists(os.path.join('build', 'pkg_2'))
                 assert os.path.exists(os.path.join('build', 'pkg_3'))
                 assert catkin_success(CLEAN)
+
+
+def test_unbuilt_linked():
+    """Test building packages which have yet to be built"""
+    with redirected_stdio() as (out, err):
+        for build_type in BUILD_TYPES:
+            with workspace_factory() as wf:
+                create_chain_workspace(wf, build_type, 2)
+                wf.build()
+
+                # only pkg_0 shuold be built
+                assert catkin_success(BUILD + ['pkg_0', '--no-deps'])
+                # the rest should be built, but pkg_0 shouldn't be rebuilt
+                assert os.path.exists(os.path.join('build', 'pkg_0'))
+                assert not os.path.exists(os.path.join('build', 'pkg_1'))
+
+                pkg_0_log_path = os.path.join('logs', 'pkg_0')
+
+                # build the unbuilt packages (rebuild deps)
+                pkg_0_log_files = os.listdir(pkg_0_log_path)
+                assert catkin_success(BUILD + ['--unbuilt'])
+                assert os.path.exists(os.path.join('build', 'pkg_0'))
+                assert os.path.exists(os.path.join('build', 'pkg_1'))
+                # make sure pkg_0 has been rebuilt
+                assert pkg_0_log_files != os.listdir(pkg_0_log_path)
+
+                # build the unbuilt packages (don't rebuild deps)
+                pkg_0_log_files = os.listdir(pkg_0_log_path)
+                assert catkin_success(['clean', 'pkg_1'])
+                assert catkin_success(BUILD + ['--unbuilt', '--no-deps'])
+                assert os.path.exists(os.path.join('build', 'pkg_0'))
+                assert os.path.exists(os.path.join('build', 'pkg_1'))
+                # make sure pkg_0 hasn't been rebuilt
+                assert pkg_0_log_files == os.listdir(pkg_0_log_path)
 
 
 def test_unbuilt_isolated():

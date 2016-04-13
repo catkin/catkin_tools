@@ -14,12 +14,10 @@
 
 """This modules implements the engine for building packages in parallel"""
 
-import operator
 import os
 import pkg_resources
 import stat
 import sys
-import threading
 import time
 import traceback
 import yaml
@@ -50,8 +48,6 @@ from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
-from catkin_tools.common import remove_ansi_escape
-from catkin_tools.common import terminal_width
 from catkin_tools.common import wide_log
 
 from catkin_tools.execution.controllers import ConsoleStatusController
@@ -59,10 +55,8 @@ from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
 from catkin_tools.jobs.catkin import create_catkin_build_job
-from catkin_tools.jobs.cmake import create_cmake_build_job
-from catkin_tools.jobs.catkin import generate_prebuild_package
-
-from catkin_tools.notifications import notify
+from catkin_tools.jobs.catkin import create_catkin_clean_job
+from catkin_tools.jobs.catkin import get_prebuild_package
 
 from .color import clr
 
@@ -147,19 +141,22 @@ def verify_start_with_option(start_with, packages, all_packages, packages_to_be_
                      .format(start_with, ' '.join(packages)))
 
 
-def get_unbuilt_packages(context, workspace_packages):
+def get_built_unbuilt_packages(context, workspace_packages):
     """Get list of packages in workspace which have not been built."""
 
-    # Set of unbuilt packages
-    unbuilt_pkgs = set()
+    # Get the names of all packages which have already been built
+    built_packages = set([
+        pkg.name for (path, pkg) in
+        find_packages(context.package_metadata_path(), warnings=[]).items()])
 
-    # Look for packages without build directories
+    # Get names of all unbuilt packages
+    unbuilt_pkgs = set()
     for path, pkg in workspace_packages.items():
         if 'metapackage' not in [e.tagname for e in pkg.exports]:
-            if not os.path.exists(os.path.join(context.build_space_abs, pkg.name)):
+            if pkg.name not in built_packages:
                 unbuilt_pkgs.add(pkg.name)
 
-    return unbuilt_pkgs
+    return built_packages, unbuilt_pkgs
 
 
 def build_isolated_workspace(
@@ -285,7 +282,7 @@ def build_isolated_workspace(
     workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
 
     # Get packages which have not been built yet
-    unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
+    built_packages, unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)
 
     # Handle unbuilt packages
     if unbuilt:
@@ -366,7 +363,7 @@ def build_isolated_workspace(
     if start_with is not None:
         for path, pkg in list(packages_to_be_built):
             if pkg.name != start_with:
-                wide_log(clr("@!@{pf}Skipping@| @{gf}---@| @{cf}{}@|").format(pkg.name))
+                wide_log(clr("@!@{pf}Skipping@|  @{gf}---@| @{cf}{}@|").format(pkg.name))
                 packages_to_be_built.pop(0)
             else:
                 break
@@ -375,34 +372,78 @@ def build_isolated_workspace(
     packages_to_be_built_names = [p.name for _, p in packages_to_be_built]
     packages_to_be_built_deps_names = [p.name for _, p in packages_to_be_built_deps]
 
-    # Generate prebuild jobs, if necessary
+    # Generate prebuild and prebuild clean jobs, if necessary
     prebuild_jobs = {}
-    setup_util_exists = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
-    if context.link_devel and (not setup_util_exists or (force_cmake and len(packages) == 0)):
+    setup_util_present = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    catkin_present = 'catkin' in (packages_to_be_built_names + packages_to_be_built_deps_names)
+    catkin_built = 'catkin' in built_packages
+    prebuild_built = 'catkin_tools_prebuild' in built_packages
+
+    # Handle the prebuild jobs if the develspace is linked
+    prebuild_pkg_deps = []
+    if context.link_devel:
         wide_log('[build] Preparing linked develspace...')
 
+        prebuild_pkg = None
+
+        # Construct a dictionary to lookup catkin package by name
         pkg_dict = dict([(pkg.name, (pth, pkg)) for pth, pkg in all_packages])
 
-        if 'catkin' in packages_to_be_built_names + packages_to_be_built_deps_names:
-            # Use catkin as the prebuild package
-            prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+        if setup_util_present:
+            # Setup util is already there, determine if it needs to be
+            # regenerated
+            if catkin_built:
+                if catkin_present:
+                    prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+            elif prebuild_built:
+                if catkin_present:
+                    # TODO: Clean prebuild package
+                    ct_prebuild_pkg_path = get_prebuild_package(
+                        context.build_space_abs, context.devel_space_abs, force_cmake)
+                    ct_prebuild_pkg = parse_package(ct_prebuild_pkg_path)
+
+                    prebuild_jobs['caktin_tools_prebuild'] = create_catkin_clean_job(
+                        context,
+                        ct_prebuild_pkg,
+                        ct_prebuild_pkg_path,
+                        dependencies=[],
+                        dry_run=False,
+                        clean_build=True,
+                        clean_devel=True,
+                        clean_install=True)
+
+                    # TODO: Build catkin package
+                    prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+                    prebuild_pkg_deps.append('catkin_tools_prebuild')
+            else:
+                # How did these get here??
+                log("Warning: devel space setup files have an unknown origin.")
         else:
-            # Generate explicit prebuild package
-            prebuild_pkg_path = generate_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
-            prebuild_pkg = parse_package(prebuild_pkg_path)
+            # Setup util needs to be generated
+            if catkin_built or prebuild_built:
+                log("Warning: generated devel space setup files have been deleted.")
 
-        # Create the prebuild job
-        prebuild_job = create_catkin_build_job(
-            context,
-            prebuild_pkg,
-            prebuild_pkg_path,
-            dependencies=[],
-            force_cmake=force_cmake,
-            pre_clean=pre_clean,
-            prebuild=True)
+            if catkin_present:
+                # Build catkin package
+                prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
+            else:
+                # Generate and buildexplicit prebuild package
+                prebuild_pkg_path = get_prebuild_package(context.build_space_abs, context.devel_space_abs, force_cmake)
+                prebuild_pkg = parse_package(prebuild_pkg_path)
 
-        # Add the prebuld job
-        prebuild_jobs[prebuild_job.jid] = prebuild_job
+        if prebuild_pkg is not None:
+            # Create the prebuild job
+            prebuild_job = create_catkin_build_job(
+                context,
+                prebuild_pkg,
+                prebuild_pkg_path,
+                dependencies=prebuild_pkg_deps,
+                force_cmake=force_cmake,
+                pre_clean=pre_clean,
+                prebuild=True)
+
+            # Add the prebuld job
+            prebuild_jobs[prebuild_job.jid] = prebuild_job
 
     # Remove prebuild jobs from normal job list
     for prebuild_jid, prebuild_job in prebuild_jobs.items():
@@ -437,10 +478,10 @@ def build_isolated_workspace(
             in get_cached_recursive_build_depends_in_workspace(pkg, packages_to_be_built)
             if p.name not in prebuild_jobs
         ]
-
-        # All jobs depend on the prebuild job if it's defined
-        for j in prebuild_jobs.values():
-            deps.append(j.jid)
+        # All jobs depend on the prebuild jobs if they're defined
+        if not no_deps:
+            for j in prebuild_jobs.values():
+                deps.append(j.jid)
 
         # Determine the job parameters
         build_job_kwargs = dict(
@@ -504,7 +545,7 @@ def build_isolated_workspace(
                 jobs,
                 locks,
                 event_queue,
-                os.path.join(context.build_space_abs, '_logs'),
+                context.log_space_abs,
                 max_toplevel_jobs=n_jobs,
                 continue_on_failure=continue_on_failure,
                 continue_without_deps=False))
@@ -517,7 +558,7 @@ def build_isolated_workspace(
         status_thread.join(1.0)
 
         # Warn user about new packages
-        now_unbuilt_pkgs = get_unbuilt_packages(context, workspace_packages)
+        now_built_packages, now_unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)
         new_pkgs = [p for p in unbuilt_pkgs if p not in now_unbuilt_pkgs]
         if len(new_pkgs) > 0:
             log(clr("[build] @/@!Note:@| @/Workspace packages have changed, "

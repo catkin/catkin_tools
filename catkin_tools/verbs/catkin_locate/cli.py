@@ -38,6 +38,8 @@ def prepare_arguments(parser):
         help="Only print paths to existing directories.")
     add('-r', '--relative', action='store_true',
         help="Print relative paths instead of the absolute paths.")
+    add('-q', '--quiet', action='store_true',
+        help="Suppress warning output.")
 
     # Path options
     dir_group = parser.add_argument_group(
@@ -82,7 +84,8 @@ def main(opts):
     workspace = find_enclosing_workspace(workspace_hint)
 
     if not workspace:
-        print(clr("@{rf}ERROR: No workspace found containing '%s'@|" % workspace_hint), file=sys.stderr)
+        if not opts.quiet:
+            print(clr("@{rf}ERROR: No workspace found containing '%s'@|" % workspace_hint), file=sys.stderr)
         sys.exit(1)
 
     # Load the context to get the subspaces

@@ -248,6 +248,11 @@ class JobServer(object):
         return cls._max_jobs
 
 
+def initialized():
+    """Return True if the job server has been initialized."""
+    return JobServer._initialized
+
+
 def initialize(max_jobs=None, max_load=None, max_mem=None, gnu_make_enabled=False):
     """
     Initialize the global GNU Make jobserver.
