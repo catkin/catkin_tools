@@ -83,6 +83,7 @@ Other functional improvements over ``catkin_make`` and ``catkin_make_isolated`` 
 - Robustly adapting a build when packages are added to or removed from the
   **source space**
 - Context-aware building of a given package based on the working directory
+- The ability to completely clean a single package's products from a workspace
 - Utilization of persistent build metadata which catches common errors
 - Support for different build "profiles" in a single workspace
 - Explicit control of workspace chaining

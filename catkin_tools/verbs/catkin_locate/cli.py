@@ -72,12 +72,32 @@ def prepare_arguments(parser):
     add('package', metavar='PACKAGE', nargs='?',
         help="The name of a package to locate.")
 
+    special_group = parser.add_argument_group(
+        'Special Directories',
+        'Get the absolute path to a special catkin location')
+    add = special_group.add_argument
+    add('--shell-verbs', action='store_true',
+        help="Get the path to the shell verbs script.")
+    add('--examples', action='store_true',
+        help="Get the path to the examples directory.")
+
     return parser
 
 
 def main(opts):
     # Initialize dictionary version of opts namespace
     opts_vars = vars(opts) if opts else {}
+
+    # Check for special locations
+    root_resource_path = os.path.join(os.path.dirname(__file__), '..', '..')
+    if opts.shell_verbs:
+        shell_verbs = os.path.join(root_resource_path, 'verbs', 'catkin_shell_verbs.bash')
+        print(os.path.normpath(shell_verbs))
+        sys.exit(0)
+    elif opts.examples:
+        shell_verbs = os.path.join(root_resource_path, '..', 'docs', 'examples')
+        print(os.path.normpath(shell_verbs))
+        sys.exit(0)
 
     # Get the workspace (either the given directory or the enclosing ws)
     workspace_hint = opts_vars.get('workspace', None) or os.getcwd()

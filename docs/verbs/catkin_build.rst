@@ -30,7 +30,7 @@ In addition to the listing the package names and in which order they would be bu
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/7tjl75sm7lbp7jlgc5tlrsps6.js" id="asciicast-7tjl75sm7lbp7jlgc5tlrsps6" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/alk9y0uhcymjwk6eg47s8tace.js" id="asciicast-alk9y0uhcymjwk6eg47s8tace" async></script></center>
 
 Building a Workspace
 --------------------
@@ -43,7 +43,7 @@ It automatically creates directories for a **build space** and a **devel space**
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/32b3tb1ys1be8jcxr7eqjgg5n.js" id="asciicast-32b3tb1ys1be8jcxr7eqjgg5n" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/cxq6cn449b8h0x7462kdy71jk.js" id="asciicast-cxq6cn449b8h0x7462kdy71jk" async></script></center>
 
 After the build finishes, the **build space** contains directories containing the intermediate build products for each package, and the **devel space** contains an FHS layout into which all the final build products are written.
 
@@ -120,21 +120,21 @@ Additionally, if a package fails, the output to ``stderr`` is printed under the 
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/b929dh8sejzwat51ahl4cheof.js" id="asciicast-b929dh8sejzwat51ahl4cheof" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/8t1qsf2amqmm4p4n3jxdnuth5.js" id="asciicast-8t1qsf2amqmm4p4n3jxdnuth5" async></script></center>
 
 All of the messages from the underlying jobs can be shown when using the ``-v`` or ``--verbose`` option.
 This will print the normal messages when a build job starts and finishes as well as the interleaved output to ``stdout`` and ``stderr`` from each build command in a block.
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/a4a6b65owfjl04w9cwngwurmb.js" id="asciicast-a4a6b65owfjl04w9cwngwurmb" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/9d9jklblvvyeq62y2r3ugpywp.js" id="asciicast-9d9jklblvvyeq62y2r3ugpywp" async></script></center>
 
 All output can be printed interleaved with the ``--interleave`` option.
 In this case, each line is prefixed with the job and stage from which it came.
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/6vc63k8gvlf3dyk874yw3oi9i.js" id="asciicast-6vc63k8gvlf3dyk874yw3oi9i" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/3ocuvvztciubxay7nz41gri5z.js" id="asciicast-3ocuvvztciubxay7nz41gri5z" async></script></center>
 
 Build Summary
 -------------
@@ -179,7 +179,7 @@ Specific packages can also be built by specifying them as positional arguments a
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/9njym9ob6lv59kuwm8y8y7or1.js" id="asciicast-9njym9ob6lv59kuwm8y8y7or1" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/7oij906zndo56g64slix0lhv0.js" id="asciicast-7oij906zndo56g64slix0lhv0" async></script></center>
 
 As shown above, only 4 packages (``roslib`` and its dependencies), of the total 36 packages would be built.
 
@@ -194,7 +194,7 @@ This is equivalent to specifying the name of the package on the command line, an
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/1fb8l3zzlfimg77oa2enfq3ng.js" id="asciicast-1fb8l3zzlfimg77oa2enfq3ng" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/8bgk2alfs1srz58xknchidy9d.js" id="asciicast-8bgk2alfs1srz58xknchidy9d" async></script></center>
 
 Skipping Packages
 -----------------
@@ -211,7 +211,7 @@ You could use the ``--start-with`` option to continue the build where you left o
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/a9wd6yg3r38j0oiwo861klh9j.js" id="asciicast-a9wd6yg3r38j0oiwo861klh9j" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/81cmmsatgv7am8pn5k61imvku.js" id="asciicast-81cmmsatgv7am8pn5k61imvku" async></script></center>
 
 .. note::
 
@@ -230,7 +230,7 @@ This will skip all of the package's dependencies, build the given package, and t
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/9a0clzshc06t8xlc6tulh8ff9.js" id="asciicast-9a0clzshc06t8xlc6tulh8ff9" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/1uop75vi9bs75ikthtisyi34p.js" id="asciicast-1uop75vi9bs75ikthtisyi34p" async></script></center>
 
 Building and Running Tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
