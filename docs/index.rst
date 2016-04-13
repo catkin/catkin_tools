@@ -56,10 +56,9 @@ Catkin Command Line Tools
    development/adding_build_types
    Adding New Verbs <development/extending_the_catkin_command>
 
-This Python package provides command line tools for working with the catkin
-meta-buildsystem and catkin workspaces. These tools are separate from the
-Catkin CMake macros used in Catkin source packages. For documentation on
-creating catkin packages, see: http://docs.ros.org/api/catkin/html/
+This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces.
+These tools are separate from the Catkin CMake macros used in Catkin source packages.
+For documentation on creating catkin packages, see: http://docs.ros.org/api/catkin/html/ 
 
 .. note::
 
@@ -78,23 +77,18 @@ The ``catkin`` Command
 ..
 ..   <script type="text/javascript" src="https://asciinema.org/a/1lsef4d23r6hxh5kn8vjcx0el.js" id="asciicast-1lsef4d23r6hxh5kn8vjcx0el" async></script>
 
-The ``catkin`` Command-Line Interface (CLI) tool is the single point of entry
-for most of the functionality provided by this package.
-All invocations of the ``catkin`` CLI tool take this form:
+The ``catkin`` Command-Line Interface (CLI) tool is the single point of entry for most of the functionality provided by this package.
+All invocations of the ``catkin`` CLI tool take this form: 
 
 .. code-block:: bash
 
     $ catkin [global options] <verb> [verb arguments and options]
 
-The different capabilities of the ``catkin`` CLI tool are organized into
-different sub-command "verbs." This is similar to common command-line tools
-such as ``git`` or ``apt-get``.  Verbs include actions such as ``build`` which
-builds a catkin workspace or ``list`` which simply lists the catkin packages
-found in one or more folders.
+The different capabilities of the ``catkin`` CLI tool are organized into different sub-command "verbs." This is similar to common command-line tools such as ``git`` or ``apt-get``.
+Verbs include actions such as ``build`` which builds a catkin workspace or ``list`` which simply lists the catkin packages found in one or more folders.
 
-Verbs can take arbitrary arguments and options, but they must all come
-after the verb.  For more help on the usage of a particular verb, simply pass
-the ``-h`` or ``--help`` option after the verb.
+Verbs can take arbitrary arguments and options, but they must all come after the verb.
+For more help on the usage of a particular verb, simply pass the ``-h`` or ``--help`` option after the verb.
 
 Built-in ``catkin`` Verbs
 -------------------------
@@ -122,9 +116,7 @@ Shell Support for the ``catkin`` Command
 If you are using ``bash`` or ``zsh``, then you can source an extra setup file to gain access to some additional verbs.
 For more information see: :doc:`advanced/catkin_shell_verbs`.
 
-
 Extending the ``catkin`` command
 --------------------------------
 
-If you would like to add a verb to the ``catkin`` command without modifying its
-source, please read :doc:`Adding New Verbs <development/extending_the_catkin_command>`.
+If you would like to add a verb to the ``catkin`` command without modifying its source, please read :doc:`Adding New Verbs <development/extending_the_catkin_command>`.

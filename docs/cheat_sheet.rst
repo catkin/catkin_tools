@@ -2,9 +2,8 @@ Cheat Sheet
 ===========
 
 This is a non-exhaustive list of some common and useful invocations of the ``catkin`` command.
-All of the commands which do not explicitly specify a workspace path (with ``--workspace``)
-are assumed to be run from within a directory contained by the target workspace. For thorough
-documentation, please see the chapters on each verb.
+All of the commands which do not explicitly specify a workspace path (with ``--workspace``) are assumed to be run from within a directory contained by the target workspace.
+For thorough documentation, please see the chapters on each verb.
 
 Initializing Workspaces
 ^^^^^^^^^^^^^^^^^^^^^^^
