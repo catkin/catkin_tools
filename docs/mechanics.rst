@@ -88,7 +88,7 @@ persistent configuration information.
 This directory contains subdirectories representing different configuration
 profiles, and inside of each profile directory are YAML files which contain
 verb-specific metadata. It additionally contains a file which lists the name of
-the active configuration profile if it is different than ``default``.
+the active configuration profile if it is different from ``default``.
 
 Build Log Directory
 -------------------
@@ -269,7 +269,7 @@ Tango <http://osrfoundation.org/blog/project-tango-announced.html>`_.
 ``pcmi`` later became the ``build`` verb of the ``catkin`` command included
 in this project.
 
-As such, the principle behavior of the ``build`` verb is to build each
+As such, the principal behavior of the ``build`` verb is to build each
 package in isolation and in topological order while parallelizing the
 building of packages which do not depend on each other.
 
@@ -318,11 +318,11 @@ containing that setup file to the ``CMAKE_PREFIX_PATH`` environment variable.
 The next time you initialize a workspace, it will extend the workspace that you
 previously sourced.
 
-On one hand, this makes it easy and automatic to chain workspaces. At the same
-time, however, previous tools like ``catkin_make`` and ``catkin_make_isolated``
-had no easy mechanism for either making it obvious which workspace was being
-extended, nor did they provide features to explicitly extend a given workspace.
-This means that for users unaware of Catkin's use of ``CMAKE_PREFIX_PATH``
+This makes it easy and automatic to chain workspaces. Previous tools like
+``catkin_make`` and ``catkin_make_isolated`` had no easy mechanism for 
+either making it obvious which workspace was being extended, nor did they 
+provide features to explicitly extend a given workspace. This means that users 
+were unaware of Catkin's use of ``CMAKE_PREFIX_PATH``.
 
 Since it's not expected that 100% of users will read this section of the
 documentation, the ``catkin`` program adds both configuration consistency
