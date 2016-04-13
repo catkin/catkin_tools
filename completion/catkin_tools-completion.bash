@@ -42,25 +42,93 @@ _catkin()
   prev=${COMP_WORDS[COMP_CWORD-1]}
 
   # complete to the following verbs
-  catkin_verbs="build clean config create init list profile"
+  catkin_verbs="\
+build   - Build packages
+clean   - Clean workspace components
+config  - Configure workspace 
+create  - Create workspace components
+init    - Initialize workspace
+list    - List workspace components
+profile - Switch between configurations"
 
   # complete to verbs ifany of these are the previous word
-  catkin_opts="--force-color --no-color --test-colors"
+  catkin_opts="\
+--force-color
+--no-color
+--test-colors"
 
   # complete popular catkin build options
-  catkin_build_opts="--help --dry-run --this --no-deps --unbuilt --start-with-this --continue-on-failure --force-cmake --pre-clean --get-env --verbose --interleave-output --no-status --summarize --no-notify --env-cache --no-env-cache"
+  catkin_build_opts="\
+--help
+--dry-run
+--this
+--no-deps
+--unbuilt
+--start-with-this
+--continue-on-failure
+--force-cmake
+--pre-clean
+--get-env
+--verbose
+--interleave-output
+--no-status
+--summarize
+--no-notify
+--env-cache
+--no-env-cache"
 
   # complete popular catkin clean options
-  catkin_clean_opts="--help --all --build --devel --install --cmake-cache --setup-files --orphans"
+  catkin_clean_opts="
+--help
+--all
+--build
+--devel
+--install
+--cmake-cache
+--setup-files
+--orphans"
 
   # complete popular catkin config options
-  catkin_config_opts="--help --init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix --merge-devel --link-devel --isolate-devel"
+  catkin_config_opts="--help
+--init
+--extend
+--no-extend
+--install
+--no-install
+--whitelist
+--blacklist
+--no-whitelist
+--no-blacklist
+--cmake-args
+--make-args
+--catkin-make-args
+--space-suffix
+--merge-devel
+--link-devel
+--isolate-devel"
 
   # complete popular catkin create options
-  catkin_create_pkg_opts="--help --version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
+  catkin_create_pkg_opts="\
+--help
+--version
+--license
+--maintainer
+--author
+--description
+--catkin-deps
+--system-deps
+--boost-components"
 
   # complete catkin profile subcommands
-  catkin_profile_args="add list remove rename set"
+  catkin_profile_args="\
+add
+list
+remove
+rename
+set"
+
+  local OLDIFS="$IFS"
+  local IFS=$'\n'
 
   if [[ ${COMP_CWORD} -eq 1 || ${catkin_opts} == *${prev}* ]] ; then
     COMPREPLY=($(compgen -W "${catkin_verbs}" -- ${cur}))
@@ -116,6 +184,11 @@ _catkin()
           ;;
       esac
     fi
+  fi
+
+  IFS="$OLDIFS"
+  if [[ ${#COMPREPLY[*]} -eq 1 ]]; then #Only one completion
+    COMPREPLY=( ${COMPREPLY[0]%% - *} ) #Remove ' - ' and everything after
   fi
 
   return 0
