@@ -4,11 +4,12 @@ usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
                      [--whitelist PKG [PKG ...] | --no-whitelist]
                      [--blacklist PKG [PKG ...] | --no-blacklist]
                      [-s SOURCE_SPACE | --default-source-space]
+                     [-l LOG_SPACE | --default-log-space]
                      [-b BUILD_SPACE | --default-build-space]
                      [-d DEVEL_SPACE | --default-devel-space]
                      [-i INSTALL_SPACE | --default-install-space]
                      [-x SPACE_SUFFIX]
-                     [--merge-devel | --link-devel | --isolate-devel]
+                     [--link-devel | --merge-devel | --isolate-devel]
                      [--install | --no-install]
                      [--isolate-install | --merge-install] [-j JOBS]
                      [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
@@ -70,6 +71,9 @@ Spaces:
                         The path to the source space.
   --default-source-space
                         Use the default path to the source space ("src")
+  -l LOG_SPACE, --log-space LOG_SPACE
+                        The path to the log space.
+  --default-log-space   Use the default path to the log space ("logs")
   -b BUILD_SPACE, --build-space BUILD_SPACE
                         The path to the build space.
   --default-build-space
@@ -89,11 +93,11 @@ Spaces:
 Devel Space:
   Options for configuring the structure of the devel space.
 
-  --merge-devel         Build products from each catkin package into a single
-                        merged devel spaces.
   --link-devel          Build products from each catkin package into isolated
                         spaces, then symbolically link them into a merged
                         devel space.
+  --merge-devel         Build products from each catkin package into a single
+                        merged devel spaces.
   --isolate-devel       Build products from each catkin package into isolated
                         devel spaces.
 

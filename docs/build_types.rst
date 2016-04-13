@@ -6,17 +6,14 @@ The current release of ``catkin_tools`` supports building two types of packages:
   - **Catkin** -- CMake packages that use the Catkin CMake macros
   - **CMake** -- "Plain" CMake packages
 
-There is currently limited support for adding other build types. For information
-on extending ``catkin_tools`` to be able to build other types of packages, see
-:doc:`Adding New Build Types <development/adding_build_types>`. Below are
-details on the stages involved in building a given package for each of
-the currently-supported build types.
+There is currently limited support for adding other build types.
+For information on extending ``catkin_tools`` to be able to build other types of packages, see :doc:`Adding New Build Types <development/adding_build_types>`.
+Below are details on the stages involved in building a given package for each of the currently-supported build types.
 
 Catkin
 ^^^^^^
 
-Catkin packages are CMake packages which utilize the Catkin CMake macros for
-finding packages and defining configuration files.
+Catkin packages are CMake packages which utilize the Catkin CMake macros for finding packages and defining configuration files.
 
 Configuration Arguments
 -----------------------

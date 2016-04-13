@@ -1,5 +1,5 @@
 usage: catkin locate [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e]
-                     [-r] [-s | -b | -d | -i]
+                     [-r] [-q] [-s | -b | -d | -i]
                      [PACKAGE]
 
 Get the paths to various locations in a workspace.
@@ -15,6 +15,7 @@ optional arguments:
 Behavior:
   -e, --existing-only   Only print paths to existing directories.
   -r, --relative        Print relative paths instead of the absolute paths.
+  -q, --quiet           Suppress warning output.
 
 Sub-Space Options:
   Get the absolute path to one of the following locations in the given

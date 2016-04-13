@@ -1,17 +1,13 @@
 ``catkin profile`` -- Manage Profiles
 =====================================
 
-Many verbs contain a ``--profile`` option, which selects which configuration
-profile to use, without which it will use the "active" profile. The ``profile``
-verb enables you to manager the available profiles as well as set the "active"
-profile when using other verbs.
+Many verbs contain a ``--profile`` option, which selects which configuration profile to use, without which it will use the "active" profile.
+The ``profile`` verb enables you to manager the available profiles as well as set the "active" profile when using other verbs.
 
-Even without using the ``profile`` verb, any use of the ``catkin`` command
-which changes the workspace is impliclty using a configuration profile called
-"default".
+Even without using the ``profile`` verb, any use of the ``catkin`` command which changes the workspace is impliclty using a configuration profile called ``default``.
 
-The ``profile`` verb has several sub-commands for profile management. These include
-the following:
+The ``profile`` verb has several sub-commands for profile management.
+These include the following:
 
 - ``list`` -- List the available profiles
 - ``set`` -- Set the active profile by name.
@@ -23,8 +19,7 @@ Creating Profiles Automatically
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After initializing a workspace, you can start querying information about profiles.
-Until you execute a verb which actually writes a profile configuration, however,
-there will be no profiles listed:
+Until you execute a verb which actually writes a profile configuration, however, there will be no profiles listed:
 
 .. code-block:: bash
 
@@ -35,8 +30,7 @@ there will be no profiles listed:
     [profile] This workspace has no metadata profiles. Any configuration
     settings will automatically by applied to a new profile called `default`.
 
-To see these effects, you can run ``catkin config`` to write a default
-configuration to the workspace:
+To see these effects, you can run ``catkin config`` to write a default configuration to the workspace:
 
 .. code-block:: bash
 
@@ -66,10 +60,8 @@ configuration to the workspace:
     [profile] Available profiles:
     - default (active)
 
-The ``profile`` verb now shows that the profile named "default" is avialable
-and is active. Calling ``catkin config`` with the ``--profile`` argument
-will automatically create a profile based on the given configuration
-options:
+The ``profile`` verb now shows that the profile named "default" is avialable and is active.
+Calling ``catkin config`` with the ``--profile`` argument will automatically create a profile based on the given configuration options:
 
 .. code-block:: bash
 
@@ -99,16 +91,13 @@ options:
     - alternate
     - default (active)
 
-Note that while the profile named ``alternate`` has been configured, it is
-still not *active*, so any calls to catkin-verbs without an explicit
-``--profile alternate`` option will still use the profile named ``default``.
+Note that while the profile named ``alternate`` has been configured, it is still not *active*, so any calls to catkin-verbs without an explicit ``--profile alternate`` option will still use the profile named ``default``.
 
 Explicitly Creating Profiles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Profiles can also be added explicitly with the ``add`` command. This profile can
-be initialized with configuration information from either the default settings or
-another profile.
+Profiles can also be added explicitly with the ``add`` command.
+This profile can be initialized with configuration information from either the default settings or another profile.
 
 .. code-block:: bash
 
@@ -126,8 +115,8 @@ another profile.
 Setting the Active Profile
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The active profile can be easily set with the ``set`` sub-command. Suppose
-a workspace has the following profiles:
+The active profile can be easily set with the ``set`` sub-command.
+Suppose a workspace has the following profiles:
 
 .. code-block:: bash
 

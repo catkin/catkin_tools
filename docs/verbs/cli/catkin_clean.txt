@@ -1,5 +1,8 @@
-usage: catkin clean [-h] [--workspace WORKSPACE] [--profile PROFILE] [-a] [-b]
-                    [-d] [-i] [-c] [-s] [-o]
+usage: catkin clean [-h] [--workspace WORKSPACE] [--profile PROFILE]
+                    [--dry-run] [--verbose] [--yes] [--force] [--all-profiles]
+                    [--deinit] [-l] [-b] [-d] [-i] [--dependants] [--orphans]
+                    [--setup-files]
+                    [PKGNAME [PKGNAME ...]]
 
 Deletes various products of the build verb.
 
@@ -10,26 +13,46 @@ optional arguments:
                         contained within it (default: ".")
   --profile PROFILE     The name of a config profile to use (default: active
                         profile)
+  --dry-run, -n         Show the effects of the clean action without modifying
+                        the workspace.
+  --verbose, -v         Verbose status output.
+  --yes, -y             Assume "yes" to all interactive checks.
+  --force, -f           Allow cleaning files outside of the workspace root.
+  --all-profiles        Apply the specified clean operation for all profiles
+                        in this workspace.
 
-Basic:
-  Clean workspace subdirectories.
+Full:
+  Remove everything except the source space.
 
-  -a, --all             Remove all of the *spaces associated with the given or
-                        active profile. This will remove everything but the
-                        source space and the hidden .catkin_tools directory.
-  -b, --build           Remove the buildspace.
-  -d, --devel           Remove the develspace.
-  -i, --install         Remove the installspace.
+  --deinit              De-initialize the workspace, delete all build profiles
+                        and configuration. This will also clean subdirectories
+                        for all profiles in the workspace.
 
-Advanced:
-  Clean only specific parts of the workspace. These options will
-  automatically enable the --force-cmake option for the next build
+Spaces:
+  Clean workspace subdirectories for the selected profile.
+
+  -l, --logs            Remove the entire log space.
+  -b, --build           Remove the entire build space.
+  -d, --devel           Remove the entire devel space.
+  -i, --install         Remove the entire install space.
+
+Packages:
+  Clean products from specific packages in the workspace. Note that these
+  options are only available in a `linked` devel space layout. These options
+  will also automatically enable the --force-cmake option for the next build
   invocation.
 
-  -c, --cmake-cache     Clear the CMakeCache for each package, but leave build
-                        and devel spaces.
-  -s, --setup-files     Clear the catkin-generated files in order to rebase
-                        onto another workspace.
-  -o, --orphans         Remove only build directories whose source packages
-                        are no longer enabled or in the source space. This
-                        might require --force-cmake on the next build.
+  PKGNAME               Explicilty specify a list of specific packages to
+                        clean from the build, devel, and install space.
+  --dependants, --deps  Clean the packages which depend on the packages to be
+                        cleaned.
+  --orphans             Remove products from packages are no longer in the
+                        source space. Note that this also removes packages
+                        which are blacklisted or which contain `CATKIN_INGORE`
+                        marker files.
+
+Advanced:
+  Clean other specific parts of the workspace.
+
+  --setup-files         Clear the catkin-generated setup files from the devel
+                        and install spaces.
