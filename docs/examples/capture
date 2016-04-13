@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-# Simple script to run another script and capture the output
-
-. $1 > "$1.out"

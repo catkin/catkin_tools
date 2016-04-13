@@ -15,7 +15,7 @@ The following is an example workflow and sequence of commands using default sett
 
 .. raw:: html
 
-    <center><script type="text/javascript" src="https://asciinema.org/a/7s46fkam73bxhhazxx2u78vzw.js" id="asciicast-7s46fkam73bxhhazxx2u78vzw" async></script></center>
+    <center><script type="text/javascript" src="https://asciinema.org/a/0n70m32pnoc8sexkqp2o5i1lx.js" id="asciicast-0n70m32pnoc8sexkqp2o5i1lx" async></script></center>
 
 Initializing a New Workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -43,7 +43,7 @@ The value can come from a few different sources, and can be classified in one of
 - Implicit chaining via ``CMAKE_PREFIX_PATH`` environment or cache variable
 - Explicit chaining via ``catkin config --extend``
 
-For more information on the configuration summary and workspace chaining, see :doc:`Configuration Summary <config_summary>`.
+For more information on the configuration summary and workspace chaining, see :doc:`Workspace Configuration <mechanics>`.
 For information on manipulating these options, see :doc:`the config verb <verbs/catkin_config>`.
 
 .. note::
@@ -72,7 +72,7 @@ After these operations, your workspace's local directory structure would look li
 .. literalinclude:: examples/quickstart_ws/1_prebuild.bash
    :language: bash
 
-.. literalinclude:: examples/quickstart_ws/1_prebuild.bash.out
+.. literalinclude:: examples/quickstart_ws/1_prebuild.out
    :language: text
 
 Now that there are some packages in the workspace, Catkin has something to build.
@@ -99,7 +99,7 @@ Calling ``catkin build`` will generate ``build`` and ``devel`` directories (as d
 .. literalinclude:: examples/quickstart_ws/2_postbuild.bash
    :language: bash
 
-.. literalinclude:: examples/quickstart_ws/2_postbuild.bash.out
+.. literalinclude:: examples/quickstart_ws/2_postbuild.out
    :language: text
 
 Intermediate build products (CMake cache files, Makefiles, object files, etc.) are generated in the ``build`` directory, or **build space** and final build products (libraries, executables, config files) are generated in the ``devel`` directory, or **devel space**.

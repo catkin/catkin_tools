@@ -1,5 +1,6 @@
 usage: catkin locate [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e]
-                     [-r] [-q] [-s | -b | -d | -i]
+                     [-r] [-q] [-s | -b | -d | -i] [--shell-verbs]
+                     [--examples]
                      [PACKAGE]
 
 Get the paths to various locations in a workspace.
@@ -37,3 +38,9 @@ Package Directories:
   -s foo` might return `/path/to/ws/src/foo`.
 
   PACKAGE               The name of a package to locate.
+
+Special Directories:
+  Get the absolute path to a special catkin location
+
+  --shell-verbs         Get the path to the shell verbs script.
+  --examples            Get the path to the examples directory.

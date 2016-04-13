@@ -80,13 +80,13 @@ Cleaning Build Products
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Blow away the build, devel, and install spaces (if they exist):
-  - ``catkin clean -a``
+  - ``catkin clean``
 
 ... or just the **build space**:
   - ``catkin clean --build``
 
-... or just delete the `CMakeCache.txt` files for each package:
-  - ``catkin clean --cmake-cache``
+... or just clean a single package:
+  - ``catkin clean PKGNAME``
 
 ... or just delete the build directories for packages which have been disabled or removed:
   - ``catkin clean --orphans``

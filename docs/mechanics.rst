@@ -21,15 +21,16 @@ display the standard configuration summary, as shown below:
     Profile:                     default
     Extending:                   None
     Workspace:                   /tmp/path/to/my_catkin_ws
+    --------------------------------------------------------------
     Source Space:       [exists] /tmp/path/to/my_catkin_ws/src
+    Log Space:         [missing] /tmp/path/to/my_catkin_ws/logs
     Build Space:       [missing] /tmp/path/to/my_catkin_ws/build
     Devel Space:       [missing] /tmp/path/to/my_catkin_ws/devel
-    Install Space:     [missing] /tmp/path/to/my_catkin_ws/install
-    DESTDIR:                     None
+    Install Space:      [unused] /tmp/path/to/my_catkin_ws/install
+    DESTDIR:            [unused] None
     --------------------------------------------------------------
-    Devel Space Layout:          merged
-    Install Packages:            False
-    Isolate Installs:            False
+    Devel Space Layout:          linked
+    Install Space Layout:        merged
     --------------------------------------------------------------
     Additional CMake Args:       None
     Additional Make Args:        None
@@ -70,9 +71,10 @@ Build Product Layout Section
 
 - **Devel Space Layout** -- The organization of the **devel space**.
 
+  - *Linked* -- Write products from each package into independent isolated FHS trees, and symbolically link them into a merged FHS tree.
+    For more details, see `Linked Devel Space <advanced/linked_develspace>`_.
   - *Merged* -- Write products from all packages to a single FHS tree. This is most similar to the behavior of ``catkin_make``.
   - *Isolated* -- Write products from each package into independent isolated FHS trees. this is most similar to the behavior of ``catkin_make_isolated``.
-  - *Linked* -- Write products from each package into independent isolated FHS trees, and symbolically link them into a merged FHS tree.
 
 - **Install Packages** -- Enable creating and installation into the **install space**.
 - **Isolate Installs** -- Installs products into individual FHS subdirectories in the **install space**.
@@ -107,17 +109,18 @@ Workspace Anatomy
 
 A standard catkin workspace, as defined by `REP-0128 <http://www.ros.org/reps/rep-0128.html>`_, is a directory with a prescribed set of "spaces", each of which is contained within a directory under the workspace root.
 The spaces that comprise the workspace are described in the following sections.
+In addition to the directories specified by `REP-0128 <http://www.ros.org/reps/rep-0128.html>`_, ``catkin_tools`` also adds a visible ``logs`` directory and a hidden ``.catkin_tools`` directory.
+The ``.catkin_tools`` directory stores persistent build configuration and profiles.
 
 ===============  ===============  ======================================================
  Space            Default Path     Contents
 ===============  ===============  ======================================================
  Source Space     ``./src``        All source packages.
+ Log Space        ``./logs``       Logs from building and cleaning.
  Build Space      ``./build``      Intermediate build products for each package.
  Devel Space      ``./devel``      FHS tree containing all final build products.
  Install Space    ``./install``    FHS tree containing products of ``install`` targets.
 ===============  ===============  ======================================================
-
-In addition to these user-facing directories, ``catkin_tools`` also creates a hidden ``.catkin_tools`` directory, which stores persistent build configuration.
 
 source space
 ------------
@@ -125,6 +128,25 @@ source space
 The **source space** contains all of the source packages to be built in the workspace, as such, it is the only directory required to build a workspace.
 The **source space** is also the only directory in the catkin workspace which is not modified by any ``catkin`` command verb.
 No build products are written to the source space, they are all built "out-of-source" in the **build space**, described in the next section.
+
+log space
+---------
+
+The ``catkin`` command generates a log space, called ``logs`` by default, which contains build logs for each package.
+Logs for each package are written in subdirectories with the same name as the package.
+
+The latest log for each verb and stage in a given package's log directory is also written with the format: 
+
+.. code-block:: bash
+
+   {VERB}.{STAGE}.log
+
+Each previous logfile has the following format, where ``{INDEX}`` begins at ``000`` and increases with each execution of that verb and stage: 
+
+.. code-block:: bash
+
+   {VERB}.{STAGE}.{INDEX}.log
+
 
 build space
 -----------
@@ -161,25 +183,6 @@ This directory both acts as a marker for the root of the workspace and contains 
 
 This directory contains subdirectories representing different configuration profiles, and inside of each profile directory are YAML files which contain verb-specific metadata.
 It additionally contains a file which lists the name of the active configuration profile if it is different from ``default``.
-
-Build Log Directory
-~~~~~~~~~~~~~~~~~~~
-
-The ``catkin`` command also generates a log directory called ``_logs`` in the **build space** and contains individual build logs for each package.
-Logs for each package are written in subdirectories with the same name as the package.
-
-The latest log for each verb and stage in a given package's log directory is also written with the format: 
-
-.. code-block:: bash
-
-   {VERB}.{STAGE}.log
-
-Each previous logfile has the following format, where ``{INDEX}`` begins at ``000`` and increases with each execution of that verb and stage: 
-
-.. code-block:: bash
-
-   {VERB}.{STAGE}.{INDEX}.log
-
 
 Environment Setup Files
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -344,4 +347,3 @@ It will override the value of ``CMAKE_PREFIX_PATH`` and persist between builds.
 .. code-block:: bash
 
       Extending:        [explicit] /tmp/path/to/other_ws
-
