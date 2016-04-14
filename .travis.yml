@@ -55,7 +55,7 @@ script:
   # Build documentation
   - pushd docs
   - make html
-  - sphinx-build -c ci -b spelling . build
+  - sphinx-build -b spelling . build -t use_spelling
   - popd
 notifications:
   email: false

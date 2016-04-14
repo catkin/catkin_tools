@@ -34,10 +34,14 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    # 'sphinxcontrib.spelling',
     #'sphinxcontrib.programoutput',
     #'sphinxcontrib.ansi',
 ]
+
+# Conditionally add spelling
+if tags.has('use_spelling'):
+    # -t use_spelling
+    extensions.append('sphinxcontrib.spelling')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
