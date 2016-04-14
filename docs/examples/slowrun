@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+# This script replays a bash script, but prints the command to the console
+# one character at a time as if someone was typing it. It also prints the 
+# name of the immediately-enclosing directory as part of simulated shell
+# prompt.
+#
+# The script takes a single argument, the bash script to execute. It then 
+# prints out and executes the script, line by line. If a line contains a
+# comment, the comment is also printed, but in gray.
+#
+# Usage:
+#
+#   slowrun SCRIPT [START] [END]
+#
+# Examples:
+#
+#   slowrun tldr.bash
+#
+#   asciinema rec --command="./slowrun quickstart.bash "
+# 
+#   urxvt -geometry 100x30 -e  asciinema rec --command="./slowrun quickstart.bash"
+
+function slowecho {
+  COLOR=''
+  NC='\033[0m'
+  printf "[\033[0;34m$(basename $(pwd) )\033[0m]$ "
+  sleep 1
+  arg=${@}
+  for (( i=0; i < ${#arg}; i+=1 )) ; do
+    if [ "${arg:$i:1}" == "#" ]; then
+      COLOR='\033[1;30m'
+    fi
+    if [ "${arg:$i:1}" == " " ]; then
+      sleep 0.2
+    else
+      sleep 0.05
+    fi
+    printf "${COLOR}${arg:$i:1}"
+  done
+  printf "${NC}\n"
+}
+
+if [[ "$1" == "--buffer" ]]; then
+  buffer=true
+  shift
+else
+  buffer=false
+fi
+
+lineno=0
+startno=${2:-0}
+endno=${3:-1000}
+
+export CATKIN_TOOLS_FORCE_COLOR=1
+alias ls='ls --color'
+
+shopt -s expand_aliases
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+  ((lineno++))
+  if (( lineno > endno )); then
+    break
+  fi
+  if (( lineno >= startno )); then
+    if [[ $line == *" #"* ]]; then
+      filtered_line=$(echo "$line" | perl -pe 's/^(.+?)\s*#(.*)$/\1 #\2/')
+      slowecho "$filtered_line"
+    fi
+    if [ "$buffer" = true ] ; then
+      eval $line | \
+        while read -r buffered_line; do
+          printf "${buffered_line}\n"
+          sleep 0.1
+        done
+      eval $line > /dev/null
+    else
+      eval $line
+    fi
+  fi
+done < "$1"

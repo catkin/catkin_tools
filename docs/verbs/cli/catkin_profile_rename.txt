@@ -1,0 +1,9 @@
+usage: catkin profile rename [-h] [-f] current_name new_name
+
+positional arguments:
+  current_name  The current name of the profile to be renamed.
+  new_name      The new name for the profile.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f, --force   Overwrite an existing profile.

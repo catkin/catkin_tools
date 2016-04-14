@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+pushd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd -P`
+popd > /dev/null
+
+# Check before uploading
+if [[ "$1" == "--check" ]]; then
+  upload=""
+  shift
+else
+  upload="--yes"
+fi
+
+# Set terminal height
+if [[ "$1" == "--tall" ]]; then
+  height=25
+  shift
+else
+  height=15
+fi
+
+slowcmd="$SCRIPTPATH/slowrun $@"
+urxvt -geometry 85x$height -e asciinema rec $upload --command="$slowcmd"

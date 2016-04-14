@@ -1,0 +1,2 @@
+main.cpp: In function ‘int main(int, char**)’:
+main.cpp:4:7: warning: unused variable ‘i’ [-Wunused-variable]

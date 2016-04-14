@@ -1,0 +1,6 @@
+usage: catkin profile list [-h] [--unformatted]
+
+optional arguments:
+  -h, --help         show this help message and exit
+  --unformatted, -u  Print profile list without punctuation and additional
+                     details.

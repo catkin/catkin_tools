@@ -1,0 +1,41 @@
+.
+├── build
+│   ├── .built_by
+│   ├── catkin_tools_prebuild
+│   ├── .catkin_tools.yaml
+│   ├── pkg_a
+│   ├── pkg_b
+│   ├── pkg_c
+│   └── pkg_d
+├── .catkin_tools
+│   ├── CATKIN_IGNORE
+│   ├── profiles
+│   ├── README
+│   └── VERSION
+├── devel
+│   ├── .built_by
+│   ├── .catkin
+│   ├── CMakeLists.txt -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/CMakeLists.txt
+│   ├── env.sh -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/env.sh
+│   ├── etc
+│   ├── lib
+│   ├── package.xml -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/package.xml
+│   ├── .private
+│   ├── setup.bash -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/setup.bash
+│   ├── setup.sh -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/setup.sh
+│   ├── _setup_util.py -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/_setup_util.py
+│   ├── setup.zsh -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/setup.zsh
+│   └── share
+├── logs
+│   ├── catkin_tools_prebuild
+│   ├── pkg_a
+│   ├── pkg_b
+│   ├── pkg_c
+│   └── pkg_d
+└── src
+    ├── pkg_a
+    ├── pkg_b
+    ├── pkg_c
+    └── pkg_d
+
+24 directories, 14 files

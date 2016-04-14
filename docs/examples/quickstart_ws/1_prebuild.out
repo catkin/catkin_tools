@@ -1,0 +1,13 @@
+.
+├── .catkin_tools
+│   ├── CATKIN_IGNORE
+│   ├── profiles
+│   ├── README
+│   └── VERSION
+└── src
+    ├── pkg_a
+    ├── pkg_b
+    ├── pkg_c
+    └── pkg_d
+
+7 directories, 3 files

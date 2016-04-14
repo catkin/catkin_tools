@@ -35,7 +35,7 @@ matrix:
 before_install:
   # Install catkin_tools dependencies
   - source .travis.before_install.bash
-  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil trollius osrf_pycommon
+  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil trollius osrf_pycommon pyenchant sphinxcontrib-spelling
 install:
   # Install catkin_tools
   - python setup.py develop
@@ -55,6 +55,7 @@ script:
   # Build documentation
   - pushd docs
   - make html
+  - sphinx-build -b spelling . build
   - popd
 notifications:
   email: false
