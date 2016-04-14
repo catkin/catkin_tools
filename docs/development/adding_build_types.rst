@@ -7,7 +7,7 @@ The current release of ``catkin_tools`` supports building two types of packages:
   - **CMake** -- "Plain" CMake packages
 
 In order to fully support additional build types, numerous additions need to be made to the command-line interfaces so that the necessary parameters can be passed to the ``build`` verb.
-For partial support, however, all that's needded is to add a build type identifier and a function for generating build jobs.
+For partial support, however, all that's needed is to add a build type identifier and a function for generating build jobs.
 
 The supported build types are easily extendable using the ``setuptools`` ``entry_points`` interface without modifying the ``catkin_tools`` project, itself.
 Regardless of what package the ``entry_point`` is defined in, it will be defined in the ``setup.py`` of that package, and will take this form: 

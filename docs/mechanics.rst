@@ -2,8 +2,8 @@ Workspace Mechanics
 ===================
 
 This chapter defines the organization, composition, and use of Catkin workspaces.
-Catkin workspaces enable rapid simulatnous building and executing of numerous interdependent projects.
-These projects do not need to share the sme buildtool, but they do need to be able to either build or install to a FHS tree.
+Catkin workspaces enable rapid simultaneous building and executing of numerous interdependent projects.
+These projects do not need to share the same build tool, but they do need to be able to either build or install to a FHS tree.
 
 Unlike integrated development environments (IDEs) which normally only manage single projects, the purpose of Catkin is to enable the simultaneous compilation of numerous independently-authored projects.
 
@@ -161,8 +161,8 @@ devel space
 Build products like executables, libraries, pkg-config files, and CMake config files, are generated in the **devel space**.
 The **devel space** is organized as an `FHS <https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard>`_ tree.
 
-Some buildtools simply treat the **devel space** as an install prefix, but other buildtools like ``catkin``, itself, can build targets directly into the **devel space** in order to skip the additional install step.
-For such packages, executing programs from the develspace sometimes requires that the source space is still available.
+Some build tools simply treat the **devel space** as an install prefix, but other buildtools like ``catkin``, itself, can build targets directly into the **devel space** in order to skip the additional install step.
+For such packages, executing programs from the **devel space** sometimes requires that the source space is still available.
 
 At the root of the **devel space** is a set of environment setup files which can be "sourced" in order to properly execute the space's products.
 
@@ -187,7 +187,7 @@ It additionally contains a file which lists the name of the active configuration
 Environment Setup Files
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The FHS trees of the **devel space** and **install space** also contain several environemnt "setup" scripts.
+The FHS trees of the **devel space** and **install space** also contain several environment "setup" scripts.
 These setup scripts are intended to make it easier to use the resulting FHS tree for building other source code or for running programs built by the packages in the workspace.
 
 The setup script can be used like this in ``bash``: 

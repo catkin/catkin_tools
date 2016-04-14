@@ -6,7 +6,7 @@ You can install the ``catkin_tools`` package as a binary through a package manag
 .. note::
 
     This project is still in beta and has not been released yet, please install from source.
-    In particular, interface and behaviour are still subject to incompatible changes.
+    In particular, interface and behavior are still subject to incompatible changes.
     If you rely on a stable environment, please use ``catkin_make`` instead of this tool.
 
 Installing on Ubuntu with apt-get

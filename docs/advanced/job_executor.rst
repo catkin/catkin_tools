@@ -105,7 +105,7 @@ In either case, loggers used by stages support segmentation of ``stdout`` and ``
 Command Stages
 ~~~~~~~~~~~~~~~
 
-In addition to the basic arguments mentioned above, command stages are paramterized by the standard sub-process command arguments including the following: 
+In addition to the basic arguments mentioned above, command stages are parameterized by the standard sub-process command arguments including the following: 
 
   - The command, itself, and its arguments,
   - The working directory for the command,

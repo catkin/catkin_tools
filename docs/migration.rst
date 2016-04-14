@@ -5,7 +5,7 @@ Important Distinctions between ``catkin_make`` and ``catkin build``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Unlike ``catkin_make``, the ``catkin`` command-line tool is not just a thin wrapper around a ``CMake`` use pattern.
-The ``catkin build`` command builds each package in a workspace's source space *in isolation* in order to prevent buildtime cross-talk.
+The ``catkin build`` command builds each package in a workspace's source space *in isolation* in order to prevent build-time cross-talk.
 As such, in its simplest use, ``catkin build`` is like a parallelized version of ``catkin_make_isolated``.
 While there are many more features in ``catkin_tools`` described in the rest of the documentation, this chapter provides details on how to switch from using ``catkin_make`` or ``catkin_make_isolated``.
 
@@ -279,4 +279,4 @@ Note that some ``catkin_make`` options can only be achieved with the ``catkin co
        will continue to persist until changed.
 .. [2] These options, if passed to ``catkin build`` only affect that
        invocation. If passed to ``catkin config``, they will persist to
-       subseqent calls to ``catkin build``.
+       subsequent calls to ``catkin build``.
