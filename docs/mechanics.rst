@@ -211,7 +211,7 @@ Sourcing these setup scripts adds this workspace and any "underlaid" workspaces 
  CMAKE_PREFIX_PATH_           | Used by CMake to find development packages, \
                               | and used by Catkin for workspace chaining.
 ----------------------------- --------------------------------------------------
- CPATH_                       | Used by GCC to search for development headers.
+ CPATH_ [4]_                  | Used by GCC to search for development headers.
 ----------------------------- --------------------------------------------------
  LD_LIBRARY_PATH_ [1]_        | Search path for dynamically loadable libraries.
 ----------------------------- --------------------------------------------------
@@ -231,10 +231,13 @@ Sourcing these setup scripts adds this workspace and any "underlaid" workspaces 
 .. _PATH: https://en.wikipedia.org/wiki/PATH_(variable)
 .. _PKG_CONFIG_PATH: http://linux.die.net/man/1/pkg-config
 .. _PYTHONPATH: https://docs.python.org/2/using/cmdline.html#envvar-PYTHONPATH
+.. _changelog: https://github.com/ros/catkin/blob/kinetic-devel/CHANGELOG.rst#070-2016-03-04
 
 .. [1] GNU/Linux Only
 .. [2] Mac OS X Only
 .. [3] Windows Only
+.. [4] Only in versions of ``catkin`` <= ``0.7.0`` (ROS Kinetic), see the changelog_
+
 
 The setup scripts will also execute any Catkin "env-hooks" exported by packages
 in the workspace. For example, this is how ``roslib`` sets the
