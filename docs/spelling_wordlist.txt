@@ -33,6 +33,7 @@ subdirectory
 Ubuntu
 underlaid
 Unformatted
+Uninstalling
 unsatisfiable
 unsetting
 whitelist
