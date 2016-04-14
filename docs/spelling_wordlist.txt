@@ -19,6 +19,7 @@ prebuild
 preprocess
 Quickstart
 unsetting
+Ubuntu
 whitelist
 whitelisted
 Whitelisting
