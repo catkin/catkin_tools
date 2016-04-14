@@ -2,7 +2,7 @@
 ====================================
 
 The ``list`` verb for the ``catkin`` command is used to find and list information about catkin packages.
-By default, it will list the packages in the workspace containing the current working directoy.
+By default, it will list the packages in the workspace containing the current working directory.
 It can also be used to list the packages in any other arbitrary directory.
 
 Checking for Catkin Package Warnings

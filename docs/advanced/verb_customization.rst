@@ -22,7 +22,7 @@ Below are the built-in aliases as displayed by this command:
 Defining Additional Aliases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Verb aliases are defined in the ``verb_aliases`` subdirectory of the catkin config folder, ``~/.config/catkin/verb_aliases``.
+Verb aliases are defined in the ``verb_aliases`` sub-directory of the catkin config folder, ``~/.config/catkin/verb_aliases``.
 Any YAML files in that folder (files with a ``.yaml`` extension) will be processed as definition files.
 
 These files are formatted as simple YAML dictionaries which map aliases to expanded expressions, which must be composed of other ``catkin`` verbs, options, or aliases: 

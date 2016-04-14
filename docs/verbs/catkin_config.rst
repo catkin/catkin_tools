@@ -1,15 +1,15 @@
 ``catkin config`` -- Configure a Workspace
 ==========================================
 
-The ``config`` verb can be used to both view and mapiulate a workspace's configuration options.
-These options include all of the elements listed in thr configuration summary.
+The ``config`` verb can be used to both view and manipulate a workspace's configuration options.
+These options include all of the elements listed in the configuration summary.
 
 By default, the ``config`` verb gets and sets options for a workspace's *active* profile.
 If no profiles have been specified for a workspace, this is a default profile named ``default``.
 
 .. note::
 
-  Calling ``catkin config`` on an uninitialied workspace will not automatically   initialize it unless it is used with the ``--init`` option.
+  Calling ``catkin config`` on an uninitialized workspace will not automatically   initialize it unless it is used with the ``--init`` option.
 
 Viewing the Configuration Summary
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -167,7 +167,7 @@ This means that blacklisted packages will not be built even if another package i
 .. note::
 
     Blacklisting a package does not remove it's build directory or build
-    products, it only pevents it from being rebuilt.
+    products, it only prevents it from being rebuilt.
 
 To set the blacklist, you can call the following command:
 

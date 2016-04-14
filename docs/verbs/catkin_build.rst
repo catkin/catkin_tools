@@ -77,7 +77,7 @@ This is sometimes required when running ``catkin build`` from within a program t
 Console Messages
 ----------------
 
-Normally, unless an error occurs, the output from each package's build proces is collected but not printed to the console.
+Normally, unless an error occurs, the output from each package's build process is collected but not printed to the console.
 All that is printed is a pair of messages designating the start and end of a package's build.
 This is formatted like the following for the ``genmsg`` package:
 
@@ -140,7 +140,7 @@ Build Summary
 -------------
 
 At the end of each build, a brief build summary is printed to guarantee that anomalies aren't missed.
-This summary displays the total runtime, the number of successful jobs, the number of jobs which produced warnings, and the number of jobs which weren't attempted due to failed dependencies.
+This summary displays the total run-time, the number of successful jobs, the number of jobs which produced warnings, and the number of jobs which weren't attempted due to failed dependencies.
 
 .. code-block:: none
 
@@ -201,7 +201,7 @@ Skipping Packages
 
 Suppose you built every package up to ``roslib``, but that package had a build error.
 After fixing the error, you could run the same build command again, but the ``build`` verb provides an option to save time in this situation.
-If re-started from the beginning, none of the products of the dependencies of ``roslib`` would be re-built, but it would still take some time for the underlying byuildsystem to verify that for each package.
+If re-started from the beginning, none of the products of the dependencies of ``roslib`` would be re-built, but it would still take some time for the underlying build system to verify that for each package.
 
 Those checks could be skipped, however, by jumping directly to a given package.
 You could use the ``--start-with`` option to continue the build where you left off after fixing the problem.
@@ -291,7 +291,7 @@ Advanced Options
 Temporarily Changing Build Flags
 --------------------------------
 
-While the build configuratoin flags are set and stored in the build context, it's possible to temporarily override or augment them when using the ``build`` verb.
+While the build configuration flags are set and stored in the build context, it's possible to temporarily override or augment them when using the ``build`` verb.
 
 .. code-block:: bash
 
@@ -313,13 +313,13 @@ This command passes the ``-DCMAKE_C_FLAGS=...`` arugment to all invocations of `
 Configuring Build Jobs
 ----------------------
 
-By default ``catkin build`` on a computer with ``N`` cores will build up to ``N`` packages in parallel and will distribute ``N`` ``make`` jobs among them using an internal jobserver.
-If your platform doesn't support jobserver scheduling, ``catkin build`` will pass ``-jN -lN`` to ``make`` for each package.
+By default ``catkin build`` on a computer with ``N`` cores will build up to ``N`` packages in parallel and will distribute ``N`` ``make`` jobs among them using an internal job server.
+If your platform doesn't support job server scheduling, ``catkin build`` will pass ``-jN -lN`` to ``make`` for each package.
 
 You can control the maximum number of packages allowed to build in parallel by using the ``-p`` or ``--parallel-packages`` option and you can change the number of ``make`` jobs available with the ``-j`` or ``--jobs`` option.
 
 By default, these jobs options aren't passed to the underlying ``make`` command.
-To disable the jobserver, you can use the ``--no-jobserver`` option, and you can pass flags directly to ``make`` with the ``--make-args`` option.
+To disable the job server, you can use the ``--no-jobserver`` option, and you can pass flags directly to ``make`` with the ``--make-args`` option.
 
 .. note::
 
@@ -342,7 +342,7 @@ For example, to specify that ``catkin build`` should not start additional parall
 
     $ catkin build --mem-limit 50%
 
-Alternatively, if it sohuld not start additional jobs when over 4GB of memory is used, you can specifiy: 
+Alternatively, if it should not start additional jobs when over 4GB of memory is used, you can specify: 
 
 .. code-block:: bash
 

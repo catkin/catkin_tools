@@ -32,7 +32,7 @@ These defaults would result in the execution of the following commands:
     $ cmake ../src -DCATKIN_DEVEL_SPACE=../devel -DCMAKE_INSTALL_PREFIX=../install
     $ make -j<number of cores> -l<number of cores> [optional target, e.g. install]
 
-An advantage of this approach is that the total configuration would be smaller than configuring each package individually and that the Make targets can be parallelized even amongst dependent packages.
+An advantage of this approach is that the total configuration would be smaller than configuring each package individually and that the Make targets can be parallelized even among dependent packages.
 
 In practice, however, it also means that in large workspaces, modification of the CMakeLists.txt of one package would necessitate the reconfiguration of all packages in the entire workspace.
 
