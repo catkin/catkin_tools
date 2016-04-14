@@ -1,12 +1,12 @@
 Shell support in ``catkin`` command
 ===================================
 
-You can use the command ``catkin --locate-extra-shell-verbs`` to locate the shell file for your installation.
+You can use the ``locate`` verb to locate the shell file for your installation.
 When you source the resulting file, you can use ``bash``/``zsh`` shell functions which provide added utility.
 
 .. code-block:: shell
 
-    . `catkin --locate-extra-shell-verbs`
+    . `catkin locate --shell-verbs`
 
 Provided verbs are:
 
