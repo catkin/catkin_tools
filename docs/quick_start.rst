@@ -67,7 +67,7 @@ The shell interaction below shows the creation of four empty packages: ``pkg_a``
    :language: bash
    :lines: 5-10
 
-After these operations, your workspace's local directory structure would look like the followng (to two levels deep):
+After these operations, your workspace's local directory structure would look like the following (to two levels deep):
 
 .. literalinclude:: examples/quickstart_ws/1_prebuild.bash
    :language: bash

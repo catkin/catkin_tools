@@ -307,7 +307,7 @@ To achieve this, use a command similar to this:
 
     $ catkin build -v --cmake-args -DCMAKE_C_FLAGS="-Wall -W -Wno-unused-parameter"
 
-This command passes the ``-DCMAKE_C_FLAGS=...`` arugment to all invocations of ``cmake``.
+This command passes the ``-DCMAKE_C_FLAGS=...`` argument to all invocations of ``cmake``.
 
 
 Configuring Build Jobs
