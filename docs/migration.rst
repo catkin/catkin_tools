@@ -38,10 +38,10 @@ Since all packages are built in isolation with ``catkin build``, you can't rely 
 Migration Troubleshooting
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When migrating from ``catkin_make`` to catkin build, the most common problems come from Catkin packages taking advantge of package cross-talk in the CMake configuration stage.
+When migrating from ``catkin_make`` to catkin build, the most common problems come from Catkin packages taking advantage of package cross-talk in the CMake configuration stage.
 
 Many Catkin packages implicitly rely on other packages in a workspace to declare and find dependencies.
-When switcing from ``catkin_make``, users will often discover these bugs.
+When switching from ``catkin_make``, users will often discover these bugs.
 
 Common Issues
 -------------
@@ -200,7 +200,7 @@ CLI Comparison with ``catkin_make`` and ``catkin_make_isolated``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Below are tables mapping ``catkin_make`` and ``catkin_make_isolated`` arguments into ``catkin`` arguments.
-Note that some ``catkin_make`` options can only be achived with the ``catkin config`` verb.
+Note that some ``catkin_make`` options can only be achieved with the ``catkin config`` verb.
 
 =================================================  ============================================
  catkin_make ...                                    catkin ...

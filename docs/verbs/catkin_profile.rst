@@ -4,7 +4,7 @@
 Many verbs contain a ``--profile`` option, which selects which configuration profile to use, without which it will use the "active" profile.
 The ``profile`` verb enables you to manager the available profiles as well as set the "active" profile when using other verbs.
 
-Even without using the ``profile`` verb, any use of the ``catkin`` command which changes the workspace is impliclty using a configuration profile called ``default``.
+Even without using the ``profile`` verb, any use of the ``catkin`` command which changes the workspace is implicitly using a configuration profile called ``default``.
 
 The ``profile`` verb has several sub-commands for profile management.
 These include the following:
@@ -60,7 +60,7 @@ To see these effects, you can run ``catkin config`` to write a default configura
     [profile] Available profiles:
     - default (active)
 
-The ``profile`` verb now shows that the profile named "default" is avialable and is active.
+The ``profile`` verb now shows that the profile named "default" is available and is active.
 Calling ``catkin config`` with the ``--profile`` argument will automatically create a profile based on the given configuration options:
 
 .. code-block:: bash

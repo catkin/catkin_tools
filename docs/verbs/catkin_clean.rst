@@ -11,7 +11,7 @@ Space Cleaning
 
 For any  configuration, any of the active profile's spaces can be cleaned entirely. 
 This includes any of the top-level directories which are configured for a given profile.
-See the full command line interface for specifing specific spaces to clean.
+See the full command line interface for specifying specific spaces to clean.
 
 To clean all of the spaces for a given profile, you can call the ``clean`` verb without arguments:
 
@@ -43,7 +43,7 @@ If you want to skip this check, you can use the ``--yes`` or ``-y`` options:
 .. note:: 
 
     The ``clean`` verb will also ask for additional confirmation if any of the directories to be removed are outside of your workspace root.
-    To skip this additinal check, you can use the ``--force`` option.
+    To skip this additional check, you can use the ``--force`` option.
 
 Partial Cleaning
 ^^^^^^^^^^^^^^^^
@@ -54,7 +54,7 @@ This is possible since the ``catkin`` program will symbolically link the build p
 Cleaning a Single Package
 -------------------------
 
-Cleaning a single package (or serverla packages) is as simple as naming them:
+Cleaning a single package (or several packages) is as simple as naming them:
 
 .. code-block:: bash
 
