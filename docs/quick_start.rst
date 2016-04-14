@@ -137,7 +137,7 @@ Any Catkin setup file will modify the ``CMAKE_PREFIX_PATH`` environment variable
 Cleaning Workspace Products
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instead of using dangerous commands like ``rm -rf build devel`` in your workspace when cleaning build products, you can use the ``catkin clean --all`` command.
+Instead of using dangerous commands like ``rm -rf build devel`` in your workspace when cleaning build products, you can use the ``catkin clean`` command.
 Just like the other verbs, ``catkin clean`` is context-aware, so it only needs to be called from a directory under the workspace root.
 
 In order to clean the **build space** and **devel space** for the workspace, you can use the following command:
