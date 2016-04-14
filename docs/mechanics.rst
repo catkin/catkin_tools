@@ -135,13 +135,13 @@ log space
 The ``catkin`` command generates a log space, called ``logs`` by default, which contains build logs for each package.
 Logs for each package are written in subdirectories with the same name as the package.
 
-The latest log for each verb and stage in a given package's log directory is also written with the format: 
+The latest log for each verb and stage in a given package's log directory is also written with the format:
 
 .. code-block:: bash
 
    {VERB}.{STAGE}.log
 
-Each previous logfile has the following format, where ``{INDEX}`` begins at ``000`` and increases with each execution of that verb and stage: 
+Each previous logfile has the following format, where ``{INDEX}`` begins at ``000`` and increases with each execution of that verb and stage:
 
 .. code-block:: bash
 
@@ -190,7 +190,7 @@ Environment Setup Files
 The FHS trees of the **devel space** and **install space** also contain several environment "setup" scripts.
 These setup scripts are intended to make it easier to use the resulting FHS tree for building other source code or for running programs built by the packages in the workspace.
 
-The setup script can be used like this in ``bash``: 
+The setup script can be used like this in ``bash``:
 
 .. code-block:: bash
 

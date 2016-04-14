@@ -16,9 +16,9 @@ Operational Differences
   The **source   space** simply contains a collection of packages.
   If you have been modifying   this ``CMakeLists.txt`` file, those modifications will be ignored.
 - Each package in a ``catkin_tools`` workspace has its own isolated build space.
-- ``catkin build`` can be run from any directory under the workspace root
-- ``catkin config`` stores many workspace configuration options which needed to be passed to each call of ``catkin_make``
-- ``catkin build`` can build plain CMake packages if they have ``package.xml`` files
+- ``catkin build`` can be run from any directory under the workspace root.
+- ``catkin config`` stores many workspace configuration options which needed to be passed to each call of ``catkin_make``.
+- ``catkin build`` can build plain CMake packages if they have ``package.xml`` files.
 - Packages built with ``catkin build`` can not access variables defined in other Catkin packages in the same workspace.
 - Packages no longer need to define target dependencies on ROS messages built in other packages.
   All targets in a dependency are guaranteed to have been   built before the current package.
@@ -116,7 +116,7 @@ For example, when using in a source space, the build tools from package ``my_bui
 With ``catkin_make``, the path to these tools could be set to either the source or install space in the provider package just by setting a CMake variable, which  would be "leaked" to all subsequently built packages.
 
 With ``catkin build``, these paths need to be properly exported with ``CFG_EXTRAS``.
-A way to do this that works both out of a workspace and install is shown below: 
+A way to do this that works both out of a workspace and install is shown below:
 
 .. code-block:: cmake
     :caption: my_build_util-extras.cmake.em

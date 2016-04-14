@@ -9,7 +9,7 @@ The ``clean`` verb is context-aware, but in order to work, it must be given the 
 Space Cleaning
 ^^^^^^^^^^^^^^
 
-For any  configuration, any of the active profile's spaces can be cleaned entirely. 
+For any configuration, any of the active profile's spaces can be cleaned entirely.
 This includes any of the top-level directories which are configured for a given profile.
 See the full command line interface for specifying specific spaces to clean.
 
@@ -29,7 +29,7 @@ When running this command, ``catkin`` will prompt you to confirm that you want t
     [clean] Build Space:   /tmp/quickstart_ws/build
     [clean] Devel Space:   /tmp/quickstart_ws/devel
 
-    [clean] Are you sure you want to completely remove the directories listed above? [yN]: 
+    [clean] Are you sure you want to completely remove the directories listed above? [yN]:
 
 If you want to skip this check, you can use the ``--yes`` or ``-y`` options:
 
@@ -39,8 +39,8 @@ If you want to skip this check, you can use the ``--yes`` or ``-y`` options:
     [clean] Removing develspace: /tmp/quickstart_ws/devel
     [clean] Removing buildspace: /tmp/quickstart_ws/build
     [clean] Removing log space: /tmp/quickstart_ws/logs
-    
-.. note:: 
+
+.. note::
 
     The ``clean`` verb will also ask for additional confirmation if any of the directories to be removed are outside of your workspace root.
     To skip this additional check, you can use the ``--force`` option.
@@ -87,7 +87,7 @@ To clean a package and only the packages which depend on it, you can run the fol
 Cleaning Products from All Profiles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, the ``clean`` operating is applied only to the active or specified profile. 
+By default, the ``clean`` operating is applied only to the active or specified profile.
 To apply it to *all* profiles, use the ``--all-profiles`` option.
 
 Cleaning Everything
