@@ -115,19 +115,20 @@ The ``.catkin_tools`` directory stores persistent build configuration and profil
 ===============  ===============  ======================================================
  Space            Default Path     Contents
 ===============  ===============  ======================================================
- Source Space     ``./src``        All source packages.
- Log Space        ``./logs``       Logs from building and cleaning.
+ Source Space     ``./src``        Source code for all the packages.
+ Log Space        ``./logs``       Logs from building and cleaning packages.
  Build Space      ``./build``      Intermediate build products for each package.
- Devel Space      ``./devel``      FHS tree containing all final build products.
- Install Space    ``./install``    FHS tree containing products of ``install`` targets.
+ Devel Space      ``./devel``      FHS tree or trees containing all final build products.
+ Install Space    ``./install``    FHS tree or trees containing products of ``install`` targets.
 ===============  ===============  ======================================================
 
 source space
 ------------
 
-The **source space** contains all of the source packages to be built in the workspace, as such, it is the only directory required to build a workspace.
+The **source space** contains the source code for all of the packages to be built in the workspace, as such, it is the only directory required to build a workspace.
 The **source space** is also the only directory in the catkin workspace which is not modified by any ``catkin`` command verb.
 No build products are written to the source space, they are all built "out-of-source" in the **build space**, described in the next section.
+You can consider the **source space** to be read-only.
 
 log space
 ---------
