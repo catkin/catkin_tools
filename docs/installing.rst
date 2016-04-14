@@ -45,11 +45,17 @@ First clone the source for ``catkin_tools``:
     $ git clone https://github.com/catkin/catkin_tools.git
     $ cd catkin_tools
 
+Then install the dependencies with ``pip``:
+
+.. code-block:: bash
+
+    $ pip install -r requirements.txt --upgrade
+
 Then install with the ``setup.py`` file:
 
 .. code-block:: bash
 
-    $ python setup.py install
+    $ python setup.py install --record install_manifest.txt
 
 .. note::
 
@@ -70,3 +76,13 @@ When you are done with your development, undo this by running this command:
 .. code-block:: bash
 
     $ python setup.py develop -u
+
+
+Uninstalling from Source
+------------------------
+
+If you installed from source with the ``--record`` option, you can run the following to remove ``catkin_tools``:
+
+.. code-block:: bash
+
+    $ cat install_manifest.txt | xargs rm -rf
