@@ -1,0 +1,11 @@
+usage: catkin init [-h] [--workspace WORKSPACE] [--reset]
+
+Initializes a given folder as a catkin workspace.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --reset               Reset (delete) all of the metadata for the given
+                        workspace.

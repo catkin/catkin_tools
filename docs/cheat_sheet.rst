@@ -2,9 +2,8 @@ Cheat Sheet
 ===========
 
 This is a non-exhaustive list of some common and useful invocations of the ``catkin`` command.
-All of the commands which do not explicitly specify a workspace path (with ``--workspace``)
-are assumed to be run from within a directory contained by the target workspace. For thorough
-documentation, please see the chapters on each verb.
+All of the commands which do not explicitly specify a workspace path (with ``--workspace``) are assumed to be run from within a directory contained by the target workspace.
+For thorough documentation, please see the chapters on each verb.
 
 Initializing Workspaces
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -18,7 +17,7 @@ Initialize a workspace with a default layout (``src``/``build``/``devel``) in th
 ... with a default layout in a *different* directory:
   - ``catkin init --workspace /tmp/path/to/my_catkin_ws``
 
-... which explicity extends another workspace:
+... which explicitly extends another workspace:
   - ``catkin config --init --extend /opt/ros/hydro``
 
 Initialize a workspace with a **source space** called ``other_src``:
@@ -33,7 +32,7 @@ Configuring Workspaces
 View the current configuration:
   - ``catkin config``
 
-Setting and un-setting CMake options:
+Setting and unsetting CMake options:
   - ``catkin config --cmake-args -DENABLE_CORBA=ON -DCORBA_IMPLEMENTATION=OMNIORB``
   - ``catkin config --no-cmake-args``
 
@@ -64,7 +63,7 @@ Build the package containing the current working directory:
 ... but don't rebuild its dependencies:
   - ``catkin build --this --no-deps``
 
-Build packages with aditional CMake args:
+Build packages with additional CMake args:
   - ``catkin build --cmake-args -DCMAKE_BUILD_TYPE=Debug``
 
 ... and save them to be used for the next build:
@@ -81,13 +80,13 @@ Cleaning Build Products
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Blow away the build, devel, and install spaces (if they exist):
-  - ``catkin clean -a``
+  - ``catkin clean``
 
 ... or just the **build space**:
   - ``catkin clean --build``
 
-... or just delete the `CMakeCache.txt` files for each package:
-  - ``catkin clean --cmake-cache``
+... or just clean a single package:
+  - ``catkin clean PKGNAME``
 
 ... or just delete the build directories for packages which have been disabled or removed:
   - ``catkin clean --orphans``
@@ -134,8 +133,8 @@ Change from explicit to implicit chaining:
     catkin clean -a
     catkin config --no-extend
 
-Building With Other Jobservers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Building With Other Job Servers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Build with ``distcc``:
   .. code-block:: bash

@@ -1,0 +1,7 @@
+usage: catkin profile set [-h] name
+
+positional arguments:
+  name        The profile to activate.
+
+optional arguments:
+  -h, --help  show this help message and exit

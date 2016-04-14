@@ -6,7 +6,7 @@ You can install the ``catkin_tools`` package as a binary through a package manag
 .. note::
 
     This project is still in beta and has not been released yet, please install from source.
-    In particular, interface and behaviour are still subject to incompatible changes.
+    In particular, interface and behavior are still subject to incompatible changes.
     If you rely on a stable environment, please use ``catkin_make`` instead of this tool.
 
 Installing on Ubuntu with apt-get
@@ -45,21 +45,24 @@ First clone the source for ``catkin_tools``:
     $ git clone https://github.com/catkin/catkin_tools.git
     $ cd catkin_tools
 
+Then install the dependencies with ``pip``:
+
+.. code-block:: bash
+
+    $ pip install -r requirements.txt --upgrade
+
 Then install with the ``setup.py`` file:
 
 .. code-block:: bash
 
-    $ python setup.py install
-    
-Note: Depending on your environment/machine, you may need to use ``sudo`` with this command.
+    $ python setup.py install --record install_manifest.txt
+
+.. note::
+
+    Depending on your environment/machine, you may need to use ``sudo`` with this command.
 
 Developing
 ----------
-
-Listed here are some useful tips for developing against ``catkin_tools``.
-
-Install ``catkin_tools`` for developing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To setup ``catkin_tools`` for fast iteration during development, use the ``develop`` verb to ``setup.py``:
 
@@ -67,8 +70,19 @@ To setup ``catkin_tools`` for fast iteration during development, use the ``devel
 
     $ python setup.py develop
 
-Now the commands, like ``catkin``, will be in the system path and the local source files located in the ``catkin_tools`` folder will be on the ``PYTHONPATH``. When you are done with your development, undo this by running this command:
+Now the commands, like ``catkin``, will be in the system path and the local source files located in the ``catkin_tools`` folder will be on the ``PYTHONPATH``.
+When you are done with your development, undo this by running this command:
 
 .. code-block:: bash
 
     $ python setup.py develop -u
+
+
+Uninstalling from Source
+------------------------
+
+If you installed from source with the ``--record`` option, you can run the following to remove ``catkin_tools``:
+
+.. code-block:: bash
+
+    $ cat install_manifest.txt | xargs rm -rf

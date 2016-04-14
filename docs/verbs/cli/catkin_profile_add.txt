@@ -1,0 +1,11 @@
+usage: catkin profile add [-h] [-f] [--copy BASE_PROFILE | --copy-active] name
+
+positional arguments:
+  name                 The new profile name.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -f, --force          Overwrite an existing profile.
+  --copy BASE_PROFILE  Copy the settings from an existing profile. (default:
+                       None)
+  --copy-active        Copy the settings from the active profile.

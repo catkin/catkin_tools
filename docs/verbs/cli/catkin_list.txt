@@ -1,0 +1,40 @@
+usage: catkin list [-h] [--workspace WORKSPACE] [--profile PROFILE]
+                   [--deps | --rdeps] [--depends-on [PKG [PKG ...]]]
+                   [--rdepends-on [PKG [PKG ...]]] [--this] [--quiet]
+                   [--unformatted]
+
+Lists catkin packages in the workspace or other arbitray folders.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --profile PROFILE     The name of a config profile to use (default: active
+                        profile)
+
+Information:
+  Control which information is shown.
+
+  --deps, --dependencies
+                        Show direct dependencies of each package.
+  --rdeps, --recursive-dependencies
+                        Show recursive dependencies of each package.
+
+Packages:
+  Control which packages are listed.
+
+  --depends-on [PKG [PKG ...]]
+                        Only show packages that directly depend on specific
+                        package(s).
+  --rdepends-on [PKG [PKG ...]], --recursive-depends-on [PKG [PKG ...]]
+                        Only show packages that recursively depend on specific
+                        package(s).
+  --this                Show the package which contains the current working
+                        directory.
+
+Interface:
+  The behavior of the command-line interface.
+
+  --quiet               Don't print out detected package warnings.
+  --unformatted, -u     Print list without punctuation and additional details.

@@ -1,0 +1,20 @@
+usage: catkin env [-h] [-i] [-s]
+                  [NAME=VALUE [NAME=VALUE ...]] [COMMAND] [ARG [ARG ...]]
+
+Run an arbitrary command in a modified environment.
+
+positional arguments:
+  NAME=VALUE            Explicitly set environment variables for the
+                        subcommand. These override variables given to stdin.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i, --ignore-environment
+                        Start with an empty environment.
+  -s, --stdin           Read environment variable definitions from stdin.
+                        Variables should be given in NAME=VALUE format.
+
+command:
+  COMMAND               Command to run. If omitted, the environment is printed
+                        to stdout.
+  ARG                   Arguments to the command.

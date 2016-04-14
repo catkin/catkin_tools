@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+catkin build -h > catkin_build.txt
+catkin clean -h > catkin_clean.txt
+catkin config -h > catkin_config.txt
+catkin create -h > catkin_create.txt
+catkin create pkg -h > catkin_create_pkg.txt
+catkin env -h > catkin_env.txt
+catkin init -h > catkin_init.txt
+catkin list -h > catkin_list.txt
+catkin locate -h > catkin_locate.txt
+catkin profile -h > catkin_profile.txt
+catkin profile list -h > catkin_profile_list.txt
+catkin profile set -h > catkin_profile_set.txt
+catkin profile add -h > catkin_profile_add.txt
+catkin profile rename -h > catkin_profile_rename.txt
+catkin profile remove -h > catkin_profile_remove.txt
