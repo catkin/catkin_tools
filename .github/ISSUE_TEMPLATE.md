@@ -8,15 +8,20 @@
 * Operating System: `uname -a`
 * Python Version: `python --version`
 * Version of catkin_tools: `catkin --version` OR *Git revision*
-* ROS Distro: `echo ROS_DISTRO`
+* ROS Distro: `echo $ROS_DISTRO`
 
 ### Build / Run Issue
 
-[//]: # (Please check for known issues here:)
+[//]: # (If you are migrating from catkin_make, please follow the migration guide:)
+[//]: # (http://catkin-tools.readthedocs.org/en/latest/migration.html)
+
+[//]: # (Please also check for solved issues here:)
 [//]: # (http://catkin-tools.readthedocs.org/en/latest/troubleshooting.html)
 
+[//]: # (And check for open issues here:)
+[//]: # (https://github.com/catkin/catkin_tools/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+
 [//]: # (If you have an issue building and running code, please verify the following:)
-[//]: # (This is to make sure this is a problem with catkin_tools and not your own package.)
 
 * [ ] Works with `catkin_make`
 * [ ] Works with `catkin_make_isolated --merge`
@@ -24,7 +29,7 @@
 * [ ] Works with `catkin build -p1`
 * [x] I did  not `read this`
 
-### Other Issue
+### Expected Behavior
 
 [//]: # (Please describe what you expected or think should happen.)
 

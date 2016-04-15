@@ -22,6 +22,7 @@ Build isolation has the following implications for both ``catkin_make_isolated``
 - Packages built with ``catkin build`` can not access variables defined in other Catkin packages in the same workspace.
 - All targets in each of a package's dependencies are guaranteed to have been built before the current package.
 - Packages do not need to define target dependencies on ROS messages built in other packages.
+- It passes the same CMake command line arguments to multiple packages.
 - Plain CMake packages can be built if they each have a ``package.xml`` file with the appropriate `<build_type> tag <http://www.ros.org/reps/rep-0140.html#build-type>`_.
 
 Additional Differences with ``catkin build``
@@ -30,9 +31,8 @@ Additional Differences with ``catkin build``
 In addition to the differences due to isolation, ``catkin build`` is also different from ``catkin_make_isolated`` in the following ways:
 
 - It builds packages in parallel, using an internal job server to distribute load.
-- It puts products into hidden directories, and then symbolically links them into the **devel space**.
+- It puts products into hidden directories, and then symbolically links them into the **devel space** (by default).
 - It stores persistent configuration options in a ``.catkin_tools`` directory at the root of your workspace.
-- It passes the same CMake command line arguments to multiple packages.
 - It passes ``--no-warn-unused-cli`` to the ``cmake`` command since not all packages accept the same CMake arguments.
 - It generates ``.catkin`` files where each source package is listed, individually, instead of just listing the source space for the workspace.
   This leads to similar ``ROS_PACKAGE_PATH`` variables which list each package source space.
@@ -91,6 +91,7 @@ If issues arise, try to use the troubleshooting advice later in this chapter and
 
 Once the build succeeds and your appropriate tests pass, you can go on to continue using ``catkin build``!
 
+.. _migration-troubleshooting:
 
 Migration Troubleshooting
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,8 +258,6 @@ IDE Integration
 ^^^^^^^^^^^^^^^
 
 Since all packages are built in isolation with ``catkin build``, you can't rely on CMake's IDE integration to generate a single project for your entire workspace.
-
-.. _migration-troubleshooting:
 
 
 CLI Comparison with ``catkin_make`` and ``catkin_make_isolated``
