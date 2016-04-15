@@ -61,6 +61,10 @@ Then install with the ``setup.py`` file:
 
     Depending on your environment/machine, you may need to use ``sudo`` with this command.
 
+.. note::
+
+    If you want to perform a *local* install to your home directory, use the ``install --user`` option.
+
 Developing
 ----------
 
