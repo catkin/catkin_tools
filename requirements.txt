@@ -5,4 +5,3 @@ setuptools
 sphinxcontrib-ansi
 sphinxcontrib-programoutput
 trollius
-osrf_pycommon
