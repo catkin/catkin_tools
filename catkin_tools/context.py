@@ -361,7 +361,7 @@ class Context(object):
                     "different from the cached CMAKE_PREFIX_PATH used last time "
                     "this workspace was built.\\n\\n"
                     "If you want to use a different CMAKE_PREFIX_PATH you "
-                    "should call @{yf}`catkin clean --all`@| to remove all "
+                    "should call @{yf}`catkin clean`@| to remove all "
                     "references to the previous CMAKE_PREFIX_PATH.\\n\\n"
                     "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|\\n"
                     "@{cf}Other workspace to extend:@|\\n\\t@{yf}{_Context__extend_path}@|\\n"
@@ -376,7 +376,7 @@ class Context(object):
                 "from the cached CMAKE_PREFIX_PATH used the last time this "
                 "workspace was built.\\n\\n"
                 "If you want to use a different CMAKE_PREFIX_PATH you should "
-                "call @{yf}`catkin clean --all`@| to remove all references to "
+                "call @{yf}`catkin clean`@| to remove all references to "
                 "the previous CMAKE_PREFIX_PATH.\\n\\n"
                 "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|\\n"
                 "@{cf}Current CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|" %
