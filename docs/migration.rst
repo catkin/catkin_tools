@@ -4,34 +4,92 @@ Migrating from catkin_make
 Important Distinctions between ``catkin_make`` and ``catkin build``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Unlike ``catkin_make``, the ``catkin`` command-line tool is not just a thin wrapper around a ``CMake`` use pattern.
+Unlike ``catkin_make``, the ``catkin`` command-line tool is not just a thin wrapper around a the ``cmake`` and ``make`` commands.
 The ``catkin build`` command builds each package in a workspace's source space *in isolation* in order to prevent build-time cross-talk.
-As such, in its simplest use, ``catkin build`` is like a parallelized version of ``catkin_make_isolated``.
-While there are many more features in ``catkin_tools`` described in the rest of the documentation, this chapter provides details on how to switch from using ``catkin_make`` or ``catkin_make_isolated``.
+As such, in its simplest use, ``catkin build`` behaves similarly to a parallelized version of ``catkin_make_isolated``.
 
-Operational Differences
-^^^^^^^^^^^^^^^^^^^^^^^
+While there are many more features in ``catkin_tools`` described in the rest of the documentation, this chapter provides details on how to switch from using ``catkin_make`` and ``catkin_make_isolated``.
+This chapter does not describe advanced features that ``catkin_tools`` provides over ``catkin_make`` and ``catkin_make_isolated``. 
+For a quick overview of what you can do with ``catkin build``, see the :doc:`Cheat Sheet <cheat_sheet>`.
 
-- ``catkin_tools`` has no "top-level" ``CMakeLists.txt`` file.
-  The **source   space** simply contains a collection of packages.
-  If you have been modifying   this ``CMakeLists.txt`` file, those modifications will be ignored.
+Implications of Isolation
+--------------------------
+
+Build isolation has the following implications for both ``catkin_make_isolated`` and ``catkin build``:
+
+- There is no "top-level" ``CMakeLists.txt`` file in the **source space**.
 - Each package in a ``catkin_tools`` workspace has its own isolated build space.
-- ``catkin build`` can be run from any directory under the workspace root.
-- ``catkin config`` stores many workspace configuration options which needed to be passed to each call of ``catkin_make``.
-- ``catkin build`` can build plain CMake packages if they have ``package.xml`` files.
 - Packages built with ``catkin build`` can not access variables defined in other Catkin packages in the same workspace.
-- Packages no longer need to define target dependencies on ROS messages built in other packages.
-  All targets in a dependency are guaranteed to have been   built before the current package.
-- ``catkin_tools`` and ``catkin_make`` can use the same source space, but they must use different build, devel, and install spaces.
-- ``catkin build`` generates ``.catkin`` files and subsequently ``ROS_PACKAGE_PATH`` variables where each source package is listed, individually,   instead of just listing the source space for the workspace.
-- ``catkin build`` passes CMake command line arguments to multiple packages.
-  Since not all packages accept the same CMake arguments, the ``cmake`` command is invoked with ``--no-warn-unused-cli``.
-  This means there will be no warnings for unused variables passed to ``cmake``.
+- All targets in each of a package's dependencies are guaranteed to have been built before the current package.
+- Packages do not need to define target dependencies on ROS messages built in other packages.
+- It passes the same CMake command line arguments to multiple packages.
+- Plain CMake packages can be built if they each have a ``package.xml`` file with the appropriate `<build_type> tag <http://www.ros.org/reps/rep-0140.html#build-type>`_.
 
-IDE Integration
-^^^^^^^^^^^^^^^
+Additional Differences with ``catkin build``
+--------------------------------------------
 
-Since all packages are built in isolation with ``catkin build``, you can't rely on CMake's IDE integration to generate a single project for your entire workspace.
+In addition to the differences due to isolation, ``catkin build`` is also different from ``catkin_make_isolated`` in the following ways:
+
+- It builds packages in parallel, using an internal job server to distribute load.
+- It puts products into hidden directories, and then symbolically links them into the **devel space** (by default).
+- It stores persistent configuration options in a ``.catkin_tools`` directory at the root of your workspace.
+- It passes ``--no-warn-unused-cli`` to the ``cmake`` command since not all packages accept the same CMake arguments.
+- It generates ``.catkin`` files where each source package is listed, individually, instead of just listing the source space for the workspace.
+  This leads to similar ``ROS_PACKAGE_PATH`` variables which list each package source space.
+
+Step-by-Step Migration
+^^^^^^^^^^^^^^^^^^^^^^
+
+Most problems users will encounter when migrating from ``catkin_make`` to ``catkin build`` are due to hidden bugs in packages which previously relied on side-effects from their dependencies to build.
+The best way to debug these problems before switching to the entirely new tool, is to use ``catkin_make_isolated`` first.
+Note that all three of these tools can share **source spaces**, but they must use their own build, devel, and install spaces.
+
+1. Verify that your packages already build with ``catkin_make``:
+----------------------------------------------------------------
+
+To make iterating easier, use ``catkin_make`` with build and devel spaces with the suffix ``_cm`` so that they do not collide with the other build tools:
+
+.. code-block:: bash
+
+    cd /path/to/ws
+    catkin_make --build build_cm --devel devel_cm --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+
+If your packages build and other appropriate tests pass, continue to the next step.
+
+2. Verify that your packages build in isolation:
+------------------------------------------------
+
+Use ``catkin_make_isolated`` with build and devel spaces with the suffix ``_cmi``, and make sure your packages build in isolation.
+This is where you are most likely to discover bugs in your packages' ``CMakeLists.txt`` files.
+Fix each problem, using the troubleshooting advice later in this chapter.
+
+.. code-block:: bash
+
+    cd /path/to/ws
+    catkin_make_isolated --build build_cmi --devel devel_cmi --merge --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+
+Once your packages build (and other appropriate tests pass), continue to the next step.
+
+3. Build with ``catkin build``:
+-------------------------------
+
+Finally, you can verify that your packages build with ``catkin build``, using build and devel spaces with the suffix ``_cb``.
+Since ``catkin build`` stores build configuration, you only need to set your CMake and Make args once:
+
+.. code-block:: bash
+
+    cd /path/to/ws
+    catkin config --suffix _cb --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+
+Then you can build with ``catkin build``.
+If issues arise, try to use the troubleshooting advice later in this chapter and in the :doc:`main Troubleshooting chapter <troubleshooting>`.
+
+.. code-block:: bash
+
+    cd /path/to/ws
+    catkin build
+
+Once the build succeeds and your appropriate tests pass, you can go on to continue using ``catkin build``!
 
 .. _migration-troubleshooting:
 
@@ -195,6 +253,12 @@ For ``catkin build``, however, you can create a *verb alias* like the one below,
 See :doc:`Verb Aliasing <advanced/verb_customization>` for more details.
 
 - https://github.com/catkin/catkin_tools/issues/166
+
+IDE Integration
+^^^^^^^^^^^^^^^
+
+Since all packages are built in isolation with ``catkin build``, you can't rely on CMake's IDE integration to generate a single project for your entire workspace.
+
 
 CLI Comparison with ``catkin_make`` and ``catkin_make_isolated``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
