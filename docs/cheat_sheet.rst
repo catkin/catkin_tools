@@ -124,13 +124,13 @@ Manipulating Workspace Chaining
 Change from implicit to explicit chaining:
   .. code-block:: bash
 
-    catkin clean -a
+    catkin clean
     catkin config --extend /opt/ros/hydro
 
 Change from explicit to implicit chaining:
   .. code-block:: bash
 
-    catkin clean -a
+    catkin clean
     catkin config --no-extend
 
 Building With Other Job Servers
