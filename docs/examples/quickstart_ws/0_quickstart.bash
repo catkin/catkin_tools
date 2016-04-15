@@ -10,4 +10,4 @@ catkin create pkg pkg_d --catkin-deps pkg_a pkg_b
 catkin list                                # List the packages in the workspace
 catkin build                               # Build all packages in the workspace
 source /tmp/quickstart_ws/devel/setup.bash # Load the workspace's environment
-catkin clean --all                         # Clean all the build products
+catkin clean                               # Clean all the build products
