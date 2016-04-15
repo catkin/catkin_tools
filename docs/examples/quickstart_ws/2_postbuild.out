@@ -15,11 +15,9 @@
 ├── devel
 │   ├── .built_by
 │   ├── .catkin
-│   ├── CMakeLists.txt -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/CMakeLists.txt
 │   ├── env.sh -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/env.sh
 │   ├── etc
 │   ├── lib
-│   ├── package.xml -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/package.xml
 │   ├── .private
 │   ├── setup.bash -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/setup.bash
 │   ├── setup.sh -> /tmp/quickstart_ws/devel/.private/catkin_tools_prebuild/setup.sh
