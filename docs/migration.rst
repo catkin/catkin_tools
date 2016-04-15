@@ -24,7 +24,7 @@ Build isolation has the following implications for both ``catkin_make_isolated``
 - Packages do not need to define target dependencies on ROS messages built in other packages.
 - Plain CMake packages can be built if they each have a ``package.xml`` file with the appropriate `<build_type> tag <http://www.ros.org/reps/rep-0140.html#build-type>`_.
 
-Additional Differences With ``catkin build``
+Additional Differences with ``catkin build``
 --------------------------------------------
 
 In addition to the differences due to isolation, ``catkin build`` is also different from ``catkin_make_isolated`` in the following ways:
