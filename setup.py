@@ -97,7 +97,7 @@ To enable tab completion, add the following to your '~/.bashrc':
 
 parser = argparse.ArgumentParser(add_help=False)
 prefix_group = parser.add_mutually_exclusive_group()
-prefix_group.add_argument('--user','--home', action='store_true')
+prefix_group.add_argument('--user', '--home', action='store_true')
 prefix_group.add_argument('--prefix', default=None)
 
 opts, _ = parser.parse_known_args(sys.argv)
