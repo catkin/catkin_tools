@@ -51,7 +51,7 @@ def get_prebuild_package(build_space_abs, devel_space_abs, force):
     """
 
     # Get the path to the prebuild package
-    prebuild_path = os.path.join(devel_space_abs, '.private', 'catkin_tools_prebuild')
+    prebuild_path = os.path.join(build_space_abs, 'catkin_tools_prebuild')
     if not os.path.exists(prebuild_path):
         mkdir_p(prebuild_path)
 
