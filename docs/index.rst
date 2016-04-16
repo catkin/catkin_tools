@@ -59,7 +59,7 @@ Catkin Command Line Tools
 
 This Python package provides command line tools for working with the catkin meta-buildsystem and catkin workspaces.
 These tools are separate from the Catkin CMake macros used in Catkin source packages.
-For documentation on creating catkin packages, see: http://docs.ros.org/api/catkin/html/ 
+For documentation on creating catkin packages, see: http://docs.ros.org/api/catkin/html/
 
 .. note::
 
@@ -79,7 +79,7 @@ The ``catkin`` Command
 ..   <script type="text/javascript" src="https://asciinema.org/a/1lsef4d23r6hxh5kn8vjcx0el.js" id="asciicast-1lsef4d23r6hxh5kn8vjcx0el" async></script>
 
 The ``catkin`` Command-Line Interface (CLI) tool is the single point of entry for most of the functionality provided by this package.
-All invocations of the ``catkin`` CLI tool take this form: 
+All invocations of the ``catkin`` CLI tool take this form:
 
 .. code-block:: bash
 
