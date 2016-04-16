@@ -87,7 +87,7 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
     if include_dependents:
         for package_name in list(packages_to_be_cleaned):
             # Get the packages that depend on the packages to be cleaned
-            dependents = get_recursive_build_dependants_in_workspace(package_name, ordered_packages)
+            dependents = get_recursive_build_dependents_in_workspace(package_name, ordered_packages)
             packages_to_be_cleaned.update([pkg.name for _, pkg in dependents])
 
     return [workspace_packages_by_name[n] for n in packages_to_be_cleaned if n in workspace_packages_by_name]
