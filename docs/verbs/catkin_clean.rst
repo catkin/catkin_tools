@@ -76,12 +76,12 @@ Cleaning Dependent Packages
 ---------------------------
 
 When cleaning one package, it's sometimes useful to also clean all of the packages which depend on it.
-This can prevent leftover elements from affecting the dependants.
+This can prevent leftover elements from affecting the dependents.
 To clean a package and only the packages which depend on it, you can run the following:
 
 .. code-block:: bash
 
-    catkin clean --dependants PKGNAME
+    catkin clean --dependents PKGNAME
 
 
 Cleaning Products from All Profiles

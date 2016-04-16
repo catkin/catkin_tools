@@ -1,6 +1,6 @@
 usage: catkin clean [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--dry-run] [--verbose] [--yes] [--force] [--all-profiles]
-                    [--deinit] [-l] [-b] [-d] [-i] [--dependants] [--orphans]
+                    [--deinit] [-l] [-b] [-d] [-i] [--dependents] [--orphans]
                     [--setup-files]
                     [PKGNAME [PKGNAME ...]]
 
@@ -44,7 +44,7 @@ Packages:
 
   PKGNAME               Explicilty specify a list of specific packages to
                         clean from the build, devel, and install space.
-  --dependants, --deps  Clean the packages which depend on the packages to be
+  --dependents, --deps  Clean the packages which depend on the packages to be
                         cleaned.
   --orphans             Remove products from packages are no longer in the
                         source space. Note that this also removes packages

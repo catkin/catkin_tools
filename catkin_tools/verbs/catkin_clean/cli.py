@@ -130,7 +130,7 @@ def prepare_arguments(parser):
     add = packages_group.add_argument
     add('packages', metavar='PKGNAME', nargs='*',
         help='Explicilty specify a list of specific packages to clean from the build, devel, and install space.')
-    add('--dependants', '--deps', action='store_true', default=False,
+    add('--dependents', '--deps', action='store_true', default=False,
         help='Clean the packages which depend on the packages to be cleaned.')
     add('--orphans', action='store_true', default=False,
         help='Remove products from packages are no longer in the source space. '
@@ -309,7 +309,7 @@ def clean_profile(opts, profile):
                     needs_force = clean_packages(
                         ctx,
                         opts.packages,
-                        opts.dependants,
+                        opts.dependents,
                         opts.verbose,
                         opts.dry_run)
                 except KeyboardInterrupt:

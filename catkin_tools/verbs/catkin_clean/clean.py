@@ -41,11 +41,11 @@ from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
 from catkin_tools.common import get_build_type
-from catkin_tools.common import get_recursive_build_dependants_in_workspace
+from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
 
 
-def determine_packages_to_be_cleaned(context, include_dependants, packages):
+def determine_packages_to_be_cleaned(context, include_dependents, packages):
     """Returns list of packages which should be cleaned, and those packages' deps.
 
     :param context: Workspace context
@@ -84,11 +84,11 @@ def determine_packages_to_be_cleaned(context, include_dependants, packages):
                 packages_to_be_cleaned.add(package_name)
 
     # Determine the packages that depend on the given packages
-    if include_dependants:
+    if include_dependents:
         for package_name in list(packages_to_be_cleaned):
             # Get the packages that depend on the packages to be cleaned
-            dependants = get_recursive_build_dependants_in_workspace(package_name, ordered_packages)
-            packages_to_be_cleaned.update([pkg.name for _, pkg in dependants])
+            dependents = get_recursive_build_dependants_in_workspace(package_name, ordered_packages)
+            packages_to_be_cleaned.update([pkg.name for _, pkg in dependents])
 
     return [workspace_packages_by_name[n] for n in packages_to_be_cleaned if n in workspace_packages_by_name]
 
@@ -96,16 +96,16 @@ def determine_packages_to_be_cleaned(context, include_dependants, packages):
 def clean_packages(
         context,
         names_of_packages_to_be_cleaned,
-        clean_dependants,
+        clean_dependents,
         verbose,
         dry_run):
 
     pre_start_time = time.time()
 
-    # Update the names of packages to be cleaned with dependants
+    # Update the names of packages to be cleaned with dependents
     packages_to_be_cleaned = determine_packages_to_be_cleaned(
         context,
-        clean_dependants,
+        clean_dependents,
         names_of_packages_to_be_cleaned)
 
     # print(packages_to_be_cleaned)

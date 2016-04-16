@@ -7,8 +7,8 @@ buildtools
 CMake
 config
 deinitialize
-dependant
-dependants
+dependent
+dependents
 devel
 devel
 distributable
