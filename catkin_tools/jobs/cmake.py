@@ -174,7 +174,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     else:
         logger.out(clr("Generating setup file: @!@{yf}{}@|").format(setup_file_path))
 
-    # Create the setup file that dependant packages will source
+    # Create the setup file that dependent packages will source
     arch = get_multiarch()
     subs = {}
     subs['cmake_prefix_path'] = install_target + ":"

@@ -21,9 +21,9 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.context import Context
 
 from catkin_tools.common import find_enclosing_package
-from catkin_tools.common import get_recursive_build_dependants_in_workspace
+from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import get_recursive_build_depends_in_workspace
-from catkin_tools.common import get_recursive_run_dependants_in_workspace
+from catkin_tools.common import get_recursive_run_dependents_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import getcwd
 
@@ -92,26 +92,26 @@ def main(opts):
 
             if opts.depends_on or opts.rdepends_on:
 
-                dependants = set()
+                dependents = set()
 
                 for pth, pkg in ordered_packages:
                     is_dep = opts.depends_on.intersection([
                         p.name for p in pkg.build_depends + pkg.run_depends])
                     if is_dep:
-                        dependants.add(pkg.name)
+                        dependents.add(pkg.name)
 
                 for pth, pkg in [packages_by_name.get(n) for n in opts.rdepends_on]:
                     if pkg is None:
                         continue
-                    rbd = get_recursive_build_dependants_in_workspace(pkg.name, ordered_packages)
-                    rrd = get_recursive_run_dependants_in_workspace(pkg.name, ordered_packages)
-                    dependants.update([p.name for _, p in rbd])
-                    dependants.update([p.name for _, p in rrd])
+                    rbd = get_recursive_build_dependents_in_workspace(pkg.name, ordered_packages)
+                    rrd = get_recursive_run_dependents_in_workspace(pkg.name, ordered_packages)
+                    dependents.update([p.name for _, p in rbd])
+                    dependents.update([p.name for _, p in rrd])
 
                 filtered_packages = [
                     (pth, pkg)
                     for pth, pkg in ordered_packages
-                    if pkg.name in dependants]
+                    if pkg.name in dependents]
             elif opts.this:
                 this_package = find_enclosing_package(
                     search_start_path=getcwd(),

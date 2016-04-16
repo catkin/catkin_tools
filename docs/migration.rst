@@ -141,7 +141,7 @@ Compiler Options Aren't Correct
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Your program might fail to build or fail to run due to incorrect compiler options.
-Sometimes these compiler options are needed to use a dependency, but aren't made available to the dependant package.
+Sometimes these compiler options are needed to use a dependency, but aren't made available to the dependent package.
 
 With ``catkin_make``, if a package sets certain compiler options, such as:
 

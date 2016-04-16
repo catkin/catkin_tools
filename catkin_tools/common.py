@@ -298,8 +298,8 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     )
 
 
-def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
-    """Calculates the recursive build dependants of a package which are also in
+def get_recursive_build_dependents_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive build dependents of a package which are also in
     the ordered_packages
 
     :param package: package for which the recursive depends should be calculated
@@ -311,7 +311,7 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
         recursive build depends for the given package
     :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
     """
-    recursive_dependants = list()
+    recursive_dependents = list()
 
     for pth, pkg in reversed(ordered_packages):
         # Break if this is one to check
@@ -322,13 +322,13 @@ def get_recursive_build_dependants_in_workspace(package_name, ordered_packages):
         deps = get_cached_recursive_build_depends_in_workspace(pkg, ordered_packages)
         deps_names = [p.name for _, p in deps]
         if package_name in deps_names:
-            recursive_dependants.insert(0, (pth, pkg))
+            recursive_dependents.insert(0, (pth, pkg))
 
-    return recursive_dependants
+    return recursive_dependents
 
 
-def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
-    """Calculates the recursive run dependants of a package which are also in
+def get_recursive_run_dependents_in_workspace(package_name, ordered_packages):
+    """Calculates the recursive run dependents of a package which are also in
     the ordered_packages
 
     :param package: package for which the recursive depends should be calculated
@@ -340,7 +340,7 @@ def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
         recursive run depends for the given package
     :rtype: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
     """
-    recursive_dependants = list()
+    recursive_dependents = list()
 
     for pth, pkg in reversed(ordered_packages):
         # Break if this is one to check
@@ -351,9 +351,9 @@ def get_recursive_run_dependants_in_workspace(package_name, ordered_packages):
         deps = get_recursive_run_depends_in_workspace([pkg], ordered_packages)
         deps_names = [p.name for _, p in deps]
         if package_name in deps_names:
-            recursive_dependants.insert(0, (pth, pkg))
+            recursive_dependents.insert(0, (pth, pkg))
 
-    return recursive_dependants
+    return recursive_dependents
 
 
 def is_tty(stream):
