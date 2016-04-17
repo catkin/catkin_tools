@@ -65,7 +65,7 @@ def test_build_auto_init_no_pkgs():
     with redirected_stdio() as (out, err):
         with workspace_factory() as wf:
             wf.build()
-            assert catkin_failure(BUILD)
+            assert catkin_success(BUILD)
             assert_workspace_initialized('.')
     assert_no_warnings(out)
 
