@@ -79,9 +79,10 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
 
     # If there are no packages raise
     if not workspace_packages:
-        sys.exit("[build] No packages were found in the source space '{0}'".format(context.source_space_abs))
-    wide_log("[build] Found '{0}' packages in {1}."
-             .format(len(workspace_packages), format_time_delta(time.time() - start)))
+        log("[build] No packages were found in the source space '{0}'".format(context.source_space_abs))
+    else:
+        wide_log("[build] Found '{0}' packages in {1}."
+                 .format(len(workspace_packages), format_time_delta(time.time() - start)))
 
     # Order the packages by topology
     ordered_packages = topological_order_packages(workspace_packages)
@@ -319,7 +320,6 @@ def build_isolated_workspace(
     # Check the number of packages to be built
     if len(packages_to_be_built) == 0:
         log(clr('[build] No packages to be built.'))
-        return
 
     # Assert start_with package is in the workspace
     verify_start_with_option(
@@ -382,8 +382,6 @@ def build_isolated_workspace(
     # Handle the prebuild jobs if the develspace is linked
     prebuild_pkg_deps = []
     if context.link_devel:
-        wide_log('[build] Preparing linked develspace...')
-
         prebuild_pkg = None
 
         # Construct a dictionary to lookup catkin package by name

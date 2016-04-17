@@ -289,7 +289,7 @@ def get_profile_names(workspace_path):
     profiles_path = get_profiles_path(workspace_path)
 
     if os.path.exists(profiles_path):
-        directories = os.walk(profiles_path).next()[1]
+        directories = next(os.walk(profiles_path))[1]
 
         return directories
 

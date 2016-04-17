@@ -186,7 +186,10 @@ def catkin_main(sysargs):
             pkg_resources.get_distribution('catkin_tools').version,
             date.today().year)
         )
-        print('Released under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+        print('catkin_tools is released under the Apache License,'
+              ' Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+        print('---')
+        print('Using Python {}'.format(''.join(sys.version.split('\n'))))
         sys.exit(0)
 
     # Check for --test-colors
