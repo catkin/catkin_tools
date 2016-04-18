@@ -18,7 +18,7 @@ Initialize a workspace with a default layout (``src``/``build``/``devel``) in th
   - ``catkin init --workspace /tmp/path/to/my_catkin_ws``
 
 ... which explicitly extends another workspace:
-  - ``catkin config --init --extend /opt/ros/hydro``
+  - ``catkin config --init --extend /opt/ros/indigo``
 
 Initialize a workspace with a **source space** called ``other_src``:
   - ``catkin config --init --source-space other_src``
@@ -125,7 +125,7 @@ Change from implicit to explicit chaining:
   .. code-block:: bash
 
     catkin clean
-    catkin config --extend /opt/ros/hydro
+    catkin config --extend /opt/ros/indigo
 
 Change from explicit to implicit chaining:
   .. code-block:: bash
