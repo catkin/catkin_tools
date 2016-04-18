@@ -2,6 +2,26 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Major refactor of the job execution engine to use Trollius/Asyncio.
+  * Changed the way build environments are generated (no more ``build.sh``).
+* Added new "Linked-devel" space option, where the ``devel`` space for each package is isolated, but are symlinked to a single merged ``devel`` space afterwards.
+* Added support for cleaning and partial cleaning of the workspace with ``catkin clean``.
+* Added "shell verbs" like ``catkin cd`` and ``catkin source`` (requires sourcing of shell files).
+* Added support for (and testing for) ``DESTDIR``.
+* Warnings are now captured and reported to the console even without ``--verbose``.
+* Fixed ``setup.py`` installation when using ``--user``.
+* Fixed an issue where CMake was always rerun even when the settings didn't change.
+* Added support for the ``.built_by`` marker file to detect when being used at the same time as ``catkin_make[_isolated]``.
+* Fixed ``catkin create -p``.
+* Improved error message when a circular dependency in the packages is detected.
+* Fixed a problem where ``catkin config`` could incorrectly clear the make arguments.
+* Fixed a bug where the UI could get stuck on "calculating new jobs".
+* Fixed a bug where the ``--isolated-devel`` option would crash when building a subset of the workspace.
+* Fixed the "leaf_sources out of bounds" error.
+* Contributors: Alexander Schaefer, Dave Coleman, Dirk Thomas, Esteve Fernandez, Ivor Wanders, Jonathan Bohren, Kartik Mohta, Kei Okada, Kentaro Wada, Robert Haschke, Steven Peters, William Woodall
+
 0.3.1 (2015-12-20)
 ------------------
 * Added some new shell based verbs, i.e. ``catkin cd`` and ``catkin source``.
