@@ -20,10 +20,10 @@ Forthcoming
 * Fixed a bug where the UI could get stuck on "calculating new jobs".
 * Fixed a bug where the ``--isolated-devel`` option would crash when building a subset of the workspace.
 * Fixed the "leaf_sources out of bounds" error.
-* Moved log files out of ``build/logs`` into "log space" in the workspace root
-* Added `env` utility verb for querying environment and running commands in a modified environment
-* Build types (i.e. cmake, catkin) are now supplied through ``entry_points``
-* Added "environemnt caching" for build jobs to speed up building in some cases
+* Moved log files out of ``build/logs`` into "log space" in the workspace root.
+* Added `env` utility verb for querying environment and running commands in a modified environment.
+* Build types (i.e. cmake, catkin) are now supplied through ``entry_points``.
+* Added "environemnt caching" for build jobs to speed up building in some cases.
 * Contributors: Alexander Schaefer, Dave Coleman, Dirk Thomas, Esteve Fernandez, Ivor Wanders, Jonathan Bohren, Kartik Mohta, Kei Okada, Kentaro Wada, Robert Haschke, Steven Peters, William Woodall
 
 0.3.1 (2015-12-20)
