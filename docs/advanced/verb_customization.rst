@@ -36,8 +36,8 @@ For example, aliases which configure a workspace profile so that it ignores the 
 .. code-block:: yaml
 
   # ~/.config/catkin/verb_aliases/10-ros-distro-aliases.yaml
-  extend-sys: config --profile sys --extend /opt/ros/hydro -x _sys
-  extend-overlay: config --profile overlay --extend ~/ros/hydro/install -x _overlay
+  extend-sys: config --profile sys --extend /opt/ros/indigo -x _sys
+  extend-overlay: config --profile overlay --extend ~/ros/indigo/install -x _overlay
 
 After defining these aliases, one could use them with optional additional options and build a given configuration profile.
 

@@ -56,12 +56,11 @@ This is also sometimes referred to as "workspace chaining" and sometimes the ext
 
 With ``catkin config``, you can explicitly set the workspace you want to extend, using the ``--extend`` argument.
 This is equivalent to sourcing a setup file, building, and then reverting to the environment before sourcing the setup file.
+For example, regardless of your current environment variable settings (like ``$CMAKE_PREFIX_PATH``), using ``--extend`` can build your workspace against the ``/opt/ros/indigo`` install space.
 
-Note that in case the desired parent workspace is different from one already being used, using the ``--extend`` argument also necessitates cleaning the setup files from your workspace with ``catkin clean``.
+Note that in case the desired parent workspace is different from one already being used, using the ``--extend`` argument also necessitates cleaning your workspace with ``catkin clean``.
 
-For example, regardless of your current environment variable settings (like ``$CMAKE_PREFIX_PATH``), this will build your workspace against the ``/opt/ros/hydro`` install space.
-
-First start with an empty ``CMAKE_PREFIX_PATH`` and initialize, build, and source a workspace:
+If you start with an empty ``CMAKE_PREFIX_PATH``, the configuration summary will show that you're not extending any other workspace, as shown below:
 
 .. code-block:: bash
 
@@ -74,72 +73,66 @@ First start with an empty ``CMAKE_PREFIX_PATH`` and initialize, build, and sourc
     Profile:                     default
     Extending:                   None
     Workspace:                   /tmp/path/to/my_catkin_ws
+    --------------------------------------------------------------
+    Source Space:       [exists] /tmp/path/to/my_catkin_ws/src
+    Log Space:          [exists] /tmp/path/to/my_catkin_ws/logs
+    Build Space:        [exists] /tmp/path/to/my_catkin_ws/build
+    Devel Space:        [exists] /tmp/path/to/my_catkin_ws/devel
+    Install Space:      [unused] /tmp/path/to/my_catkin_ws/install
+    DESTDIR:            [unused] None
+    --------------------------------------------------------------
+    Devel Space Layout:          linked
+    Install Space Layout:        None
+    --------------------------------------------------------------
     ...
     --------------------------------------------------------------
-    Workspace configuration appears valid.
+    Initialized new catkin workspace in `/tmp/path/to/my_catkin_ws`
     --------------------------------------------------------------
 
-    $ cd /tmp/path/to/my_catkin_ws
-    $ catkin create pkg aaa
-    $ catkin create pkg bbb
-    $ catkin create pkg ccc
-    $ catkin build
-    ...
-
-    $ source devel/setup.bash
-    $ echo $CMAKE_PREFIX_PATH
-    /tmp/path/to/my_catkin_ws/devel
-
-    $ catkin config
     --------------------------------------------------------------
-    Profile:                     default
-    Extending:                   None
-    Workspace:                   /tmp/path/to/my_catkin_ws
-    ...
-    --------------------------------------------------------------
-    Workspace configuration appears valid.
+    WARNING: Your workspace is not extending any other result
+    space, but it is set to use a `linked` devel space layout.
+    This requires the `catkin` CMake package in your source space
+    in order to be built.
     --------------------------------------------------------------
 
 At this point you have a workspace which doesn't extend anything.
-If you realize this after the fact, you can explicitly tell it to extend another workspace.
-Suppose you wanted to extend a standard ROS system install like ``/opt/ros/hydro``.
-This can be done with the ``--extend`` option:
+With the default **devel space** layout, this won't build without the ``catkin`` CMake package, since this package is used to generate setup files.
+
+If you realize this after the fact, you still can explicitly tell ``catkin build`` to extend  some result space.
+Suppose you wanted to extend a standard ROS system install like ``/opt/ros/indigo``.
+This can be done with the ``--extend`` option like so:
 
 .. code-block:: bash
 
-
-    $ catkin config --extend /opt/ros/hydro
+    $ catkin clean
+    $ catkin config --extend /opt/ros/indigo
     --------------------------------------------------------------
     Profile:                     default
-    Extending:        [explicit] /opt/ros/hydro
+    Extending:        [explicit] /opt/ros/indigo
     Workspace:                   /tmp/path/to/my_catkin_ws
+    --------------------------------------------------------------
     Source Space:       [exists] /tmp/path/to/my_catkin_ws/src
+    Log Space:         [missing] /tmp/path/to/my_catkin_ws/logs
     Build Space:       [missing] /tmp/path/to/my_catkin_ws/build
     Devel Space:       [missing] /tmp/path/to/my_catkin_ws/devel
-    Install Space:     [missing] /tmp/path/to/my_catkin_ws/install
-    DESTDIR:                     None
+    Install Space:      [unused] /tmp/path/to/my_catkin_ws/install
+    DESTDIR:            [unused] None
     --------------------------------------------------------------
-    Isolate Develspaces:         False
-    Install Packages:            False
-    Isolate Installs:            False
+    Devel Space Layout:          linked
+    Install Space Layout:        None
     --------------------------------------------------------------
-    Additional CMake Args:       None
-    Additional Make Args:        None
-    Additional catkin Make Args: None
-    --------------------------------------------------------------
-    Whitelisted Packages:        None
-    Blacklisted Packages:        None
+    ...
     --------------------------------------------------------------
     Workspace configuration appears valid.
     --------------------------------------------------------------
 
-    $ catkin clean --setup-files
     $ catkin build
     ...
 
     $ source devel/setup.bash
     $ echo $CMAKE_PREFIX_PATH
-    /tmp/path/to/my_catkin_ws:/opt/ros/hydro
+    /tmp/path/to/my_catkin_ws:/opt/ros/indigo
 
 
 Whitelisting and Blacklisting Packages

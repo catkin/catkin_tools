@@ -351,8 +351,19 @@ class Context(object):
                 else:
                     self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '').rstrip(':')
 
+        # Add warning for empty extend path
+        if (self.devel_layout == 'linked' and
+            (self.extend_path is None and
+             not self.cached_cmake_prefix_path and
+             not self.env_cmake_prefix_path)):
+            self.warnings += [clr(
+                "Your workspace is not extending any other result space, but "
+                "it is set to use a `linked` devel space layout. This "
+                "requires the `catkin` CMake package in your source space "
+                "in order to be built.")]
+
         # Add warnings based on conflicing CMAKE_PREFIX_PATH
-        if self.cached_cmake_prefix_path and self.extend_path:
+        elif self.cached_cmake_prefix_path and self.extend_path:
             ep_not_in_lcpp = any([self.extend_path in p for p in self.cached_cmake_prefix_path.split(':')])
             if not ep_not_in_lcpp:
                 self.warnings += [clr(
