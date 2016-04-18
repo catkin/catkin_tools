@@ -2,8 +2,8 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.0 (2016-04-18)
+------------------
 * Major refactor of the job execution engine to use Trollius/Asyncio.
   * Changed the way build environments are generated (no more ``build.sh``).
 * Added new "Linked-devel" space option, where the ``devel`` space for each package is isolated, but are symlinked to a single merged ``devel`` space afterwards.
