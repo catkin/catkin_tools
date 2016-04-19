@@ -63,7 +63,7 @@ For documentation on creating catkin packages, see: http://docs.ros.org/api/catk
 
 .. note::
 
-  This package was announced in March 2015 and is still in beta. A second beta release is planned for `April 2016 <https://github.com/catkin/catkin_tools/milestones>`_.
+  This package was announced in March 2015 and is still in beta. See the `GitHub Milestones <https://github.com/catkin/catkin_tools/milestones>`_ for the current release schedule and roadmap.
 
 .. note::
 
