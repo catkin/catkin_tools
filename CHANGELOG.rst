@@ -2,6 +2,14 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add test for unicode in env (`#345 <https://github.com/catkin/catkin_tools/issues/345>`_)
+  Regression test for issue `#338 <https://github.com/catkin/catkin_tools/issues/338>`_.
+* Fixed mishandling of environments with unicode values (`#342 <https://github.com/catkin/catkin_tools/issues/342>`_)
+* Fixed bug where a long delay occurred when using a slow status rate (`#344 <https://github.com/catkin/catkin_tools/issues/344>`_)
+* Contributors: Jonathan Bohren, Steven Peters
+
 0.4.0 (2016-04-18)
 ------------------
 * Major refactor of the job execution engine to use Trollius/Asyncio.
