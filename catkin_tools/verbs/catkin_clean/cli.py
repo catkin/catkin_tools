@@ -206,6 +206,8 @@ def clean_profile(opts, profile):
             spaces_to_clean_msgs.append(clr("[clean] Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
         if opts.install and install_exists:
             spaces_to_clean_msgs.append(clr("[clean] Install Space: @{yf}{}").format(install_path))
+        if opts.packages:
+            spaces_to_clean_msgs.append(clr("[clean] Packages: @{yf}{}").format(', '.join(opts.packages)))
 
         if len(spaces_to_clean_msgs) == 0 and not opts.deinit:
             log("[clean] Nothing to be cleaned for profile:  `{}`".format(profile))
