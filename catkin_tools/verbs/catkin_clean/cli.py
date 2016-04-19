@@ -194,7 +194,7 @@ def clean_profile(opts, profile):
     if clean_all:
         opts.logs = opts.build = opts.devel = opts.install = True
 
-    # Make sure the user intends to clena everything
+    # Make sure the user intends to clean everything
     spaces_to_clean_msgs = []
 
     if not (opts.yes or opts.dry_run):
