@@ -195,9 +195,10 @@ def clean_profile(opts, profile):
         opts.logs = opts.build = opts.devel = opts.install = True
 
     # Make sure the user intends to clena everything
+    spaces_to_clean = (opts.logs or opts.build or opts.devel or opts.install)
     spaces_to_clean_msgs = []
 
-    if not (opts.yes or opts.dry_run):
+    if spaces_to_clean and not (opts.yes or opts.dry_run):
         if opts.logs and logs_exists:
             spaces_to_clean_msgs.append(clr("[clean] Log Space:     @{yf}{}").format(ctx.log_space_abs))
         if opts.build and build_exists:
