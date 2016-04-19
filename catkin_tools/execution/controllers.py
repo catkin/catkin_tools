@@ -448,6 +448,13 @@ class ConsoleStatusController(threading.Thread):
         active_stages = dict()
 
         start_time = self.pre_start_time or time.time()
+        last_update_time = time.time()
+
+        # If the status rate is too low, just disable it
+        if self.active_status_rate < 1E-3:
+            self.show_active_status = False
+        else:
+            update_duration = 1.0 / self.active_status_rate
 
         # Disable the wide log padding if the status is disabled
         if not self.show_active_status:
@@ -458,6 +465,7 @@ class ConsoleStatusController(threading.Thread):
             if not self.keep_running:
                 wide_log(clr('[{}] An internal error occurred!').format(self.label))
                 return
+
             # Write a continuously-updated status line
             if self.show_active_status:
                 # Try to get an event from the queue (non-blocking)
@@ -504,9 +512,14 @@ class ConsoleStatusController(threading.Thread):
                     # wide_log(status_line)
                     wide_log(status_line, rhs='', end='\r')
                     sys.stdout.flush()
-                    if self.active_status_rate > 1E-5:
-                        time.sleep(1.0 / self.active_status_rate)
+
+                    # Continue if it hasn't been long enough yet
+                    elapsed_time = time.time() - last_update_time
+                    if elapsed_time < update_duration:
+                        time.sleep(min(0.01, update_duration - elapsed_time))
                         continue
+                    last_update_time = time.time()
+
             else:
                 # Try to get an event from the queue (blocking)
                 try:
