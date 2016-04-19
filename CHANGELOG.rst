@@ -2,8 +2,8 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.1 (2016-04-19)
+------------------
 * Add test for unicode in env (`#345 <https://github.com/catkin/catkin_tools/issues/345>`_)
   Regression test for issue `#338 <https://github.com/catkin/catkin_tools/issues/338>`_.
 * Fixed mishandling of environments with unicode values (`#342 <https://github.com/catkin/catkin_tools/issues/342>`_)
