@@ -153,7 +153,7 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
         # Extract the environment variables
         env_dict = {
             k: v
-            for k, v in parse_env_str(lines.decode('utf-8')).items()
+            for k, v in parse_env_str(lines).items()
             if k not in blacklisted_keys
         }
 
