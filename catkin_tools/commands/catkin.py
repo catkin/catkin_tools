@@ -156,6 +156,9 @@ def catkin_main(sysargs):
     add('--no-color', action='store_true', default=False,
         help='Forces catkin to not use color in the output, regardless of the detect terminal type.')
 
+    # Deprecated, moved to `catkin locate --shell-verbs
+    add('--locate-extra-shell-verbs', action='store_true', help=argparse.SUPPRESS)
+
     # Generate a list of verbs available
     verbs = list_verbs()
 
@@ -190,6 +193,12 @@ def catkin_main(sysargs):
               ' Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
         print('---')
         print('Using Python {}'.format(''.join(sys.version.split('\n'))))
+        sys.exit(0)
+
+    # Deprecated option
+    if '--locate-extra-shell-verbs' in sysargs:
+        print('Please use `catkin locate --shell-verbs` instead of `catkin --locate-extra-shell-verbs`',
+              file=sys.stderr)
         sys.exit(0)
 
     # Check for --test-colors
