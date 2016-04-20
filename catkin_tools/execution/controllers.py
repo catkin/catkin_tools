@@ -413,7 +413,7 @@ class ConsoleStatusController(threading.Thread):
             if self.show_notifications:
                 notify("{} Incomplete".format(self.label.capitalize()),
                        "{} {} were abandoned.".format(
-                    len(all_abandoned_jobs), self.jobs_label))
+                    len(all_abandoned_jobs), self.jobs_label), icon_image='catkin_icon_red.png')
 
             wide_log(clr('[{}] Abandoned: {} {} were abandoned.').format(
                 self.label,
@@ -429,7 +429,7 @@ class ConsoleStatusController(threading.Thread):
             if self.show_notifications:
                 notify("{} Failed".format(self.label.capitalize()),
                        "{} {} failed.".format(
-                    len(failed_jobs), self.jobs_label))
+                    len(failed_jobs), self.jobs_label), icon_image='catkin_icon_red.png')
 
             wide_log(clr('[{}] Failed: {} {} failed.').format(
                 self.label,
