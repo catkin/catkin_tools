@@ -2,6 +2,10 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Revert `#344 <https://github.com/catkin/catkin_tools/issues/344>`_ until a better fix can be made.
+
 0.4.1 (2016-04-19)
 ------------------
 * Add test for unicode in env (`#345 <https://github.com/catkin/catkin_tools/issues/345>`_)
