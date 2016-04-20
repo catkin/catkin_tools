@@ -448,6 +448,13 @@ class ConsoleStatusController(threading.Thread):
         active_stages = dict()
 
         start_time = self.pre_start_time or time.time()
+        last_update_time = time.time()
+
+        # If the status rate is too low, just disable it
+        if self.active_status_rate < 1E-3:
+            self.show_active_status = False
+        else:
+            update_duration = 1.0 / self.active_status_rate
 
         # Disable the wide log padding if the status is disabled
         if not self.show_active_status:
@@ -458,55 +465,68 @@ class ConsoleStatusController(threading.Thread):
             if not self.keep_running:
                 wide_log(clr('[{}] An internal error occurred!').format(self.label))
                 return
+
             # Write a continuously-updated status line
             if self.show_active_status:
+
                 # Try to get an event from the queue (non-blocking)
                 try:
                     event = self.event_queue.get(False)
                 except Empty:
-                    # Print live status (overwrites last line)
-                    status_line = clr('[{} {} s] [{}/{} complete] [{}/{} jobs] [{} queued]').format(
-                        self.label,
-                        format_time_delta_short(time.time() - start_time),
-                        len(completed_jobs),
-                        len(self.jobs),
-                        job_server.running_jobs(),
-                        job_server.max_jobs(),
-                        len(queued_jobs) + len(active_jobs) - len(active_stages)
-                    )
+                    # Determine if the status should be shown based on the desired
+                    # status rate
+                    elapsed_time = time.time() - last_update_time
+                    show_status_now = elapsed_time > update_duration
 
-                    # Show failed jobs
-                    if len(failed_jobs) > 0:
-                        status_line += clr(' [@!@{rf}{}@| @{rf}failed@|]').format(len(failed_jobs))
+                    if show_status_now:
+                        # Print live status (overwrites last line)
+                        status_line = clr('[{} {} s] [{}/{} complete] [{}/{} jobs] [{} queued]').format(
+                            self.label,
+                            format_time_delta_short(time.time() - start_time),
+                            len(completed_jobs),
+                            len(self.jobs),
+                            job_server.running_jobs(),
+                            job_server.max_jobs(),
+                            len(queued_jobs) + len(active_jobs) - len(active_stages)
+                        )
 
-                    # Check load / mem
-                    if not job_server.load_ok():
-                        status_line += clr(' [@!@{rf}High Load@|]')
-                    if not job_server.mem_ok():
-                        status_line += clr(' [@!@{rf}Low Memory@|]')
+                        # Show failed jobs
+                        if len(failed_jobs) > 0:
+                            status_line += clr(' [@!@{rf}{}@| @{rf}failed@|]').format(len(failed_jobs))
 
-                    # Add active jobs
-                    if len(active_jobs) == 0:
-                        status_line += clr(' @/@!@{kf}Waiting for jobs...@|')
+                        # Check load / mem
+                        if not job_server.load_ok():
+                            status_line += clr(' [@!@{rf}High Load@|]')
+                        if not job_server.mem_ok():
+                            status_line += clr(' [@!@{rf}Low Memory@|]')
+
+                        # Add active jobs
+                        if len(active_jobs) == 0:
+                            status_line += clr(' @/@!@{kf}Waiting for jobs...@|')
+                        else:
+                            active_labels = []
+
+                            for j, (s, t, p) in active_stages.items():
+                                d = format_time_delta_short(cumulative_times[j] + time.time() - t)
+                                if p == '':
+                                    active_labels.append(clr('[{}:{} - {}]').format(j, s, d))
+                                else:
+                                    active_labels.append(clr('[{}:{} ({}%) - {}]').format(j, s, p, d))
+
+                            status_line += ' ' + ' '.join(active_labels)
+
+                        # Print the status line
+                        # wide_log(status_line)
+                        wide_log(status_line, rhs='', end='\r')
+                        sys.stdout.flush()
+
+                        # Store this update time
+                        last_update_time = time.time()
                     else:
-                        active_labels = []
+                        time.sleep(max(0.0, min(update_duration - elapsed_time, 0.01)))
 
-                        for j, (s, t, p) in active_stages.items():
-                            d = format_time_delta_short(cumulative_times[j] + time.time() - t)
-                            if p == '':
-                                active_labels.append(clr('[{}:{} - {}]').format(j, s, d))
-                            else:
-                                active_labels.append(clr('[{}:{} ({}%) - {}]').format(j, s, p, d))
-
-                        status_line += ' ' + ' '.join(active_labels)
-
-                    # Print the status line
-                    # wide_log(status_line)
-                    wide_log(status_line, rhs='', end='\r')
-                    sys.stdout.flush()
-                    if self.active_status_rate > 1E-5:
-                        time.sleep(1.0 / self.active_status_rate)
-                        continue
+                    # Only continue when no event was received
+                    continue
             else:
                 # Try to get an event from the queue (blocking)
                 try:
