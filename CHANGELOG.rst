@@ -2,8 +2,8 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.2 (2016-04-19)
+------------------
 * Revert `#344 <https://github.com/catkin/catkin_tools/issues/344>`_ until a better fix can be made.
 
 0.4.1 (2016-04-19)
