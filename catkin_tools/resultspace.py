@@ -38,8 +38,7 @@ DEFAULT_SHELL = '/bin/bash'
 _resultspace_env_cache = {}
 _resultspace_env_hooks_cache = {}
 
-
-def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cached=True, strict=True):
+def get_resultspace_environment(result_space_path, base_env=None, quiet=False, cached=True, strict=True):
     """Get the environemt variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This cmake command is used to be as portable as possible.
@@ -55,6 +54,10 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
 
     :returns: a dictionary of environment variables and their values
     """
+
+    # Set bae environment to the current environment
+    if base_env is None:
+        base_env = dict(os.environ)
 
     # Get the MD5 checksums for the current env hooks
     # TODO: the env hooks path should be defined somewhere
@@ -173,7 +176,7 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
     return dict(env_dict)
 
 
-def load_resultspace_environment(result_space_path, cached=True):
+def load_resultspace_environment(result_space_path, base_env=None, cached=True):
     """Load the environemt variables which result from sourcing another
     workspace path into this process's environment.
 
@@ -182,7 +185,7 @@ def load_resultspace_environment(result_space_path, cached=True):
     :param cached: use the cached environment
     :type cached: bool
     """
-    env_dict = get_resultspace_environment(result_space_path, cached=cached)
+    env_dict = get_resultspace_environment(result_space_path, base_env=base_env, cached=cached)
     try:
         os.environ.update(env_dict)
     except TypeError:
