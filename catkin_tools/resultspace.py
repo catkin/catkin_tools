@@ -35,8 +35,9 @@ from .common import string_type
 DEFAULT_SHELL = '/bin/bash'
 
 # Cache for result-space environments
+# Maps absolute paths to 3-tuples: (base_env, hooks, result_env}
 _resultspace_env_cache = {}
-_resultspace_env_hooks_cache = {}
+
 
 def get_resultspace_environment(result_space_path, base_env=None, quiet=False, cached=True, strict=True):
     """Get the environemt variables which result from sourcing another catkin
@@ -70,9 +71,10 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         env_hooks = []
 
     # Check the cache first, if desired
-    if cached and result_space_path in _resultspace_env_hooks_cache and result_space_path in _resultspace_env_cache:
-        if env_hooks == _resultspace_env_hooks_cache.get(result_space_path):
-            return dict(_resultspace_env_cache[result_space_path])
+    if cached and result_space_path in _resultspace_env_cache:
+        (cached_base_env, cached_env_hooks, result_env) = _resultspace_env_cache.get(result_space_path)
+        if env_hooks == cached_env_hooks and cached_base_env == base_env:
+            return dict(result_env)
 
     # Check to make sure result_space_path is a valid directory
     if not os.path.isdir(result_space_path):
@@ -162,8 +164,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         # Check to make sure we got some kind of environment
         if len(env_dict) > 0:
             # Cache the result
-            _resultspace_env_cache[result_space_path] = env_dict
-            _resultspace_env_hooks_cache[result_space_path] = env_hooks
+            _resultspace_env_cache[result_space_path] = (base_env, env_hooks, env_dict)
         else:
             print("WARNING: Sourced environment from `{}` has no environment variables. Something is wrong.".format(
                 setup_file_path))
