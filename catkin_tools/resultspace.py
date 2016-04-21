@@ -67,9 +67,8 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
         env_hooks = []
 
     # Check the cache first, if desired
-    if cached:
-        cached_env_hooks = _resultspace_env_hooks_cache.get(result_space_path, [])
-        if result_space_path in _resultspace_env_cache and env_hooks == cached_env_hooks:
+    if cached and result_space_path in _resultspace_env_hooks_cache and result_space_path in _resultspace_env_cache:
+        if env_hooks == _resultspace_env_hooks_cache.get(result_space_path):
             return dict(_resultspace_env_cache[result_space_path])
 
     # Check to make sure result_space_path is a valid directory
