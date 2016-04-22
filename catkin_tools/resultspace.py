@@ -35,11 +35,11 @@ from .common import string_type
 DEFAULT_SHELL = '/bin/bash'
 
 # Cache for result-space environments
+# Maps absolute paths to 3-tuples: (base_env, hooks, result_env}
 _resultspace_env_cache = {}
-_resultspace_env_hooks_cache = {}
 
 
-def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cached=True, strict=True):
+def get_resultspace_environment(result_space_path, base_env=None, quiet=False, cached=True, strict=True):
     """Get the environemt variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This cmake command is used to be as portable as possible.
@@ -56,6 +56,10 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
     :returns: a dictionary of environment variables and their values
     """
 
+    # Set bae environment to the current environment
+    if base_env is None:
+        base_env = dict(os.environ)
+
     # Get the MD5 checksums for the current env hooks
     # TODO: the env hooks path should be defined somewhere
     env_hooks_path = os.path.join(result_space_path, 'etc', 'catkin', 'profile.d')
@@ -67,10 +71,10 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
         env_hooks = []
 
     # Check the cache first, if desired
-    if cached:
-        cached_env_hooks = _resultspace_env_hooks_cache.get(result_space_path, [])
-        if result_space_path in _resultspace_env_cache and env_hooks == cached_env_hooks:
-            return dict(_resultspace_env_cache[result_space_path])
+    if cached and result_space_path in _resultspace_env_cache:
+        (cached_base_env, cached_env_hooks, result_env) = _resultspace_env_cache.get(result_space_path)
+        if env_hooks == cached_env_hooks and cached_base_env == base_env:
+            return dict(result_env)
 
     # Check to make sure result_space_path is a valid directory
     if not os.path.isdir(result_space_path):
@@ -160,8 +164,7 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
         # Check to make sure we got some kind of environment
         if len(env_dict) > 0:
             # Cache the result
-            _resultspace_env_cache[result_space_path] = env_dict
-            _resultspace_env_hooks_cache[result_space_path] = env_hooks
+            _resultspace_env_cache[result_space_path] = (base_env, env_hooks, env_dict)
         else:
             print("WARNING: Sourced environment from `{}` has no environment variables. Something is wrong.".format(
                 setup_file_path))
@@ -174,7 +177,7 @@ def get_resultspace_environment(result_space_path, base_env={}, quiet=False, cac
     return dict(env_dict)
 
 
-def load_resultspace_environment(result_space_path, cached=True):
+def load_resultspace_environment(result_space_path, base_env=None, cached=True):
     """Load the environemt variables which result from sourcing another
     workspace path into this process's environment.
 
@@ -183,7 +186,7 @@ def load_resultspace_environment(result_space_path, cached=True):
     :param cached: use the cached environment
     :type cached: bool
     """
-    env_dict = get_resultspace_environment(result_space_path, cached=cached)
+    env_dict = get_resultspace_environment(result_space_path, base_env=base_env, cached=cached)
     try:
         os.environ.update(env_dict)
     except TypeError:
