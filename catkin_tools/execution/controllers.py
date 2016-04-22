@@ -435,7 +435,7 @@ class ConsoleStatusController(threading.Thread):
                 self.jobs_label))
 
         if self.show_notifications:
-            if len(all_abandoned_jobs) == 0:
+            if len(failed_jobs) != 0:
                 notify(notification_title, "\n".join(notification_msg), icon_image='catkin_icon_red.png')
             else:
                 notify(notification_title, "\n".join(notification_msg))
