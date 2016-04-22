@@ -72,7 +72,7 @@ script:
   # Build documentation
   - pushd docs
   - make html
-  - sphinx-build -b spelling . build -t use_spelling
+  - ./check_spelling.bash
   - popd
 notifications:
   email: false

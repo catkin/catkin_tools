@@ -15,7 +15,6 @@ elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
   # Install CMake if necessary
   if ! hash cmake 2>/dev/null; then brew install cmake; fi
-  brew install enchant
 
   virtualenv -p $PYTHON venv
   source venv/bin/activate
