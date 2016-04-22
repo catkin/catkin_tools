@@ -36,8 +36,26 @@ matrix:
     - os: osx
       python: 3
       env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
+    - os: osx
+      osx_image: xcode7.1
+      python: 2
+      env: PYTHON=/usr/local/bin/python CATKIN_VERSION=indigo-devel
+    - os: osx
+      osx_image: xcode7.1
+      python: 3
+      env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
+    - os: osx
+      osx_image: xcode7.3
+      python: 2
+      env: PYTHON=/usr/local/bin/python CATKIN_VERSION=indigo-devel
+    - os: osx
+      osx_image: xcode7.3
+      python: 3
+      env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
 before_install:
   - source .travis.before_install.bash
+  - pip install --upgrade pip
+  - pip install setuptools argparse catkin-pkg distribute PyYAML psutil trollius osrf_pycommon pyenchant sphinxcontrib-spelling
 install:
   - pip install setuptools argparse catkin-pkg distribute PyYAML psutil
   - pip install nose coverage flake8 mock trollius --upgrade

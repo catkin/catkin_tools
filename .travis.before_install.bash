@@ -8,10 +8,20 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     #sudo apt-get install python3.4 python3-dev
   #fi
 elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-  if [ "$PYTHON" == "/usr/local/bin/python3" ]; then
+
+  # Install python if necessary
+  if [ "$PYTHON" == "/usr/local/bin/python" ]; then
+    brew install python
+    if ! hash virtualenv 2>/dev/null; then sudo pip install virtualenv; fi
+  elif [ "$PYTHON" == "/usr/local/bin/python3" ]; then
     brew install python3
+    if ! hash virtualenv 2>/dev/null; then sudo pip3 install virtualenv; fi
   fi
-  sudo pip install virtualenv
+
+  # Install CMake if necessary
+  if ! hash cmake 2>/dev/null; then brew install cmake; fi
+  brew install enchant
+
   virtualenv -p $PYTHON venv
   source venv/bin/activate
 fi
