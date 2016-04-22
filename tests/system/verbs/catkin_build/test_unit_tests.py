@@ -49,15 +49,33 @@ def test_build_pkg_unit_tests_broken():
 
 
 @in_temporary_directory
-def test_ctest():
-    """Test ctest-based tests"""
+def test_ctest_merged():
+    """Test ctest-based tests with a merged develspace"""
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
     shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'), source_space)
 
     with redirected_stdio() as (out, err):
         assert catkin_success(
+            ['config', '--merge-devel', '--init'])
+        assert catkin_success(
             ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
         assert catkin_success(
             ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'test_pkg', '--make-args', 'test'])
+             'test_pkg', '--make-args', 'test', 'ARGS="-V"'])
+
+@in_temporary_directory
+def test_ctest_linked():
+    """Test ctest-based tests with a linked develspace"""
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'), source_space)
+
+    with redirected_stdio() as (out, err):
+        assert catkin_success(
+            ['config', '--link-devel', '--init'])
+        assert catkin_success(
+            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
+        assert catkin_success(
+            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
+             'test_pkg', '--make-args', 'test', 'ARGS="-V"'])

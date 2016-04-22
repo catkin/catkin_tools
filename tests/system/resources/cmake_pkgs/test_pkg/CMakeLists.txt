@@ -3,7 +3,6 @@ project(test_package_pkg)
 
 enable_testing()
 
-
 add_executable(vanilla_test_app vanilla.cpp)
 find_library(LIBVANILLA vanilla)
 target_link_libraries(vanilla_test_app ${LIBVANILLA})
