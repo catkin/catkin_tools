@@ -364,7 +364,7 @@ class ConsoleStatusController(threading.Thread):
         # Print error summary
         if len(completed_jobs) == len(self.jobs) and all(completed_jobs.items()) and len(failed_jobs) == 0:
             notification_title = "{} Succeded".format(self.label.capitalize())
-            notification_msg.append("All {} {} succeeded!".format(len(self.jobs),self.jobs_label))
+            notification_msg.append("All {} {} succeeded!".format(len(self.jobs), self.jobs_label))
 
             wide_log(clr('[{}] Summary: All {} {} succeeded!').format(
                 self.label,
@@ -373,7 +373,7 @@ class ConsoleStatusController(threading.Thread):
         else:
             notification_msg.append("{} of {} {} succeeded.".format(
                 len([succeeded for jid, succeeded in completed_jobs.items() if succeeded]),
-                len(self.jobs),self.jobs_label))
+                len(self.jobs), self.jobs_label))
             wide_log(clr('[{}] Summary: {} of {} {} succeeded.').format(
                 self.label,
                 len([succeeded for jid, succeeded in completed_jobs.items() if succeeded]),
@@ -386,7 +386,7 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr('[{}] Ignored: None.').format(
                 self.label))
         else:
-            notification_msg.append("{} {} were skipped.".format(len(all_ignored_jobs),self.jobs_label))
+            notification_msg.append("{} {} were skipped.".format(len(all_ignored_jobs), self.jobs_label))
             wide_log(clr('[{}] Ignored: {} {} were skipped or are blacklisted.').format(
                 self.label,
                 len(all_ignored_jobs),
