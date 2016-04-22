@@ -74,8 +74,8 @@ script:
   - python setup.py nosetests -s
   # Build documentation
   - pushd docs
-  - make html
-  - ./check_spelling.bash
+  #- make html
+  #- ./check_spelling.bash
   - popd
 notifications:
   email: false
