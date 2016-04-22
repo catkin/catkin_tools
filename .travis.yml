@@ -72,5 +72,10 @@ before_script:
 script:
   - python setup.py develop
   - python setup.py nosetests -s
+  # Build documentation
+  - pushd docs
+  - make html
+  - ./check_spelling.bash
+  - popd
 notifications:
   email: false
