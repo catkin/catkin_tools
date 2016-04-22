@@ -437,6 +437,8 @@ class ConsoleStatusController(threading.Thread):
         if self.show_notifications:
             if len(failed_jobs) != 0:
                 notify(notification_title, "\n".join(notification_msg), icon_image='catkin_icon_red.png')
+            elif len(warned_jobs) != 0:
+                notify(notification_title, "\n".join(notification_msg), icon_image='catkin_icon_yellow.png')
             else:
                 notify(notification_title, "\n".join(notification_msg))
 
