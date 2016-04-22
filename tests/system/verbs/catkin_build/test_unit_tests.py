@@ -46,3 +46,18 @@ def test_build_pkg_unit_tests_broken():
         assert catkin_success(
             ['run_tests', 'python_tests_err', '--no-deps', '--no-notify', '--no-status'])
         assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
+
+
+@in_temporary_directory
+def test_ctest():
+    """Test ctest-based tests"""
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'), source_space)
+
+    with redirected_stdio() as (out, err):
+        assert catkin_success(
+            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
+        assert catkin_success(
+            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
+             'test_pkg', '--make-args', 'test'])
