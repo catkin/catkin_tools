@@ -359,18 +359,21 @@ class ConsoleStatusController(threading.Thread):
     def print_compact_summary(self, completed_jobs, warned_jobs, failed_jobs):
         """Print a compact build summary."""
 
+        notification_title = ""
+        notification_msg = []
         # Print error summary
         if len(completed_jobs) == len(self.jobs) and all(completed_jobs.items()) and len(failed_jobs) == 0:
-            if self.show_notifications:
-                notify("{} Succeded".format(self.label.capitalize()),
-                       "{} {} completed with no warnings.".format(
-                    len(completed_jobs), self.jobs_label))
+            notification_title = "{} Succeded".format(self.label.capitalize())
+            notification_msg.append("All {} {} succeeded!".format(len(self.jobs),self.jobs_label))
 
             wide_log(clr('[{}] Summary: All {} {} succeeded!').format(
                 self.label,
                 len(self.jobs),
                 self.jobs_label))
         else:
+            notification_msg.append("{} of {} {} succeeded.".format(
+                len([succeeded for jid, succeeded in completed_jobs.items() if succeeded]),
+                len(self.jobs),self.jobs_label))
             wide_log(clr('[{}] Summary: {} of {} {} succeeded.').format(
                 self.label,
                 len([succeeded for jid, succeeded in completed_jobs.items() if succeeded]),
@@ -383,6 +386,7 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr('[{}] Ignored: None.').format(
                 self.label))
         else:
+            notification_msg.append("{} {} were skipped.".format(len(all_ignored_jobs),self.jobs_label))
             wide_log(clr('[{}] Ignored: {} {} were skipped or are blacklisted.').format(
                 self.label,
                 len(all_ignored_jobs),
@@ -393,10 +397,8 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr('[{}] Warnings: None.').format(
                 self.label))
         else:
-            if self.show_notifications:
-                notify("{} Produced Warnings".format(self.label.capitalize()),
-                       "{} {} succeeded with warnings.".format(
-                    len(warned_jobs), self.jobs_label))
+            notification_title = "{} Succeded with Warnings".format(self.label.capitalize())
+            notification_msg.append("{} {} succeeded with warnings.".format(len(warned_jobs), self.jobs_label))
 
             wide_log(clr('[{}] Warnings: {} {} succeeded with warnings.').format(
                 self.label,
@@ -410,10 +412,8 @@ class ConsoleStatusController(threading.Thread):
                 self.label,
                 self.jobs_label))
         else:
-            if self.show_notifications:
-                notify("{} Incomplete".format(self.label.capitalize()),
-                       "{} {} were abandoned.".format(
-                    len(all_abandoned_jobs), self.jobs_label), icon_image='catkin_icon_red.png')
+            notification_title = "{} Incomplete".format(self.label.capitalize())
+            notification_msg.append("{} {} were abandoned.".format(len(all_abandoned_jobs), self.jobs_label))
 
             wide_log(clr('[{}] Abandoned: {} {} were abandoned.').format(
                 self.label,
@@ -426,15 +426,19 @@ class ConsoleStatusController(threading.Thread):
                 self.label,
                 self.jobs_label))
         else:
-            if self.show_notifications:
-                notify("{} Failed".format(self.label.capitalize()),
-                       "{} {} failed.".format(
-                    len(failed_jobs), self.jobs_label), icon_image='catkin_icon_red.png')
+            notification_title = "{} Failed".format(self.label.capitalize())
+            notification_msg.append("{} {} failed.".format(len(failed_jobs), self.jobs_label))
 
             wide_log(clr('[{}] Failed: {} {} failed.').format(
                 self.label,
                 len(failed_jobs),
                 self.jobs_label))
+
+        if self.show_notifications:
+            if len(all_abandoned_jobs) == 0:
+                notify(notification_title, "\n".join(notification_msg), icon_image='catkin_icon_red.png')
+            else:
+                notify(notification_title, "\n".join(notification_msg))
 
     def run(self):
         queued_jobs = []
