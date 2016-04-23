@@ -13,6 +13,7 @@ RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 def catkin_success(args, env={}):
     orig_environ = dict(os.environ)
+    print(">>> "+str(args))
     try:
         os.environ.update(env)
         catkin_main(args)
@@ -35,9 +36,8 @@ def test_ctest_merged():
     print(cwd)
     assert os.path.exists(os.path.join(source_space, 'test_pkg'))
 
-    with redirected_stdio() as (out, err):
-        assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
-        assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'test_pkg', '--make-args', 'test', 'ARGS="-V"'])
+    assert catkin_success(
+        ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
+    assert catkin_success(
+        ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
+         'test_pkg', '--make-args', 'test', 'ARGS="-V"'])
