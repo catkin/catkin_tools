@@ -36,6 +36,9 @@ def test_ctest_merged():
     print(cwd)
     assert os.path.exists(os.path.join(source_space, 'test_pkg'))
 
+    print('DYLD_LIBRARY_PATH: {}'.format(os.environ.get('DYLD_LIBRARY_PATH',
+                                                        'Undefined')))
+
     assert catkin_success(
         ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
     assert catkin_success(
