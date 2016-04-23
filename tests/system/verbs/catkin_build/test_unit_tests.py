@@ -37,7 +37,7 @@ def test_ctest_merged():
 
     with redirected_stdio() as (out, err):
         assert catkin_success(
-            ['build', '-p1', '--no-status', '--verbose', 'test_pkg'])
+            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
         assert catkin_success(
-            ['build',  '-p1', '--no-status', '--verbose', '--no-deps',
+            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
              'test_pkg', '--make-args', 'test', 'ARGS="-V"'])
