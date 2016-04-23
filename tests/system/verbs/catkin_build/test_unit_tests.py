@@ -4,60 +4,40 @@ import os
 import shutil
 
 from ....utils import in_temporary_directory
-from ....utils import assert_cmd_success
-from ....utils import assert_cmd_failure
-from ....utils import catkin_success
 from ....utils import redirected_stdio
+
+from catkin_tools.commands.catkin import main as catkin_main
 
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-
-@in_temporary_directory
-def test_build_pkg_unit_tests():
-    """Test running working unit tests"""
-    cwd = os.getcwd()
-    source_space = os.path.join(cwd, 'src')
-    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'python_tests'), source_space)
-    with redirected_stdio() as (out, err):
-        assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'python_tests', '--make-args', 'run_tests'])
-        assert_cmd_success(['catkin_test_results', 'build/python_tests'])
-
-        assert catkin_success(
-            ['run_tests', 'python_tests', '--no-deps', '--no-notify', '--no-status'])
-        assert_cmd_success(['catkin_test_results', 'build/python_tests'])
-
-
-@in_temporary_directory
-def test_build_pkg_unit_tests_broken():
-    """Test running broken unit tests"""
-    cwd = os.getcwd()
-    source_space = os.path.join(cwd, 'src')
-    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'python_tests_err'), source_space)
-
-    with redirected_stdio() as (out, err):
-        assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
-             'python_tests_err', '--make-args', 'run_tests'])
-        assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
-
-        assert catkin_success(
-            ['run_tests', 'python_tests_err', '--no-deps', '--no-notify', '--no-status'])
-        assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
-
+def catkin_success(args, env={}):
+    orig_environ = dict(os.environ)
+    try:
+        os.environ.update(env)
+        catkin_main(args)
+    except SystemExit as exc:
+        ret = exc.code
+        if ret != 0:
+            import traceback
+            traceback.print_exc()
+    finally:
+        os.environ = orig_environ
+    return ret == 0
 
 @in_temporary_directory
 def test_ctest_merged():
     """Test ctest-based tests with a merged develspace"""
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
+    assert os.path.exists(os.path.join(RESOURCES_DIR, 'cmake_pkgs'))
     shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'), source_space)
+    print(cwd)
+    assert os.path.exists(os.path.join(source_space, 'test_pkg'))
 
     with redirected_stdio() as (out, err):
         assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
+            ['build', '-p1', '--no-status', '--verbose', 'test_pkg'])
         assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
+            ['build',  '-p1', '--no-status', '--verbose', '--no-deps',
              'test_pkg', '--make-args', 'test', 'ARGS="-V"'])

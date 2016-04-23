@@ -81,7 +81,8 @@ class _MakeJobServer:
         documentation)
         """
 
-        assert(_MakeJobServer._singleton is None)
+        if(_MakeJobServer._singleton is not None):
+            return
 
         if not num_jobs:
             try:
@@ -230,7 +231,8 @@ def initialize_jobserver(*args, **kwargs):
     memory usage exceeds this value
     """
 
-    assert(_MakeJobServer._singleton is None)
+    if(_MakeJobServer._singleton is not None):
+        return
 
     # Check if the jobserver is supported
     supported = _test_support()
