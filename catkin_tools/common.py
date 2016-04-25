@@ -149,9 +149,9 @@ def format_time_delta_short(delta):
         days, date_str = date_str.split(', ')
     hours, minutes, seconds = date_str.split(':')
     msg = "" if int(days.split(' ')[0]) == 0 else days + " "
-    msg += "" if int(hours) == 0 else (hours + ":")
-    msg += "" if int(minutes) == 0 else (minutes + ":")
-    msg += ("{0:.1f}" if int(minutes) == 0 else "{0:04.1f}").format(float(seconds))
+    msg += "" if len(msg) == 0 and int(hours) == 0 else (hours + ":")
+    msg += "" if len(msg) == 0 and int(minutes) == 0 else (minutes + ":")
+    msg += ("{0:.1f}" if len(msg) == 0 and int(minutes) == 0 else "{0:04.1f}").format(float(seconds))
     return msg
 
 __recursive_build_depends_cache = {}
