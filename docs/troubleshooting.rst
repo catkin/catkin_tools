@@ -52,6 +52,30 @@ As a workaround, you can force CMake to ignore all specified root include direct
 
 This is actually a bug in CMake and has been reported here: https://cmake.org/Bug/view.php?id=15970
 
+Command-Line Output
+^^^^^^^^^^^^^^^^^^^
+
+Build Errors or Warnings Not Printing
+-------------------------------------
+
+By default, ``catkin build`` will only print error and warning messages which are written to ``stderr``.
+Even if a package fails, these messages will not be shown if they are only written to ``stdout``.
+
+If your build employs tools which print errors to ``stdout`` instead of ``stderr``, then you should use the ``--verbose-errors`` option.
+This will cause all captured output from a subprocess to be printed in the event of an error:
+
+.. code-block:: bash
+
+    catkin build --verbose-errors
+
+If you always want to use this option, you can add it as a verb alias.
+See :doc:`Verb Aliasing <advanced/verb_customization>` for more info on adding aliases.
+
+The following programs are known to redirect error messages to ``stdout``:
+
+- ``colorgcc`` - https://github.com/johannes/colorgcc
+
+
 
 Migration Problems
 ^^^^^^^^^^^^^^^^^^
