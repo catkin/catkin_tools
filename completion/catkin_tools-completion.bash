@@ -17,94 +17,127 @@ if [[ -n ${ZSH_VERSION-} ]]; then
   autoload -U +X bashcompinit && bashcompinit
 fi
 
+_catkin_last_option()
+{
+  # search backwards for the last given option
+  for (( i=${cword} ; i > 0 ; i-- )) ; do
+    if [[ ${words[i]} == -* ]]; then
+      echo ${words[i]}
+      return
+    fi
+  done
+}
+
+_catkin_verb()
+{
+  # search forwards to find catkin verb (neglecting global catkin opts)
+  for (( i=1 ; i < ${cword} ; i++ )) ; do
+    if [[ ${words[i]} == -* ]] ; then continue; fi
+    if [[ ${catkin_verbs} == *${words[i]}* ]] ; then
+      echo ${words[i]}
+      return
+    fi
+  done
+}
+
+_catkin_pkgs()
+{
+  # return list of all packages
+  catkin --no-color list --unformatted --quiet 2> /dev/null
+}
+
 # TODO:
 # - parse --workspace and --profile options in order to complete outside of cwd
-# - autocomplete build options
 
 _catkin()
 {
-  local cur prev catkin_verbs catkin_opts
-
-  COMPREPLY=()
-
-  cur=${COMP_WORDS[COMP_CWORD]}
-  prev=${COMP_WORDS[COMP_CWORD-1]}
+  local cur prev words cword catkin_verbs catkin_opts
+  _init_completion || return # this handles default completion (variables, redirection)
 
   # complete to the following verbs
-  catkin_verbs="build clean config create init list profile"
+  local catkin_verbs="build clean config create init list profile"
+
+  # filter for long options (from bash_completion)
+  local OPTS_FILTER='s/.*\(--[-A-Za-z0-9]\{1,\}=\{0,1\}\).*/\1/p'
 
   # complete to verbs ifany of these are the previous word
-  catkin_opts="--force-color --no-color --test-colors"
-
-  # complete popular catkin build options
-  catkin_build_opts="--help --dry-run --this --no-deps --unbuilt --start-with-this --continue-on-failure --force-cmake --pre-clean --get-env --verbose --interleave-output --no-status --summarize --no-notify --env-cache --no-env-cache"
-
-  # complete popular catkin clean options
-  catkin_clean_opts="--help --all --build --devel --install --cmake-cache --setup-files --orphans"
-
-  # complete popular catkin config options
-  catkin_config_opts="--help --init --extend --no-extend --install --no-install --whitelist --blacklist --no-whitelist --no-blacklist --cmake-args --make-args --catkin-make-args --space-suffix --merge-devel --link-devel --isolate-devel"
-
-  # complete popular catkin create options
-  catkin_create_pkg_opts="--help --version --license --maintainer --author --description --catkin-deps --system-deps --boost-components"
+  local catkin_opts=$(catkin --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
 
   # complete catkin profile subcommands
-  catkin_profile_args="add list remove rename set"
+  local catkin_profile_args="add list remove rename set"
 
-  if [[ ${COMP_CWORD} -eq 1 || ${catkin_opts} == *${prev}* ]] ; then
-    COMPREPLY=($(compgen -W "${catkin_verbs}" -- ${cur}))
-  else
-    if [[ "${COMP_WORDS[@]}" == *" build"* ]] ; then
+  local verb=$(_catkin_verb)
+  case ${verb} in
+    "")
       if [[ ${cur} == -* ]]; then
+        COMPREPLY=($(compgen -W "${catkin_opts}" -- ${cur}))
+      else
+        COMPREPLY=($(compgen -W "${catkin_verbs}" -- ${cur}))
+      fi
+      ;;
+    build)
+      if [[ ${cur} == -* ]]; then
+        local catkin_build_opts=$(catkin build --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
         COMPREPLY=($(compgen -W "${catkin_build_opts}" -- ${cur}))
       else
-        COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
+        COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
       fi
-    elif [[ "${COMP_WORDS[@]}" == *" config"* ]] ; then
-      if [[ "--whitelist --blacklist" == *${prev}* && ${cur} != -* ]] ; then
-        COMPREPLY=($(compgen -W "$(catkin --no-color list --unformatted --quiet)" -- ${cur}))
-      else
-        COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+      ;;
+    config)
+      # list all options
+      local catkin_config_opts=$(catkin config --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+      COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
+
+      # list package names when --whitelist or --blacklist was given as last option
+      if [[ ${cur} != -* && $(_catkin_last_option) == --*list ]] ; then
+        COMPREPLY+=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
       fi
-    elif [[ "${COMP_WORDS[@]}" == *" clean"* ]] ; then
+
+      # list directory names when useful
+      if [[ ${prev} == --extend || ${prev} == --*-space ]] ; then
+        # add directory completion
+        compopt -o nospace 2>/dev/null
+        COMPREPLY+=($(compgen -d -S "/" -- ${cur}))
+      fi
+      ;;
+    clean)
+      local catkin_clean_opts=$(catkin clean --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
       COMPREPLY=($(compgen -W "${catkin_clean_opts}" -- ${cur}))
-    elif [[ "${COMP_WORDS[@]}" == *" create"* ]] ; then
-      if [[ "${COMP_WORDS[@]}" == *" pkg"* ]] ; then
+      ;;
+    create)
+      if [[ "${words[@]}" == *" pkg"* ]] ; then
+        local catkin_create_pkg_opts=$(catkin create pkg --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
         COMPREPLY=($(compgen -W "${catkin_create_pkg_opts}" -- ${cur}))
       else
         COMPREPLY=($(compgen -W "pkg" -- ${cur}))
       fi
-    elif [[ "${COMP_WORDS[@]}" == *" profile"* ]] ; then
+      ;;
+    profile)
       case ${prev} in
         profile)
           COMPREPLY=($(compgen -W "${catkin_profile_args}" -- ${cur}))
           ;;
-        set)
-          COMPREPLY=($(compgen -W "$(catkin --no-color profile list --unformatted)" -- ${cur}))
-          ;;
-        rename)
-          COMPREPLY=($(compgen -W "$(catkin --no-color profile list --unformatted)" -- ${cur}))
-          ;;
-        remove)
+        set|rename|remove)
           COMPREPLY=($(compgen -W "$(catkin --no-color profile list --unformatted)" -- ${cur}))
           ;;
         *)
           COMPREPLY=()
           ;;
       esac
-    else
-      case ${prev} in
-        init)
-          COMPREPLY=()
-          ;;
-        list)
-          COMPREPLY=()
-          ;;
-        *)
-          COMPREPLY=()
-          ;;
-      esac
-    fi
+      ;;
+    init)
+      local catkin_init_opts=$(catkin init --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+      COMPREPLY=($(compgen -W "${catkin_init_opts}" -- ${cur}))
+      ;;
+    list)
+      local catkin_list_opts=$(catkin list --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+      COMPREPLY=($(compgen -W "${catkin_list_opts}" -- ${cur}))
+      ;;
+  esac
+
+  IFS="$OLDIFS"
+  if [[ ${#COMPREPLY[*]} -eq 1 ]]; then #Only one completion
+    COMPREPLY=( ${COMPREPLY[0]%% - *} ) #Remove ' - ' and everything after
   fi
 
   return 0

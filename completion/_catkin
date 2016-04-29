@@ -1,5 +1,5 @@
 #compdef catkin
-# Copyright 2015 Open Source Robotics Foundation, Inc.
+# Copyright 2016 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,10 +13,475 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-_catkin () {
-  local e
-  e=$(dirname ${funcsourcetrace[1]%:*})/catkin_tools-completion.bash
-  if [ -f $e ]; then
-    . $e
+# This is the completion script for the catkin command provided by catkin_tools
+#
+# TODO: Enable better completion for options after package names, look at the completion code for _beep as an example
+# Also consider https://github.com/git/git/blob/c2c5f6b1e479f2c38e0e01345350620944e3527f/contrib/completion/git-completion.zsh
+
+zstyle ':completion:*' sort no
+
+local _workspace_root_hint
+local _workspace_root
+local _workspace_profiles
+local _workspace_source_space
+local _enclosing_package
+local _getting_packages
+
+_workspace_root_hint="$PWD"
+
+# Logging function for development debugging
+function _debug_log() {
+  if [[ -n "$CATKIN_COMPLETION_DEBUG" ]]; then
+      echo $1 >> "$HOME/.config/catkin/completion.log"
   fi
 }
+
+# search backwards for the last given option
+_catkin_last_option() {
+  for (( i=${CURRENT} ; i > 0 ; i-- )) ; do
+    if [[ ${words[i]} == -* ]]; then
+      echo ${words[i]}
+      return
+    fi
+  done
+}
+
+# Get the workspace root (if available)
+_catkin_get_enclosing_workspace() {
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
+
+  local path
+  path="$1"
+
+  while [[ "$path" != "/" ]]; do
+    _debug_log "Checking $path/.catkin_tools"
+
+    if [[ -e "$path/.catkin_tools" ]]; then
+      _debug_log "Found workspace root $path"
+      _workspace_root=$path
+      return 0
+    else
+      path="$(/bin/readlink -f $path/..)"
+    fi
+  done
+
+  return 1
+}
+
+# Get the name of the enclosing package (if available)
+_catkin_get_enclosing_package() {
+  if [[ -n "$_enclosing_package" ]]; then
+    return 0
+  fi
+
+  local path
+  path="$1"
+
+  while [[ "$path" != "/" ]]; do
+    _debug_log "Checking $path/package.xml"
+
+    if [[ -e "$path/package.xml" ]]; then
+      _debug_log "Found package root $path"
+      # Get the package name
+      _enclosing_package="$(xmllint --xpath '/package/name/text()' '$path/package.xml')"
+      return 0
+    else
+      path="$(/bin/readlink -f $path/..)"
+    fi
+  done
+
+  return 1
+}
+
+# Cache is invalidated if the source space has been changed since the
+# package list was cached
+_catkin_packages_caching_policy() {
+  # Get the source space path
+  if [[ -z "$_workspace_source_space" ]]; then
+    _debug_log "Searching for source space..."
+
+    _workspace_src_space="$(catkin locate -s --quiet)"
+
+    # If the source space can't be found, regenerate cache
+    if [[ "$?" -ne "0" ]]; then
+      _debug_log "Source space can't be found"
+      return 1
+    fi
+  fi
+
+  # If the cache file is older than the source space
+  if [[ "$1" -ot "$_workspace_source_space" ]]; then
+    _debug_log "Cache is older than source space"
+    return 0
+  else
+    _debug_log "Cache is newer than source space"
+    return 1
+  fi
+}
+
+# Get the packages in the workspace containing the CWD
+_catkin_get_packages() {
+
+  local cache_policy
+  local cache_file_path
+
+  # Get the workspace root
+  _workspace_root="$(_catkin_get_enclosing_workspace $_workspace_root_hint)"
+
+  if [[ "$?" -ne 0 ]]; then
+    _debug_log "Couldn't get workspace root!"
+    return
+  fi
+
+  # Construct the path for the cache file
+  cache_file_path="$_workspace_root/.catkin_tools/cache"
+
+  _debug_log "Cache file path: $cache_file_path"
+
+  zstyle ":completion:${curcontext}:" use-cache on
+  zstyle ":completion:${curcontext}:" cache-path "$cache_file_path"
+  zstyle -s ":completion:${curcontext}:" cache-policy cache_policy
+  if [[ -z "$cache_policy" ]]; then
+    zstyle ":completion:${curcontext}:" cache-policy _catkin_packages_caching_policy
+  fi
+
+  if ( [[ ${+_workspace_packages} -eq 0 ]] || _cache_invalid workspace_packages ) \
+      && ! _retrieve_cache workspace_packages; then
+    _debug_log "Regenerating package cache..."
+    _workspace_packages=(${${(f)"$(catkin list -u --quiet)"}})
+    _store_cache workspace_packages _workspace_packages
+  fi
+
+  local expl
+  _wanted workspace_packages expl 'workspace packages' compadd -a _workspace_packages && return 0
+  return 1
+}
+
+# Get the profiles in the workspace containing the CWD
+_catkin_get_profiles() {
+  if [[ -z "$_workspace_profiles" ]]; then
+
+    _debug_log "Getting profiles... ($_workspace_profiles)"
+
+    _workspace_profiles=(${${(f)"$(catkin profile list -u)"}})
+    if [[ "$?" -ne 0 ]]; then
+      return
+    fi
+  fi
+
+  local expl
+  _wanted workspace_profiles expl 'workspace profiles' compadd -a _workspace_profiles
+}
+
+_catkin_verbs_complete() {
+  local verbs_array;
+  verbs_array=(
+    'build:Build packages'
+    'clean:Clean workspace components'
+    'config:Configure workspace'
+    'create:Create workspace components'
+    'env:Run commands in a modified environment'
+    'init:Initialize workspace'
+    'list:List workspace components'
+    'locate:Locate workspace components'
+    'profile:Switch between configurations'
+  )
+  _describe -t verbs 'catkin verb' verbs_array -V verbs && return 0
+}
+
+_catkin_build_complete() {
+  # Determine if we're in a package, and should autocomplete context-aware options
+  local build_opts
+
+  #this_package=$(catkin list --this -u --quiet)
+  _catkin_get_enclosing_package "$PWD"
+
+  if [[ -n $_enclosing_package ]]; then
+    _debug_log "In package $this_package"
+    build_opts=(\
+      "(--unbuilt)--this[Build '$this_package']"\
+      "(--start-with)--start--with--this[Skip all packages on which `$this_package` depends]"\
+      )
+  else
+    _debug_log "Not in a package"
+    build_opts=()
+  fi
+
+  # Add all other options
+  build_opts+=(
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[The workspace to build]:workspace:_files'\
+    '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
+    {-n,--dry-run}'[Show build process without actually building]'\
+    {-v,--verbose}'[Print all output from build commands]'\
+    {-i,--interleave}"[Print output from build commands as it's generated]"\
+    {-c,--continue-on-failure}'[Build all selected packages even if some fail]'\
+    '--get-env[Print the environment for a given workspace]:package:_catkin_get_packages'\
+    '--force-cmake[Force CMake to run for each package]'\
+    '--pre-clean[Execute clean target before building]'\
+    '(--this)--unbuilt[Build packages which have not been built]'\
+    '(--start-with-this)--start-with[Skip all packages on which a package depends]:package:_catkin_get_packages'\
+    '--save-config[Save configuration options]'\
+    '--no-deps[Only build specified packages]'\
+    '*:package:_catkin_get_packages')
+
+  _arguments -C $build_opts && return 0
+}
+
+_catkin_clean_complete() {
+  # Determine if we're in a package, and should autocomplete context-aware options
+  local clean_opts
+
+  #this_package=$(catkin list --this -u --quiet)
+  _catkin_get_enclosing_package "$PWD"
+
+  if [[ -n $_enclosing_package ]]; then
+    _debug_log "In package $this_package"
+    clean_opts=()
+  else
+    _debug_log "Not in a package"
+    clean_opts=()
+  fi
+
+  # Add all other options
+  clean_opts+=(
+  {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[Workspace path]:workspace:_files -/'\
+    '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
+    {-v,--verbose}'[Print all output from build commands]'\
+    {-n,--dry-run}'[Show build process without actually building]'\
+    {-y,--yes}'[Assume "yes" to all interactive checks]'\
+    {-f,--force}'[Allow cleaning files outside of the workspace root]'\
+    '--all-profiles[Apply the clean operation to all profiles]'\
+    '--deinit[De-initialize the workspace]'\
+    {-l,--logs}'[Remove the log space]'\
+    {-b,--build}'[Remove the build space]'\
+    {-d,--devel}'[Remove the devel space]'\
+    {-i,--install}'[Remove the install space]'\
+    '--dependents[Clean all packages which depend on a specified package]'\
+    '--orphans[Clean any packages which are no longer in the source space]'\
+    '*:package:_catkin_get_packages')
+
+  _arguments -C $clean_opts && return 0
+}
+
+_catkin_config_complete() {
+  local config_opts
+  config_opts=(\
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[Workspace path]:workspace:_files -/'\
+    '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
+    {-a,--append-args}'[Append elements for list-type arguments]'\
+    {-r,--remove-args}'[Remove elements for list-type arguments]'\
+    '--init[Initialize a workspace]'\
+    {-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
+    '--no-extend[Unset the explicit extension of another workspace]'\
+    '(--no-whitelist)--whitelist[Set the packages on the whitelist]:package:->packages'\
+    '(--no-blacklist)--blacklist[Set the packages on the blacklist]:package:->packages'\
+    '(--whitelist)--no-whitelist[Clear the whitelist]'\
+    '(--blacklist)--no-blacklist[Clear the blacklist]'\
+    '(--default-source-space)'{-s,--source-space}'[Source space path]'\
+    '(--default-build-space)'{-b,--build-space}'[Build space path]'\
+    '(--default-devel-space)'{-d,--devel-space}'[Devel space path]'\
+    '(--default-install-space)'{-i,--install-space}'[Install space path]'\
+    {-x,--space-suffix}'[Suffix for build, devel, and install spaces]:suffix:()'\
+    '--merge-devel[Build products directly into a merged devel space]'\
+    '--link-devel[Symbolically link products into a merged devel space]'\
+    '--isolate-devel[Isolate devel speaces for each package]')
+
+  _arguments -C $config_opts && return 0
+  return 1
+}
+
+_catkin_profile_complete() {
+  local profile_verbs;
+
+  _arguments -C \
+    {-h,--help}'[Show usage help]'\
+    ':profile_verbs:->profile_verbs'\
+    '*:: :->args'\
+    && return 0
+
+  case "$state" in
+    (profile_verbs)
+      profile_verbs=(
+      'list:List the profiles'
+      'set:Set the active profile'
+      'rename:Rename a profile'
+      'remove:Remove a profile'
+      )
+      _describe -t profile_verbs 'profile_verb' profile_verbs && return 0
+      ;;
+    (args)
+      case $line[1] in
+        (set|rename|remove) 
+          local expl
+          _wanted workspace_profiles expl "workspace profiles" _catkin_get_profiles && return 0
+          ;;
+      esac
+      ;;
+  esac;
+
+  return 1
+}
+
+_catkin_create_complete() {
+  local create_verbs;
+
+  _arguments -C \
+    {-h,--help}'[Show usage help]'\
+    ':create_verbs:->create_verbs'\
+    '*:: :->args'\
+    && return 0
+
+  case "$state" in
+    (create_verbs)
+      create_verbs=(
+      'pkg:Create a new catkin package'
+      )
+      _describe -t create_verbs 'create_verbs' create_verbs && return 0
+      ;;
+    (args)
+      case $line[1] in
+        (pkg) 
+          local pkg_opts
+          pkg_opts=(\
+            {-h,--help}'[Show usage help]'\
+            {-p,--path}'[The path into which the package should be generated]:path:_files'\
+            '--rosdistro[Which ROS distro to use for the template]:rosdistro:(hydro indigo jade kinetic)'\
+            {-v,--version}'[Version MAJOR.MINOR.PATCH]:version'\
+            {-l,--license}'[Software license for distribution]:license:(BSD MIT GPLV3)'\
+            {-d,--description}'[Package description]:description'\
+            '*'{-m,--maintainer}'[Maintainer NAME EMAIL]:m_name:( ):m_email:( )'
+            '*'{-c,--catkin-deps}'[Catkin packages]:dep:( )'\
+            '*'{-s,--system-packages}'[System packages]:dep:( )'\
+            '*--boost-components[Boost C++ components]:dep:( )'\
+              )
+
+          _arguments -C $pkg_opts && return 0
+          ;;
+      esac
+      ;;
+  esac;
+
+  return 1
+}
+
+_catkin_env_complete() {
+  local env_opts
+  env_opts=(\
+    {-h,--help}'[Show usage help]'\
+    {-i,--ignore-environment}'[Start with an empty environment]'\
+    {-s,--stdin}'[Read environment definitions from stdin]')
+
+  _arguments -C $env_opts && return 0
+  return 1
+}
+
+_catkin_init_complete() {
+  local init_opts
+  init_opts=(\
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[Workspace path]:workspace:_files -/'\
+    '--reset[Reset all metadata in the workspace]')
+
+  _arguments -C $init_opts && return 0
+  return 1
+}
+
+_catkin_list_complete() {
+  local list_opts
+  list_opts=(\
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[Workspace path]:workspace:_files -/'\
+    '--this[Get the name of the package enclosing the current working directory]'\
+    '--deps[Show direct dependencies of each package]'\
+    '--rdeps[Show recursive dependencies of each package]'\
+    '--quiet[Suppress warnings]'\
+    {-u,--unformatted}'[Suppress warnings]'\
+    )
+
+  _arguments -C $list_opts && return 0
+  return 1
+}
+
+_catkin_locate_complete() {
+  local locate_opts
+  locate_opts=(\
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[Workspace path]:workspace:_files -/'\
+    {-e,--existing-only}'[Only print existing paths]'\
+    {-r,--relateive}'[Format paths relative to the working directory]'\
+    {-q,--quiet}'[Suppress warnings]'\
+    {-s,--src}'[Get the path to the source space]'\
+    {-b,--build}'[Get the path to the build space]'\
+    {-d,--devel}'[Get the path to the devel space]'\
+    {-i,--install}'[Get the path to the install space]'\
+    )
+
+  _arguments -C $locate_opts && return 0
+  return 1
+}
+
+
+local curcontext="$curcontext" state line ret
+
+ret=1
+
+# Define the root arguments for the catkin command
+_arguments -C \
+  {-h,--help}'[Show usage help]'\
+  '--version[Show catkin_tools version]'\
+  '--force-color[Force colored output]'\
+  '--no-color[Force non-colored output]'\
+  ':verb:->verb'\
+  '*::options:->options' && ret=0
+
+_debug_log "---"
+_debug_log "state: $state"
+_debug_log "line: $line"
+_debug_log "words: $words"
+_debug_log "CURRENT: $CURRENT"
+_debug_log "PREFIX: $PREFIX"
+_debug_log "IPREFIX: $IPREFIX"
+_debug_log "SUFFIX: $SUFFIX"
+_debug_log "ISUFFIX: $ISUFFIX"
+
+# Switch to getting packages
+case "$state" in
+  (verb)
+    _alternative _catkin_verbs_complete && ret=0
+    ;;
+  (options)
+    case $line[1] in
+      (build) _catkin_build_complete && ret=0 
+        ;;
+      (clean) _catkin_clean_complete && ret=0 
+        ;;
+      (config) 
+        if [[ "$(_catkin_last_option)" =~ "--(black|white)list" ]]; then
+          _catkin_get_packages && ret=0
+        else
+          _catkin_config_complete && ret=0 
+        fi
+        ;;
+      (create) _catkin_create_complete && ret=0
+        ;;
+      (env) _catkin_env_complete && ret=0 
+        ;;
+      (init) _catkin_init_complete && ret=0 
+        ;;
+      (list) _catkin_list_complete && ret=0 
+        ;;
+      (locate) _catkin_locate_complete && ret=0 
+        ;;
+      (profile) _catkin_profile_complete && ret=0 
+        ;;
+    esac
+    ret=0
+    ;;
+esac
+
+return ret

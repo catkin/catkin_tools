@@ -58,15 +58,17 @@ def _resolve_prefix(prefix, type):
 
 def get_data_files(prefix):
     data_files = []
+
+    # Bash completion
     bash_comp_dest = os.path.join(_resolve_prefix(prefix, 'bash_comp'),
                                   'etc/bash_completion.d')
     data_files.append((bash_comp_dest,
                        ['completion/catkin_tools-completion.bash']))
+
+    # Zsh completion
     zsh_comp_dest = os.path.join(_resolve_prefix(prefix, 'zsh_comp'),
                                  'share/zsh/site-functions')
-    data_files.append((zsh_comp_dest,
-                       ['completion/_catkin',
-                        'completion/catkin_tools-completion.bash']))
+    data_files.append((zsh_comp_dest, ['completion/_catkin']))
     return data_files
 
 
