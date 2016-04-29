@@ -52,7 +52,7 @@ To make iterating easier, use ``catkin_make`` with build and devel spaces with t
 .. code-block:: bash
 
     cd /path/to/ws
-    catkin_make --build build_cm --devel devel_cm --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+    catkin_make --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
 
 If your packages build and other appropriate tests pass, continue to the next step.
 
@@ -79,7 +79,7 @@ Since ``catkin build`` stores build configuration, you only need to set your CMa
 .. code-block:: bash
 
     cd /path/to/ws
-    catkin config --suffix _cb --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+    catkin config --space-suffix _cb --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
 
 Then you can build with ``catkin build``.
 If issues arise, try to use the troubleshooting advice later in this chapter and in the :doc:`main Troubleshooting chapter <troubleshooting>`.
