@@ -25,6 +25,19 @@ from .events import ExecutionEvent
 
 MAX_LOGFILE_HISTORY = 10
 
+if type(u'') == str:
+    def _encode(string):
+        """Encode a Python 3 str into bytes.
+        :type data: str
+        """
+        return string.encode('utf-8')
+else:
+    def _encode(string):
+        """Encode a Python 2 str into bytes.
+        :type data: str
+        """
+        return string.decode('utf-8').encode('utf-8')
+
 
 class IOBufferContainer(object):
 
@@ -109,7 +122,7 @@ class IOBufferContainer(object):
         """Encode a Python str into bytes.
         :type data: str
         """
-        return data.encode('utf-8')
+        return _encode(data)
 
     def _decode(self, data):
         """Decode bytes into Python str.
