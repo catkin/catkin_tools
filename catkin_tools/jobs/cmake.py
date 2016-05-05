@@ -255,6 +255,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
             ([CMAKE_EXEC,
               pkg_dir,
               '--no-warn-unused-cli',
+              '-DCMAKE_MACOSX_RPATH=On',
               '-DCMAKE_INSTALL_PREFIX=' + final_path] +
              context.cmake_args),
             cwd=build_space,
