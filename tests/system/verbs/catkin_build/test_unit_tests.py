@@ -53,13 +53,17 @@ def test_ctest_merged():
     """Test ctest-based tests with a merged develspace"""
     cwd = os.getcwd()
     source_space = os.path.join(cwd, 'src')
-    shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'), source_space)
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
+                    os.path.join(source_space, 'cmake_pkgs'))
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'make_warning'),
+                    os.path.join(source_space, 'make_warning'))
 
     with redirected_stdio() as (out, err):
         assert catkin_success(
             ['config', '--merge-devel', '--init'])
         assert catkin_success(
-            ['build', '--no-notify', '--no-status', '--verbose', 'test_pkg'])
+            ['build', '--no-notify', '--no-status', '--verbose',
+             'make_warning', 'test_pkg'])
         assert catkin_success(
             ['build', '--no-notify', '--no-status', '--verbose', '--no-deps',
              'test_pkg', '--make-args', 'test', 'ARGS="-V"'])
