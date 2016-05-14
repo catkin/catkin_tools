@@ -135,11 +135,6 @@ _catkin()
       ;;
   esac
 
-  IFS="$OLDIFS"
-  if [[ ${#COMPREPLY[*]} -eq 1 ]]; then #Only one completion
-    COMPREPLY=( ${COMPREPLY[0]%% - *} ) #Remove ' - ' and everything after
-  fi
-
   return 0
 }
 
