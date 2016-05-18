@@ -16,15 +16,15 @@ First you must have the ROS repositories which contain the ``.deb`` for ``catkin
 
 .. code-block:: bash
 
-    $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
-    $ wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+    sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+    wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
 
 Once you have added that repository, run these commands to install ``catkin_tools``:
 
 .. code-block:: bash
 
-    $ sudo apt-get update
-    $ sudo apt-get install python-catkin-tools
+    sudo apt-get update
+    sudo apt-get install python-catkin-tools
 
 Installing on other platforms with pip
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,7 +33,7 @@ Simply install it with ``pip``:
 
 .. code-block:: bash
 
-    $ sudo pip install -U catkin_tools
+    sudo pip install -U catkin_tools
 
 Installing from source
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -42,20 +42,20 @@ First clone the source for ``catkin_tools``:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/catkin/catkin_tools.git
-    $ cd catkin_tools
+    git clone https://github.com/catkin/catkin_tools.git
+    cd catkin_tools
 
 Then install the dependencies with ``pip``:
 
 .. code-block:: bash
 
-    $ pip install -r requirements.txt --upgrade
+    pip install -r requirements.txt --upgrade
 
 Then install with the ``setup.py`` file:
 
 .. code-block:: bash
 
-    $ python setup.py install --record install_manifest.txt
+    python setup.py install --record install_manifest.txt
 
 .. note::
 
@@ -72,14 +72,14 @@ To setup ``catkin_tools`` for fast iteration during development, use the ``devel
 
 .. code-block:: bash
 
-    $ python setup.py develop
+    python setup.py develop
 
 Now the commands, like ``catkin``, will be in the system path and the local source files located in the ``catkin_tools`` folder will be on the ``PYTHONPATH``.
 When you are done with your development, undo this by running this command:
 
 .. code-block:: bash
 
-    $ python setup.py develop -u
+    python setup.py develop -u
 
 
 Uninstalling from Source
@@ -89,4 +89,4 @@ If you installed from source with the ``--record`` option, you can run the follo
 
 .. code-block:: bash
 
-    $ cat install_manifest.txt | xargs rm -rf
+    cat install_manifest.txt | xargs rm -rf
