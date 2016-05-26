@@ -243,14 +243,33 @@ def link_devel_products(
 
         # create directories in the destination develspace
         for dirname in dirs:
+            source_dir = os.path.join(source_path, dirname)
             dest_dir = os.path.join(dest_path, dirname)
 
-            if not os.path.exists(dest_dir):
-                # Create the dest directory if it doesn't exist
-                os.mkdir(dest_dir)
-            elif not os.path.isdir(dest_dir):
-                logger.err('Error: Cannot create directory: ' + dest_dir)
-                return -1
+            if os.path.islink(source_dir):
+                # Store the source/dest pair
+                products.append((source_dir, dest_dir))
+
+                if os.path.exists(dest_dir):
+                    if os.path.realpath(dest_dir) != os.path.realpath(source_dir):
+                        files_that_collide.append(dest_dir)
+                    else:
+                        logger.out('Linked: ({}, {})'.format(source_dir, dest_dir))
+                else:
+                    # Create a symlink
+                    logger.out('Symlinking %s' % (dest_file))
+                    try:
+                        os.symlink(source_dir, dest_dir)
+                    except OSError:
+                        logger.err('Could not create symlink `{}` referencing `{}`'.format(dest_dir, source_dir))
+                        raise
+            else:
+                if not os.path.exists(dest_dir):
+                    # Create the dest directory if it doesn't exist
+                    os.mkdir(dest_dir)
+                elif not os.path.isdir(dest_dir):
+                    logger.err('Error: Cannot create directory: {}'.format(dest_dir))
+                    return -1
 
         # create symbolic links from the source to the dest
         for filename in files:
