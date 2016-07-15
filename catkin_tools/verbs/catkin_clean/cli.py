@@ -19,6 +19,7 @@ try:
 except NameError:
     raw_input = input
 
+import fnmatch
 import os
 import shutil
 import sys
@@ -144,6 +145,8 @@ def prepare_arguments(parser):
     add = advanced_group.add_argument
     add('--setup-files', action='store_true', default=False,
         help='Clear the catkin-generated setup files from the devel and install spaces.')
+    add('--pyc', action='store_true', default=False,
+        help='Remove pyc files from the source space.')
 
     return parser
 
@@ -172,7 +175,7 @@ def clean_profile(opts, profile):
     actions = [
         'build', 'devel', 'install', 'logs',
         'packages', 'orphans',
-        'deinit',  'setup_files']
+        'deinit',  'setup_files', 'pyc']
 
     logs_exists = os.path.exists(ctx.log_space_abs)
     build_exists = os.path.exists(ctx.build_space_abs)
@@ -192,9 +195,9 @@ def clean_profile(opts, profile):
 
     # Initialize action options
     if clean_all:
-        opts.logs = opts.build = opts.devel = opts.install = True
+        opts.logs = opts.build = opts.devel = opts.install = opts.pyc = True
 
-    # Make sure the user intends to clena everything
+    # Make sure the user intends to clean everything
     spaces_to_clean = (opts.logs or opts.build or opts.devel or opts.install)
     spaces_to_clean_msgs = []
 
@@ -274,6 +277,19 @@ def clean_profile(opts, profile):
             log("[clean] Removing log space: {}".format(ctx.log_space_abs))
             if not opts.dry_run:
                 safe_rmtree(ctx.log_space_abs, ctx.workspace, opts.force)
+
+        # Clean pyc files
+        if opts.pyc:
+            pyc_filepaths = []
+            for root, dirnames, filenames in os.walk(ctx.source_space_abs):
+                for filename in fnmatch.filter(filenames, "*.pyc"):
+                    pyc_filepaths.append(os.path.join(root, filename))
+
+            if pyc_filepaths:
+                log("[clean] Removing *.pyc files from src directory: {}".format(ctx.source_space_abs))
+                if not opts.dry_run:
+                    for filepath in pyc_filepaths:
+                        os.remove(filepath)
 
         # Find orphaned packages
         if ctx.link_devel and not any([opts.build, opts.devel]):
