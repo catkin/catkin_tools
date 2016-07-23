@@ -50,32 +50,25 @@ def get_env_loaders(package, context):
     return sources
 
 
-def get_env_loader(package, context):
-    """This function returns a function object which extends a base environment
-    based on a set of environments to load."""
+def load_env(logger, event_queue, job_env, package, context):
+    # Get the paths to the env loaders
+    env_loader_paths = get_env_loaders(package, context)
+    # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
+    if context.destdir is not None:
+        job_env['_CATKIN_SETUP_DIR'] = context.package_dest_path(package)
 
-    def load_env(base_env):
-        # Copy the base environment to extend
-        job_env = dict(base_env)
-        # Get the paths to the env loaders
-        env_loader_paths = get_env_loaders(package, context)
-        # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
-        if context.destdir is not None:
-            job_env['_CATKIN_SETUP_DIR'] = context.package_dest_path(package)
+    for env_loader_path in env_loader_paths:
+        if logger:
+            logger.out('Loading environment from: {}'.format(env_loader_path))
+        resultspace_env = get_resultspace_environment(
+            os.path.split(env_loader_path)[0],
+            base_env=job_env,
+            quiet=True,
+            cached=context.use_env_cache,
+            strict=False)
+        job_env.update(resultspace_env)
 
-        for env_loader_path in env_loader_paths:
-            # print(' - Loading resultspace env from: {}'.format(env_loader_path))
-            resultspace_env = get_resultspace_environment(
-                os.path.split(env_loader_path)[0],
-                base_env=job_env,
-                quiet=True,
-                cached=context.use_env_cache,
-                strict=False)
-            job_env.update(resultspace_env)
-
-        return job_env
-
-    return load_env
+    return 0
 
 
 def makedirs(logger, event_queue, path):

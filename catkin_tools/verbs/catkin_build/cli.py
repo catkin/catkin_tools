@@ -48,7 +48,7 @@ from catkin_tools.context import Context
 
 import catkin_tools.execution.job_server as job_server
 
-from catkin_tools.jobs.utils import get_env_loader
+from catkin_tools.jobs.utils import load_env
 
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata
@@ -228,7 +228,8 @@ def print_build_env(context, package_name):
     # Load the environment used by this package for building
     for pth, pkg in workspace_packages.items():
         if pkg.name == package_name:
-            environ = get_env_loader(pkg, context)(os.environ)
+            environ = dict(os.environ)
+            load_env(None, None, environ, pkg, context)
             print(format_env_dict(environ))
             return 0
     print('[build] Error: Package `{}` not in workspace.'.format(package_name),
