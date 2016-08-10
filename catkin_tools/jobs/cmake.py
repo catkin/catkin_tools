@@ -218,7 +218,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     # Package metadata path
     metadata_path = context.package_metadata_path(package)
     # Environment dictionary for the job, which will be built
-    # up by the executions in the getenv stage.
+    # up by the executions in the loadenv stage.
     job_env = dict(os.environ)
 
     # Get actual staging path
@@ -353,24 +353,11 @@ def create_cmake_clean_job(
     build_space = context.package_build_space(package)
     # Package metadata path
     metadata_path = context.package_metadata_path(package)
-    # Environment dictionary for the job, which will be built
-    # up by the executions in the getenv stage.
-    job_env = dict(os.environ)
+    # Environment dictionary for the job, empty for a clean job
+    job_env = {}
 
-    # Create job stages
     stages = []
 
-    # Get environment for job.
-    stages.append(FunctionStage(
-        'getenv',
-        load_env,
-        locked_resource='installspace',
-        job_env=job_env,
-        package=package,
-        context=context
-    ))
-
-    # Remove installed files
     if clean_install and context.install:
         installed_files = get_installed_files(context.package_metadata_path(package))
         stages.append(FunctionStage(
