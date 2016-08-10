@@ -35,7 +35,7 @@ from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
 from .utils import copyfiles
-from .utils import load_env
+from .utils import loadenv
 from .utils import makedirs
 from .utils import rmfiles
 
@@ -357,10 +357,10 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # Create job stages
     stages = []
 
-    # Get environment for job.
+    # Load environment for job.
     stages.append(FunctionStage(
-        'getenv',
-        load_env,
+        'loadenv',
+        loadenv,
         locked_resource='installspace',
         job_env=job_env,
         package=package,

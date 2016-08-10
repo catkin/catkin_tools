@@ -50,7 +50,7 @@ def get_env_loaders(package, context):
     return sources
 
 
-def load_env(logger, event_queue, job_env, package, context):
+def loadenv(logger, event_queue, job_env, package, context):
     # Get the paths to the env loaders
     env_loader_paths = get_env_loaders(package, context)
     # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
