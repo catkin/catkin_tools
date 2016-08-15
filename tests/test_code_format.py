@@ -1,19 +1,20 @@
-import flake8.engine
 import os
+import sys
+import subprocess
 
 
 def test_flake8():
     """Test source code for pyFlakes and PEP8 conformance"""
-    flake8style = flake8.engine.StyleGuide(max_line_length=120)
-    report = flake8style.options.report
-    report.start()
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    try:
-        input_dir = flake8style.input_dir
-    except AttributeError:
-        input_dir = flake8style._styleguide.input_dir
-    input_dir(os.path.join(this_dir, '..', 'catkin_tools'))
-    report.stop()
-    assert report.total_errors == 0, \
-        ("Found '{0}' code style errors (and warnings)."
-         .format(report.total_errors))
+    source_dir = os.path.join(this_dir, '..', 'catkin_tools')
+    cmd = ['flake8', source_dir, '--count', '--max-line-length=120']
+    # work around for https://gitlab.com/pycqa/flake8/issues/179
+    cmd.extend(['--jobs', '1'])
+    if sys.version_info < (3,4):
+        # Unless Python3, skip files with new syntax, like `yield from`
+        cmd.append('--exclude=*async_execute_process_asyncio/impl.py')
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = p.communicate()
+    print(stdout)
+    assert p.returncode == 0, \
+        "Command '{0}' returned non-zero exit code '{1}'".format(' '.join(cmd), p.returncode)
