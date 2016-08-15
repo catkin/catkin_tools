@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 
 
@@ -10,9 +9,6 @@ def test_flake8():
     cmd = ['flake8', source_dir, '--count', '--max-line-length=120']
     # work around for https://gitlab.com/pycqa/flake8/issues/179
     cmd.extend(['--jobs', '1'])
-    if sys.version_info < (3,4):
-        # Unless Python3, skip files with new syntax, like `yield from`
-        cmd.append('--exclude=*async_execute_process_asyncio/impl.py')
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = p.communicate()
     print(stdout)
