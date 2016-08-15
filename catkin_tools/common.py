@@ -245,9 +245,9 @@ def get_recursive_depends_in_workspace(
 
     # Return packages in the same order as ordered_packages
     ordered_recursive_deps = [
-        (pth, pkg)
-        for pth, pkg in ordered_packages
-        if pkg.name in recursive_deps
+        (pth, pkg_obj)
+        for pth, pkg_obj in ordered_packages
+        if pkg_obj.name in recursive_deps
     ]
 
     return ordered_recursive_deps
