@@ -49,6 +49,11 @@ try:
 except NameError:
     string_type = str
 
+try:
+    unicode_type = unicode
+except NameError:
+    unicode_type = str
+
 
 class FakeLock(asyncio.locks.Lock):
 
@@ -380,7 +385,7 @@ def log(*args, **kwargs):
     except UnicodeEncodeError:
         # Strip unicode characters from string args
         sanitized_args = [unicode_sanitizer.sub('?', a)
-                          if type(a) in [str, unicode]
+                          if type(a) in [str, unicode_type]
                           else a
                           for a in args]
         print(*sanitized_args, **kwargs)
