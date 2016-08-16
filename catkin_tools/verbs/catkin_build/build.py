@@ -459,7 +459,7 @@ def build_isolated_workspace(
 
     # It's a problem if there aren't any build types available
     if len(build_job_creators) == 0:
-        sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
+        sys.exit('Error: No build types available. Please check your catkin_tools installation.')
 
     # Construct jobs
     for pkg_path, pkg in all_packages:
