@@ -49,6 +49,11 @@ try:
 except NameError:
     string_type = str
 
+try:
+    unicode_type = unicode
+except NameError:
+    unicode_type = str
+
 
 class FakeLock(asyncio.locks.Lock):
 
@@ -245,9 +250,9 @@ def get_recursive_depends_in_workspace(
 
     # Return packages in the same order as ordered_packages
     ordered_recursive_deps = [
-        (pth, pkg)
-        for pth, pkg in ordered_packages
-        if pkg.name in recursive_deps
+        (pth, pkg_obj)
+        for pth, pkg_obj in ordered_packages
+        if pkg_obj.name in recursive_deps
     ]
 
     return ordered_recursive_deps
@@ -380,7 +385,7 @@ def log(*args, **kwargs):
     except UnicodeEncodeError:
         # Strip unicode characters from string args
         sanitized_args = [unicode_sanitizer.sub('?', a)
-                          if type(a) in [str, unicode]
+                          if type(a) in [str, unicode_type]
                           else a
                           for a in args]
         print(*sanitized_args, **kwargs)
