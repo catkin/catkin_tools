@@ -679,6 +679,7 @@ class ConsoleStatusController(threading.Thread):
                             max(0, self.max_jid_length - len(event.data['job_id'])),
                             event.data['retcode'])
 
+                lines_target = sys.stdout
                 if self.show_buffered_stdout:
                     if len(event.data['interleaved']) > 0:
                         lines = [
@@ -697,6 +698,7 @@ class ConsoleStatusController(threading.Thread):
                             for l in event.data['stderr'].splitlines(True)
                             if (self.show_compact_io is False or len(l.strip()) > 0)
                         ]
+                        lines_target = sys.stderr
                     else:
                         header_border = None
                         header_title = None
@@ -713,7 +715,7 @@ class ConsoleStatusController(threading.Thread):
                     if header_title:
                         wide_log(header_title)
                     if len(lines) > 0:
-                        wide_log(''.join(lines), end='\r')
+                        wide_log(''.join(lines), end='\r', file=lines_target)
                     if footer_border:
                         wide_log(footer_border)
                     if footer_title:
@@ -721,7 +723,7 @@ class ConsoleStatusController(threading.Thread):
 
             elif 'STDERR' == eid:
                 if self.show_live_stderr and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\r')
+                    wide_log(self.format_interleaved_lines(event.data), end='\r', file=sys.stderr)
 
             elif 'STDOUT' == eid:
                 if self.show_live_stdout and len(event.data['data']) > 0:
