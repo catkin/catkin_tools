@@ -332,7 +332,7 @@ def build_isolated_workspace(
     # NOTE: This is done to avoid the Catkin CMake code from doing it,
     # which isn't parallel-safe. Catkin CMake only modifies this file if
     # it's package source path isn't found.
-    if not context.install:
+    if True: #not context.install:
         dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
         # If the file exists, get the current paths
         if os.path.exists(dot_catkin_file_path):
