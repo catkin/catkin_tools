@@ -1,5 +1,5 @@
 ``catkin fetch`` -- Fetch dependencies of all packages in workspace
-=============================================
+===================================================================
 
 
 The ``fetch`` verb for the ``catkin`` command is used to download dependencies of the packages.
