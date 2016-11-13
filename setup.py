@@ -150,6 +150,7 @@ setup(
             'list = catkin_tools.verbs.catkin_list:description',
             'locate = catkin_tools.verbs.catkin_locate:description',
             'profile = catkin_tools.verbs.catkin_profile:description',
+            'fetch = catkin_tools.verbs.catkin_fetch:description',
         ],
         'catkin_tools.jobs': [
             'catkin = catkin_tools.jobs.catkin:description',
