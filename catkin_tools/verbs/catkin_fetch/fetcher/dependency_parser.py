@@ -52,7 +52,7 @@ class Parser(object):
         dep_dict = {}
         for dependency in all_deps_list:
             dep_dict[dependency] = self.__download_mask.format(
-                                            package=dependency)
+                package=dependency)
         return dep_dict
 
     @staticmethod
@@ -62,8 +62,8 @@ class Parser(object):
 
     @staticmethod
     def __get_package_xml_path(folder):
-      for file in os.listdir(folder):
-        if file == Parser.XML_FILE_NAME:
-            full_path = path.join(folder, file)
-            return full_path
-      return None
+        for file in os.listdir(folder):
+            if file == Parser.XML_FILE_NAME:
+                full_path = path.join(folder, file)
+                return full_path
+        return None

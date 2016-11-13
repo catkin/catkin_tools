@@ -13,7 +13,6 @@ class Downloader(object):
     GIT_CHECK_CMD_MASK = "git ls-remote {url}"
     GIT_CLONE_CMD_MASK = "git clone --recursive {url} {path}"
 
-
     def __init__(self, ws_path, available_pkgs, log_level="INFO"):
         super(Downloader, self).__init__()
         self.ws_path = ws_path

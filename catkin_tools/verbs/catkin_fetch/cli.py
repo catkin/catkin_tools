@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from os import path
 
 try:
     from catkin_pkg.packages import find_packages
-    from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
         'ImportError: "from catkin_pkg.topological_order import '
@@ -64,8 +64,8 @@ def main(opts):
     context = Context.load(opts.workspace, opts.profile, opts, append=True)
     workspace_packages = find_packages(context.source_space_abs,
                                        exclude_subspaces=True, warnings=[])
-    #TODO: get rid of this hardcoded path, add this as parameter or even
-    #setting. Should be possible to store this per workspace.
+    # TODO: get rid of this hardcoded path, add this as parameter or even
+    # setting. Should be possible to store this per workspace.
     default_url = "git@gitlab.ipb.uni-bonn.de:ipb-tools/{package}.git"
     if not opts.workspace:
         print("Please define workspace!")
