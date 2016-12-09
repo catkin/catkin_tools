@@ -97,15 +97,15 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         )
 
     # Determine the shell to use to source the setup file
-    shell_path = os.environ.get('SHELL', None)
-    if shell_path is None:
+    shell_path = os.environ.get('SHELL', '')
+    if not shell_path:
         shell_path = DEFAULT_SHELL
-        if not os.path.isfile(shell_path):
-            raise RuntimeError(
-                "Cannot determine shell executable. "
-                "The 'SHELL' environment variable is not set and "
-                "the default '{0}' does not exist.".format(shell_path)
-            )
+    if not os.path.isfile(shell_path):
+        raise RuntimeError(
+            "Cannot determine shell executable. "
+            "The 'SHELL' environment variable is not set and "
+            "the default '{0}' does not exist.".format(shell_path)
+        )
     (_, shell_name) = os.path.split(shell_path)
 
     # Use fallback shell if using a non-standard shell
