@@ -400,6 +400,19 @@ def log(*args, **kwargs):
             unicode_error_printed = True
 
 
+__warn_terminal_width_once_has_printed = False
+
+
+def __warn_terminal_width_once():
+    global __warn_terminal_width_once_has_printed
+    if __warn_terminal_width_once_has_printed:
+        return
+    __warn_terminal_width_once_has_printed = True
+    print('WARNING: Could not determine the width of the terminal. '
+          'This warning will only be printed once.',
+          file=sys.stderr)
+
+
 def terminal_width_windows():
     """Returns the estimated width of the terminal on Windows"""
     from ctypes import windll, create_string_buffer
@@ -409,6 +422,7 @@ def terminal_width_windows():
 
     # return default size if actual size can't be determined
     if not res:
+        __warn_terminal_width_once()
         return 80
 
     import struct
@@ -429,6 +443,7 @@ def terminal_width_linux():
             height, width = struct.unpack("hh", ioctl(f.fileno(), TIOCGWINSZ, "1234"))
     except (IOError, OSError, struct.error):
         # return default size if actual size can't be determined
+        __warn_terminal_width_once()
         return 80
     return width
 
