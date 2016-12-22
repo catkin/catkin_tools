@@ -18,7 +18,6 @@ import datetime
 import errno
 import os
 import re
-import subprocess
 import sys
 
 import trollius as asyncio
@@ -158,6 +157,7 @@ def format_time_delta_short(delta):
     msg += "" if len(msg) == 0 and int(minutes) == 0 else (minutes + ":")
     msg += ("{0:.1f}" if len(msg) == 0 and int(minutes) == 0 else "{0:04.1f}").format(float(seconds))
     return msg
+
 
 __recursive_build_depends_cache = {}
 
@@ -373,6 +373,7 @@ def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()
 
+
 unicode_error_printed = False
 unicode_sanitizer = re.compile(r'[^\x00-\x7F]+')
 
@@ -399,6 +400,20 @@ def log(*args, **kwargs):
             unicode_error_printed = True
 
 
+__warn_terminal_width_once_has_printed = False
+
+
+def __warn_terminal_width_once():
+    global __warn_terminal_width_once_has_printed
+    if __warn_terminal_width_once_has_printed:
+        return
+    __warn_terminal_width_once_has_printed = True
+    print('NOTICE: Could not determine the width of the terminal. '
+          'A default width of 80 will be used. '
+          'This warning will only be printed once.',
+          file=sys.stderr)
+
+
 def terminal_width_windows():
     """Returns the estimated width of the terminal on Windows"""
     from ctypes import windll, create_string_buffer
@@ -408,6 +423,7 @@ def terminal_width_windows():
 
     # return default size if actual size can't be determined
     if not res:
+        __warn_terminal_width_once()
         return 80
 
     import struct
@@ -420,9 +436,17 @@ def terminal_width_windows():
 
 def terminal_width_linux():
     """Returns the estimated width of the terminal on linux"""
-    width = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE, close_fds=False).stdout.readline()
-
-    return int(width)
+    from fcntl import ioctl
+    from termios import TIOCGWINSZ
+    import struct
+    try:
+        with open(os.ctermid(), "rb") as f:
+            height, width = struct.unpack("hh", ioctl(f.fileno(), TIOCGWINSZ, "1234"))
+    except (IOError, OSError, struct.error):
+        # return default size if actual size can't be determined
+        __warn_terminal_width_once()
+        return 80
+    return width
 
 
 def terminal_width():
@@ -432,6 +456,7 @@ def terminal_width():
     except ValueError:
         # Failed to get the width, use the default 80
         return 80
+
 
 _ansi_escape = re.compile(r'\x1b[^m]*m')
 
@@ -527,6 +552,7 @@ def __wide_log(msg, **kwargs):
         log(msg + (' ' * (width - msg_len - rhs_len - 1)) + rhs, **kwargs)
     else:
         log(msg, **kwargs)
+
 
 wide_log_fn = __wide_log
 

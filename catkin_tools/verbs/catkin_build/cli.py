@@ -82,6 +82,7 @@ def fixed__ArgumentGroup___init__(self, container, title=None, description=None,
     # Make sure this line is run, maybe redundant on versions which already have it
     self._mutually_exclusive_groups = container._mutually_exclusive_groups
 
+
 # Monkey patch in the fixed constructor
 argparse._ArgumentGroup.__init__ = fixed__ArgumentGroup___init__
 
