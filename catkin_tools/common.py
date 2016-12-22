@@ -18,7 +18,6 @@ import datetime
 import errno
 import os
 import re
-import subprocess
 import sys
 
 import trollius as asyncio
@@ -158,6 +157,7 @@ def format_time_delta_short(delta):
     msg += "" if len(msg) == 0 and int(minutes) == 0 else (minutes + ":")
     msg += ("{0:.1f}" if len(msg) == 0 and int(minutes) == 0 else "{0:04.1f}").format(float(seconds))
     return msg
+
 
 __recursive_build_depends_cache = {}
 
@@ -373,6 +373,7 @@ def is_tty(stream):
     """Returns True if the given stream is a tty, else False"""
     return hasattr(stream, 'isatty') and stream.isatty()
 
+
 unicode_error_printed = False
 unicode_sanitizer = re.compile(r'[^\x00-\x7F]+')
 
@@ -439,6 +440,7 @@ def terminal_width():
     except ValueError:
         # Failed to get the width, use the default 80
         return 80
+
 
 _ansi_escape = re.compile(r'\x1b[^m]*m')
 
@@ -534,6 +536,7 @@ def __wide_log(msg, **kwargs):
         log(msg + (' ' * (width - msg_len - rhs_len - 1)) + rhs, **kwargs)
     else:
         log(msg, **kwargs)
+
 
 wide_log_fn = __wide_log
 
