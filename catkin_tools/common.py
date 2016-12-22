@@ -408,7 +408,8 @@ def __warn_terminal_width_once():
     if __warn_terminal_width_once_has_printed:
         return
     __warn_terminal_width_once_has_printed = True
-    print('WARNING: Could not determine the width of the terminal. '
+    print('NOTICE: Could not determine the width of the terminal. '
+          'A default width of 80 will be used. '
           'This warning will only be printed once.',
           file=sys.stderr)
 
