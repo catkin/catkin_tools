@@ -420,9 +420,16 @@ def terminal_width_windows():
 
 def terminal_width_linux():
     """Returns the estimated width of the terminal on linux"""
-    width = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE, close_fds=False).stdout.readline()
-
-    return int(width)
+    from fcntl import ioctl
+    from termios import TIOCGWINSZ
+    import struct
+    try:
+        with open(os.ctermid(), "rb") as f:
+            height, width = struct.unpack("hh", ioctl(f.fileno(), TIOCGWINSZ, "1234"))
+    except (IOError, OSError, struct.error):
+        # return default size if actual size can't be determined
+        return 80
+    return width
 
 
 def terminal_width():
