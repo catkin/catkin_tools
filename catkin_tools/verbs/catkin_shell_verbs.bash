@@ -80,7 +80,7 @@ function catkin() {
     esac
   done
 
-  MAIN_ARGS="${WORKSPACE_ARGS} ${PROFILE_ARGS}"
+  MAIN_ARGS=$(echo "${WORKSPACE_ARGS} ${PROFILE_ARGS}" | xargs)
 
   # Get subcommand
   SUBCOMMAND="$1"
