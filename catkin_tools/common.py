@@ -401,6 +401,7 @@ def log(*args, **kwargs):
 
 
 __warn_terminal_width_once_has_printed = False
+__default_terminal_width = 80
 
 
 def __warn_terminal_width_once():
@@ -409,8 +410,9 @@ def __warn_terminal_width_once():
         return
     __warn_terminal_width_once_has_printed = True
     print('NOTICE: Could not determine the width of the terminal. '
-          'A default width of 80 will be used. '
-          'This warning will only be printed once.',
+          'A default width of {} will be used. '
+          'This warning will only be printed once.'.format(
+            __default_terminal_width),
           file=sys.stderr)
 
 
@@ -424,7 +426,7 @@ def terminal_width_windows():
     # return default size if actual size can't be determined
     if not res:
         __warn_terminal_width_once()
-        return 80
+        return __default_terminal_width
 
     import struct
     (bufx, bufy, curx, cury, wattr, left, top, right, bottom, maxx, maxy)\
@@ -445,7 +447,7 @@ def terminal_width_linux():
     except (IOError, OSError, struct.error):
         # return default size if actual size can't be determined
         __warn_terminal_width_once()
-        return 80
+        return __default_terminal_width
     return width
 
 
@@ -455,7 +457,7 @@ def terminal_width():
         return terminal_width_windows() if os.name == 'nt' else terminal_width_linux()
     except ValueError:
         # Failed to get the width, use the default 80
-        return 80
+        return __default_terminal_width
 
 
 _ansi_escape = re.compile(r'\x1b[^m]*m')
