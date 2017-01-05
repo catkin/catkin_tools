@@ -80,6 +80,9 @@ function catkin() {
     esac
   done
 
+  # Pass the arguments through xargs to remove extra spaces
+  # that can be in the result in some shells, e.g. zsh.
+  # See: https://github.com/catkin/catkin_tools/pull/417
   MAIN_ARGS=$(echo "${WORKSPACE_ARGS} ${PROFILE_ARGS}" | xargs)
 
   # Get subcommand
