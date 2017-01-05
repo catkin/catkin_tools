@@ -2,6 +2,19 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.3 (2017-01-05)
+------------------
+* Deprecated ``catkin --locate-extra-shell-verbs`` in favor of ``catkin locate --shell-verbs`` (`#352 <https://github.com/catkin/catkin_tools/issues/352>`_)
+* Fixed regression in red catkin icon on error feature (`#346 <https://github.com/catkin/catkin_tools/issues/346>`_)
+* Fixed a bug in the execution of jobs and display of active status (`#351 <https://github.com/catkin/catkin_tools/issues/351>`_)
+* Fixed a bug in environment cache checking (`#353 <https://github.com/catkin/catkin_tools/issues/353>`_)
+* Fixed a bug in display of build times over one hour (`#357 <https://github.com/catkin/catkin_tools/issues/357>`_)
+* Notifications are now coalesced into a single notification (`#358 <https://github.com/catkin/catkin_tools/issues/358>`_)
+* Improvements to shell completion and zsh specific completions (`#365 <https://github.com/catkin/catkin_tools/issues/365>`_)
+* Various typos fixed.
+* Now uses ``ioctl()`` to determine the terminal width on some platforms (`#415 <https://github.com/catkin/catkin_tools/issues/415>`_) (`#416 <https://github.com/catkin/catkin_tools/issues/416>`_)
+* Contributors: Jonathan Bohren, Robert Haschke, Claudio Bandera, Kei Okada, Andreas Hertle, David V. Lu!!, Timo Röhling, G.A. vd. Hoorn
+
 0.4.2 (2016-04-19)
 ------------------
 * Revert `#344 <https://github.com/catkin/catkin_tools/issues/344>`_ until a better fix can be made.

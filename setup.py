@@ -108,7 +108,7 @@ prefix = userbase or opts.prefix or sys.prefix
 
 setup(
     name='catkin_tools',
-    version='0.4.2',
+    version='0.4.3',
     packages=find_packages(exclude=['tests', 'docs']),
     package_data={
         'catkin_tools': [
