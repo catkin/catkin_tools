@@ -7,9 +7,9 @@ usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--env-cache | --no-env-cache] [--cmake-args ARG [ARG ...]
                     | --no-cmake-args] [--make-args ARG [ARG ...] |
                     --no-make-args] [--catkin-make-args ARG [ARG ...] |
-                    --no-catkin-make-args] [--verbose] [--interleave-output]
-                    [--no-status] [--summarize] [--no-summarize]
-                    [--override-build-tool-check]
+                    --no-catkin-make-args] [--verbose] [--verbose-errors]
+                    [--interleave-output] [--no-status] [--summarize]
+                    [--no-summarize] [--override-build-tool-check]
                     [--limit-status-rate LIMIT_STATUS_RATE] [--no-notify]
                     [PKGNAME [PKGNAME ...]]
 
@@ -102,6 +102,7 @@ Interface:
 
   --verbose, -v         Print output from commands in ordered blocks once the
                         command finishes.
+  --verbose-errors      Print all command output if a stage fails.
   --interleave-output, -i
                         Prevents ordering of command output when multiple
                         commands are running at the same time.

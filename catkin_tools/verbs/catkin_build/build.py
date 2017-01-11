@@ -171,6 +171,7 @@ def build_isolated_workspace(
     pre_clean=False,
     force_color=False,
     quiet=False,
+    stdout_on_error=False,
     interleave_output=False,
     no_status=False,
     limit_status_rate=10.0,
@@ -203,6 +204,8 @@ def build_isolated_workspace(
     :type force_color: bool
     :param quiet: suppresses the output of commands unless there is an error
     :type quiet: bool
+    :param stdout_on_error: print stdout along with stderr when there is an error
+    :type stdout_on_error: bool
     :param interleave_output: prints the output of commands as they are received
     :type interleave_output: bool
     :param no_status: disables status bar
@@ -525,6 +528,7 @@ def build_isolated_workspace(
             show_buffered_stderr=not interleave_output,
             show_live_stdout=interleave_output,
             show_live_stderr=interleave_output,
+            show_stdout_on_error=stdout_on_error,
             show_stage_events=not quiet,
             show_full_summary=(summarize_build is True),
             pre_start_time=pre_start_time,

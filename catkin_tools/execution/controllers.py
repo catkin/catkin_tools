@@ -196,6 +196,7 @@ class ConsoleStatusController(threading.Thread):
             show_buffered_stderr=True,
             show_live_stdout=False,
             show_live_stderr=False,
+            show_stdout_on_error=False,
             show_compact_io=False,
             show_active_status=True,
             show_summary=True,
@@ -213,6 +214,7 @@ class ConsoleStatusController(threading.Thread):
         :param show_buffered_stderr: Show stderr from jobs as they finish
         :param show_live_stdout: Show stdout lines from jobs as they're generated
         :param show_live_stderr: Show stdout lines from jobs as they're generated
+        :param show_stdout_on_error: Show stdout lines from job if it fails
         :param show_compact_io: Don't print blank lines from redirected io
         :param show_active_status: Periodically show a status line displaying the active jobs
         :param show_summary: Show numbers of jobs that completed with errors and warnings
@@ -235,6 +237,7 @@ class ConsoleStatusController(threading.Thread):
         self.show_buffered_stderr = show_buffered_stderr
         self.show_live_stdout = show_live_stdout
         self.show_live_stderr = show_live_stderr
+        self.show_stdout_on_error = show_stdout_on_error
         self.show_compact_io = show_compact_io
         self.show_active_status = show_active_status
         self.show_full_summary = show_full_summary
@@ -679,7 +682,7 @@ class ConsoleStatusController(threading.Thread):
                             max(0, self.max_jid_length - len(event.data['job_id'])),
                             event.data['retcode'])
 
-                if self.show_buffered_stdout:
+                if self.show_buffered_stdout or (self.show_stdout_on_error and not event.data['succeeded']):
                     if len(event.data['interleaved']) > 0:
                         lines = [
                             l
