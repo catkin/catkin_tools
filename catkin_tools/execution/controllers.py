@@ -201,6 +201,7 @@ class ConsoleStatusController(threading.Thread):
             show_summary=True,
             show_full_summary=False,
             show_repro_cmd=True,
+            merge_stderr_into_stdout=True,
             active_status_rate=10.0,
             pre_start_time=None):
         """
@@ -218,6 +219,7 @@ class ConsoleStatusController(threading.Thread):
         :param show_summary: Show numbers of jobs that completed with errors and warnings
         :param show_full_summary: Show lists of jobs in each termination category
         :param show_repro_cmd: Show the commands to reproduce failed stages
+        :param merge_stderr_into_stdout: Merge stderr output into stdout ?
         :param active_status_rate: The rate in Hz at which the status line should be printed
         :param pre_start_time: The actual start time to report, if preprocessing was done
         """
@@ -240,6 +242,7 @@ class ConsoleStatusController(threading.Thread):
         self.show_full_summary = show_full_summary
         self.show_summary = show_summary
         self.show_repro_cmd = show_repro_cmd
+        self.merge_stderr_into_stdout = merge_stderr_into_stdout
         self.active_status_rate = active_status_rate
         self.pre_start_time = pre_start_time
 
@@ -679,6 +682,7 @@ class ConsoleStatusController(threading.Thread):
                             max(0, self.max_jid_length - len(event.data['job_id'])),
                             event.data['retcode'])
 
+                lines_target = sys.stdout
                 if self.show_buffered_stdout:
                     if len(event.data['interleaved']) > 0:
                         lines = [
@@ -697,6 +701,8 @@ class ConsoleStatusController(threading.Thread):
                             for l in event.data['stderr'].splitlines(True)
                             if (self.show_compact_io is False or len(l.strip()) > 0)
                         ]
+                        if not self.merge_stderr_into_stdout:
+                            lines_target = sys.stderr
                     else:
                         header_border = None
                         header_title = None
@@ -713,7 +719,7 @@ class ConsoleStatusController(threading.Thread):
                     if header_title:
                         wide_log(header_title)
                     if len(lines) > 0:
-                        wide_log(''.join(lines), end='\r')
+                        wide_log(''.join(lines), end='\r', file=lines_target)
                     if footer_border:
                         wide_log(footer_border)
                     if footer_title:
@@ -721,7 +727,7 @@ class ConsoleStatusController(threading.Thread):
 
             elif 'STDERR' == eid:
                 if self.show_live_stderr and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\r')
+                    wide_log(self.format_interleaved_lines(event.data), end='\r', file=sys.stderr)
 
             elif 'STDOUT' == eid:
                 if self.show_live_stdout and len(event.data['data']) > 0:
