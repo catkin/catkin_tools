@@ -271,10 +271,10 @@ class ConsoleStatusController(threading.Thread):
 
         templates = {
             'successful': clr(" [@!@{gf}Successful@|] @{cf}{jid:<%d}@|" % max_jid_len),
-            'warned':     clr(" [    @!@{yf}Warned@|] @{cf}{jid:<%d}@|" % max_jid_len),
-            'failed':     clr(" [    @!@{rf}Failed@|] @{cf}{jid:<%d}@|" % max_jid_len),
-            'ignored':    clr(" [   @!@{kf}Ignored@|] @{cf}{jid:<%d}@|" % max_jid_len),
-            'abandoned':  clr(" [ @!@{rf}Abandoned@|] @{cf}{jid:<%d}@|" % max_jid_len),
+            'warned': clr(" [    @!@{yf}Warned@|] @{cf}{jid:<%d}@|" % max_jid_len),
+            'failed': clr(" [    @!@{rf}Failed@|] @{cf}{jid:<%d}@|" % max_jid_len),
+            'ignored': clr(" [   @!@{kf}Ignored@|] @{cf}{jid:<%d}@|" % max_jid_len),
+            'abandoned': clr(" [ @!@{rf}Abandoned@|] @{cf}{jid:<%d}@|" % max_jid_len),
         }
 
         # Calculate the maximum _printed_ length for each template
