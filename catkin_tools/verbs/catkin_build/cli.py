@@ -159,8 +159,6 @@ the --save-config argument. To see the current config, use the
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
         help='Prevents ordering of command output when multiple commands are running at the same time.')
-    add('--split-stderr', '-e', action='store_false', dest='merge_stderr_into_stdout', default=True,
-        help='Direct stderr output to stderr again, instead of merging it with stdout (which is the default)')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
     add('--summarize', '--summary', '-s', action='store_true', default=None,
@@ -413,7 +411,6 @@ def main(opts):
         force_color=opts.force_color,
         quiet=not opts.verbose,
         interleave_output=opts.interleave_output,
-        merge_stderr_into_stdout=opts.merge_stderr_into_stdout,
         no_status=opts.no_status,
         limit_status_rate=opts.limit_status_rate,
         lock_install=not opts.no_install_lock,

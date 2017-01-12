@@ -172,7 +172,6 @@ def build_isolated_workspace(
     force_color=False,
     quiet=False,
     interleave_output=False,
-    merge_stderr_into_stdout=True,
     no_status=False,
     limit_status_rate=10.0,
     lock_install=False,
@@ -206,8 +205,6 @@ def build_isolated_workspace(
     :type quiet: bool
     :param interleave_output: prints the output of commands as they are received
     :type interleave_output: bool
-    :param merge_stderr_into_stdout: Merge stderr output into stdout ?
-    :type merge_stderr_into_stdout: bool
     :param no_status: disables status bar
     :type no_status: bool
     :param limit_status_rate: rate to which status updates are limited; the default 0, places no limit.
@@ -530,7 +527,6 @@ def build_isolated_workspace(
             show_live_stderr=interleave_output,
             show_stage_events=not quiet,
             show_full_summary=(summarize_build is True),
-            merge_stderr_into_stdout=merge_stderr_into_stdout,
             pre_start_time=pre_start_time,
             active_status_rate=limit_status_rate)
         status_thread.start()
