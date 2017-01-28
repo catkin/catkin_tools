@@ -35,7 +35,7 @@ from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
 from .utils import copyfiles
-from .utils import get_env_loader
+from .utils import loadenv
 from .utils import makedirs
 from .utils import rmfiles
 
@@ -350,9 +350,22 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     install_space = context.package_install_space(package)
     # Package metadata path
     metadata_path = context.package_metadata_path(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
 
     # Create job stages
     stages = []
+
+    # Load environment for job.
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource='installspace',
+        job_env=job_env,
+        package=package,
+        context=context
+    ))
 
     # Create package build space
     stages.append(FunctionStage(
@@ -478,7 +491,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     return Job(
         jid=package.name,
         deps=dependencies,
-        env_loader=get_env_loader(package, context),
+        env=job_env,
         stages=stages)
 
 
@@ -499,6 +512,8 @@ def create_catkin_clean_job(
     build_space = context.package_build_space(package)
     # Package metadata path
     metadata_path = context.package_metadata_path(package)
+    # Environment dictionary for the job, empty for a clean job
+    job_env = {}
 
     # Remove installed files
     if clean_install:
@@ -566,7 +581,7 @@ def create_catkin_clean_job(
     return Job(
         jid=package.name,
         deps=dependencies,
-        env_loader=get_env_loader(package, context),
+        env=job_env,
         stages=stages)
 
 

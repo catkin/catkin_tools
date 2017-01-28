@@ -14,7 +14,6 @@
 
 from __future__ import print_function
 
-import os
 import traceback
 
 from itertools import tee
@@ -59,9 +58,6 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
     # Jobs start occuping a jobserver job
     occupying_job = True
 
-    # Load environment for this job
-    job_env = job.getenv(os.environ)
-
     # Execute each stage of this job
     for stage in job.stages:
         # Logger reference in this scope for error reporting
@@ -102,7 +98,7 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                     while True:
                         try:
                             # Update the environment for this stage (respects overrides)
-                            stage.update_env(job_env)
+                            stage.update_env(job.env)
 
                             # Get the logger
                             protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)

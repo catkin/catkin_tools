@@ -24,7 +24,7 @@ class Job(object):
 
     """A Job is a series of operations, each of which is considered a "stage" of the job."""
 
-    def __init__(self, jid, deps, env_loader, stages, continue_on_failure=True):
+    def __init__(self, jid, deps, env, stages, continue_on_failure=True):
         """
         jid: Unique job identifier
         deps: Dependencies (in terms of other jid's)
@@ -33,7 +33,7 @@ class Job(object):
         """
         self.jid = jid
         self.deps = deps
-        self.env_loader = env_loader
+        self.env = env
         self.stages = stages
         self.continue_on_failure = continue_on_failure
 
@@ -48,6 +48,3 @@ class Job(object):
     def any_deps_failed(self, completed_jobs):
         """Return True if any dependencies which have been completed have failed."""
         return any([not completed_jobs.get(dep_id, True) for dep_id in self.deps])
-
-    def getenv(self, env):
-        return self.env_loader(env)
