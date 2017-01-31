@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import traceback
 
 from catkin_tools.common import string_type
 
@@ -169,5 +170,9 @@ class FunctionStage(Stage):
         self.kwargs = kwargs
 
         def function_proxy(logger, event_queue):
-            return function(logger, event_queue, *args, **kwargs)
+            try:
+                return function(logger, event_queue, *args, **kwargs)
+            except:
+                logger.err(str(traceback.format_exc()))
+                raise
         self.function = function_proxy

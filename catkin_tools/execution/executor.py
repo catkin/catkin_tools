@@ -146,7 +146,6 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         logger.err('  {}'.format(arg_val))
                     for arg_name, arg_val in stage.kwargs.items():
                         logger.err('  {}: {}'.format(arg_name, arg_val))
-                    logger.err(str(traceback.format_exc()))
                     retcode = 3
             else:
                 raise TypeError("Bad Job Stage: {}".format(stage))

@@ -15,6 +15,7 @@ def test_profile_list():
     assert_cmd_success(['catkin', 'build'])
     assert_cmd_success(['catkin', 'profile', 'list'])
 
+
 @in_temporary_directory
 def test_profile_set():
     assert_cmd_success(['mkdir', 'src'])

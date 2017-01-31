@@ -301,3 +301,17 @@ def test_install_catkin_destdir():
                         setup_dir_correct = True
                         break
             assert setup_dir_correct is True
+
+
+def test_pkg_with_unicode_names():
+    """Test building a package with unicode file names."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            print(os.getcwd)
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'products_unicode'),
+                os.path.join('src/cmake_pkgs'))
+
+            assert catkin_success(['config', '--link-devel'])
+            assert catkin_success(BUILD)
