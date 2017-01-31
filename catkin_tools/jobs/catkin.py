@@ -257,7 +257,7 @@ def link_devel_products(
                         logger.out('Linked: ({}, {})'.format(source_dir, dest_dir))
                 else:
                     # Create a symlink
-                    logger.out('Symlinking %s' % (dest_file))
+                    logger.out('Symlinking %s' % (dest_dir))
                     try:
                         os.symlink(source_dir, dest_dir)
                     except OSError:
