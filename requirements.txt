@@ -2,6 +2,5 @@ catkin_pkg
 osrf_pycommon
 pyyaml
 setuptools
-sphinxcontrib-ansi
 sphinxcontrib-programoutput
 trollius
