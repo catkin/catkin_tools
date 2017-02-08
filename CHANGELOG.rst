@@ -2,6 +2,17 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.4 (2017-02-08)
+------------------
+* Removed unused dependency on ``sphinxcontrib-ansi`` (`#432 <https://github.com/catkin/catkin_tools/issues/432>`_)
+* Fixed a small bug in a log message (`#428 <https://github.com/catkin/catkin_tools/issues/428>`_)
+* Changed the way symlinks from the private devel spaces were made to better support Python development (`#377 <https://github.com/catkin/catkin_tools/issues/377>`_)
+* Fixed a unicode error which occurred when there was unicode output from the compiler (`#368 <https://github.com/catkin/catkin_tools/issues/368>`_)
+* Fixed race condition in build related to reading of install space (fixes `#378 <https://github.com/catkin/catkin_tools/issues/378>`_) (`#391 <https://github.com/catkin/catkin_tools/issues/391>`_)
+* stderr output from the compiler is now output to stderr by catkin tools to better support integration with IDE's (`#400 <https://github.com/catkin/catkin_tools/issues/400>`_) (`#424 <https://github.com/catkin/catkin_tools/issues/424>`_)
+* Improved handling of situation where SHELL environment variable does not exist (`#414 <https://github.com/catkin/catkin_tools/issues/414>`_) (`#421 <https://github.com/catkin/catkin_tools/issues/421>`_)
+* Contributors: Jonathan Bohren, Robert Haschke, @dominiquehunziker, Timothee Cour, Mike Purvis
+
 0.4.3 (2017-01-05)
 ------------------
 * Deprecated ``catkin --locate-extra-shell-verbs`` in favor of ``catkin locate --shell-verbs`` (`#352 <https://github.com/catkin/catkin_tools/issues/352>`_)
