@@ -3,25 +3,20 @@ import mock
 from catkin_tools import common
 
 
+class MockPackage(mock.Mock):
+    def __init__(self, name):
+        super(MockPackage, self).__init__()
+        self.name = name
+        self.build_depends = []
+        self.buildtool_depends = []
+        self.test_depends = []
+        self.run_depends = []
+        self.exec_depends = []
+        self.build_export_depends = []
+
 def test_get_recursive_build_depends_in_workspace_with_test_depend():
-    pkg1 = mock.Mock()
-    pkg1.name = 'pkg1'
-    pkg1.build_depends = []
-    pkg1.buildtool_depends = []
-    pkg1.test_depends = []
-    pkg1.run_depends = []
-    pkg1.exec_depends = []
-    pkg1.build_export_depends = []
-
-    pkg2 = mock.Mock()
-    pkg2.name = 'pkg2'
-    pkg2.build_depends = []
-    pkg2.buildtool_depends = []
-    pkg2.test_depends = []
-    pkg2.run_depends = []
-    pkg2.exec_depends = []
-    pkg2.build_export_depends = []
-
+    pkg1 = MockPackage('pkg1')
+    pkg2 = MockPackage('pkg2')
     pkg1.test_depends.append(pkg2)
 
     ordered_packages = [
@@ -31,6 +26,24 @@ def test_get_recursive_build_depends_in_workspace_with_test_depend():
 
     r = common.get_recursive_build_depends_in_workspace(pkg1, ordered_packages)
     assert r == ordered_packages[1:], r
+
+
+def test_get_recursive_build_depends_in_workspace_circular_run_depend():
+    pkg1 = MockPackage('pkg1')
+    pkg2 = MockPackage('pkg2')
+    pkg1.run_depends.append(pkg2)
+    pkg2.run_depends.append(pkg1)
+
+    ordered_packages = [
+        ('/path/to/pkg1', pkg1),
+        ('/path/to/pkg2', pkg2),
+    ]
+
+    r = common.get_recursive_build_depends_in_workspace(pkg1, ordered_packages)
+    assert r == ordered_packages[:], r
+
+    r = common.get_recursive_build_depends_in_workspace(pkg2, ordered_packages)
+    assert r == ordered_packages[:], r
 
 
 def test_format_time_delta_short():

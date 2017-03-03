@@ -245,6 +245,8 @@ def get_recursive_depends_in_workspace(
             d.name
             for d in exclude_function(pkg)
         ])
+        # Add the package itself in case we have a circular dependency
+        checked_pkgs.add(pkg.name)
         # Add this package to the list of recursive dependencies for this package
         recursive_deps.add(pkg.name)
 
