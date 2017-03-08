@@ -8,7 +8,7 @@ If you want to initialize a workspace simultaneously with an initial config, see
 
 Catkin workspaces can be initialized anywhere.
 The only constraint is that catkin workspaces cannot contain other catkin workspaces.
-If you call ``caktin init`` and it reports an error saying that the given directory is already contained in a workspace, you can call ``catkin config`` to determine the root of that workspace.
+If you call ``catkin init`` and it reports an error saying that the given directory is already contained in a workspace, you can call ``catkin config`` to determine the root of that workspace.
 
 Full Command-Line Interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
