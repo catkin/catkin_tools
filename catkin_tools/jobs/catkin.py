@@ -380,7 +380,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     stages.append(FunctionStage(
         'loadenv',
         loadenv,
-        locked_resource='installspace',
+        locked_resource=None if context.isolate_install else 'installspace',
         job_env=job_env,
         package=package,
         context=context
@@ -504,7 +504,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             [MAKE_EXEC, 'install'],
             cwd=build_space,
             logger_factory=CMakeMakeIOBufferProtocol.factory,
-            locked_resource='installspace'
+            locked_resource=None if context.isolate_install else 'installspace'
         ))
 
     return Job(

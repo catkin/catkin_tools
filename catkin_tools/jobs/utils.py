@@ -57,6 +57,11 @@ def loadenv(logger, event_queue, job_env, package, context):
     if context.destdir is not None:
         job_env['_CATKIN_SETUP_DIR'] = context.package_dest_path(package)
 
+    updated_env = {}
+
+    # Get the envvars associated with each workspace. Order is unimportant here since
+    # there will either be only one env loader path (linked/merged result space) or
+    # there will be many, but dependencies don't have a fixed order.
     for env_loader_path in env_loader_paths:
         if logger:
             logger.out('Loading environment from: {}'.format(env_loader_path))
@@ -66,8 +71,20 @@ def loadenv(logger, event_queue, job_env, package, context):
             quiet=True,
             cached=context.use_env_cache,
             strict=False)
-        job_env.update(resultspace_env)
+        for key, values_str in resultspace_env.items():
+            if key in updated_env:
+                updated_env[key] |= set(values_str.split(':'))
+            else:
+                updated_env[key] = set(values_str.split(':'))
 
+    # Now merge the updated environment into this job's environment, discarding duplicate
+    # values and ensuring that new ones are prepended.
+    for key, new_values_set in updated_env.items():
+        if key in job_env:
+            prepend_values = new_values_set - set(job_env[key].split(':'))
+            job_env[key] = ':'.join(prepend_values) + ':' + job_env[key]
+        else:
+            job_env[key] = ':'.join(new_values_set)
     return 0
 
 
