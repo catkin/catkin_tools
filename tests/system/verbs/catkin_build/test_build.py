@@ -4,8 +4,6 @@ import os
 import re
 import shutil
 
-from math import floor
-
 from ...workspace_factory import workspace_factory
 
 from ....utils import in_temporary_directory
@@ -50,7 +48,8 @@ def create_tree_workspace(wf, build_type, n_pkg_layers, n_children=2):
     for i in range(n_pkgs):
         wf.create_package(
             'pkg_{}'.format(i),
-            depends=(['pkg_{}'.format(floor(i - 1) / n_children)] if i > 0 else []))
+            build_type=build_type,
+            depends=(['pkg_{}'.format(int((i - 1) / n_children))] if i > 0 else []))
     return n_pkgs
 
 
@@ -93,9 +92,35 @@ def test_build_dry_run():
                 assert not os.path.exists('devel')
 
 
-def test_build_all_isolated():
-    """Test building all packages in an isolated workspace"""
-    pass  # TODO: Implement test
+def test_build_all_isolate_install():
+    """Test building dependent catkin packages with isolated installspace."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            n_pkgs = create_tree_workspace(wf, 'catkin', 2)
+            wf.create_package('pkg_dep', build_type='catkin',
+                              build_depends=['pkg_{}'.format(n) for n in range(n_pkgs)])
+            wf.build()
+
+            assert catkin_success(['config', '--isolate-install', '--install'])
+            assert catkin_success(BUILD)
+            assert os.path.exists('install/pkg_dep')
+    assert_no_warnings(out)
+
+
+def test_build_all_isolate_devel():
+    """Test building dependent catkin packages with isolated develspace."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            n_pkgs = create_tree_workspace(wf, 'catkin', 2)
+            wf.create_package('pkg_dep', build_type='catkin',
+                              build_depends=['pkg_{}'.format(n) for n in range(n_pkgs)])
+            wf.build()
+
+            assert catkin_success(['config', '--isolate-devel'])
+            assert catkin_success(BUILD)
+            assert os.path.exists('devel/pkg_dep')
+            assert not os.path.exists('install')
+    assert_no_warnings(out)
 
 
 def test_build_all_merged():
