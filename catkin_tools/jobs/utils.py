@@ -82,7 +82,8 @@ def loadenv(logger, event_queue, job_env, package, context):
     for key, new_values_set in updated_env.items():
         if key in job_env:
             prepend_values = new_values_set - set(job_env[key].split(':'))
-            job_env[key] = ':'.join(prepend_values) + ':' + job_env[key]
+            if prepend_values:
+                job_env[key] = ':'.join(prepend_values) + ':' + job_env[key]
         else:
             job_env[key] = ':'.join(new_values_set)
     return 0
