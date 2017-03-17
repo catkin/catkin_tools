@@ -51,6 +51,21 @@ class WorkspaceFactory(object):
     <build_type>{build_type}</build_type>
   </export>"""
 
+        CATKIN_CMAKELISTS_TEMPLATE = """
+cmake_minimum_required(VERSION 2.8.3)
+project({name})
+find_package(catkin REQUIRED COMPONENTS {catkin_components})
+catkin_package()"""
+
+        CMAKE_CMAKELISTS_TEMPLATE = """
+cmake_minimum_required(VERSION 2.8.3)
+project({name})
+{find_packages}
+add_custom_target(install)"""
+
+        CMAKE_CMAKELISTS_FIND_PACKAGE_TEMPLATE = """
+find_package({name})"""
+
         def __init__(self, name, build_type, depends, build_depends, run_depends, test_depends):
             self.name = name
             self.build_type = build_type
@@ -61,6 +76,7 @@ class WorkspaceFactory(object):
         def get_package_xml(self):
             # Get dependencies
             depends_xml = '\n'.join(
+                ['  <buildtool_depend>{0}</buildtool_depend>'.format(self.build_type)] +
                 ['  <build_depend>{0}</build_depend>'.format(x) for x in self.build_depends] +
                 ['  <run_depend>{0}</run_depend>'.format(x) for x in self.run_depends] +
                 ['  <test_depend>{0}</test_depend>'.format(x) for x in self.test_depends]
@@ -80,21 +96,16 @@ class WorkspaceFactory(object):
 
         def get_cmakelists_txt(self):
             if self.build_type == 'catkin':
-                cmakelists_txt = """\
-cmake_minimum_required(VERSION 2.8.3)
-project({name})
-find_package(catkin REQUIRED)
-catkin_package()
-add_custom_target(install)"""
-            elif self.build_type == 'cmake':
-                cmakelists_txt = """\
-cmake_minimum_required(VERSION 2.8.3)
-project({name})
-add_custom_target(install)"""
-
-            return cmakelists_txt.format(
-                name=self.name,
-                find_package=' '.join(self.build_depends))
+                return self.CATKIN_CMAKELISTS_TEMPLATE.format(
+                    name=self.name,
+                    catkin_components=' '.join(self.build_depends))
+            if self.build_type == 'cmake':
+                find_packages = '\n'.join([
+                    self.CMAKE_CMAKELISTS_FIND_PACKAGE_TEMPLATE.format(name=name)
+                    for name in self.build_depends])
+                return self.CMAKE_CMAKELISTS_TEMPLATE.format(
+                    name=self.name,
+                    find_packages=find_packages)
 
     def add_package(self, pkg_name, package_path):
         """Copy a static package into the workspace"""
