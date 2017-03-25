@@ -36,3 +36,6 @@ nosetests.xml
 .pydevproject
 .DS_Store
 deb_dist
+
+# vi
+*.sw[op]
