@@ -50,6 +50,46 @@ def get_env_loaders(package, context):
     return sources
 
 
+def merge_envs(job_env, overlay_envs):
+    '''
+    In the merged/linked case of single env, this function amounts to a straight
+    assignment, but a more complex merge is required with isolated result spaces,
+    since a package's build environment may require extending that of multiple
+    other result spaces.
+    '''
+    merge_path_values = {}
+
+    for overlay_env in overlay_envs:
+        for key, values_str in overlay_env.items():
+            if key.endswith('PATH'):
+                if key not in merge_path_values:
+                    # Seed the list with any values already in the environment. We reverse the list
+                    # here so that we can cheaply append to it, representing a prepend in the final
+                    # PATH var, and because we need to maintain the order of underlay paths.
+                    if key in job_env:
+                        values = job_env[key].split(os.pathsep)
+                        values.reverse()
+                        merge_path_values[key] = values
+                    else:
+                        merge_path_values[key] = []
+                merge_path_values[key].extend(values_str.split(os.pathsep))
+            else:
+                # For non-PATH keys, simply assign the value. This may not always
+                # be correct behaviour, but we don't have the information here to
+                # know how to do anything else.
+                job_env[key] = values_str
+
+    # For the path values, do a deduplicating merge.
+    for key, values_list in merge_path_values.items():
+        seen_values = set()
+        new_values_list = []
+        for value in values_list:
+            if value not in seen_values:
+                seen_values.add(value)
+                new_values_list.append(value)
+        job_env[key] = os.pathsep.join(reversed(new_values_list))
+
+
 def loadenv(logger, event_queue, job_env, package, context):
     # Get the paths to the env loaders
     env_loader_paths = get_env_loaders(package, context)
@@ -57,35 +97,24 @@ def loadenv(logger, event_queue, job_env, package, context):
     if context.destdir is not None:
         job_env['_CATKIN_SETUP_DIR'] = context.package_dest_path(package)
 
-    updated_env = {}
-
-    # Get the envvars associated with each workspace. Order is unimportant here since
-    # there will either be only one env loader path (linked/merged result space) or
-    # there will be many, but dependencies don't have a fixed order.
+    envs = []
     for env_loader_path in env_loader_paths:
         if logger:
             logger.out('Loading environment from: {}'.format(env_loader_path))
-        resultspace_env = get_resultspace_environment(
+        envs.append(get_resultspace_environment(
             os.path.split(env_loader_path)[0],
             base_env=job_env,
             quiet=True,
             cached=context.use_env_cache,
-            strict=False)
-        for key, values_str in resultspace_env.items():
-            if key in updated_env:
-                updated_env[key] |= set(values_str.split(':'))
-            else:
-                updated_env[key] = set(values_str.split(':'))
+            strict=False))
 
-    # Now merge the updated environment into this job's environment, discarding duplicate
-    # values and ensuring that new ones are prepended.
-    for key, new_values_set in updated_env.items():
-        if key in job_env:
-            prepend_values = new_values_set - set(job_env[key].split(':'))
-            if prepend_values:
-                job_env[key] = ':'.join(prepend_values) + ':' + job_env[key]
-        else:
-            job_env[key] = ':'.join(new_values_set)
+    # Avoid using merge logic if not required (in the non-isolated resultspace
+    # case. It has corner cases which may trip up the unwary, so having the
+    # option to switch to a merged resultspace is a good fallback.
+    if len(envs) > 1:
+        merge_envs(job_env, envs)
+    elif len(envs) == 1:
+        job_env.update(envs[0])
     return 0
 
 
