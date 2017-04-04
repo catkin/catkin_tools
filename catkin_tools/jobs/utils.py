@@ -67,12 +67,12 @@ def merge_envs(job_env, overlay_envs):
                     # here so that we can cheaply append to it, representing a prepend in the final
                     # PATH var, and because we need to maintain the order of underlay paths.
                     if key in job_env:
-                        values = job_env[key].split(':')
+                        values = job_env[key].split(os.pathsep)
                         values.reverse()
                         merge_path_values[key] = values
                     else:
                         merge_path_values[key] = []
-                merge_path_values[key].extend(values_str.split(':'))
+                merge_path_values[key].extend(values_str.split(os.pathsep))
             else:
                 # For non-PATH keys, simply assign the value. This may not always
                 # be correct behaviour, but we don't have the information here to
@@ -87,9 +87,7 @@ def merge_envs(job_env, overlay_envs):
             if value not in seen_values:
                 seen_values.add(value)
                 new_values_list.append(value)
-
-        new_values_list.reverse()
-        job_env[key] = ':'.join(new_values_list)
+        job_env[key] = os.pathsep.join(reversed(new_values_list))
 
 
 def loadenv(logger, event_queue, job_env, package, context):
@@ -110,7 +108,13 @@ def loadenv(logger, event_queue, job_env, package, context):
             cached=context.use_env_cache,
             strict=False))
 
-    merge_envs(job_env, envs)
+    # Avoid using merge logic if not required (in the non-isolated resultspace
+    # case. It has corner cases which may trip up the unwary, so having the
+    # option to switch to a merged resultspace is a good fallback.
+    if len(envs) > 1:
+        merge_envs(job_env, envs)
+    elif len(envs) == 1:
+        job_env.update(envs[0])
     return 0
 
 

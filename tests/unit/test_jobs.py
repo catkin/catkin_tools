@@ -28,6 +28,6 @@ def test_merge_envs_complex():
 
 def test_merge_envs_nonpaths():
     ''' Confirm that non-path vars are simply overwritten on a last-wins policy. '''
-    job_env = { 'FOO': 'foo' }
-    merge_envs(job_env, [{ 'FOO': 'bar' }, { 'FOO': 'baz' }])
-    assert job_env['FOO'] == 'baz'
+    job_env = { 'FOO': 'foo:bar' }
+    merge_envs(job_env, [{ 'FOO': 'bar:baz' }, { 'FOO': 'baz:bar' }])
+    assert job_env['FOO'] == 'baz:bar'
