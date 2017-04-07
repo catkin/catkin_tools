@@ -65,7 +65,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
     env_hooks_path = os.path.join(result_space_path, 'etc', 'catkin', 'profile.d')
     if os.path.exists(env_hooks_path):
         env_hooks = [
-            md5(open(os.path.join(env_hooks_path, path)).read().encode('utf-8')).hexdigest()
+            md5(open(os.path.join(env_hooks_path, path), "rb").read()).hexdigest()
             for path in os.listdir(env_hooks_path)]
     else:
         env_hooks = []
