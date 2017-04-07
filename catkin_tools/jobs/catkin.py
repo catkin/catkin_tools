@@ -288,8 +288,8 @@ def link_devel_products(
             if os.path.exists(dest_file):
                 if os.path.realpath(dest_file) != os.path.realpath(source_file):
                     # Compute hashes for colliding files
-                    source_hash = md5(open(os.path.realpath(source_file)).read()).hexdigest()
-                    dest_hash = md5(open(os.path.realpath(dest_file)).read()).hexdigest()
+                    source_hash = md5(open(os.path.realpath(source_file), "rb").read()).hexdigest()
+                    dest_hash = md5(open(os.path.realpath(dest_file), "rb").read()).hexdigest()
                     # If the link links to a different file, report a warning and increment
                     # the collision counter for this path
                     if dest_hash != source_hash:
