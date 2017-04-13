@@ -577,6 +577,8 @@ def build_isolated_workspace(
         wide_log("[build] Interrupted by user!")
         event_queue.put(None)
 
+        return 130  # EOWNERDEAD return code is not part of the errno module.
+
 
 def _create_unmerged_devel_setup(context, unbuilt):
     # Find all of the leaf packages in the workspace
