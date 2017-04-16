@@ -155,6 +155,9 @@ def catkin_main(sysargs):
         help='Forces catkin to output in color, even when the terminal does not appear to support it.')
     add('--no-color', action='store_true', default=False,
         help='Forces catkin to not use color in the output, regardless of the detect terminal type.')
+    add('--locate-extra-shell-verbs', action='store_true',
+        help='Returns the full path of extra shell verbs settings files')
+
 
     # Deprecated, moved to `catkin locate --shell-verbs
     add('--locate-extra-shell-verbs', action='store_true', help=argparse.SUPPRESS)
@@ -217,6 +220,13 @@ def catkin_main(sysargs):
             sys.exit(0)
         if not arg.startswith('-'):
             break
+
+    # Check for --locate-extra-shell-verbs
+    for arg in sysargs:
+        if arg == '--locate-extra-shell-verbs':
+            from pkg_resources import resource_filename
+            print(os.path.abspath(resource_filename(__name__, '../verbs/catkin_shell_verbs.bash')))
+            sys.exit(0)
 
     # Do verb alias expansion
     sysargs = expand_verb_aliases(sysargs, verb_aliases)
