@@ -44,7 +44,7 @@ def _resolve_prefix(prefix, type):
         if sys.prefix.startswith(osx_system_prefix):
             return '/usr/share'
     elif type == 'bash_comp':
-        if prefix == '/usr':
+        if (prefix == '/usr') or (prefix == ''):
             return '/'
         if sys.prefix.startswith(osx_system_prefix):
             return '/'
