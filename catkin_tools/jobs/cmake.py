@@ -33,6 +33,7 @@ from .commands.make import MAKE_EXEC
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs
+from .utils import require_command
 from .utils import rmfiles
 
 from catkin_tools.execution.jobs import Job
@@ -260,6 +261,8 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         dest_path=os.path.join(metadata_path, 'package.xml')
     ))
 
+    require_command('cmake', CMAKE_EXEC)
+
     # CMake command
     makefile_path = os.path.join(build_space, 'Makefile')
     if not os.path.isfile(makefile_path) or force_cmake:
@@ -290,6 +293,8 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
             [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
         ))
+
+    require_command('make', MAKE_EXEC)
 
     # Make command
     stages.append(CommandStage(

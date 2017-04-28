@@ -25,6 +25,19 @@ from catkin_tools.resultspace import get_resultspace_environment
 from catkin_tools.execution.events import ExecutionEvent
 
 
+class CommandMissing(Exception):
+    '''A required command is missing.'''
+
+    def __init__(self, name):
+        super(CommandMissing, self).__init__(
+                'Cannot find required tool `%s` on the PATH, is it installed?' % name)
+
+
+def require_command(name, which):
+    if not which:
+        raise CommandMissing(name)
+
+
 def get_env_loaders(package, context):
     """Get a list of env loaders required to build this package."""
 

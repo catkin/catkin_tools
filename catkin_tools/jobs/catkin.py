@@ -37,6 +37,7 @@ from .commands.make import MAKE_EXEC
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs
+from .utils import require_command
 from .utils import rmfiles
 
 
@@ -432,6 +433,8 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             prefix=context.package_dest_path(package)
         ))
 
+        require_command('cmake', CMAKE_EXEC)
+
         # CMake command
         stages.append(CommandStage(
             'cmake',
@@ -472,6 +475,8 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             [MAKE_EXEC, 'clean'] + make_args,
             cwd=build_space,
         ))
+
+    require_command('make', MAKE_EXEC)
 
     # Make command
     stages.append(CommandStage(

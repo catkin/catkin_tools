@@ -48,6 +48,7 @@ from catkin_tools.context import Context
 
 import catkin_tools.execution.job_server as job_server
 
+from catkin_tools.jobs.utils import CommandMissing
 from catkin_tools.jobs.utils import loadenv
 
 from catkin_tools.metadata import find_enclosing_workspace
@@ -400,22 +401,25 @@ def main(opts):
     if opts.verbose:
         os.environ['VERBOSE'] = '1'
 
-    return build_isolated_workspace(
-        ctx,
-        packages=opts.packages,
-        start_with=opts.start_with,
-        no_deps=opts.no_deps,
-        unbuilt=opts.unbuilt,
-        n_jobs=parallel_jobs,
-        force_cmake=opts.force_cmake,
-        pre_clean=opts.pre_clean,
-        force_color=opts.force_color,
-        quiet=not opts.verbose,
-        interleave_output=opts.interleave_output,
-        no_status=opts.no_status,
-        limit_status_rate=opts.limit_status_rate,
-        lock_install=not opts.no_install_lock,
-        no_notify=opts.no_notify,
-        continue_on_failure=opts.continue_on_failure,
-        summarize_build=opts.summarize  # Can be True, False, or None
-    )
+    try:
+        return build_isolated_workspace(
+            ctx,
+            packages=opts.packages,
+            start_with=opts.start_with,
+            no_deps=opts.no_deps,
+            unbuilt=opts.unbuilt,
+            n_jobs=parallel_jobs,
+            force_cmake=opts.force_cmake,
+            pre_clean=opts.pre_clean,
+            force_color=opts.force_color,
+            quiet=not opts.verbose,
+            interleave_output=opts.interleave_output,
+            no_status=opts.no_status,
+            limit_status_rate=opts.limit_status_rate,
+            lock_install=not opts.no_install_lock,
+            no_notify=opts.no_notify,
+            continue_on_failure=opts.continue_on_failure,
+            summarize_build=opts.summarize  # Can be True, False, or None
+        )
+    except CommandMissing as e:
+        sys.exit(clr("[build] @!@{rf}Error:@| {0}").format(e))
