@@ -49,19 +49,12 @@ class Context(object):
     This context can be locked, so that changing the members is prevented.
     """
 
-    DEFAULT_LOG_SPACE = 'logs'
-    DEFAULT_SOURCE_SPACE = 'src'
-    DEFAULT_BUILD_SPACE = 'build'
-    DEFAULT_DEVEL_SPACE = 'devel'
-    DEFAULT_INSTALL_SPACE = 'install'
+    CATKIN_SPACES_GROUP = 'catkin_tools.spaces'
+
+    SPACES = {}
 
     STORED_KEYS = [
         'extend_path',
-        'source_space',
-        'log_space',
-        'build_space',
-        'devel_space',
-        'install_space',
         'devel_layout',
         'install',
         'isolate_install',
@@ -75,11 +68,56 @@ class Context(object):
         'blacklist',
     ]
 
-    KEYS = STORED_KEYS + [
+    EXTRA_KEYS = [
         'workspace',
         'profile',
         'space_suffix',
     ]
+
+    KEYS = []
+
+    @classmethod
+    def _create_space_methods(cls, space):
+        def space_abs_getter(self):
+            return getattr(self, '__%s_space_abs' % space)
+
+        def space_getter(self):
+            return getattr(self, '__%s_space' % space)
+
+        def space_setter(self, value):
+            if self.__locked:
+                raise RuntimeError("Setting of context members is not allowed while locked.")
+            setattr(self, '__%s_space' % space, value)
+            setattr(self, '__%s_space_abs' % space, os.path.join(self.__workspace, value))
+
+        def space_exists(self):
+            "Returns true if the space exists"
+            space_abs = getattr(self, '__%s_space_abs' % space)
+            return os.path.exists(space_abs) and os.path.isdir(space_abs)
+
+        setattr(cls, '%s_space' % space, property(space_getter, space_setter))
+        setattr(cls, '%s_space_abs' % space, property(space_abs_getter))
+        setattr(cls, '%s_space_exists' % space, space_exists)
+
+    @classmethod
+    def setup_space_keys(cls):
+        '''
+        To be called one time on initial use. Initializes the SPACE_KEYS
+        class members and associated member functions based on available
+        space plugins.
+        '''
+        if cls.KEYS:
+            return
+
+        from pkg_resources import iter_entry_points
+
+        for entry_point in iter_entry_points(group=cls.CATKIN_SPACES_GROUP):
+            ep_dict = entry_point.load()
+            cls.STORED_KEYS.append(entry_point.name + '_space')
+            cls.SPACES[entry_point.name] = ep_dict
+            cls._create_space_methods(entry_point.name)
+
+        cls.KEYS = cls.STORED_KEYS + cls.EXTRA_KEYS
 
     @classmethod
     def load(
@@ -125,6 +163,7 @@ class Context(object):
         :returns: A potentially valid Context object constructed from the given arguments
         :rtype: Context
         """
+        Context.setup_space_keys()
 
         # Initialize dictionary version of opts namespace
         opts_vars = vars(opts) if opts else {}
@@ -194,11 +233,6 @@ class Context(object):
         workspace=None,
         profile=None,
         extend_path=None,
-        source_space=None,
-        log_space=None,
-        build_space=None,
-        devel_space=None,
-        install_space=None,
         devel_layout=None,
         install=False,
         isolate_install=False,
@@ -264,19 +298,20 @@ class Context(object):
             print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
 
         # Validation is done on assignment
-        # Handle *space assignment and defaults
         self.workspace = workspace
 
         self.extend_path = extend_path if extend_path else None
-        ss = '' if space_suffix is None else space_suffix
 
         self.profile = profile
 
-        self.source_space = Context.DEFAULT_SOURCE_SPACE if source_space is None else source_space
-        self.log_space = Context.DEFAULT_LOG_SPACE + ss if ss or log_space is None else log_space
-        self.build_space = Context.DEFAULT_BUILD_SPACE + ss if ss or build_space is None else build_space
-        self.devel_space = Context.DEFAULT_DEVEL_SPACE + ss if ss or devel_space is None else devel_space
-        self.install_space = Context.DEFAULT_INSTALL_SPACE + ss if ss or install_space is None else install_space
+        # Handle *space assignment and defaults
+        for space, space_dict in Context.SPACES.items():
+            key_name = space + '_space'
+            default = space_dict['default']
+            if space_suffix and space != 'source':
+                default += space_suffix
+            setattr(self, key_name, kwargs.get(key_name, default))
+
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
 
         # Handle package whitelist/blacklist
@@ -411,20 +446,20 @@ class Context(object):
                 "--init`.")]
         if not self.source_space_exists():
             summary_warnings += [clr(
-                "Source space `@{yf}{_Context__source_space_abs}@|` does not yet exist.")]
+                "Source space `@{yf}{__source_space_abs}@|` does not yet exist.")]
 
+        spaces_summary = []
+        for space, space_dict in sorted(Context.SPACES.items()):
+            spaces_summary.append(
+                clr('@{cf}' + space_dict['space'] + ':@|' + ' ' * (18 - len(space_dict['space'])) +
+                    '{' + space + '_missing} @{yf}{__' + space + '_space_abs}@|'))
         summary = [
             [
                 clr("@{cf}Profile:@|                     @{yf}{profile}@|"),
                 clr("@{cf}Extending:@|        {extend_mode} @{yf}{extend}@|"),
                 clr("@{cf}Workspace:@|                   @{yf}{_Context__workspace}@|"),
             ],
-            [
-                clr("@{cf}Source Space:@|      {source_missing} @{yf}{_Context__source_space_abs}@|"),
-                clr("@{cf}Log Space:@|         {log_missing} @{yf}{_Context__log_space_abs}@|"),
-                clr("@{cf}Build Space:@|       {build_missing} @{yf}{_Context__build_space_abs}@|"),
-                clr("@{cf}Devel Space:@|       {devel_missing} @{yf}{_Context__devel_space_abs}@|"),
-                clr("@{cf}Install Space:@|     {install_missing} @{yf}{_Context__install_space_abs}@|"),
+            spaces_summary + [
                 clr("@{cf}DESTDIR:@|           {destdir_missing} @{yf}{_Context__destdir}@|")
             ],
             [
@@ -547,88 +582,9 @@ class Context(object):
                 raise ValueError("Resultspace path '{0}' does not exist.".format(value))
         self.__extend_path = value
 
-    @property
-    def source_space_abs(self):
-        return self.__source_space_abs
-
-    @property
-    def source_space(self):
-        return self.__source_space
-
-    @source_space.setter
-    def source_space(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__source_space = value
-        self.__source_space_abs = os.path.join(self.__workspace, value)
-
-    def source_space_exists(self):
-        "Returns true if the source space exists"
-        return os.path.exists(self.source_space_abs) and os.path.isdir(self.source_space_abs)
-
     def initialized(self):
         """Check if this context is initialized."""
         return self.workspace == find_enclosing_workspace(self.workspace)
-
-    @property
-    def log_space_abs(self):
-        return self.__log_space_abs
-
-    @property
-    def log_space(self):
-        return self.__log_space
-
-    @log_space.setter
-    def log_space(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__log_space = value
-        self.__log_space_abs = os.path.join(self.__workspace, value)
-
-    @property
-    def build_space_abs(self):
-        return self.__build_space_abs
-
-    @property
-    def build_space(self):
-        return self.__build_space
-
-    @build_space.setter
-    def build_space(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__build_space = value
-        self.__build_space_abs = os.path.join(self.__workspace, value)
-
-    @property
-    def devel_space_abs(self):
-        return self.__devel_space_abs
-
-    @property
-    def devel_space(self):
-        return self.__devel_space
-
-    @devel_space.setter
-    def devel_space(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__devel_space = value
-        self.__devel_space_abs = os.path.join(self.__workspace, value)
-
-    @property
-    def install_space_abs(self):
-        return self.__install_space_abs
-
-    @property
-    def install_space(self):
-        return self.__install_space
-
-    @install_space.setter
-    def install_space(self, value):
-        if self.__locked:
-            raise RuntimeError("Setting of context members is not allowed while locked.")
-        self.__install_space = value
-        self.__install_space_abs = os.path.join(self.__workspace, value)
 
     @property
     def destdir(self):

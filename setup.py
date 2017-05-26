@@ -155,6 +155,13 @@ setup(
             'catkin = catkin_tools.jobs.catkin:description',
             'cmake = catkin_tools.jobs.cmake:description',
         ],
+        'catkin_tools.spaces': [
+            'build = catkin_tools.spaces.build:description',
+            'devel = catkin_tools.spaces.devel:description',
+            'install = catkin_tools.spaces.install:description',
+            'log = catkin_tools.spaces.log:description',
+            'source = catkin_tools.spaces.source:description',
+        ],
     },
     cmdclass={'install': PermissiveInstall},
 )

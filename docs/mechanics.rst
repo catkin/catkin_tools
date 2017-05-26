@@ -235,7 +235,6 @@ Sourcing these setup scripts adds this workspace and any "underlaid" workspaces 
 
 .. [1] GNU/Linux Only
 .. [2] Mac OS X Only
-.. [3] Windows Only
 .. [4] Only in versions of ``catkin`` <= ``0.7.0`` (ROS Kinetic), see the changelog_
 
 

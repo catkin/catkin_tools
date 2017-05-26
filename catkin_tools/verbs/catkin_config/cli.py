@@ -75,36 +75,16 @@ def prepare_arguments(parser):
         help='Clear all packages from the blacklist.')
 
     spaces_group = parser.add_argument_group('Spaces', 'Location of parts of the catkin workspace.')
-    add = spaces_group.add_mutually_exclusive_group().add_argument
-    add('-s', '--source-space', default=None,
-        help='The path to the source space.')
-    add('--default-source-space',
-        action='store_const', dest='source_space', default=None, const=Context.DEFAULT_SOURCE_SPACE,
-        help='Use the default path to the source space ("src")')
-    add = spaces_group.add_mutually_exclusive_group().add_argument
-    add('-l', '--log-space', default=None,
-        help='The path to the log space.')
-    add('--default-log-space',
-        action='store_const', dest='log_space', default=None, const=Context.DEFAULT_LOG_SPACE,
-        help='Use the default path to the log space ("logs")')
-    add = spaces_group.add_mutually_exclusive_group().add_argument
-    add('-b', '--build-space', default=None,
-        help='The path to the build space.')
-    add('--default-build-space',
-        action='store_const', dest='build_space', default=None, const=Context.DEFAULT_BUILD_SPACE,
-        help='Use the default path to the build space ("build")')
-    add = spaces_group.add_mutually_exclusive_group().add_argument
-    add('-d', '--devel-space', default=None,
-        help='Sets the target devel space')
-    add('--default-devel-space',
-        action='store_const', dest='devel_space', default=None, const=Context.DEFAULT_DEVEL_SPACE,
-        help='Sets the default target devel space ("devel")')
-    add = spaces_group.add_mutually_exclusive_group().add_argument
-    add('-i', '--install-space', default=None,
-        help='Sets the target install space')
-    add('--default-install-space',
-        action='store_const', dest='install_space', default=None, const=Context.DEFAULT_INSTALL_SPACE,
-        help='Sets the default target install space ("install")')
+    Context.setup_space_keys()
+    for space, space_dict in Context.SPACES.items():
+        add = spaces_group.add_mutually_exclusive_group().add_argument
+        flags = ['--{}-space'.format(space)]
+        flags.extend([space_dict['short_flag']] if 'short_flag' in space_dict else [])
+        add(*flags, default=None,
+            help='The path to the {} space.'.format(space))
+        add('--default-{}-space'.format(space),
+            action='store_const', dest='{}_space'.format(space), default=None, const=space_dict['default'],
+            help='Use the default path to the {} space ("{}")'.format(space, space_dict['default']))
     add = spaces_group.add_argument
     add('-x', '--space-suffix',
         help='Suffix for build, devel, and install space if they are not otherwise explicitly set.')
