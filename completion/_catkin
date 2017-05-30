@@ -102,7 +102,7 @@ _catkin_packages_caching_policy() {
   if [[ -z "$_workspace_source_space" ]]; then
     _debug_log "Searching for source space..."
 
-    _workspace_src_space="$(catkin locate -s --quiet)"
+    _workspace_source_space="$(catkin locate -s --quiet)"
 
     # If the source space can't be found, regenerate cache
     if [[ "$?" -ne "0" ]]; then
@@ -128,7 +128,8 @@ _catkin_get_packages() {
   local cache_file_path
 
   # Get the workspace root
-  _workspace_root="$(_catkin_get_enclosing_workspace $_workspace_root_hint)"
+  _catkin_get_enclosing_workspace $_workspace_root_hint
+
 
   if [[ "$?" -ne 0 ]]; then
     _debug_log "Couldn't get workspace root!"
@@ -138,6 +139,7 @@ _catkin_get_packages() {
   # Construct the path for the cache file
   cache_file_path="$_workspace_root/.catkin_tools/cache"
 
+  _debug_log "Workspace path: $_workspace_root"
   _debug_log "Cache file path: $cache_file_path"
 
   zstyle ":completion:${curcontext}:" use-cache on
@@ -147,8 +149,9 @@ _catkin_get_packages() {
     zstyle ":completion:${curcontext}:" cache-policy _catkin_packages_caching_policy
   fi
 
-  if ( [[ ${+_workspace_packages} -eq 0 ]] || _cache_invalid workspace_packages ) \
-      && ! _retrieve_cache workspace_packages; then
+  # If cache is invalid or if the package list is not set yet and can't be retrieved from cache regenerate cache
+  # ( Remember that _retrieve_cache returns 0 if everything's fine, 1 if not. _cache_invalid returns 0 if cache needs rebuilding, 1 otherwise)
+  if _cache_invalid workspace_packages || ( [[ ${+_workspace_packages} -eq 0 ]] && ! _retrieve_cache workspace_packages ); then
     _debug_log "Regenerating package cache..."
     _workspace_packages=(${${(f)"$(catkin list -u --quiet)"}})
     _store_cache workspace_packages _workspace_packages
