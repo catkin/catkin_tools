@@ -43,7 +43,7 @@ script:
   # Build documentation
   - pushd docs
   - make html
-  - sphinx-build . build
+  - sphinx-build -b spelling . build -t use_spelling
   - popd
 notifications:
   email: false
