@@ -82,14 +82,14 @@ def add_cmake_and_make_and_catkin_make_args(parser):
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--cmake-args', metavar='ARG', dest='cmake_args', nargs='+', required=False, type=str, default=None,
-        help='Arbitrary arguments which are passes to CMake. '
+        help='Arbitrary arguments which are passed to CMake. '
              'It collects all of following arguments until a "--" is read.')
     add('--no-cmake-args', dest='cmake_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to CMake.')
 
     add = parser.add_mutually_exclusive_group().add_argument
     add('--make-args', metavar='ARG', dest='make_args', nargs='+', required=False, type=str, default=None,
-        help='Arbitrary arguments which are passes to make.'
+        help='Arbitrary arguments which are passed to make. '
              'It collects all of following arguments until a "--" is read.')
     add('--no-make-args', dest='make_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to make (does not affect --catkin-make-args).')
@@ -97,7 +97,7 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     add = parser.add_mutually_exclusive_group().add_argument
     add('--catkin-make-args', metavar='ARG', dest='catkin_make_args',
         nargs='+', required=False, type=str, default=None,
-        help='Arbitrary arguments which are passes to make but only for catkin packages.'
+        help='Arbitrary arguments which are passed to make but only for catkin packages. '
              'It collects all of following arguments until a "--" is read.')
     add('--no-catkin-make-args', dest='catkin_make_args', action='store_const', const=[], default=None,
         help='Pass no additional arguments to make for catkin packages (does not affect --make-args).')
