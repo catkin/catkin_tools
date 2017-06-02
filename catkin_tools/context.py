@@ -91,7 +91,9 @@ class Context(object):
             setattr(self, '__%s_space_abs' % space, os.path.join(self.__workspace, value))
 
         def space_exists(self):
-            "Returns true if the space exists"
+            """
+            Returns true if the space exists.
+            """
             space_abs = getattr(self, '__%s_space_abs' % space)
             return os.path.exists(space_abs) and os.path.isdir(space_abs)
 
@@ -101,11 +103,11 @@ class Context(object):
 
     @classmethod
     def setup_space_keys(cls):
-        '''
+        """
         To be called one time on initial use. Initializes the SPACE_KEYS
         class members and associated member functions based on available
         space plugins.
-        '''
+        """
         if cls.KEYS:
             return
 
