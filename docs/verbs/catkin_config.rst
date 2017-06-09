@@ -180,7 +180,7 @@ Accelerated Building with Environment Caching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each package is built in a special environment which is loaded from the current workspace and any workspaces that the current workspace is extending.
-If you are confident that your workspace's environment is not changing during a build, you can tell ``catkin build`` to cache these environments with the ``--cache-env`` option.
+If you are confident that your workspace's environment is not changing during a build, you can tell ``catkin build`` to cache these environments with the ``--env-cache`` option.
 This has the effect of dramatically reducing build times for workspaces where many packages are already built.
 
 
