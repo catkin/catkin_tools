@@ -216,7 +216,7 @@ _catkin_build_complete() {
     '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
     {-n,--dry-run}'[Show build process without actually building]'\
     {-v,--verbose}'[Print all output from build commands]'\
-    {-i,--interleave}"[Print output from build commands as it's generated]"\
+    {-i,--interleave-output}"[Print output from build commands as it's generated]"\
     {-c,--continue-on-failure}'[Build all selected packages even if some fail]'\
     '--get-env[Print the environment for a given workspace]:package:_catkin_get_packages'\
     '--force-cmake[Force CMake to run for each package]'\
@@ -316,7 +316,7 @@ _catkin_profile_complete() {
       ;;
     (args)
       case $line[1] in
-        (set|rename|remove) 
+        (set|rename|remove)
           local expl
           _wanted workspace_profiles expl "workspace profiles" _catkin_get_profiles && return 0
           ;;
@@ -345,7 +345,7 @@ _catkin_create_complete() {
       ;;
     (args)
       case $line[1] in
-        (pkg) 
+        (pkg)
           local pkg_opts
           pkg_opts=(\
             {-h,--help}'[Show usage help]'\
@@ -456,28 +456,28 @@ case "$state" in
     ;;
   (options)
     case $line[1] in
-      (build) _catkin_build_complete && ret=0 
+      (build) _catkin_build_complete && ret=0
         ;;
-      (clean) _catkin_clean_complete && ret=0 
+      (clean) _catkin_clean_complete && ret=0
         ;;
-      (config) 
+      (config)
         if [[ "$(_catkin_last_option)" =~ "--(black|white)list" ]]; then
           _catkin_get_packages && ret=0
         else
-          _catkin_config_complete && ret=0 
+          _catkin_config_complete && ret=0
         fi
         ;;
       (create) _catkin_create_complete && ret=0
         ;;
-      (env) _catkin_env_complete && ret=0 
+      (env) _catkin_env_complete && ret=0
         ;;
-      (init) _catkin_init_complete && ret=0 
+      (init) _catkin_init_complete && ret=0
         ;;
-      (list) _catkin_list_complete && ret=0 
+      (list) _catkin_list_complete && ret=0
         ;;
-      (locate) _catkin_locate_complete && ret=0 
+      (locate) _catkin_locate_complete && ret=0
         ;;
-      (profile) _catkin_profile_complete && ret=0 
+      (profile) _catkin_profile_complete && ret=0
         ;;
     esac
     ret=0
