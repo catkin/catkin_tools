@@ -129,7 +129,7 @@ This will print the normal messages when a build job starts and finishes as well
 
     <center><script type="text/javascript" src="https://asciinema.org/a/9d9jklblvvyeq62y2r3ugpywp.js" id="asciicast-9d9jklblvvyeq62y2r3ugpywp" async></script></center>
 
-All output can be printed interleaved with the ``--interleave`` option.
+All output can be printed interleaved with the ``--interleave-output`` option.
 In this case, each line is prefixed with the job and stage from which it came.
 
 .. raw:: html
@@ -172,7 +172,7 @@ Consider a Catkin workspace with a **source space** populated with the following
 Building Specific Packages
 --------------------------
 
-Specific packages can also be built by specifying them as positional arguments after the ``build`` verb: 
+Specific packages can also be built by specifying them as positional arguments after the ``build`` verb:
 
 .. literalinclude:: ../examples/ros_tutorials_ws/6_build_partial.bash
    :language: bash
@@ -187,7 +187,7 @@ Context-Aware Building
 ----------------------
 
 In addition to building all packages or specified packages with various dependency requirements, ``catkin build`` can also determine the package containing the current working directory.
-This is equivalent to specifying the name of the package on the command line, and is done by passing the ``--this`` option to ``catkin build`` like the following: 
+This is equivalent to specifying the name of the package on the command line, and is done by passing the ``--this`` option to ``catkin build`` like the following:
 
 .. literalinclude:: ../examples/ros_tutorials_ws/7_build_this.bash
    :language: bash
@@ -336,13 +336,13 @@ This flag requires installing the Python ``psutil`` module and is useful on syst
 
 Memory is specified either by percent or by the number of bytes.
 
-For example, to specify that ``catkin build`` should not start additional parallel jobs when 50% of the available memory is used, you could run: 
+For example, to specify that ``catkin build`` should not start additional parallel jobs when 50% of the available memory is used, you could run:
 
 .. code-block:: bash
 
     $ catkin build --mem-limit 50%
 
-Alternatively, if it should not start additional jobs when over 4GB of memory is used, you can specify: 
+Alternatively, if it should not start additional jobs when over 4GB of memory is used, you can specify:
 
 .. code-block:: bash
 
