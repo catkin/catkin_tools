@@ -19,7 +19,11 @@ from datetime import date
 import os
 import pkg_resources
 import sys
-import pipes
+
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
 
 from catkin_tools.common import is_tty
 
@@ -112,7 +116,7 @@ def expand_one_verb_alias(sysargs, verb_aliases, used_aliases):
                 "to '@{yf}{before} @!{expansion}@{boldoff}{after}@|'"
             ).format(
                 alias=arg,
-                expansion=' '.join([pipes.quote(aarg) for aarg in verb_aliases[arg]]),
+                expansion=' '.join([cmd_quote(aarg) for aarg in verb_aliases[arg]]),
                 before=' '.join([cmd] + before),
                 after=(' '.join([''] + after) if after else '')
             ))
@@ -214,7 +218,7 @@ def catkin_main(sysargs):
     for arg in sysargs:
         if arg == '--list-aliases' or arg == '-a':
             for alias in sorted(list(verb_aliases.keys())):
-                print("{0}: {1}".format(alias, ' '.join([pipes.quote(aarg) for aarg in verb_aliases[alias]])))
+                print("{0}: {1}".format(alias, ' '.join([cmd_quote(aarg) for aarg in verb_aliases[alias]])))
             sys.exit(0)
         if not arg.startswith('-'):
             break
