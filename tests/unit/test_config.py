@@ -77,7 +77,7 @@ def test_get_verb_aliases():
     config.initialize_config(test_folder)
     aliases = config.get_verb_aliases(test_folder)
     assert 'b' in aliases
-    assert aliases['b'] == 'build'
+    assert aliases['b'] == ['build']
     # Test a custom file
     base_path = os.path.join(test_folder, 'verb_aliases')
     with open(os.path.join(base_path, '01-my-custom-aliases.yaml'), 'w') as f:
@@ -87,7 +87,7 @@ ls: null
 """)
     aliases = config.get_verb_aliases(test_folder)
     assert 'b' in aliases
-    assert aliases['b'] == 'build --isolate-devel', aliases['b']
+    assert aliases['b'] == ['build', '--isolate-devel'], aliases['b']
     assert 'ls' not in aliases
     # Test a bad alias files
     bad_path = os.path.join(base_path, '02-bad.yaml')

@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import os
 import yaml
+import shlex
 
 from .common import string_type
 
@@ -100,11 +101,18 @@ def get_verb_aliases(path=catkin_config_path):
                 if not isinstance(key, string_type):
                     raise RuntimeError("Invalid alias in file ('{0}'), expected a string but got '{1}' of type {2}"
                                        .format(full_path, key, type(key)))
-                if not isinstance(value, string_type) and not isinstance(value, type(None)):
+                parsed_value = None
+                if isinstance(value, string_type):
+                    # Parse using shlex
+                    parsed_value = shlex.split(value)
+                elif isinstance(value, list) or isinstance(value, type(None)):
+                    # Take plainly
+                    parsed_value = value
+                else:
                     raise RuntimeError(
-                        "Invalid alias expansion in file ('{0}'), expected a string but got '{1}' of type {2}"
+                        "Invalid alias expansion in file ('{0}'), expected a string or a list but got '{1}' of type {2}"
                         .format(full_path, value, type(value)))
-            verb_aliases.update(yaml_dict)
+                verb_aliases[key] = parsed_value
     for alias, value in dict(verb_aliases).items():
         if not value:
             del verb_aliases[alias]
