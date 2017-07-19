@@ -87,7 +87,7 @@ ls: null
 """)
     aliases = config.get_verb_aliases(test_folder)
     assert 'b' in aliases
-    assert aliases['b'] == 'build --isolate-devel', aliases['b']
+    assert aliases['b'] == ['build', '--isolate-devel'], aliases['b']
     assert 'ls' not in aliases
     # Test a bad alias files
     bad_path = os.path.join(base_path, '02-bad.yaml')
