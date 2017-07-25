@@ -247,6 +247,11 @@ class Context(object):
         space_suffix=None,
         whitelist=None,
         blacklist=None,
+        devel_space=None,
+        source_space=None,
+        log_space=None,
+        build_space=None,
+        install_space=None,
         **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
