@@ -1,4 +1,10 @@
-from queue import Queue
+try:
+    # Python3
+    from queue import Queue
+except ImportError:
+    # Python2
+    from Queue import Queue
+
 from catkin_tools.execution import io as io
 
 
