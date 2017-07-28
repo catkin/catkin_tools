@@ -128,7 +128,7 @@ class IOBufferContainer(object):
         """Decode bytes into Python str.
         :type data: bytes
         """
-        return data.decode('utf-8')
+        return data.decode('utf-8', 'replace')
 
     def __del__(self):
         if self.is_open:
