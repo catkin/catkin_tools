@@ -85,7 +85,7 @@ _catkin_get_enclosing_package() {
     if [[ -e "$_path/package.xml" ]]; then
       _debug_log "Found package root $_path"
       # Get the package name
-      _enclosing_package=$(xmllint --xpath '/package/name/text()' '$_path/package.xml')
+      _enclosing_package=$(xmllint --xpath "/package/name/text()" "$_path/package.xml")
       return 0
     else
       _path=$(/bin/readlink -f $_path/..)
