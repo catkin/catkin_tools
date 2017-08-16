@@ -52,18 +52,18 @@ _catkin_get_enclosing_workspace() {
     return 0
   fi
 
-  local path
-  path="$1"
+  local _path
+  _path="$1"
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/.catkin_tools"
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/.catkin_tools"
 
-    if [[ -e "$path/.catkin_tools" ]]; then
-      _debug_log "Found workspace root $path"
-      _workspace_root=$path
+    if [[ -e "$_path/.catkin_tools" ]]; then
+      _debug_log "Found workspace root $_path"
+      _workspace_root=$_path
       return 0
     else
-      path="$(/bin/readlink -f $path/..)"
+      _path=$(/bin/readlink -f $_path/..)
     fi
   done
 
@@ -76,19 +76,19 @@ _catkin_get_enclosing_package() {
     return 0
   fi
 
-  local path
-  path="$1"
+  local _path
+  _path="$1"
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/package.xml"
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/package.xml"
 
-    if [[ -e "$path/package.xml" ]]; then
-      _debug_log "Found package root $path"
+    if [[ -e "$_path/package.xml" ]]; then
+      _debug_log "Found package root $_path"
       # Get the package name
-      _enclosing_package="$(xmllint --xpath '/package/name/text()' '$path/package.xml')"
+      _enclosing_package=$(xmllint --xpath '/package/name/text()' '$_path/package.xml')
       return 0
     else
-      path="$(/bin/readlink -f $path/..)"
+      _path=$(/bin/readlink -f $_path/..)
     fi
   done
 
