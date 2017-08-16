@@ -205,7 +205,7 @@ _catkin_build_complete() {
     _debug_log "In package $_enclosing_package"
     build_opts=(\
       "(--unbuilt)--this[Build '$_enclosing_package']"\
-      "(--start-with)--start--with--this[Skip all packages on which `$_enclosing_package` depends]"\
+      "(--start-with)--start--with--this[Skip all packages on which '$_enclosing_package' depends]"\
       )
   else
     _debug_log "Not in a package"
