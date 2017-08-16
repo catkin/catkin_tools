@@ -202,10 +202,10 @@ _catkin_build_complete() {
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
+    _debug_log "In package $_enclosing_package"
     build_opts=(\
-      "(--unbuilt)--this[Build '$this_package']"\
-      "(--start-with)--start--with--this[Skip all packages on which `$this_package` depends]"\
+      "(--unbuilt)--this[Build '$_enclosing_package']"\
+      "(--start-with)--start--with--this[Skip all packages on which `$_enclosing_package` depends]"\
       )
   else
     _debug_log "Not in a package"
@@ -241,7 +241,7 @@ _catkin_clean_complete() {
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
+    _debug_log "In package $_enclosing_package"
     clean_opts=()
   else
     _debug_log "Not in a package"
