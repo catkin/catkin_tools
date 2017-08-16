@@ -102,7 +102,15 @@ _catkin_packages_caching_policy() {
   if [[ -z "$_workspace_source_space" ]]; then
     _debug_log "Searching for source space..."
 
-    _workspace_source_space="$(catkin locate -s --quiet)"
+    _catkin_get_enclosing_workspace $_workspace_root_hint
+
+    # We try this special case first since it is the recommended layout
+    # and calling "catkin locate" is much slower
+    _workspace_source_space="$_workspace_root/src"
+
+    if [[ ! -d "$_workspace_source_space" ]]; then
+        _workspace_source_space="$(catkin locate -s --quiet)"
+    fi
 
     # If the source space can't be found, regenerate cache
     if [[ "$?" -ne "0" ]]; then
