@@ -416,7 +416,7 @@ _catkin_locate_complete() {
     {-h,--help}'[Show usage help]'\
     {-w,--workspace}'[Workspace path]:workspace:_files -/'\
     {-e,--existing-only}'[Only print existing paths]'\
-    {-r,--relateive}'[Format paths relative to the working directory]'\
+    {-r,--relative}'[Format paths relative to the working directory]'\
     {-q,--quiet}'[Suppress warnings]'\
     {-s,--src}'[Get the path to the source space]'\
     {-b,--build}'[Get the path to the build space]'\
