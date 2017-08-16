@@ -149,9 +149,8 @@ _catkin_get_packages() {
     zstyle ":completion:${curcontext}:" cache-policy _catkin_packages_caching_policy
   fi
 
-  # If cache is invalid or if the package list is not set yet and can't be retrieved from cache regenerate cache
-  # ( Remember that _retrieve_cache returns 0 if everything's fine, 1 if not. _cache_invalid returns 0 if cache needs rebuilding, 1 otherwise)
-  if _cache_invalid workspace_packages || ( [[ ${+_workspace_packages} -eq 0 ]] && ! _retrieve_cache workspace_packages ); then
+  if ( [[ ${+_workspace_packages} -eq 0 ]] || _cache_invalid workspace_packages ) \
+      && ! _retrieve_cache workspace_packages; then
     _debug_log "Regenerating package cache..."
     _workspace_packages=(${${(f)"$(catkin list -u --quiet)"}})
     _store_cache workspace_packages _workspace_packages
