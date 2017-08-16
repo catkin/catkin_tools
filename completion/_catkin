@@ -63,7 +63,7 @@ _catkin_get_enclosing_workspace() {
       _workspace_root=$_path
       return 0
     else
-      _path=$(readlink -f $_path/..)
+      _path=$(readlink -f "$_path/..")
     fi
   done
 
@@ -88,7 +88,7 @@ _catkin_get_enclosing_package() {
       _enclosing_package=$(xmllint --xpath "/package/name/text()" "$_path/package.xml")
       return 0
     else
-      _path=$(readlink -f $_path/..)
+      _path=$(readlink -f "$_path/..")
     fi
   done
 
@@ -128,7 +128,7 @@ _catkin_get_packages() {
   local cache_file_path
 
   # Get the workspace root
-  _catkin_get_enclosing_workspace $_workspace_root_hint
+  _catkin_get_enclosing_workspace "$_workspace_root_hint"
 
 
   if [[ "$?" -ne 0 ]]; then
