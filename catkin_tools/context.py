@@ -295,10 +295,6 @@ class Context(object):
         """
         self.__locked = False
 
-        # Check for unhandled context options
-        if len(kwargs) > 0:
-            print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
-
         # Validation is done on assignment
         self.workspace = workspace
 
@@ -312,7 +308,11 @@ class Context(object):
             default = space_dict['default']
             if space_suffix and space != 'source':
                 default += space_suffix
-            setattr(self, key_name, kwargs.get(key_name, default))
+            setattr(self, key_name, kwargs.pop(key_name, default))
+
+        # Check for unhandled context options
+        if len(kwargs) > 0:
+            print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
 
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
 
