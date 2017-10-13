@@ -155,7 +155,7 @@ def main(opts):
                 print(clr('[profile] Activated catkin metadata profile: @{cf}%s@|' % active_profile))
             else:
                 print('catkin profile: error: Profile `%s` does not exist in workspace `%s`.' %
-                      (opts.name[0], ctx.workspace))
+                      (opts.name, ctx.workspace))
                 return 1
 
             profiles = get_profile_names(ctx.workspace)
