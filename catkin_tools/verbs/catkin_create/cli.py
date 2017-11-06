@@ -117,6 +117,15 @@ def main(opts):
     try:
         # Get absolute path to directory containing package
         package_dest_path = os.path.abspath(opts.path)
+
+        # Sort list of maintainers and authors (it will also be sorted inside
+        # PackageTemplate so by sorting it here, we ensure that the same order
+        # is used.  This is important later when email addresses are assigned.
+        if opts.maintainers:
+            opts.maintainers.sort(key=lambda x: x[0])
+        if opts.authors:
+            opts.authors.sort(key=lambda x: x[0])
+
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
             target_path = os.path.join(package_dest_path, package_name)
