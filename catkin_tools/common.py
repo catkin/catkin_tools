@@ -640,7 +640,7 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
         # Find packages under the search path
         try:
             pkgs = find_packages(search_path, warnings=warnings)
-        except:
+        except RuntimeError:
             return None
 
         # Check if the directory is a catkin package

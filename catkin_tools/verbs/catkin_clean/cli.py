@@ -322,7 +322,8 @@ def clean_profile(opts, profile):
                 "workspaces with symbolically-linked develspaces (`catkin "
                 "config --link-devel`).")
 
-    except:
+    except:  # noqa: E722
+        # Silencing E722 here since we immediately re-raise the exception.
         log("[clean] Failed to clean profile `{}`".format(profile))
         needs_force = True
         raise
