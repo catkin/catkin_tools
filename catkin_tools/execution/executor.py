@@ -124,9 +124,11 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         stage_repro=stage.get_reproduction_cmd(verb, job.jid),
                         **stage.async_execute_process_kwargs))
 
-                    # Asynchronously yield until this command is  completed
+                    # Asynchronously yield until this command is completed
                     retcode = yield asyncio.From(logger.complete)
-                except:
+                except:  # noqa: E722
+                    # Bare except is permissable here because the set of errors which the CommandState might raise
+                    # is unbounded. We capture the traceback here and save it to the build's log files.
                     logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
                     logger.err(str(traceback.format_exc()))
                     retcode = 3
@@ -140,7 +142,9 @@ def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         stage.function,
                         logger,
                         event_queue))
-                except:
+                except:  # noqa: E722
+                    # Bare except is permissable here because the set of errors which the FunctionStage might raise
+                    # is unbounded. We capture the traceback here and save it to the build's log files.
                     logger.err('Stage `{}` failed with arguments:'.format(stage.label))
                     for arg_val in stage.args:
                         logger.err('  {}'.format(arg_val))

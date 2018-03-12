@@ -328,7 +328,8 @@ def link_devel_products(
     # after this build, and update the collision file
     try:
         clean_linked_files(logger, event_queue, metadata_path, files_that_collide, files_to_clean, dry_run=False)
-    except:
+    except:  # noqa: E722
+        # Silencing E722 here since we immediately re-raise the exception.
         logger.err('Could not clean linked files.')
         raise
 

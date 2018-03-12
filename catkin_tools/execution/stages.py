@@ -172,7 +172,8 @@ class FunctionStage(Stage):
         def function_proxy(logger, event_queue):
             try:
                 return function(logger, event_queue, *args, **kwargs)
-            except:
+            except:  # noqa: E722
+                # Silencing E722 here since we immediately re-raise the exception.
                 logger.err(str(traceback.format_exc()))
                 raise
         self.function = function_proxy
