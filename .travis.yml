@@ -16,7 +16,7 @@ matrix:
       env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=indigo-devel
     - os: osx
       python: 2
-      env: PYTHON=/usr/bin/python CATKIN_VERSION=indigo-devel
+      env: PYTHON=/usr/local/bin/python2 CATKIN_VERSION=indigo-devel
     - os: osx
       python: 3
       env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
