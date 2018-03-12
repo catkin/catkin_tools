@@ -398,7 +398,7 @@ def main(opts):
         parallel_jobs = None
 
     # Set VERBOSE environment variable
-    if opts.verbose:
+    if opts.verbose and 'VERBOSE' not in os.environ:
         os.environ['VERBOSE'] = '1'
 
     try:
