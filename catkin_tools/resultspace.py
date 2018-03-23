@@ -110,7 +110,8 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
 
     # Use fallback shell if using a non-standard shell
     if shell_name not in ['bash', 'zsh']:
-        shell_name = 'bash'
+        shell_path = DEFAULT_SHELL
+        (_, shell_name) = os.path.split(shell_path)
 
     # Check to make sure result_space_path contains the appropriate setup file
     setup_file_path = os.path.join(result_space_path, 'env.sh')
