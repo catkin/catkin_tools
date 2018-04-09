@@ -46,7 +46,7 @@ def prepare_arguments(parser):
         help='Print profile list without punctuation and additional details.')
 
     add = parser_list.add_argument
-    add('--active', '-a', default=None, action='store_true',
+    add('--active', default=None, action='store_true',
         help='Print only active profile.')
 
     add = parser_set.add_argument
