@@ -323,7 +323,7 @@ class ConsoleStatusController(threading.Thread):
                 number_of_columns)
         else:
             wide_log("")
-            wide_log(clr("[{}] No {} succeded.").format(self.label, self.jobs_label))
+            wide_log(clr("[{}] No {} succeeded.").format(self.label, self.jobs_label))
             wide_log("")
 
         # Print out whitelisted jobs
@@ -363,7 +363,7 @@ class ConsoleStatusController(threading.Thread):
         notification_msg = []
         # Print error summary
         if len(completed_jobs) == len(self.jobs) and all(completed_jobs.items()) and len(failed_jobs) == 0:
-            notification_title = "{} Succeded".format(self.label.capitalize())
+            notification_title = "{} Succeeded".format(self.label.capitalize())
             notification_msg.append("All {} {} succeeded!".format(len(self.jobs), self.jobs_label))
 
             wide_log(clr('[{}] Summary: All {} {} succeeded!').format(
@@ -397,7 +397,7 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr('[{}] Warnings: None.').format(
                 self.label))
         else:
-            notification_title = "{} Succeded with Warnings".format(self.label.capitalize())
+            notification_title = "{} Succeeded with Warnings".format(self.label.capitalize())
             notification_msg.append("{} {} succeeded with warnings.".format(len(warned_jobs), self.jobs_label))
 
             wide_log(clr('[{}] Warnings: {} {} succeeded with warnings.').format(
