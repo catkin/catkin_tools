@@ -107,16 +107,23 @@ class IOBufferContainer(object):
                 logfile.write(self.stderr_buffer)
 
     def get_interleaved_log(self):
-        """Get decoded interleaved log."""
-        return self._decode(self.interleaved_buffer)
-
+        """get decoded interleaved log."""
+        try:
+          return self._decode(self.interleaved_buffer)
+        except:
+          return "interleaved_log: some output cannot be displayed.\n"
     def get_stdout_log(self):
-        """Get decoded stdout log."""
-        return self._decode(self.stdout_buffer)
-
+        """get decoded stdout log."""
+        try:
+          return self._decode(self.stdout_buffer)
+        except:
+          return "stdout_log: some output cannot be displayed.\n"
     def get_stderr_log(self):
-        """Get decoded stderr log."""
-        return self._decode(self.stderr_buffer)
+        """get decoded stderr log."""
+        try:
+          return self._decode(self.stderr_buffer)
+        except:
+          return "stderr_log: some output cannot be displayed.\n"
 
     def _encode(self, data):
         """Encode a Python str into bytes.
