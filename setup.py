@@ -98,13 +98,20 @@ To enable tab completion, add the following to your '~/.bashrc':
                         'catkin_tools-completion.bash')))
 
 parser = argparse.ArgumentParser(add_help=False)
-prefix_group = parser.add_mutually_exclusive_group()
-prefix_group.add_argument('--user', '--home', action='store_true')
-prefix_group.add_argument('--prefix', default=None)
+parser.add_argument('--user', '--home', action='store_true')
+parser.add_argument('--prefix', default=None)
 
 opts, _ = parser.parse_known_args(sys.argv)
-userbase = site.getuserbase() if opts.user else None
-prefix = userbase or opts.prefix or sys.prefix
+if opts.user and not (opts.prefix == None or opts.prefix == ""):
+    raise Exception("error: argument --prefix: must be unspecified or empty if given with argument --user/--home")
+
+prefix = None
+if opts.user:
+    prefix = site.getuserbase()
+elif opts.prefix != None:
+    prefix = opts.prefix
+else:
+    prefix = sys.prefix
 
 setup(
     name='catkin_tools',
