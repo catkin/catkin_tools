@@ -639,6 +639,9 @@ DEVEL_LINK_BLACKLIST = DEVEL_LINK_PREBUILD_BLACKLIST + [
     'setup.bash',
     'setup.zsh',
     'setup.sh',
+    'local_setup.bash',
+    'local_setup.zsh',
+    'local_setup.sh',
     '_setup_util.py',
 ]
 
