@@ -45,6 +45,10 @@ def prepare_arguments(parser):
     add('--unformatted', '-u', default=None, action='store_true',
         help='Print profile list without punctuation and additional details.')
 
+    add = parser_list.add_argument
+    add('--active', default=None, action='store_true',
+        help='Print only active profile.')
+
     add = parser_set.add_argument
     add('name', type=str,
         help='The profile to activate.')
@@ -76,20 +80,26 @@ def prepare_arguments(parser):
     return parser
 
 
-def list_profiles(profiles, active_profile, unformatted=False):
+def list_profiles(profiles, active_profile, unformatted=False, active=False):
 
     entry_format = '@{pf}-@| @{cf}%s@|' if not unformatted else '%s'
     entry_active_format = entry_format + (' (@{yf}active@|)' if not unformatted else '')
 
     ret = []
     if len(profiles) > 0:
-        if not unformatted:
-            ret += [clr('[profile] Available profiles:')]
-        for p in profiles:
-            if p == active_profile:
-                ret += [clr(entry_active_format % p)]
+        if not active:
+            if not unformatted:
+                ret += [clr('[profile] Available profiles:')]
+            for p in profiles:
+                if p == active_profile:
+                    ret += [clr(entry_active_format % p)]
+                else:
+                    ret += [clr(entry_format % p)]
+        else:
+            if not unformatted:
+                ret += [clr(entry_active_format % active_profile)]
             else:
-                ret += [clr(entry_format % p)]
+                ret += [active_profile]
     else:
         if not unformatted:
             ret += [clr(
@@ -113,7 +123,7 @@ def main(opts):
         active_profile = get_active_profile(ctx.workspace)
 
         if opts.subcommand == 'list':
-            print(list_profiles(profiles, active_profile, unformatted=opts.unformatted))
+            print(list_profiles(profiles, active_profile, unformatted=opts.unformatted, active=opts.active))
 
         elif opts.subcommand == 'add':
             if opts.name in profiles:
