@@ -140,3 +140,13 @@ Build with ``distcc``:
   .. code-block:: bash
 
      CC="distcc gcc" CXX="distcc g++" catkin build -p$(distcc -j) -j$(distcc -j) --no-jobserver
+     
+Changing Package's Build Type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Set the build type to ``cmake`` in the ``package.xml`` file's ``<export/>`` section:
+  .. code-block:: xml
+    
+    <export>
+      <build_type>cmake</build_type>
+    </export>
