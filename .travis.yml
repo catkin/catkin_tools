@@ -2,14 +2,12 @@
 language: generic
 matrix:
   include:
-    - dist: trusty
-      python: 2.7
+    - dist: xenial
       language: python
       python: "2.7"
       os: linux
       env: PYTHON=/usr/bin/python2.7 CATKIN_VERSION=indigo-devel
-    - dist: trusty
-      python: 3.4
+    - dist: xenial
       language: python
       python: "3.4"
       os: linux
