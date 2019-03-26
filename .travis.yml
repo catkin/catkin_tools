@@ -2,24 +2,16 @@
 language: generic
 matrix:
   include:
-    - dist: trusty
-      python: 2.7
+    - dist: xenial
       language: python
       python: "2.7"
       os: linux
       env: PYTHON=/usr/bin/python2.7 CATKIN_VERSION=indigo-devel
-    - dist: trusty
-      python: 3.4
+    - dist: xenial
       language: python
       python: "3.4"
       os: linux
       env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=indigo-devel
-    - os: osx
-      python: 2
-      env: PYTHON=/usr/local/bin/python2 CATKIN_VERSION=indigo-devel
-    - os: osx
-      python: 3
-      env: PYTHON=/usr/local/bin/python3 CATKIN_VERSION=indigo-devel
 before_install:
   # Install catkin_tools dependencies
   - source .travis.before_install.bash

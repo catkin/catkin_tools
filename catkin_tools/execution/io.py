@@ -109,21 +109,23 @@ class IOBufferContainer(object):
     def get_interleaved_log(self):
         """get decoded interleaved log."""
         try:
-          return self._decode(self.interleaved_buffer)
-        except:
-          return "interleaved_log: some output cannot be displayed.\n"
+            return self._decode(self.interleaved_buffer)
+        except UnicodeDecodeError:
+            return "interleaved_log: some output cannot be displayed.\n"
+
     def get_stdout_log(self):
         """get decoded stdout log."""
         try:
-          return self._decode(self.stdout_buffer)
-        except:
-          return "stdout_log: some output cannot be displayed.\n"
+            return self._decode(self.stdout_buffer)
+        except UnicodeDecodeError:
+            return "stdout_log: some output cannot be displayed.\n"
+
     def get_stderr_log(self):
         """get decoded stderr log."""
         try:
-          return self._decode(self.stderr_buffer)
-        except:
-          return "stderr_log: some output cannot be displayed.\n"
+            return self._decode(self.stderr_buffer)
+        except UnicodeDecodeError:
+            return "stderr_log: some output cannot be displayed.\n"
 
     def _encode(self, data):
         """Encode a Python str into bytes.

@@ -152,8 +152,8 @@ class JobServer(object):
         elif type(max_mem) is float or type(max_mem) is int:
             mem_percent = max_mem
         elif type(max_mem) is str:
-            m_percent = re.search('([0-9]+)\%', max_mem)
-            m_abs = re.search('([0-9]+)([kKmMgG]{0,1})', max_mem)
+            m_percent = re.search(r'([0-9]+)\%', max_mem)
+            m_abs = re.search(r'([0-9]+)([kKmMgG]{0,1})', max_mem)
 
             if m_percent is None and m_abs is None:
                 cls._max_mem = None
