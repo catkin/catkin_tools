@@ -67,14 +67,14 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         #  - output formatting line (subs captured groups)
         #  - functor which filters captured groups
         filters = [
-            ('^-- :(.+)', '@{cf}--@| :@{yf}{}@|', None),
-            ('^-- (.+)', '@{cf}--@| {}', None),
-            ('CMake Error at (.+):(.+)', '@{rf}@!CMake Error@| at {}:{}', self.abspath),
-            ('CMake Warning at (.+):(.+)', '@{yf}@!CMake Warning@| at {}:{}', self.abspath),
-            ('CMake Warning (dev) at (.+):(.+)', '@{yf}@!CMake Warning (dev)@| at {}:{}', self.abspath),
-            ('(?i)(warning.*)', '@(yf){}@|', None),
-            ('(?i)ERROR:(.*)', '@!@(rf)ERROR:@|{}@|', None),
-            ('Call Stack \(most recent call first\):(.*)', '@{cf}Call Stack (most recent call first):@|{}', None),
+            (r'^-- :(.+)', '@{cf}--@| :@{yf}{}@|', None),
+            (r'^-- (.+)', '@{cf}--@| {}', None),
+            (r'CMake Error at (.+):(.+)', '@{rf}@!CMake Error@| at {}:{}', self.abspath),
+            (r'CMake Warning at (.+):(.+)', '@{yf}@!CMake Warning@| at {}:{}', self.abspath),
+            (r'CMake Warning (dev) at (.+):(.+)', '@{yf}@!CMake Warning (dev)@| at {}:{}', self.abspath),
+            (r'(?i)(warning.*)', '@(yf){}@|', None),
+            (r'(?i)ERROR:(.*)', '@!@(rf)ERROR:@|{}@|', None),
+            (r'Call Stack \(most recent call first\):(.*)', '@{cf}Call Stack (most recent call first):@|{}', None),
         ]
 
         self.filters = [(re.compile(p), r, f) for (p, r, f) in filters]
@@ -165,7 +165,7 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
         super(CMakeMakeIOBufferProtocol, self).on_stdout_received(data)
 
         # Parse CMake Make completion progress
-        progress_matches = re.match('\[\s*([0-9]+)%\]', self._decode(data))
+        progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
         if progress_matches is not None:
             self.event_queue.put(ExecutionEvent(
                 'STAGE_PROGRESS',
