@@ -367,7 +367,7 @@ def get_profiles_data(workspace_path):
         profiles_yaml_file_path = os.path.join(profiles_path, PROFILES_YML_FILE_NAME)
         if os.path.exists(profiles_yaml_file_path):
             with open(profiles_yaml_file_path, 'r') as profiles_file:
-                return yaml.load(profiles_file)
+                return yaml.safe_load(profiles_file)
 
     return {}
 
@@ -395,7 +395,7 @@ def get_metadata(workspace_path, profile, verb):
         return dict()
 
     with open(metadata_file_path, 'r') as metadata_file:
-        return yaml.load(metadata_file)
+        return yaml.safe_load(metadata_file)
 
 
 def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, merge=True):

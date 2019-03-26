@@ -240,7 +240,7 @@ def build_isolated_workspace(
     # Check build config
     if os.path.exists(os.path.join(context.build_space_abs, BUILDSPACE_MARKER_FILE)):
         with open(os.path.join(context.build_space_abs, BUILDSPACE_MARKER_FILE)) as buildspace_marker_file:
-            existing_buildspace_marker_data = yaml.load(buildspace_marker_file)
+            existing_buildspace_marker_data = yaml.safe_load(buildspace_marker_file)
             misconfig_lines = ''
             for (k, v) in existing_buildspace_marker_data.items():
                 new_v = buildspace_marker_data.get(k, None)

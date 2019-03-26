@@ -91,7 +91,7 @@ def get_verb_aliases(path=catkin_config_path):
         if file_name.endswith('.yaml'):
             full_path = os.path.join(verb_aliases_path, file_name)
             with open(full_path, 'r') as f:
-                yaml_dict = yaml.load(f)
+                yaml_dict = yaml.safe_load(f)
             if yaml_dict is None:
                 continue
             if not isinstance(yaml_dict, dict):
