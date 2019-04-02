@@ -2,6 +2,51 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.5 (2019-04-02)
+------------------
+* Fixed jobserver not working with GNU make >= 4.2 (`#480 <https://github.com/catkin/catkin_tools/issues/480>`_)
+* Use yaml.safe_load everywhere. (`#542 <https://github.com/catkin/catkin_tools/issues/542>`_)
+* Fixed unhandled config context options warning (`#489 <https://github.com/catkin/catkin_tools/issues/489>`_)
+* Added some exception handling for io (`#529 <https://github.com/catkin/catkin_tools/issues/529>`_)
+* Added opt --active to profile list (`#513 <https://github.com/catkin/catkin_tools/issues/513>`_)
+* Added build type switch to cheat sheet. (`#522 <https://github.com/catkin/catkin_tools/issues/522>`_)
+* Fix issue when empty install prefix specified (`#533 <https://github.com/catkin/catkin_tools/issues/533>`_)
+* Fix bug when workspace contains special characters (`#536 <https://github.com/catkin/catkin_tools/issues/536>`_)
+  Simply sanitize the workspace name when printing it out
+* Add local_setup.* to DEVEL_LINK_BLACKLIST (`#539 <https://github.com/catkin/catkin_tools/issues/539>`_)
+* Fix notification typo (`#527 <https://github.com/catkin/catkin_tools/issues/527>`_)
+* When using a non-standard shell fix the usage of DEFAULT_SHELL. (`#511 <https://github.com/catkin/catkin_tools/issues/511>`_)
+  Previously, using a non-standard shell meant using that non-standard shell's path (shell_path) whereas the shell_name would be bash. Not only is there this discrepancy, but then the command is actually run with the non-standard shell, which is liable to cause runtime errors (as it does if e.g. SHELL=/usr/bin/fish).
+* Sort authors/maintainers for correct email assignment (`#492 <https://github.com/catkin/catkin_tools/issues/492>`_)
+* Fixed 'pip install --user catkin_tools' (`#488 <https://github.com/catkin/catkin_tools/issues/488>`_)
+* Fixed 'catkin profile set ...' error message (`#487 <https://github.com/catkin/catkin_tools/issues/487>`_)
+* Respect VERBOSE environment variable if already set before in verbose mode (`#506 <https://github.com/catkin/catkin_tools/issues/506>`_)
+* Re-enable Sphinx spell check. (`#461 <https://github.com/catkin/catkin_tools/issues/461>`_)" (`#462 <https://github.com/catkin/catkin_tools/issues/462>`_)
+* Silence E722 flake8 warnings, fix OSX builds. (`#509 <https://github.com/catkin/catkin_tools/issues/509>`_)
+* setup.py: Exclude all tests* from install (`#499 <https://github.com/catkin/catkin_tools/issues/499>`_)
+* Fixed typo: relateive -> relative (`#484 <https://github.com/catkin/catkin_tools/issues/484>`_)
+* Sanitizes log message input (`#479 <https://github.com/catkin/catkin_tools/issues/479>`_)
+* Enable arguments with spaces in alias definition (`#476 <https://github.com/catkin/catkin_tools/issues/476>`_)
+* Fixed zsh completion to actually use zsh caching for package list (`#459 <https://github.com/catkin/catkin_tools/issues/459>`_) (`#475 <https://github.com/catkin/catkin_tools/issues/475>`_)
+* Fixed doc and completion based on current CLI for interleave output (`#467 <https://github.com/catkin/catkin_tools/issues/467>`_)
+  The current CLI for interleave output proposes to use
+  --interleave-output instead of --interleave.
+* Add trollius to setup.py `install_requires` list (`#474 <https://github.com/catkin/catkin_tools/issues/474>`_)
+  closes `#445 <https://github.com/catkin/catkin_tools/issues/445>`_
+  This patch can be viewed as continuing the work of pull request `#282 <https://github.com/catkin/catkin_tools/issues/282>`_.
+* Fix typo in documentation of option env-cache (`#466 <https://github.com/catkin/catkin_tools/issues/466>`_)
+* Implementation of pluggable spaces. (`#458 <https://github.com/catkin/catkin_tools/issues/458>`_)
+* Disable Sphinx spell check for now. (`#461 <https://github.com/catkin/catkin_tools/issues/461>`_)
+* Better message when missing a required command line tool. (`#455 <https://github.com/catkin/catkin_tools/issues/455>`_)
+* Specify return code when build interrupted. (`#452 <https://github.com/catkin/catkin_tools/issues/452>`_)
+* Drop utf-8 encoding to compute file hashes in symlink stage (`#399 <https://github.com/catkin/catkin_tools/issues/399>`_)
+* Fix logic which merges environment PATH variables. (`#449 <https://github.com/catkin/catkin_tools/issues/449>`_)
+* Ignore vim swap files. (`#450 <https://github.com/catkin/catkin_tools/issues/450>`_)
+* Add tests for isolated builds. (`#444 <https://github.com/catkin/catkin_tools/issues/444>`_)
+* Correctly merge envvars from isolated workspaces. (`#443 <https://github.com/catkin/catkin_tools/issues/443>`_)
+* Fix hanging on circular run depend. (`#440 <https://github.com/catkin/catkin_tools/issues/440>`_)
+* Contributors: Chris Lalancette, Christian Muck, Felix Widmaier, Florian Tschopp, Hervé Audren, Ian Taylor, JD Yamokoski, Jeremie Deray, Johannes Meyer, Jonathan Bohren, Manuel Binna, Mikael Arguedas, Mike Purvis, Robert Haschke, Scott C. Livingston, Simon Deleersnijder, Tim Rakowski, Tommi, William Woodall, Xfel, luisrayas3
+
 0.4.4 (2017-02-08)
 ------------------
 * Removed unused dependency on ``sphinxcontrib-ansi`` (`#432 <https://github.com/catkin/catkin_tools/issues/432>`_)
