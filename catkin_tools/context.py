@@ -66,6 +66,9 @@ class Context(object):
         'catkin_make_args',
         'whitelist',
         'blacklist',
+        'authors',
+        'maintainers',
+        'licenses',
     ]
 
     EXTRA_KEYS = [
@@ -247,6 +250,9 @@ class Context(object):
         space_suffix=None,
         whitelist=None,
         blacklist=None,
+        authors=None,
+        maintainers=None,
+        licenses=None,
         **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
@@ -292,6 +298,12 @@ class Context(object):
         :param blacklist: a list of packages to ignore by default
         :type blacklist: list
         :raises: ValueError if workspace or source space does not exist
+        :type authors: list
+        :param authors: a list of default authors
+        :type maintainers: list
+        :param maintainers: a list of default maintainers
+        :type licenses: list
+        :param licenses: a list of default licenses
         """
         self.__locked = False
 
@@ -319,6 +331,11 @@ class Context(object):
         # Handle package whitelist/blacklist
         self.whitelist = whitelist or []
         self.blacklist = blacklist or []
+
+        # Handle default authors/maintainers
+        self.authors = authors or []
+        self.maintainers = maintainers or []
+        self.licenses = licenses or 'TODO'
 
         # Handle build options
         self.devel_layout = devel_layout if devel_layout else 'linked'
@@ -729,6 +746,30 @@ class Context(object):
     @blacklist.setter
     def blacklist(self, value):
         self.__blacklist = value
+
+    @property
+    def authors(self):
+        return self.__authors
+
+    @authors.setter
+    def authors(self, value):
+        self.__authors = value
+
+    @property
+    def maintainers(self):
+        return self.__maintainers
+
+    @maintainers.setter
+    def maintainers(self, value):
+        self.__maintainers = value
+
+    @property
+    def licenses(self):
+        return self.__licenses
+
+    @licenses.setter
+    def licenses(self, value):
+        self.__licenses = value
 
     @property
     def private_devel_path(self):
