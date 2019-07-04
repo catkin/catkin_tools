@@ -284,7 +284,7 @@ class ConsoleStatusController(threading.Thread):
         ])
 
         # Calculate the number of columns
-        number_of_columns = (terminal_width() / max_column_len) or 1
+        number_of_columns = int(terminal_width() / max_column_len) or 1
 
         # Construct different categories of jobs (jid -> output template)
         successfuls = {}
@@ -318,9 +318,9 @@ class ConsoleStatusController(threading.Thread):
             wide_log("")
             wide_log(clr("[{}] Successful {}:").format(self.label, self.jobs_label))
             wide_log("")
-            print_items_in_columns(
-                sorted(successfuls.items() + ignoreds.items()),
-                number_of_columns)
+            items = successfuls.copy()
+            items.update(ignored)
+            print_items_in_columns(sorted(items), number_of_columns)
         else:
             wide_log("")
             wide_log(clr("[{}] No {} succeeded.").format(self.label, self.jobs_label))
