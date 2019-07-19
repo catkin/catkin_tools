@@ -306,9 +306,10 @@ class Context(object):
         for space, space_dict in Context.SPACES.items():
             key_name = space + '_space'
             default = space_dict['default']
-            if space_suffix and space != 'source':
-                default += space_suffix
-            setattr(self, key_name, kwargs.pop(key_name, default))
+            value = kwargs.pop(key_name, default)
+            if value == default and space_suffix and space != 'source':
+                value += space_suffix
+            setattr(self, key_name, value)
 
         # Check for unhandled context options
         if len(kwargs) > 0:
