@@ -134,8 +134,12 @@ _catkin()
       COMPREPLY=($(compgen -W "${catkin_list_opts}" -- ${cur}))
       ;;
     run_tests)
-      local catkin_list_opts=$(catkin list --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
-      COMPREPLY=($(compgen -W "${catkin_list_opts}" -- ${cur}))
+      if [[ ${cur} == -* ]]; then
+        local catkin_run_tests_opts=$(catkin run_tests --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+        COMPREPLY=($(compgen -W "${catkin_run_tests_opts}" -- ${cur}))
+      else
+        COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
+      fi
       ;;
   esac
 
