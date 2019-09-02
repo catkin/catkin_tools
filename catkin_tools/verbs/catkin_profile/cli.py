@@ -113,7 +113,7 @@ def list_profiles(profiles, active_profile, unformatted=False, active=False):
 def main(opts):
     try:
         # Load a context with initialization
-        ctx = Context.load(opts.workspace)
+        ctx = Context.load(opts.workspace, load_env=False)
 
         if not ctx.initialized():
             print("A catkin workspace must be initialized before profiles can be managed.")
