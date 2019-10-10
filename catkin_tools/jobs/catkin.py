@@ -33,6 +33,7 @@ from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
+from .commands.ninja import NINJA_EXEC
 
 from .utils import copyfiles
 from .utils import loadenv
@@ -436,20 +437,37 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
         require_command('cmake', CMAKE_EXEC)
 
-        # CMake command
-        stages.append(CommandStage(
-            'cmake',
-            [
-                CMAKE_EXEC,
-                pkg_dir,
-                '--no-warn-unused-cli',
-                '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-                '-DCMAKE_INSTALL_PREFIX=' + install_space
-            ] + context.cmake_args,
-            cwd=build_space,
-            logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-            occupy_job=True
-        ))
+        if context.ninja:
+          # CMake command for ninja
+          stages.append(CommandStage(
+              'cmake',
+              [
+                  CMAKE_EXEC,
+                  pkg_dir,
+                  '--no-warn-unused-cli',
+                  '-DCATKIN_DEVEL_PREFIX=' + devel_space,
+                  '-DCMAKE_INSTALL_PREFIX=' + install_space,
+                  '-GNinja'
+              ] + context.cmake_args,
+              cwd=build_space,
+              logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+              occupy_job=True
+          ))
+        else:
+          # CMake command for make
+          stages.append(CommandStage(
+              'cmake',
+              [
+                  CMAKE_EXEC,
+                  pkg_dir,
+                  '--no-warn-unused-cli',
+                  '-DCATKIN_DEVEL_PREFIX=' + devel_space,
+                  '-DCMAKE_INSTALL_PREFIX=' + install_space
+              ] + context.cmake_args,
+              cwd=build_space,
+              logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+              occupy_job=True
+          ))
     else:
         # Check buildsystem command
         stages.append(CommandStage(
@@ -477,16 +495,28 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             cwd=build_space,
         ))
 
-    require_command('make', MAKE_EXEC)
+    if context.ninja:
+      require_command('ninja', NINJA_EXEC)
+      # Ninja command
+      stages.append(CommandStage(
+          'ninja',
+          [NINJA_EXEC] + context.make_args,
+          cwd=build_space,
+          env_overrides=env_overrides,
+          logger_factory=CMakeMakeIOBufferProtocol.factory
+      ))
 
-    # Make command
-    stages.append(CommandStage(
-        'make',
-        [MAKE_EXEC] + make_args,
-        cwd=build_space,
-        env_overrides=env_overrides,
-        logger_factory=CMakeMakeIOBufferProtocol.factory
-    ))
+    else:
+      require_command('make', MAKE_EXEC)
+
+      # Make command
+      stages.append(CommandStage(
+          'make',
+          [MAKE_EXEC] + make_args,
+          cwd=build_space,
+          env_overrides=env_overrides,
+          logger_factory=CMakeMakeIOBufferProtocol.factory
+      ))
 
     # Symlink command if using a linked develspace
     if context.link_devel:

@@ -175,6 +175,7 @@ the --save-config argument. To see the current config, use the
 
     # Experimental args
     add('--mem-limit', default=None, help=argparse.SUPPRESS)
+    add('--ninja', action='store_true', help="EXPERIMENTAL: Use ninja instead of make.")
 
     # Advanced args
     add('--develdebug', metavar='LEVEL', default=None, help=argparse.SUPPRESS)

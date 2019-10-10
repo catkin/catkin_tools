@@ -66,6 +66,7 @@ class Context(object):
         'catkin_make_args',
         'whitelist',
         'blacklist',
+        'ninja'
     ]
 
     EXTRA_KEYS = [
@@ -247,6 +248,7 @@ class Context(object):
         space_suffix=None,
         whitelist=None,
         blacklist=None,
+        ninja=False,
         **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
@@ -292,6 +294,8 @@ class Context(object):
         :param blacklist: a list of packages to ignore by default
         :type blacklist: list
         :raises: ValueError if workspace or source space does not exist
+        :param ninja: Use ninja instead of make
+        :type ninja: bool
         """
         self.__locked = False
 
@@ -344,6 +348,7 @@ class Context(object):
         self.cached_cmake_prefix_path = None
         self.env_cmake_prefix_path = None
         self.cmake_prefix_path = None
+        self.ninja = ninja
 
     def load_env(self):
 
