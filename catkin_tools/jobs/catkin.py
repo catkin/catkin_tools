@@ -535,6 +535,15 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Make install command, if installing
     if context.install:
+      if context.ninja:
+        stages.append(CommandStage(
+            'install',
+            [NINJA_EXEC, 'install'],
+            cwd=build_space,
+            logger_factory=CMakeMakeIOBufferProtocol.factory,
+            locked_resource=None if context.isolate_install else 'installspace'
+        ))
+      else:
         stages.append(CommandStage(
             'install',
             [MAKE_EXEC, 'install'],
