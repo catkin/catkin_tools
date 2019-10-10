@@ -22,7 +22,7 @@ import time
 import traceback
 import yaml
 
-import trollius as asyncio
+import asyncio
 
 try:
     # Python3

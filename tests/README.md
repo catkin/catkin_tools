@@ -22,7 +22,7 @@ First, make sure the required test dependencies are installed:
 
 ```
 pip install argparse catkin-pkg distribute PyYAML psutil
-pip install nose coverage flake8 mock trollius empy --upgrade
+pip install nose coverage flake8 mock empy --upgrade
 pip install git+https://github.com/osrf/osrf_pycommon.git
 ```
 

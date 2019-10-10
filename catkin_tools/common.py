@@ -20,7 +20,7 @@ import os
 import re
 import sys
 
-import trollius as asyncio
+import asyncio
 
 from shlex import split as _cmd_split
 try:
@@ -63,7 +63,7 @@ class FakeLock(asyncio.locks.Lock):
 
     @asyncio.coroutine
     def acquire(self):
-        raise asyncio.Return(True)
+        return(True)
 
     def release(self):
         pass
