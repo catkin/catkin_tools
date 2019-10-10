@@ -424,9 +424,13 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Only run CMake if the Makefile doesn't exist or if --force-cmake is given
     # TODO: This would need to be different with `cmake --build`
-    makefile_path = os.path.join(build_space, 'Makefile')
+    build_file_path = ""
+    if context.ninja:
+      build_file_path = os.path.join(build_space, 'build.ninja')
+    else:
+      build_file_path = os.path.join(build_space, 'Makefile')
 
-    if not os.path.isfile(makefile_path) or force_cmake:
+    if not os.path.isfile(build_file_path) or force_cmake or context.ninja:
 
         # Create an env-hook which clears the catkin and ros test results environment variable.
         stages.append(FunctionStage(
@@ -469,25 +473,34 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
               occupy_job=True
           ))
     else:
-        # Check buildsystem command
-        stages.append(CommandStage(
-            'check',
-            [MAKE_EXEC, 'cmake_check_build_system'],
-            cwd=build_space,
-            logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-            occupy_job=True
-        ))
+      # Check buildsystem command
+      stages.append(CommandStage(
+          'check',
+          [MAKE_EXEC, 'cmake_check_build_system'],
+          cwd=build_space,
+          logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+          occupy_job=True
+      ))
 
     # Filter make arguments
     make_args = handle_make_arguments(
         context.make_args +
         context.catkin_make_args)
+    ninja_args = context.jobs_args
 
     # Determine if the catkin test results env needs to be overridden
     env_overrides = ctr_env if 'test' in make_args else {}
 
     # Pre-clean command
     if pre_clean:
+      if context.ninja:
+        # TODO: Remove target args from `make_args`
+        stages.append(CommandStage(
+            'preclean',
+            [NINJA_EXEC, 'clean'] + ninja_args,
+            cwd=build_space,
+        ))
+      else:
         # TODO: Remove target args from `make_args`
         stages.append(CommandStage(
             'preclean',
@@ -500,7 +513,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
       # Ninja command
       stages.append(CommandStage(
           'ninja',
-          [NINJA_EXEC] + context.make_args,
+          [NINJA_EXEC] + ninja_args,
           cwd=build_space,
           env_overrides=env_overrides,
           logger_factory=CMakeMakeIOBufferProtocol.factory

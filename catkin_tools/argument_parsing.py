@@ -264,7 +264,8 @@ def extract_jobs_flags(mflags):
 
 def handle_make_arguments(
         input_make_args,
-        force_single_threaded_when_running_tests=False):
+        force_single_threaded_when_running_tests=False,
+        disable_jobserver_args=False):
     """Special handling for make arguments.
 
     If force_single_threaded_when_running_tests is True, jobs flags are
@@ -295,8 +296,7 @@ def handle_make_arguments(
         if run_tests:
             wide_log('Forcing "-j1" for running unit tests.')
             jobs_dict['jobs'] = 1
-
-    if job_server.gnu_make_enabled():
+    if job_server.gnu_make_enabled() and not disable_jobserver_args:
         make_args.extend(job_server.gnu_make_args())
     else:
         if 'jobs' in jobs_dict:
