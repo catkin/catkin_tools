@@ -259,7 +259,7 @@ def extract_jobs_flags(mflags):
     matches = [m[0] or m[1] for m in matches]
     filtered_flags = [m.strip() for m in matches] if matches else []
 
-    return filtered_flags
+    return filtered_flags or None
 
 
 def handle_make_arguments(
@@ -285,7 +285,7 @@ def handle_make_arguments(
     # Get the values for the jobs flags which may be in the make args
     jobs_dict = extract_jobs_flags_values(' '.join(make_args))
     jobs_args = extract_jobs_flags(' '.join(make_args))
-    if len(jobs_args) > 0:
+    if jobs_args:
         # Remove jobs flags from cli args if they're present
         make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
 
@@ -332,7 +332,7 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     # Get MAKEFLAGS from environment
     makeflags_jobs_flags = extract_jobs_flags(os.environ.get('MAKEFLAGS', ''))
-    using_makeflags_jobs_flags = len(makeflags_jobs_flags) > 0
+    using_makeflags_jobs_flags = makeflags_jobs_flags is not None
     if using_makeflags_jobs_flags:
         makeflags_jobs_flags_dict = extract_jobs_flags_values(' '.join(makeflags_jobs_flags))
         jobs_flags.update(makeflags_jobs_flags_dict)
@@ -380,12 +380,12 @@ def argument_preprocessor(args):
 
     # Extract make jobs flags (these override MAKEFLAGS later on)
     jobs_args = extract_jobs_flags(' '.join(args))
-    if len(jobs_args) > 0:
+    if jobs_args:
         # Remove jobs flags from cli args if they're present
         args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
     elif make_args is not None:
         jobs_args = extract_jobs_flags(' '.join(make_args))
-        if len(jobs_args) > 0:
+        if jobs_args:
             # Remove jobs flags from cli args if they're present
             make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
 
