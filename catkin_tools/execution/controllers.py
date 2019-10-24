@@ -20,6 +20,7 @@ except ImportError:
     from Queue import Empty
 
 import math
+import itertools
 import sys
 import threading
 import time
@@ -284,7 +285,7 @@ class ConsoleStatusController(threading.Thread):
         ])
 
         # Calculate the number of columns
-        number_of_columns = (terminal_width() / max_column_len) or 1
+        number_of_columns = int((terminal_width() / max_column_len) or 1)
 
         # Construct different categories of jobs (jid -> output template)
         successfuls = {}
@@ -319,7 +320,7 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr("[{}] Successful {}:").format(self.label, self.jobs_label))
             wide_log("")
             print_items_in_columns(
-                sorted(successfuls.items() + ignoreds.items()),
+                sorted(itertools.chain(successfuls.items(), ignoreds.items())),
                 number_of_columns)
         else:
             wide_log("")
