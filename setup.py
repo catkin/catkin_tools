@@ -16,8 +16,6 @@ install_requires = [
     'PyYAML',
     'osrf-pycommon > 0.1.1',
 ]
-if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
-    install_requires.append('argparse')
 
 # Figure out the resources that need to be installed
 this_dir = os.path.abspath(os.path.dirname(__file__))

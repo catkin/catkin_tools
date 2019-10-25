@@ -6,13 +6,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
   sudo apt update
   sudo apt install enchant -y
 elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-  if [ "$PYTHON" == "/usr/local/bin/python3" ]; then
-    # Brewed Python 3.
-    brew upgrade python
-  elif [ "$PYTHON" == "/usr/local/bin/python2" ]; then
-    # Brewed Python 2.
-    brew install python@2
-  fi
+  brew upgrade python
   $PYTHON -m pip install virtualenv
   $PYTHON -m virtualenv -p $PYTHON venv
   brew install enchant

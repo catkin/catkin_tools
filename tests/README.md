@@ -14,7 +14,7 @@ All tests can be run from the root of the repository.
 
 First, make sure the required test dependencies are installed:
 
-*Ubuntu* -- `sudo apt-get install cmake libgtest-dev build-essential python-setuptools python-pip`
+*Ubuntu* -- `sudo apt-get install cmake libgtest-dev build-essential python3-setuptools python3-pip`
 
 *OS X* -- `pip install setuptools`
 
