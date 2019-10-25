@@ -40,7 +40,7 @@ from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
-from catkin_tools.common import get_build_type
+from catkin_tools.common import get_build_type, expand_glob_package
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
 
@@ -66,6 +66,12 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
 
     # Initialize empty output
     packages_to_be_cleaned = set()
+
+    # Expand glob patterns in packages
+    expanded_packages = []
+    for package_name in packages:
+        expanded_packages.extend(expand_glob_package(package_name, workspace_packages_by_name))
+    packages = expanded_packages
 
     # Expand metapackages into their constituents
     for package_name in packages:
