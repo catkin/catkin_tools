@@ -14,7 +14,7 @@ All tests can be run from the root of the repository.
 
 First, make sure the required test dependencies are installed:
 
-*Ubuntu* -- `sudo apt-get install cmake libgtest-dev build-essential python-setuptools python-pip`
+*Ubuntu* -- `sudo apt-get install cmake libgtest-dev build-essential python3-setuptools python3-pip`
 
 *OS X* -- `pip install setuptools`
 
@@ -22,7 +22,7 @@ First, make sure the required test dependencies are installed:
 
 ```
 pip install argparse catkin-pkg distribute PyYAML psutil
-pip install nose coverage flake8 mock trollius empy --upgrade
+pip install nose coverage flake8 mock empy --upgrade
 pip install git+https://github.com/osrf/osrf_pycommon.git
 ```
 
