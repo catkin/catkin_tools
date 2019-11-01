@@ -4,9 +4,14 @@ matrix:
   include:
     - dist: xenial
       language: python
-      python: "3.4"
+      python: "3.5"
       os: linux
-      env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=indigo-devel
+      env: PYTHON=/usr/bin/python3.5 CATKIN_VERSION=indigo-devel
+    - dist: bionic
+      language: python
+      python: "3.6"
+      os: linux
+      env: PYTHON=/usr/bin/python3.6 CATKIN_VERSION=indigo-devel
 before_install:
   # Install catkin_tools dependencies
   - source .travis.before_install.bash
