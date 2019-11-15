@@ -26,8 +26,8 @@ from shlex import split as _cmd_split
 try:
     _cmd_split(u'\u00E9')
 
-    def cmd_split(s):
-        return _cmd_split(s.decode('utf-8'))
+    def cmd_split(s, *args, **kwargs):
+        return _cmd_split(s.decode('utf-8'), *args, **kwargs)
 except UnicodeEncodeError:
     cmd_split = _cmd_split
 
@@ -687,7 +687,9 @@ def parse_env_str(environ_str):
     """
 
     try:
-        split_envs = [e.split('=', 1) for e in cmd_split(environ_str)]
+        # Use cmd_split with posix=False because posix mode is problematic when an
+        # environment variable is set to specific bash dollar-sign strings (e.g. $'\'\n')
+        split_envs = [e.split('=', 1) for e in cmd_split(environ_str, posix=False)]
         return {
             e[0]: e[1] for e
             in split_envs
