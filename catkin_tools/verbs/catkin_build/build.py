@@ -42,7 +42,7 @@ except ImportError as e:
 
 from catkin_pkg.package import parse_package
 
-from catkin_tools.common import FakeLock
+from catkin_tools.common import FakeLock, expand_glob_package
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
@@ -92,13 +92,20 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     packages_to_be_built = []
     packages_to_be_built_deps = []
 
+    workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     # Determine the packages to be built
     if packages:
         # First assert all of the packages given are in the workspace
-        workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
         for package in packages:
             if package not in workspace_package_names:
-                sys.exit("[build] Given package '{0}' is not in the workspace".format(package))
+                # Try whether package is a pattern and matches
+                glob_packages = expand_glob_package(package, workspace_package_names)
+                if len(glob_packages) > 0:
+                    packages.extend(glob_packages)
+                    continue
+                else:
+                    sys.exit("[build] Given package '{0}' is not in the workspace"
+                             "and pattern does not match any package".format(package))
             # If metapackage, include run depends which are in the workspace
             package_obj = workspace_package_names[package][1]
             if 'metapackage' in [e.tagname for e in package_obj.exports]:
@@ -115,19 +122,27 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     else:
         # Only use whitelist when no other packages are specified
         if len(context.whitelist) > 0:
-            packages_to_be_built = [p for p in ordered_packages if (p[1].name in context.whitelist)]
+            # Expand glob patterns in whitelist
+            whitelist = []
+            for whitelisted_package in context.whitelist:
+                whitelist.extend(expand_glob_package(whitelisted_package, workspace_package_names))
+            packages_to_be_built = [p for p in ordered_packages if (p[1].name in whitelist)]
         else:
             packages_to_be_built = ordered_packages
 
     # Filter packages with blacklist
     if len(context.blacklist) > 0:
+        # Expand glob patterns in blacklist
+        blacklist = []
+        for blacklisted_package in context.blacklist:
+            blacklist.extend(expand_glob_package(blacklisted_package, workspace_package_names))
+        # Apply blacklist to packages and dependencies
         packages_to_be_built = [
             (path, pkg) for path, pkg in packages_to_be_built
-            if (pkg.name not in context.blacklist or pkg.name in packages)]
+            if (pkg.name not in blacklist or pkg.name in packages)]
         packages_to_be_built_deps = [
             (path, pkg) for path, pkg in packages_to_be_built_deps
-            if (pkg.name not in context.blacklist or pkg.name in packages)]
-        ordered_packages = ordered_packages
+            if (pkg.name not in blacklist or pkg.name in packages)]
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
