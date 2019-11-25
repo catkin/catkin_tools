@@ -16,6 +16,8 @@ from __future__ import print_function
 
 import os
 
+from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.context import Context
 from catkin_pkg.package_templates import create_package_files, PackageTemplate
 
 # Exempt build directories
@@ -24,7 +26,7 @@ from catkin_pkg.package_templates import create_package_files, PackageTemplate
 
 def prepare_arguments(parser):
     # Workspace / profile args
-    # add_context_args(parser)
+    add_context_args(parser)
 
     subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
 
@@ -114,6 +116,8 @@ def prepare_arguments(parser):
 
 def main(opts):
 
+    # Load the context
+    ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
     try:
         # Get absolute path to directory containing package
         package_dest_path = os.path.abspath(opts.path)
@@ -121,10 +125,26 @@ def main(opts):
         # Sort list of maintainers and authors (it will also be sorted inside
         # PackageTemplate so by sorting it here, we ensure that the same order
         # is used.  This is important later when email addresses are assigned.
+        if not opts.maintainers:
+            maintainers = []
+            for x in ctx.maintainers:
+                email = x.split()[-1]
+                name = ' '.join(x.split()[:-1])
+                maintainers += [[name, email]]
+            opts.maintainers = maintainers
         if opts.maintainers:
             opts.maintainers.sort(key=lambda x: x[0])
+        if not opts.authors:
+            authors = []
+            for x in ctx.authors:
+                email = x.split()[-1]
+                name = ' '.join(x.split()[:-1])
+                authors += [[name, email]]
+            opts.authors = authors
         if opts.authors:
             opts.authors.sort(key=lambda x: x[0])
+        if not opts.license:
+            opts.license = ctx.licenses or []
 
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
@@ -132,7 +152,7 @@ def main(opts):
             package_template = PackageTemplate._create_package_template(
                 package_name=package_name,
                 description=opts.description,
-                licenses=opts.license or [],
+                licenses=opts.license,
                 maintainer_names=[m[0] for m in opts.maintainers] if opts.maintainers else [],
                 author_names=[a[0] for a in opts.authors] if opts.authors else [],
                 version=opts.version,
