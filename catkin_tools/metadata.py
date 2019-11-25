@@ -391,7 +391,7 @@ def get_metadata(workspace_path, profile, verb):
 
     (metadata_path, metadata_file_path) = get_paths(workspace_path, profile, verb)
 
-    if not os.path.exists(metadata_file_path):
+    if not os.path.exists(metadata_file_path) or os.path.getsize(metadata_file_path) == 0:
         return dict()
 
     with open(metadata_file_path, 'r') as metadata_file:
