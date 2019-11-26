@@ -426,9 +426,9 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     # TODO: This would need to be different with `cmake --build`
     build_file_path = ""
     if context.ninja:
-      build_file_path = os.path.join(build_space, 'build.ninja')
+        build_file_path = os.path.join(build_space, 'build.ninja')
     else:
-      build_file_path = os.path.join(build_space, 'Makefile')
+        build_file_path = os.path.join(build_space, 'Makefile')
 
     if not os.path.isfile(build_file_path) or force_cmake or context.ninja:
 
@@ -442,45 +442,45 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         require_command('cmake', CMAKE_EXEC)
 
         if context.ninja:
-          # CMake command for ninja
-          stages.append(CommandStage(
-              'cmake',
-              [
-                  CMAKE_EXEC,
-                  pkg_dir,
-                  '--no-warn-unused-cli',
-                  '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-                  '-DCMAKE_INSTALL_PREFIX=' + install_space,
-                  '-GNinja'
-              ] + context.cmake_args,
-              cwd=build_space,
-              logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-              occupy_job=True
-          ))
+            # CMake command for ninja
+            stages.append(CommandStage(
+                'cmake',
+                [
+                    CMAKE_EXEC,
+                    pkg_dir,
+                    '--no-warn-unused-cli',
+                    '-DCATKIN_DEVEL_PREFIX=' + devel_space,
+                    '-DCMAKE_INSTALL_PREFIX=' + install_space,
+                    '-GNinja'
+                ] + context.cmake_args,
+                cwd=build_space,
+                logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+                occupy_job=True
+            ))
         else:
-          # CMake command for make
-          stages.append(CommandStage(
-              'cmake',
-              [
-                  CMAKE_EXEC,
-                  pkg_dir,
-                  '--no-warn-unused-cli',
-                  '-DCATKIN_DEVEL_PREFIX=' + devel_space,
-                  '-DCMAKE_INSTALL_PREFIX=' + install_space
-              ] + context.cmake_args,
-              cwd=build_space,
-              logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-              occupy_job=True
-          ))
+            # CMake command for make
+            stages.append(CommandStage(
+                'cmake',
+                [
+                    CMAKE_EXEC,
+                    pkg_dir,
+                    '--no-warn-unused-cli',
+                    '-DCATKIN_DEVEL_PREFIX=' + devel_space,
+                    '-DCMAKE_INSTALL_PREFIX=' + install_space
+                ] + context.cmake_args,
+                cwd=build_space,
+                logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+                occupy_job=True
+            ))
     else:
-      # Check buildsystem command
-      stages.append(CommandStage(
-          'check',
-          [MAKE_EXEC, 'cmake_check_build_system'],
-          cwd=build_space,
-          logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
-          occupy_job=True
-      ))
+        # Check buildsystem command
+        stages.append(CommandStage(
+            'check',
+            [MAKE_EXEC, 'cmake_check_build_system'],
+            cwd=build_space,
+            logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
+            occupy_job=True
+        ))
 
     # Filter make arguments
     make_args = handle_make_arguments(
@@ -493,14 +493,14 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Pre-clean command
     if pre_clean:
-      if context.ninja:
-        # TODO: Remove target args from `make_args`
-        stages.append(CommandStage(
-            'preclean',
-            [NINJA_EXEC, 'clean'] + ninja_args,
-            cwd=build_space,
-        ))
-      else:
+        if context.ninja:
+            # TODO: Remove target args from `make_args`
+            stages.append(CommandStage(
+                'preclean',
+                [NINJA_EXEC, 'clean'] + ninja_args,
+                cwd=build_space,
+            ))
+    else:
         # TODO: Remove target args from `make_args`
         stages.append(CommandStage(
             'preclean',
@@ -509,27 +509,27 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         ))
 
     if context.ninja:
-      require_command('ninja', NINJA_EXEC)
-      # Ninja command
-      stages.append(CommandStage(
-          'ninja',
-          [NINJA_EXEC] + ninja_args,
-          cwd=build_space,
-          env_overrides=env_overrides,
-          logger_factory=CMakeMakeIOBufferProtocol.factory
-      ))
+        require_command('ninja', NINJA_EXEC)
+        # Ninja command
+        stages.append(CommandStage(
+            'ninja',
+            [NINJA_EXEC] + ninja_args,
+            cwd=build_space,
+            env_overrides=env_overrides,
+            logger_factory=CMakeMakeIOBufferProtocol.factory
+        ))
 
     else:
-      require_command('make', MAKE_EXEC)
+        require_command('make', MAKE_EXEC)
 
-      # Make command
-      stages.append(CommandStage(
-          'make',
-          [MAKE_EXEC] + make_args,
-          cwd=build_space,
-          env_overrides=env_overrides,
-          logger_factory=CMakeMakeIOBufferProtocol.factory
-      ))
+        # Make command
+        stages.append(CommandStage(
+            'make',
+            [MAKE_EXEC] + make_args,
+            cwd=build_space,
+            env_overrides=env_overrides,
+            logger_factory=CMakeMakeIOBufferProtocol.factory
+        ))
 
     # Symlink command if using a linked develspace
     if context.link_devel:
@@ -548,22 +548,22 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
 
     # Make install command, if installing
     if context.install:
-      if context.ninja:
-        stages.append(CommandStage(
-            'install',
-            [NINJA_EXEC, 'install'],
-            cwd=build_space,
-            logger_factory=CMakeMakeIOBufferProtocol.factory,
-            locked_resource=None if context.isolate_install else 'installspace'
-        ))
-      else:
-        stages.append(CommandStage(
-            'install',
-            [MAKE_EXEC, 'install'],
-            cwd=build_space,
-            logger_factory=CMakeMakeIOBufferProtocol.factory,
-            locked_resource=None if context.isolate_install else 'installspace'
-        ))
+        if context.ninja:
+            stages.append(CommandStage(
+                'install',
+                [NINJA_EXEC, 'install'],
+                cwd=build_space,
+                logger_factory=CMakeMakeIOBufferProtocol.factory,
+                locked_resource=None if context.isolate_install else 'installspace'
+            ))
+        else:
+            stages.append(CommandStage(
+                'install',
+                [MAKE_EXEC, 'install'],
+                cwd=build_space,
+                logger_factory=CMakeMakeIOBufferProtocol.factory,
+                locked_resource=None if context.isolate_install else 'installspace'
+            ))
 
     return Job(
         jid=package.name,
