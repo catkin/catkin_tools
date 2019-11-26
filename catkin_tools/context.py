@@ -66,7 +66,7 @@ class Context(object):
         'catkin_make_args',
         'whitelist',
         'blacklist',
-        'ninja'
+        'ninja',
         'authors',
         'maintainers',
         'licenses',
