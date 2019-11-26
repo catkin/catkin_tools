@@ -16,7 +16,6 @@
 
 import os
 import pkg_resources
-import stat
 import sys
 import time
 import traceback
@@ -647,19 +646,16 @@ def _create_unmerged_devel_setup(context, unbuilt):
     )
     with open(setup_sh_path, 'w') as f:
         f.write(env_file)
-    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
     # Create setup.bash file
     setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
     with open(setup_bash_path, 'w') as f:
         f.write(SETUP_BASH_TEMPLATE)
-    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
     # Create setup.zsh file
     setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
     with open(setup_zsh_path, 'w') as f:
         f.write(SETUP_ZSH_TEMPLATE)
-    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
 
 def _create_unmerged_devel_setup_for_install(context):

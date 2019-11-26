@@ -149,9 +149,14 @@ def generate_env_file(logger, event_queue, context, install_target):
     os.write(tmp_dst_handle, data.encode('utf-8'))
     os.close(tmp_dst_handle)
 
+    # Make the file executable without overwriting the permissions for
+    # the group and others (copy r flags to x)
+    mode = os.stat(tmp_dst_path).st_mode
+    mode |= (mode & 0o444) >> 2
+    os.chmod(tmp_dst_path, mode)
+
     # Do an atomic rename with os.rename
     os.rename(tmp_dst_path, env_file_path)
-    os.chmod(env_file_path, 0o755)
 
     return 0
 
