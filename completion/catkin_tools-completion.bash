@@ -55,7 +55,7 @@ _catkin()
   _init_completion || return # this handles default completion (variables, redirection)
 
   # complete to the following verbs
-  local catkin_verbs="build clean config create init list profile"
+  local catkin_verbs="build clean config create init list profile run_tests"
 
   # filter for long options (from bash_completion)
   local OPTS_FILTER='s/.*\(--[-A-Za-z0-9]\{1,\}=\{0,1\}\).*/\1/p'
@@ -132,6 +132,14 @@ _catkin()
     list)
       local catkin_list_opts=$(catkin list --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
       COMPREPLY=($(compgen -W "${catkin_list_opts}" -- ${cur}))
+      ;;
+    run_tests)
+      if [[ ${cur} == -* ]]; then
+        local catkin_run_tests_opts=$(catkin run_tests --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+        COMPREPLY=($(compgen -W "${catkin_run_tests_opts}" -- ${cur}))
+      else
+        COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
+      fi
       ;;
   esac
 

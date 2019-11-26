@@ -15,10 +15,7 @@ install_requires = [
     'setuptools',
     'PyYAML',
     'osrf-pycommon > 0.1.1',
-    'trollius'
 ]
-if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
-    install_requires.append('argparse')
 
 # Figure out the resources that need to be installed
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -117,6 +114,7 @@ else:
 setup(
     name='catkin_tools',
     version='0.4.5',
+    python_requires='>=3.5',
     packages=find_packages(exclude=['tests*', 'docs']),
     package_data={
         'catkin_tools': [

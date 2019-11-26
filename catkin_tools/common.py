@@ -19,8 +19,9 @@ import errno
 import os
 import re
 import sys
+from fnmatch import fnmatch
 
-import trollius as asyncio
+import asyncio
 
 from shlex import split as _cmd_split
 try:
@@ -63,7 +64,7 @@ class FakeLock(asyncio.locks.Lock):
 
     @asyncio.coroutine
     def acquire(self):
-        raise asyncio.Return(True)
+        return(True)
 
     def release(self):
         pass
@@ -697,3 +698,8 @@ def parse_env_str(environ_str):
         print('WARNING: Could not parse env string: `{}`'.format(environ_str),
               file=sys.stderr)
         raise
+
+
+def expand_glob_package(pattern, all_workspace_packages):
+    """Return all packages that match the pattern"""
+    return [p for p in all_workspace_packages if fnmatch(p, pattern)]

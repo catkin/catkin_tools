@@ -67,6 +67,9 @@ class Context(object):
         'whitelist',
         'blacklist',
         'ninja'
+        'authors',
+        'maintainers',
+        'licenses',
     ]
 
     EXTRA_KEYS = [
@@ -249,6 +252,9 @@ class Context(object):
         whitelist=None,
         blacklist=None,
         ninja=False,
+        authors=None,
+        maintainers=None,
+        licenses=None,
         **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
@@ -296,6 +302,12 @@ class Context(object):
         :raises: ValueError if workspace or source space does not exist
         :param ninja: Use ninja instead of make
         :type ninja: bool
+        :type authors: list
+        :param authors: a list of default authors
+        :type maintainers: list
+        :param maintainers: a list of default maintainers
+        :type licenses: list
+        :param licenses: a list of default licenses
         """
         self.__locked = False
 
@@ -310,9 +322,10 @@ class Context(object):
         for space, space_dict in Context.SPACES.items():
             key_name = space + '_space'
             default = space_dict['default']
-            if space_suffix and space != 'source':
-                default += space_suffix
-            setattr(self, key_name, kwargs.pop(key_name, default))
+            value = kwargs.pop(key_name, default)
+            if value == default and space_suffix and space != 'source':
+                value += space_suffix
+            setattr(self, key_name, value)
 
         # Check for unhandled context options
         if len(kwargs) > 0:
@@ -323,6 +336,11 @@ class Context(object):
         # Handle package whitelist/blacklist
         self.whitelist = whitelist or []
         self.blacklist = blacklist or []
+
+        # Handle default authors/maintainers
+        self.authors = authors or []
+        self.maintainers = maintainers or []
+        self.licenses = licenses or 'TODO'
 
         # Handle build options
         self.devel_layout = devel_layout if devel_layout else 'linked'
@@ -734,6 +752,30 @@ class Context(object):
     @blacklist.setter
     def blacklist(self, value):
         self.__blacklist = value
+
+    @property
+    def authors(self):
+        return self.__authors
+
+    @authors.setter
+    def authors(self, value):
+        self.__authors = value
+
+    @property
+    def maintainers(self):
+        return self.__maintainers
+
+    @maintainers.setter
+    def maintainers(self, value):
+        self.__maintainers = value
+
+    @property
+    def licenses(self):
+        return self.__licenses
+
+    @licenses.setter
+    def licenses(self, value):
+        self.__licenses = value
 
     @property
     def private_devel_path(self):

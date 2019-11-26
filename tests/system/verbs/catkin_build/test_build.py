@@ -340,3 +340,24 @@ def test_pkg_with_unicode_names():
 
             assert catkin_success(['config', '--link-devel'])
             assert catkin_success(BUILD)
+
+
+def test_glob_pattern_build():
+    """Test building multiple packages given as glob pattern"""
+    with redirected_stdio() as (out, err):
+        for build_type in BUILD_TYPES:
+            with workspace_factory() as wf:
+                create_flat_workspace(wf, build_type, 11)
+                wf.build()
+                assert catkin_success(BUILD + ['pkg_1*'])
+                assert not os.path.exists(os.path.join('build', 'pkg_0'))
+                assert os.path.exists(os.path.join('build', 'pkg_1'))
+                assert os.path.exists(os.path.join('build', 'pkg_10'))
+                assert not os.path.exists(os.path.join('build', 'pkg_2'))
+                assert not os.path.exists(os.path.join('build', 'pkg_3'))
+                assert not os.path.exists(os.path.join('build', 'pkg_4'))
+                assert not os.path.exists(os.path.join('build', 'pkg_5'))
+                assert not os.path.exists(os.path.join('build', 'pkg_6'))
+                assert not os.path.exists(os.path.join('build', 'pkg_7'))
+                assert not os.path.exists(os.path.join('build', 'pkg_8'))
+                assert not os.path.exists(os.path.join('build', 'pkg_9'))
