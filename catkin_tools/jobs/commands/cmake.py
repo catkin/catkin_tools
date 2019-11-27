@@ -148,7 +148,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
                         cline = cline.format(*match.groups())
                     break
 
-        return cline + '\r\n'
+        return cline + '\n'
 
 
 class CMakeMakeIOBufferProtocol(IOBufferProtocol):
