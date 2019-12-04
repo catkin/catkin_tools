@@ -58,6 +58,8 @@ def prepare_arguments(parser):
         help="Only show packages that recursively depend on specific package(s).")
     add('--this', action='store_true',
         help="Show the package which contains the current working directory.")
+    add('--directory', '-d', nargs='*', default=[],
+        help="Pass list of directories process all packages in directory")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -78,7 +80,10 @@ def main(opts):
         print(clr("@{rf}ERROR: Could not determine workspace.@|"), file=sys.stderr)
         sys.exit(1)
 
-    folders = [ctx.source_space_abs]
+    if opts.directory:
+        folders = opts.directory
+    else:
+        folders = [ctx.source_space_abs]
 
     list_entry_format = '@{pf}-@| @{cf}%s@|' if not opts.unformatted else '%s'
 
