@@ -428,8 +428,11 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
 
     # Update the metadata for this verb
     data.update(new_data)
-    with open(metadata_file_path, 'w') as metadata_file:
-        yaml.dump(data, metadata_file, default_flow_style=False)
+    try:
+        with open(metadata_file_path, 'w') as metadata_file:
+            yaml.dump(data, metadata_file, default_flow_style=False)
+    except PermissionError:
+        print("Could not write to metadata file '%s'!" % (metadata_file_path))
 
     return data
 

@@ -69,6 +69,7 @@ class Context(object):
         'authors',
         'maintainers',
         'licenses',
+        'extends',
     ]
 
     EXTRA_KEYS = [
@@ -193,8 +194,27 @@ class Context(object):
 
         # Get the metadata stored in the workspace if it was found
         if workspace:
-            config_metadata = metadata.get_metadata(workspace, profile, 'config')
+            key_origins = {}
+            visited_profiles = []
+
+            def get_metadata_recursive(profile):
+                config_metadata = metadata.get_metadata(workspace, profile, 'config')
+                for key in config_metadata.keys():
+                    key_origins[key] = profile
+                visited_profiles.append(profile)
+                if "extends" in config_metadata.keys():
+                    base_profile = config_metadata["extends"]
+                    if base_profile in visited_profiles:
+                        raise IOError("Profile dependency circle detected at dependency from '%s' to '%s'!" % (profile, base_profile))
+                    base = get_metadata_recursive(base_profile)
+                    base.update(config_metadata)
+                    config_metadata = base
+                return config_metadata
+
+            config_metadata = get_metadata_recursive(profile)
+
             context_args.update(config_metadata)
+            context_args["key_origins"] = key_origins
 
         # User-supplied args are used to update stored args
         # Only update context args with given opts which are not none
@@ -223,11 +243,28 @@ class Context(object):
     @classmethod
     def save(cls, context):
         """Save a context in the associated workspace and profile."""
-        metadata.update_metadata(
-            context.workspace,
-            context.profile,
-            'config',
-            context.get_stored_dict())
+
+        data = context.get_stored_dict()
+        files = {}
+
+        def save_in_file(file, key, value):
+            if file in files.keys():
+                files[file][key] = value
+            else:
+                files[file] = {key: value}
+
+        for key, val in data.items():
+            if key in context.key_origins:
+                save_in_file(context.key_origins[key], key, val)
+            else:
+                save_in_file(context.profile, key, val)
+
+        for profile, content in files.items():
+            metadata.update_metadata(
+                context.workspace,
+                profile,
+                'config',
+                content)
 
     def get_stored_dict(self):
         """Get the context parameters which should be stored persistently."""
@@ -253,6 +290,8 @@ class Context(object):
         authors=None,
         maintainers=None,
         licenses=None,
+        extends=None,
+        key_origins={},
         **kwargs
     ):
         """Creates a new Context object, optionally initializing with parameters
@@ -304,6 +343,8 @@ class Context(object):
         :param maintainers: a list of default maintainers
         :type licenses: list
         :param licenses: a list of default licenses
+        :type extends: string
+        :param extends: the name of a profile to use as a base and inherit settings from
         """
         self.__locked = False
 
@@ -311,6 +352,7 @@ class Context(object):
         self.workspace = workspace
 
         self.extend_path = extend_path if extend_path else None
+        self.key_origins = key_origins
 
         self.profile = profile
 
@@ -362,6 +404,8 @@ class Context(object):
         self.cached_cmake_prefix_path = None
         self.env_cmake_prefix_path = None
         self.cmake_prefix_path = None
+
+        self.extends = extends
 
     def load_env(self):
 
@@ -771,6 +815,14 @@ class Context(object):
     @licenses.setter
     def licenses(self, value):
         self.__licenses = value
+
+    @property
+    def extends(self):
+        return self.__extends
+
+    @extends.setter
+    def extends(self, value):
+        self.__extends = value
 
     @property
     def private_devel_path(self):
