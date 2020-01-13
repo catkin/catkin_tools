@@ -226,9 +226,9 @@ def extract_jobs_flags_values(mflags):
     :rtype: dict
     """
 
-    regex = r'(?:^|\s)(?:-(j|l)(\s*\d+(?:\.\d*)?|\s|$))' + \
+    regex = r'(?:^|\s)+?(?:-)(j|l)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)' + \
             r'|' + \
-            r'(?:^|\s)(?:(?:--)(jobs|load-average)(?:(?:=|\s+)(\d+(?:\.\d*)?)|(?:\s|$)))'
+            r'(?:^|\s)+?(?:--)(jobs|load-average)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)'
 
     jobs_dict = {}
 
@@ -257,7 +257,7 @@ def extract_jobs_flags(mflags):
     regex = r'(?:^|\s)(-j(?:(?:\s)*(?:\d)*)|\s|$)(?!-)|' + \
             r'(?:^|\s)(-l(?:(?:\s)*(?:\d*(?:\.\d*)?)|\s|$))(?!-)|' + \
             r'(?:^|\s)(--jobs(?:(?:=|\s*)(?:\d)*)|\s|$)(?!-)|' + \
-            r'(?:^|\s)(--load-average(?:(?:=|\s+)(?:\d*(?:\.\d*)?)|\s|$))(?!-)'
+            r'(?:^|\s)(--load-average(?:(?:=|\s*)(?:\d*(?:\.\d*)?)|\s|$))(?!-)'
     matches = re.findall(regex, mflags) or []
     matches = [[a for a in m if a][0] for m in matches]
     filtered_flags = [m.strip() for m in matches] if matches else []
