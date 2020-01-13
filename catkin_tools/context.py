@@ -207,7 +207,8 @@ class Context(object):
                     if base_profile is None:
                         return config_metadata
                     if base_profile in visited_profiles:
-                        raise IOError("Profile dependency circle detected at dependency from '%s' to '%s'!" % (profile, base_profile))
+                        raise IOError("Profile dependency circle detected at dependency from '%s' to '%s'!"
+                                      % (profile, base_profile))
                     base = get_metadata_recursive(base_profile)
                     base.update(config_metadata)
                     config_metadata = base
