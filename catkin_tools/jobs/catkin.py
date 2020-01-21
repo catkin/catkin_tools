@@ -357,7 +357,15 @@ def ctr_nuke(logger, event_queue, prefix):
     return 0
 
 
-def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, prebuild=False):
+def create_catkin_build_job(
+        context,
+        package,
+        package_path,
+        dependencies,
+        force_cmake,
+        pre_clean,
+        no_install,
+        prebuild=False):
     """Job class for building catkin packages"""
 
     # Package source space path
@@ -428,11 +436,12 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
     if not os.path.isfile(makefile_path) or force_cmake:
 
         # Create an env-hook which clears the catkin and ros test results environment variable.
-        stages.append(FunctionStage(
-            'ctr-nuke',
-            ctr_nuke,
-            prefix=context.package_dest_path(package)
-        ))
+        if not (context.install and no_install):
+            stages.append(FunctionStage(
+                'ctr-nuke',
+                ctr_nuke,
+                prefix=context.package_dest_path(package)
+            ))
 
         require_command('cmake', CMAKE_EXEC)
 
@@ -504,7 +513,7 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         ))
 
     # Make install command, if installing
-    if context.install:
+    if context.install and not no_install:
         stages.append(CommandStage(
             'install',
             [MAKE_EXEC, 'install'],

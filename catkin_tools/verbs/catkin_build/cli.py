@@ -144,6 +144,8 @@ the --save-config argument. To see the current config, use the
         help='Runs cmake explicitly for each catkin package.')
     add('--pre-clean', action='store_true', default=None,
         help='Runs `make clean` before building each package.')
+    add('--no-install', action='store_true', default=None,
+        help='Skips the `make install` step, even if installation is enabled for this workspace.')
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
 
@@ -416,6 +418,7 @@ def main(opts):
             interleave_output=opts.interleave_output,
             no_status=opts.no_status,
             limit_status_rate=opts.limit_status_rate,
+            no_install=opts.no_install,
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify,
             continue_on_failure=opts.continue_on_failure,

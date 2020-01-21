@@ -209,7 +209,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     return 0
 
 
-def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean):
+def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, no_install):
 
     # Package source space path
     pkg_dir = os.path.join(context.source_space_abs, package_path)
@@ -286,8 +286,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
 
     # Pre-clean command
     if pre_clean:
-        make_args = handle_make_arguments(
-            context.make_args + context.catkin_make_args)
+        make_args = handle_make_arguments(context.make_args)
         stages.append(CommandStage(
             'preclean',
             [MAKE_EXEC, 'clean'] + make_args,
@@ -305,21 +304,23 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     ))
 
     # Make install command (always run on plain cmake)
-    stages.append(CommandStage(
-        'install',
-        [MAKE_EXEC, 'install'],
-        cwd=build_space,
-        logger_factory=CMakeMakeIOBufferProtocol.factory,
-        locked_resource='installspace'
-    ))
+    if not no_install:
+        stages.append(CommandStage(
+            'install',
+            [MAKE_EXEC, 'install'],
+            cwd=build_space,
+            logger_factory=CMakeMakeIOBufferProtocol.factory,
+            locked_resource='installspace'
+        ))
 
     # Copy install manifest
-    stages.append(FunctionStage(
-        'register',
-        copy_install_manifest,
-        src_install_manifest_path=build_space,
-        dst_install_manifest_path=context.package_metadata_path(package)
-    ))
+    if not no_install:
+        stages.append(FunctionStage(
+            'register',
+            copy_install_manifest,
+            src_install_manifest_path=build_space,
+            dst_install_manifest_path=context.package_metadata_path(package)
+        ))
 
     # Determine the location where the setup.sh file should be created
     stages.append(FunctionStage(
