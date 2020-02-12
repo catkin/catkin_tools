@@ -199,25 +199,24 @@ class Context(object):
 
             def get_metadata_recursive(profile):
                 config_metadata = metadata.get_metadata(workspace, profile, 'config')
-                for key in config_metadata.keys():
-                    key_origins[key] = profile
                 visited_profiles.append(profile)
-                if "extends" in config_metadata.keys():
+                if "extends" in config_metadata.keys() and config_metadata["extends"] is not None:
                     base_profile = config_metadata["extends"]
-                    if base_profile is None:
-                        return config_metadata
                     if base_profile in visited_profiles:
                         raise IOError("Profile dependency circle detected at dependency from '%s' to '%s'!"
                                       % (profile, base_profile))
                     base = get_metadata_recursive(base_profile)
                     base.update(config_metadata)
-                    config_metadata = base
+                    for key in config_metadata.keys():
+                        key_origins[key] = profile
+                    return base
+                for key in config_metadata.keys():
+                    key_origins[key] = profile
                 return config_metadata
 
             config_metadata = get_metadata_recursive(profile)
 
             context_args.update(config_metadata)
-            context_args["key_origins"] = key_origins
 
         # User-supplied args are used to update stored args
         # Only update context args with given opts which are not none
@@ -231,8 +230,14 @@ class Context(object):
                         context_args[k] = [w for w in context_args[k] if w not in v]
                     else:
                         context_args[k] = v
+                    if workspace:
+                        key_origins[k] = profile
                 else:
                     context_args[k] = v
+                    if workspace:
+                        key_origins[k] = profile
+
+        context_args["key_origins"] = key_origins
 
         # Create the build context
         ctx = Context(**context_args)
