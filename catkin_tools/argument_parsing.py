@@ -218,7 +218,7 @@ def extract_cmake_and_make_arguments(args):
 
 
 def extract_jobs_flags_values(mflags):
-    """Gets the values of tha make jobs flags
+    """Gets the values of the make jobs flags
 
     :param mflags: string of space separated make arguments
     :type mflags: str
@@ -226,9 +226,9 @@ def extract_jobs_flags_values(mflags):
     :rtype: dict
     """
 
-    regex = r'(?:^|\s)(?:-?(j|l)(\s*[0-9]+|\s|$))' + \
+    regex = r'(?:^|\s)+?(?:-)(j|l)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)' + \
             r'|' + \
-            r'(?:^|\s)(?:(?:--)?(jobs|load-average)(?:(?:=|\s+)([0-9]+)|(?:\s|$)))'
+            r'(?:^|\s)+?(?:--)(jobs|load-average)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)'
 
     jobs_dict = {}
 
@@ -237,9 +237,9 @@ def extract_jobs_flags_values(mflags):
         v = v.strip()
         value = value.strip()
         if k == 'j' or key == 'jobs':
-            jobs_dict['jobs'] = int(v or value) if (v or value) else ''
+            jobs_dict['jobs'] = int(v or value) if (v or value) else None
         elif k == 'l' or key == 'load-average':
-            jobs_dict['load-average'] = float(v or value)
+            jobs_dict['load-average'] = float(v or value) if v or value else None
 
     return jobs_dict
 
@@ -252,11 +252,14 @@ def extract_jobs_flags(mflags):
     :returns: list of make jobs flags
     :rtype: list
     """
-    regex = r'(?:^|\s)(-?(?:j|l)(?:\s*[0-9]+|\s|$))' + \
-            r'|' + \
-            r'(?:^|\s)((?:--)?(?:jobs|load-average)(?:(?:=|\s+)[0-9]+|(?:\s|$)))'
+    if not mflags:
+        return []
+    regex = r'(?:^|\s)(-j(?:(?:\s)*(?:\d)*)|\s|$)(?!-)|' + \
+            r'(?:^|\s)(-l(?:(?:\s)*(?:\d*(?:\.\d*)?)|\s|$))(?!-)|' + \
+            r'(?:^|\s)(--jobs(?:(?:=|\s*)(?:\d)*)|\s|$)(?!-)|' + \
+            r'(?:^|\s)(--load-average(?:(?:=|\s*)(?:\d*(?:\.\d*)?)|\s|$))(?!-)'
     matches = re.findall(regex, mflags) or []
-    matches = [m[0] or m[1] for m in matches]
+    matches = [[a for a in m if a][0] for m in matches]
     filtered_flags = [m.strip() for m in matches] if matches else []
 
     return filtered_flags or None
