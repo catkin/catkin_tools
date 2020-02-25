@@ -19,7 +19,6 @@ from tempfile import mkstemp
 from termios import FIONREAD
 
 import array
-import errno
 import fcntl
 import os
 import re
@@ -162,9 +161,8 @@ class JobServer(object):
         # Read all possible tokens from the pipe
         try:
             os.read(cls._job_pipe[0], cls._max_jobs)
-        except OSError as e:
-            if e.errno != errno.EINTR:
-                raise
+        except (BlockingIOError, InterruptedError):
+            pass
 
         # Update max jobs
         cls._max_jobs = max_jobs
@@ -259,9 +257,8 @@ class JobServer(object):
             # read a token from the job pipe
             token = os.read(cls._job_pipe[0], 1)
             return token
-        except OSError as e:
-            if e.errno != errno.EINTR:
-                raise
+        except (BlockingIOError, InterruptedError):
+            pass
 
         return None
 
@@ -279,9 +276,7 @@ class JobServer(object):
             buf = array.array('i', [0])
             if fcntl.ioctl(cls._job_pipe[0], FIONREAD, buf) == 0:
                 return cls._max_jobs - buf[0]
-        except NotImplementedError:
-            pass
-        except OSError:
+        except (NotImplementedError, OSError):
             pass
 
         return cls._max_jobs
