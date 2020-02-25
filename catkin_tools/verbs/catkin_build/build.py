@@ -167,9 +167,8 @@ def get_built_unbuilt_packages(context, workspace_packages):
     # Get names of all unbuilt packages
     unbuilt_pkgs = set()
     for path, pkg in workspace_packages.items():
-        if 'metapackage' not in [e.tagname for e in pkg.exports]:
-            if pkg.name not in built_packages:
-                unbuilt_pkgs.add(pkg.name)
+        if pkg.name not in built_packages:
+            unbuilt_pkgs.add(pkg.name)
 
     return built_packages, unbuilt_pkgs
 
@@ -480,11 +479,7 @@ def build_isolated_workspace(
         if pkg.name not in packages_to_be_built_names:
             continue
 
-        # Ignore metapackages
-        if 'metapackage' in [e.tagname for e in pkg.exports]:
-            continue
-
-        # Get actual execution deps
+        # Get actual build deps
         deps = [
             p.name for _, p
             in get_cached_recursive_build_depends_in_workspace(pkg, packages_to_be_built)
