@@ -364,7 +364,7 @@ def create_catkin_build_job(
         dependencies,
         force_cmake,
         pre_clean,
-        no_install,
+        skip_install,
         prebuild=False):
     """Job class for building catkin packages"""
 
@@ -436,7 +436,7 @@ def create_catkin_build_job(
     if not os.path.isfile(makefile_path) or force_cmake:
 
         # Create an env-hook which clears the catkin and ros test results environment variable.
-        if not (context.install and no_install):
+        if not (context.install and skip_install):
             stages.append(FunctionStage(
                 'ctr-nuke',
                 ctr_nuke,
@@ -513,7 +513,7 @@ def create_catkin_build_job(
         ))
 
     # Make install command, if installing
-    if context.install and not no_install:
+    if context.install and not skip_install:
         stages.append(CommandStage(
             'install',
             [MAKE_EXEC, 'install'],

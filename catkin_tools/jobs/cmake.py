@@ -209,7 +209,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     return 0
 
 
-def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, no_install):
+def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, skip_install):
 
     # Package source space path
     pkg_dir = os.path.join(context.source_space_abs, package_path)
@@ -304,7 +304,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
     ))
 
     # Make install command (always run on plain cmake)
-    if not no_install:
+    if not skip_install:
         stages.append(CommandStage(
             'install',
             [MAKE_EXEC, 'install'],
@@ -314,7 +314,7 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
         ))
 
     # Copy install manifest
-    if not no_install:
+    if not skip_install:
         stages.append(FunctionStage(
             'register',
             copy_install_manifest,

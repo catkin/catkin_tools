@@ -264,7 +264,7 @@ def build_isolated_workspace(
     summary_notes = []
     if force_cmake:
         summary_notes += [clr("@!@{cf}NOTE:@| Forcing CMake to run for each package.")]
-    if no_install:
+    if skip_install:
         summary_notes += [clr("@!@{cf}NOTE:@| Temporarily skipping the installation stage.")]
     log(context.summary(summary_notes))
 
@@ -443,7 +443,7 @@ def build_isolated_workspace(
                 dependencies=prebuild_pkg_deps,
                 force_cmake=force_cmake,
                 pre_clean=pre_clean,
-                no_install=no_install,
+                skip_install=skip_install,
                 prebuild=True)
 
             # Add the prebuld job
@@ -495,7 +495,7 @@ def build_isolated_workspace(
             dependencies=deps,
             force_cmake=force_cmake,
             pre_clean=pre_clean,
-            no_install=no_install)
+            skip_install=skip_install)
 
         # Create the job based on the build type
         build_type = get_build_type(pkg)
