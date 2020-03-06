@@ -2,8 +2,8 @@ usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--dry-run] [--get-env PKGNAME] [--this] [--no-deps]
                     [--unbuilt] [--start-with PKGNAME | --start-with-this]
                     [--continue-on-failure] [--force-cmake] [--pre-clean]
-                    [--no-install-lock] [--save-config] [-j JOBS]
-                    [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                    [--skip-install] [--no-install-lock] [--save-config]
+                    [-j JOBS] [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
                     [--env-cache | --no-env-cache] [--cmake-args ARG [ARG ...]
                     | --no-cmake-args] [--make-args ARG [ARG ...] |
                     --no-make-args] [--catkin-make-args ARG [ARG ...] |
@@ -56,6 +56,9 @@ Build:
 
   --force-cmake         Runs cmake explicitly for each catkin package.
   --pre-clean           Runs `make clean` before building each package.
+  --skip-install        Skips the installation step. Useful in combination
+                        with --make-args or for running unit tests in a pre-
+                        installed workspace.
   --no-install-lock     Prevents serialization of the install steps, which is
                         on by default to prevent file install collisions
 
@@ -79,19 +82,19 @@ Config:
   --no-env-cache        Don't cache environment variables when re-sourcing the
                         same resultspace.
   --cmake-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to CMake. It
+                        Arbitrary arguments which are passed to CMake. It
                         collects all of following arguments until a "--" is
                         read.
   --no-cmake-args       Pass no additional arguments to CMake.
   --make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make.It
+                        Arbitrary arguments which are passed to make. It
                         collects all of following arguments until a "--" is
                         read.
   --no-make-args        Pass no additional arguments to make (does not affect
                         --catkin-make-args).
   --catkin-make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make but only
-                        for catkin packages.It collects all of following
+                        Arbitrary arguments which are passed to make but only
+                        for catkin packages. It collects all of following
                         arguments until a "--" is read.
   --no-catkin-make-args
                         Pass no additional arguments to make for catkin
