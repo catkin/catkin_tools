@@ -174,7 +174,7 @@ def build_isolated_workspace(
     interleave_output=False,
     no_status=False,
     limit_status_rate=10.0,
-    no_install=False,
+    skip_install=False,
     lock_install=False,
     no_notify=False,
     continue_on_failure=False,
