@@ -112,12 +112,16 @@ def get_python_install_dir(context):
     :rtype: str
     """
     python_install_dir = 'lib'
+    python_use_debian_layout = os.path.exists('/etc/debian_version')
     if os.name != 'nt':
         python_version = get_python_version(context)
-        python_version_xdoty = str(python_version[0]) + '.' + str(python_version[1])
+        # use major version only when installing 3.x with debian layout
+        if python_use_debian_layout and python_version[0] == 3:
+            python_version_xdoty = str(python_version[0])
+        else:
+            python_version_xdoty = str(python_version[0]) + '.' + str(python_version[1])
         python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
 
-    python_use_debian_layout = os.path.exists('/etc/debian_version')
     python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
     python_install_dir = os.path.join(python_install_dir, python_packages_dir)
     return python_install_dir
