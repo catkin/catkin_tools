@@ -78,7 +78,30 @@ def copy_install_manifest(
     return 0
 
 
-def get_python_install_dir():
+def get_python_version(context):
+    """This function returns the major and minor python version for the catkin workspace
+    which might differ from the python version for catkin_tools. It executes the relevant
+    part of the catkin module catkin/cmake/python.cmake to get the version string in exactly
+    the same manner that catkin itself does."""
+    cmake_command = ['cmake']
+    cmake_command.extend(context.cmake_args)
+    script_path = os.path.join(os.path.dirname(__file__), 'python.cmake')
+    cmake_command.extend(['-P', script_path])
+    p = subprocess.Popen(
+        cmake_command,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # cmake always writes to stderr
+    _, out = p.communicate()
+    if p.returncode != 0:
+        # Unable to get python version, for example when PYTHON_VERSION and
+        # PYTHON_EXECUTABLE are set to incompatible values
+        # TODO: the user should be informed that the cmake variables are invalid
+        pass
+    major_str, minor_str = out.decode().split(';')
+    return int(major_str), int(minor_str)
+
+
+def get_python_install_dir(context):
     """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
 
     The PYTHON_INSTALL_DIR variable is normally set from the CMake file:
@@ -90,7 +113,8 @@ def get_python_install_dir():
     """
     python_install_dir = 'lib'
     if os.name != 'nt':
-        python_version_xdoty = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
+        python_version = get_python_version(context)
+        python_version_xdoty = str(python_version[0]) + '.' + str(python_version[1])
         python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
 
     python_use_debian_layout = os.path.exists('/etc/debian_version')
@@ -185,7 +209,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     subs = {}
     subs['cmake_prefix_path'] = install_target + ":"
     subs['ld_path'] = os.path.join(install_target, 'lib') + ":"
-    pythonpath = os.path.join(install_target, get_python_install_dir())
+    pythonpath = os.path.join(install_target, get_python_install_dir(context))
     subs['pythonpath'] = pythonpath + ':'
     subs['pkgcfg_path'] = os.path.join(install_target, 'lib', 'pkgconfig') + ":"
     subs['path'] = os.path.join(install_target, 'bin') + ":"
