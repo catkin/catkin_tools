@@ -1,6 +1,7 @@
 usage: catkin list [-h] [--workspace WORKSPACE] [--profile PROFILE]
                    [--deps | --rdeps] [--depends-on [PKG [PKG ...]]]
-                   [--rdepends-on [PKG [PKG ...]]] [--this] [--quiet]
+                   [--rdepends-on [PKG [PKG ...]]] [--this]
+                   [--directory [DIRECTORY [DIRECTORY ...]]] [--quiet]
                    [--unformatted]
 
 Lists catkin packages in the workspace or other arbitray folders.
@@ -32,6 +33,9 @@ Packages:
                         package(s).
   --this                Show the package which contains the current working
                         directory.
+  --directory [DIRECTORY [DIRECTORY ...]], -d [DIRECTORY [DIRECTORY ...]]
+                        Pass list of directories process all packages in
+                        directory
 
 Interface:
   The behavior of the command-line interface.

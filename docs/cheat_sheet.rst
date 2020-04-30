@@ -70,10 +70,10 @@ Build packages with additional CMake args:
   - ``catkin build --save-config --cmake-args -DCMAKE_BUILD_TYPE=Debug``
 
 Build all packages in a given directory:
-  - ``catkin build $(catkin list -u /path/to/folder)``
+  - ``catkin build $(catkin list -u -d /path/to/folder)``
 
 ... or in the current folder:
-  - ``catkin build $(catkin list -u .)``
+  - ``catkin build $(catkin list -u -d .)``
 
 
 Cleaning Build Products

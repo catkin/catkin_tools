@@ -79,19 +79,19 @@ Config:
   --no-env-cache        Don't cache environment variables when re-sourcing the
                         same resultspace.
   --cmake-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to CMake. It
+                        Arbitrary arguments which are passed to CMake. It
                         collects all of following arguments until a "--" is
                         read.
   --no-cmake-args       Pass no additional arguments to CMake.
   --make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make.It
+                        Arbitrary arguments which are passed to make. It
                         collects all of following arguments until a "--" is
                         read.
   --no-make-args        Pass no additional arguments to make (does not affect
                         --catkin-make-args).
   --catkin-make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make but only
-                        for catkin packages.It collects all of following
+                        Arbitrary arguments which are passed to make but only
+                        for catkin packages. It collects all of following
                         arguments until a "--" is read.
   --no-catkin-make-args
                         Pass no additional arguments to make for catkin
