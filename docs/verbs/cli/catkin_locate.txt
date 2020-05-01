@@ -1,5 +1,5 @@
 usage: catkin locate [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e]
-                     [-r] [-q] [-s | -b | -d | -i] [--shell-verbs]
+                     [-r] [-q] [-s | -b | -d | -i] [--this] [--shell-verbs]
                      [--examples]
                      [PACKAGE]
 
@@ -38,6 +38,7 @@ Package Directories:
   -s foo` might return `/path/to/ws/src/foo`.
 
   PACKAGE               The name of a package to locate.
+  --this                Locate package containing current working directory.
 
 Special Directories:
   Get the absolute path to a special catkin location
