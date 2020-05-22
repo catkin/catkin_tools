@@ -266,7 +266,7 @@ def test_install_cmake():
     """Test building and installing cmake packages without DESTDIR."""
     with redirected_stdio() as (out, err):
         with workspace_factory() as wf:
-            print(os.getcwd)
+            print(os.getcwd())
             wf.build()
             shutil.copytree(
                 os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
@@ -281,7 +281,7 @@ def test_install_cmake_destdir():
     """Test building and installing cmake packages with DESTDIR."""
     with redirected_stdio() as (out, err):
         with workspace_factory() as wf:
-            print(os.getcwd)
+            print(os.getcwd())
             wf.build()
             shutil.copytree(
                 os.path.join(RESOURCES_DIR, 'cmake_pkgs'),
@@ -300,7 +300,7 @@ def test_install_catkin_destdir():
     """Test building and installing catkin packages with DESTDIR."""
     with redirected_stdio() as (out, err):
         with workspace_factory() as wf:
-            print(os.getcwd)
+            print(os.getcwd())
             wf.build()
             shutil.copytree(
                 os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'products_0'),
@@ -332,11 +332,11 @@ def test_pkg_with_unicode_names():
     """Test building a package with unicode file names."""
     with redirected_stdio() as (out, err):
         with workspace_factory() as wf:
-            print(os.getcwd)
+            print(os.getcwd())
             wf.build()
             shutil.copytree(
                 os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'products_unicode'),
-                os.path.join('src/cmake_pkgs'))
+                os.path.join('src/products_unicode'))
 
             assert catkin_success(['config', '--link-devel'])
             assert catkin_success(BUILD)
@@ -361,3 +361,22 @@ def test_glob_pattern_build():
                 assert not os.path.exists(os.path.join('build', 'pkg_7'))
                 assert not os.path.exists(os.path.join('build', 'pkg_8'))
                 assert not os.path.exists(os.path.join('build', 'pkg_9'))
+
+
+def test_pkg_with_conditional_build_type():
+    """Test building a dual catkin/ament package."""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            print(os.getcwd())
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'build_type_condition'),
+                os.path.join('src/build_type_condition'))
+
+            assert catkin_success(['config', '--merge-devel'])
+            assert catkin_success(BUILD)
+
+            # Currently the build verb skips over packages it doesn't know how to build.
+            # So we have to infer this skipping by checking the build directory.
+            msg = "Package with ROS 2 conditional build_type was skipped."
+            assert os.path.exists(os.path.join('build', 'build_type_condition')), msg
