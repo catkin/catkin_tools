@@ -78,29 +78,6 @@ def copy_install_manifest(
     return 0
 
 
-def get_python_version(context):
-    """This function returns the major and minor python version for the catkin workspace
-    which might differ from the python version for catkin_tools. It executes the relevant
-    part of the catkin module catkin/cmake/python.cmake to get the version string in exactly
-    the same manner that catkin itself does."""
-    cmake_command = ['cmake']
-    cmake_command.extend(context.cmake_args)
-    script_path = os.path.join(os.path.dirname(__file__), 'python.cmake')
-    cmake_command.extend(['-P', script_path])
-    p = subprocess.Popen(
-        cmake_command,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # cmake always writes to stderr
-    _, out = p.communicate()
-    if p.returncode != 0:
-        # Unable to get python version, for example when PYTHON_VERSION and
-        # PYTHON_EXECUTABLE are set to incompatible values
-        # TODO: the user should be informed that the cmake variables are invalid
-        pass
-    major_str, minor_str = out.decode().split(';')
-    return int(major_str), int(minor_str)
-
-
 def get_python_install_dir(context):
     """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
 
@@ -111,20 +88,16 @@ def get_python_install_dir(context):
     :returns: Python install directory for the system Python
     :rtype: str
     """
-    python_install_dir = 'lib'
-    python_use_debian_layout = os.path.exists('/etc/debian_version')
-    if os.name != 'nt':
-        python_version = get_python_version(context)
-        # use major version only when installing 3.x with debian layout
-        if python_use_debian_layout and python_version[0] == 3:
-            python_version_xdoty = str(python_version[0])
-        else:
-            python_version_xdoty = str(python_version[0]) + '.' + str(python_version[1])
-        python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
-
-    python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
-    python_install_dir = os.path.join(python_install_dir, python_packages_dir)
-    return python_install_dir
+    cmake_command = ['cmake']
+    cmake_command.extend(context.cmake_args)
+    script_path = os.path.join(os.path.dirname(__file__), 'cmake', 'python_install_dir.cmake')
+    cmake_command.extend(['-P', script_path])
+    p = subprocess.Popen(
+        cmake_command,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # only our message (containing the install directory) is written to stderr
+    _, out = p.communicate()
+    return out.decode()
 
 
 def get_multiarch():
