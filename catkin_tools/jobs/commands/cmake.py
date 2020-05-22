@@ -112,7 +112,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         # of direclty splitting lines, we should buffer the data lines until
         # the last character is a line break
         lines = decoded_data.splitlines(True)  # Keep line breaks
-        colored_lines = [self.colorize_cmake(l) for l in lines]
+        colored_lines = [self.colorize_cmake(line) for line in lines]
         colored_data = ''.join(colored_lines)
         encoded_data = self._encode(colored_data)
         return encoded_data

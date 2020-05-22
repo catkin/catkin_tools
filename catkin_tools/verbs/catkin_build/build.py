@@ -279,9 +279,10 @@ def build_isolated_workspace(
     if os.path.exists(context.build_space_abs):
         if os.path.isfile(context.build_space_abs):
             sys.exit(clr(
-                "[build] @{rf}Error:@| Build space '{0}' exists but is a file and not a folder."
+                "[build] @{rf}Error:@| " +
+                "Build space '{0}' exists but is a file and not a folder."
                 .format(context.build_space_abs)))
-    # If it dosen't exist, create it
+    # If it doesn't exist, create it
     else:
         log("[build] Creating build space: '{0}'".format(context.build_space_abs))
         os.makedirs(context.build_space_abs)
