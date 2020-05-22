@@ -1,10 +1,16 @@
-usage: catkin create [-h] {pkg} ...
+usage: catkin create [-h] [--workspace WORKSPACE] [--profile PROFILE]
+                     {pkg} ...
 
 Creates catkin workspace resources like packages.
 
 positional arguments:
-  {pkg}       sub-command help
-    pkg       Create a new catkin package.
+  {pkg}                 sub-command help
+    pkg                 Create a new catkin package.
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --profile PROFILE     The name of a config profile to use (default: active
+                        profile)

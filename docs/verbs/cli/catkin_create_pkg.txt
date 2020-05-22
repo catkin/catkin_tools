@@ -1,4 +1,4 @@
-usage: catkin create pkg [-h] [-p PATH] --rosdistro ROSDISTRO
+usage: catkin create pkg [-h] [-p PATH] [--rosdistro ROSDISTRO]
                          [-v MAJOR.MINOR.PATCH] [-l LICENSE] [-m NAME EMAIL]
                          [-a NAME EMAIL] [-d DESCRIPTION]
                          [--catkin-deps [DEP [DEP ...]]]
