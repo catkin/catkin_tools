@@ -37,7 +37,6 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import configure_make_args
 
-from catkin_tools.common import get_build_type
 from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
@@ -215,7 +214,7 @@ def dry_run(context, packages, no_deps, start_with):
     max_name_len = str(max([len(pkg.name) for pth, pkg in packages_to_be_built]))
     prefix = clr('@{pf}' + ('------ ' if start_with else '- ') + '@|')
     for pkg_path, pkg in packages_to_be_built:
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
         if build_type == 'catkin' and 'metapackage' in [e.tagname for e in pkg.exports]:
             build_type = 'metapackage'
         if start_with and pkg.name == start_with:

@@ -43,7 +43,6 @@ from catkin_pkg.package import parse_package
 
 from catkin_tools.common import FakeLock, expand_glob_package
 from catkin_tools.common import format_time_delta
-from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
@@ -280,9 +279,10 @@ def build_isolated_workspace(
     if os.path.exists(context.build_space_abs):
         if os.path.isfile(context.build_space_abs):
             sys.exit(clr(
-                "[build] @{rf}Error:@| Build space '{0}' exists but is a file and not a folder."
+                "[build] @{rf}Error:@| " +
+                "Build space '{0}' exists but is a file and not a folder."
                 .format(context.build_space_abs)))
-    # If it dosen't exist, create it
+    # If it doesn't exist, create it
     else:
         log("[build] Creating build space: '{0}'".format(context.build_space_abs))
         os.makedirs(context.build_space_abs)
@@ -500,7 +500,7 @@ def build_isolated_workspace(
             pre_clean=pre_clean)
 
         # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
 
         if build_type in build_job_creators:
             jobs.append(build_job_creators[build_type](**build_job_kwargs))

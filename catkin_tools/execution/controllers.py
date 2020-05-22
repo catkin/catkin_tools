@@ -695,9 +695,8 @@ class ConsoleStatusController(threading.Thread):
                 if self.show_buffered_stdout:
                     if len(event.data['interleaved']) > 0:
                         lines = [
-                            l
-                            for l in event.data['interleaved'].splitlines(True)
-                            if (self.show_compact_io is False or len(l.strip()) > 0)
+                            line for line in event.data['interleaved'].splitlines(True)
+                            if (self.show_compact_io is False or len(line.strip()) > 0)
                         ]
                     else:
                         header_border = None
@@ -706,9 +705,8 @@ class ConsoleStatusController(threading.Thread):
                 elif self.show_buffered_stderr:
                     if len(event.data['stderr']) > 0:
                         lines = [
-                            l
-                            for l in event.data['stderr'].splitlines(True)
-                            if (self.show_compact_io is False or len(l.strip()) > 0)
+                            line for line in event.data['stderr'].splitlines(True)
+                            if (self.show_compact_io is False or len(line.strip()) > 0)
                         ]
                         lines_target = sys.stderr
                     else:
@@ -768,4 +766,4 @@ class ConsoleStatusController(threading.Thread):
         template = '\r{}\r{}'.format(' ' * terminal_width(), prefix)
         suffix = clr('@|')
 
-        return ''.join(template + l + suffix for l in data['data'].splitlines(True))
+        return ''.join(template + line + suffix for line in data['data'].splitlines(True))
