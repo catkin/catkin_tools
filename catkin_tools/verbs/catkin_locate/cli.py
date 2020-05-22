@@ -17,6 +17,9 @@ from __future__ import print_function
 import os
 import sys
 
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import getcwd
+
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
@@ -68,9 +71,12 @@ def prepare_arguments(parser):
         "space paths are printed, e.g. `catkin locate -s` might return "
         "`/path/to/ws/src` and `catkin locate -s foo` might return "
         "`/path/to/ws/src/foo`.")
-    add = pkg_group.add_argument
+    pkg_group_mut = pkg_group.add_mutually_exclusive_group()
+    add = pkg_group_mut.add_argument
     add('package', metavar='PACKAGE', nargs='?',
         help="The name of a package to locate.")
+    add('--this', action="store_true",
+        help="Locate package containing current working directory.")
 
     special_group = parser.add_argument_group(
         'Special Directories',
@@ -124,27 +130,40 @@ def main(opts):
         elif opts.space == 'install':
             path = ctx.install_space_abs
 
-    if opts.package:
+    package = None
+    if opts.package or opts.this:
+        if opts.this:
+            package = find_enclosing_package(
+                search_start_path=getcwd(),
+                ws_path=ctx.workspace,
+                warnings=[])
+            if package is None:
+                print(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
+                          "Is '%s' in a package in '%s' workspace?@|" % (getcwd(), ctx.workspace)), file=sys.stderr)
+                sys.exit(2)
+        else:
+            package = opts.package
         # Get the path to the given package
         path = path or ctx.source_space_abs
         if opts.space == 'build':
-            path = os.path.join(path, opts.package)
+            path = os.path.join(path, package)
         elif opts.space in ['devel', 'install']:
-            path = os.path.join(path, 'share', opts.package)
+            path = os.path.join(path, 'share', package)
         else:
             try:
                 packages = find_packages(path, warnings=[])
-                catkin_package = [pkg_path for pkg_path, p in packages.items() if p.name == opts.package]
+                catkin_package = [pkg_path for pkg_path, p in packages.items() if p.name == package]
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
                     print(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
-                              (opts.package, path)), file=sys.stderr)
+                              (package, path)), file=sys.stderr)
                     sys.exit(2)
             except RuntimeError as e:
                 print(clr('@{rf}ERROR: %s@|' % str(e)), file=sys.stderr)
                 sys.exit(1)
-    elif not opts.space:
+
+    if not opts.space and package is None:
         # Get the path to the workspace root
         path = workspace
 
