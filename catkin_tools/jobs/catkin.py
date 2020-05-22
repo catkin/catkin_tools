@@ -345,18 +345,6 @@ def link_devel_products(
     return 0
 
 
-def ctr_nuke(logger, event_queue, prefix):
-    """Adds an env-hook which clears the catkin and ros test results dir."""
-
-    ctr_nuke_path = os.path.join(prefix, 'etc', 'catkin', 'profile.d')
-    ctr_nuke_filename = os.path.join(ctr_nuke_path, '06-ctr-nuke.sh')
-    mkdir_p(ctr_nuke_path)
-    if not os.path.exists(ctr_nuke_filename):
-        with open(ctr_nuke_filename, 'w') as ctr_nuke_file:
-            ctr_nuke_file.write(CTR_NUKE_SH)
-    return 0
-
-
 def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, prebuild=False):
     """Job class for building catkin packages"""
 
@@ -410,29 +398,11 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         dest_path=os.path.join(metadata_path, 'package.xml')
     ))
 
-    # Define test results directory
-    catkin_test_results_dir = os.path.join(build_space, 'test_results')
-    # Always override the CATKIN and ROS _TEST_RESULTS_DIR environment variables.
-    # This is in order to avoid cross talk due to parallel builds.
-    # This is only needed for ROS Hydro and earlier (the problem was addressed upstream in Indigo).
-    # See: https://github.com/catkin/catkin_tools/issues/139
-    ctr_env = {
-        'CATKIN_TEST_RESULTS_DIR': catkin_test_results_dir,
-        'ROS_TEST_RESULTS_DIR': catkin_test_results_dir
-    }
-
     # Only run CMake if the Makefile doesn't exist or if --force-cmake is given
     # TODO: This would need to be different with `cmake --build`
     makefile_path = os.path.join(build_space, 'Makefile')
 
     if not os.path.isfile(makefile_path) or force_cmake:
-
-        # Create an env-hook which clears the catkin and ros test results environment variable.
-        stages.append(FunctionStage(
-            'ctr-nuke',
-            ctr_nuke,
-            prefix=context.package_dest_path(package)
-        ))
 
         require_command('cmake', CMAKE_EXEC)
 
@@ -465,9 +435,6 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         context.make_args +
         context.catkin_make_args)
 
-    # Determine if the catkin test results env needs to be overridden
-    env_overrides = ctr_env if 'test' in make_args else {}
-
     # Pre-clean command
     if pre_clean:
         # TODO: Remove target args from `make_args`
@@ -484,7 +451,6 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
         'make',
         [MAKE_EXEC] + make_args,
         cwd=build_space,
-        env_overrides=env_overrides,
         logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 
@@ -617,12 +583,6 @@ description = dict(
     create_clean_job=create_catkin_clean_job
 )
 
-
-CTR_NUKE_SH = """\
-#!/usr/bin/env sh
-unset CATKIN_TEST_RESULTS_DIR
-unset ROS_TEST_RESULTS_DIR
-"""
 
 DEVEL_MANIFEST_FILENAME = 'devel_manifest.txt'
 
