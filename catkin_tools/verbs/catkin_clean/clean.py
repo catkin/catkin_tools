@@ -40,7 +40,7 @@ from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
-from catkin_tools.common import get_build_type, expand_glob_package
+from catkin_tools.common import expand_glob_package
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
 
@@ -145,7 +145,7 @@ def clean_packages(
             clean_install=True)
 
         # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
 
         if build_type in clean_job_creators:
             jobs.append(clean_job_creators[build_type](**clean_job_kwargs))

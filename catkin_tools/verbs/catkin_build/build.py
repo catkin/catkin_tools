@@ -43,7 +43,6 @@ from catkin_pkg.package import parse_package
 
 from catkin_tools.common import FakeLock, expand_glob_package
 from catkin_tools.common import format_time_delta
-from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
@@ -500,7 +499,7 @@ def build_isolated_workspace(
             pre_clean=pre_clean)
 
         # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
 
         if build_type in build_job_creators:
             jobs.append(build_job_creators[build_type](**build_job_kwargs))
