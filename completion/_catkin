@@ -285,23 +285,44 @@ _catkin_config_complete() {
     {-h,--help}'[Show usage help]'\
     {-w,--workspace}'[Workspace path]:workspace:_files -/'\
     '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
-    {-a,--append-args}'[Append elements for list-type arguments]'\
-    {-r,--remove-args}'[Remove elements for list-type arguments]'\
+    '(-r --remove-args)'{-a,--append-args}'[Append elements for list-type arguments]'\
+    '(-a --append-args)'{-r,--remove-args}'[Remove elements for list-type arguments]'\
     '--init[Initialize a workspace]'\
-    {-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
-    '--no-extend[Unset the explicit extension of another workspace]'\
+    '(--no-extend)'{-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
+    '(-e --extend)--no-extend[Unset the explicit extension of another workspace]'\
+    '--mkdirs[Create directories required by the configuration]'\
     '(--no-whitelist)--whitelist[Set the packages on the whitelist]:package:->packages'\
     '(--no-blacklist)--blacklist[Set the packages on the blacklist]:package:->packages'\
     '(--whitelist)--no-whitelist[Clear the whitelist]'\
     '(--blacklist)--no-blacklist[Clear the blacklist]'\
-    '(--default-source-space)'{-s,--source-space}'[Source space path]'\
-    '(--default-build-space)'{-b,--build-space}'[Build space path]'\
+    '(--default-source-space)'{-s,--source-space}'[Source space path]:source space:_files'\
+    '(-s --source-space)--default-source-space[Use the default path to the source space]'\
     '(--default-devel-space)'{-d,--devel-space}'[Devel space path]'\
+    '(-d --devel-space)--default-devel-space[Use the default path to the devel space]'\
+    '(--default-build-space)'{-b,--build-space}'[Build space path]'\
+    '(-b --build-space)--default-build-space[Use the default path to the build space]'\
     '(--default-install-space)'{-i,--install-space}'[Install space path]'\
+    '(-i --install-space)--default-install-space[Use the default path to the install space]'\
     {-x,--space-suffix}'[Suffix for build, devel, and install spaces]:suffix:()'\
-    '--merge-devel[Build products directly into a merged devel space]'\
-    '--link-devel[Symbolically link products into a merged devel space]'\
-    '--isolate-devel[Isolate devel speaces for each package]')
+    '(--link-devel --isolate-devel)--merge-devel[Build products directly into a merged devel space]'\
+    '(--merge-devel --isolate-devel)--link-devel[Symbolically link products into a merged devel space]'\
+    '(--merge-devel --link-devel)--isolate-devel[Isolate devel speaces for each package]'\
+    '(--no-install)--install[Causes each package to be installed to the install space]'\
+    '(--install)--no-install[Disables installing each package into the install space]'\
+    '(--merge-install)--isolate-install[Install each catkin package into a separate install space]'\
+    '(--isolate-install)--merge-install[Install each catkin package into a single merged install space]'\
+    {-j,--jobs}'[Maximum number of build jobs to be distributed across active packages]:JOBS:()'\
+    {-p,--parallel-packages}'[Maximum number of packages allowed to be built in parallel]:PACKAGE_JOBS:()'\
+    '(--no-jobserver)--jobserver[Use the internal GNU Make job server]'\
+    '(--jobserver)--no-jobserver[Disable the internal GNU Make job server]'\
+    '(--no-env-cache)--env-cache[Re-use cached environment variables]'\
+    "(--env-cache)--no-env-cache[Don't cache environment variables]"\
+    '(--no-cmake-args)--cmake-args[Arbitrary arguments which are passed to CMake]'\
+    '(--cmake-args)--no-cmake-args[Pass no additional arguments to CMake]'\
+    '(--no-make-args)--make-args[Arbitrary arguments which are passed to make]'\
+    '(--make-args)--no-make-args[Pass no additional arguments to make]'
+    '(--no-catkin-make-args)--catkin-make-args[Arbitrary arguments which are passed to make for catkin packages]'\
+    '(--catkin-make-args)--no-catkin-make-args[Pass no additional arguments to make for catkin packages]')
 
   _arguments -C $config_opts && return 0
   return 1
