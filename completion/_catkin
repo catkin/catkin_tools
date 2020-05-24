@@ -36,16 +36,6 @@ function _debug_log() {
   fi
 }
 
-# search backwards for the last given option
-_catkin_last_option() {
-  for (( i=${CURRENT} ; i > 0 ; i-- )) ; do
-    if [[ ${words[i]} == -* ]]; then
-      echo ${words[i]}
-      return
-    fi
-  done
-}
-
 # Get the workspace root (if available)
 _catkin_get_enclosing_workspace() {
   if [[ -n "$_workspace_root" ]]; then
@@ -494,9 +484,54 @@ case "$state" in
       (clean) _catkin_clean_complete && ret=0
         ;;
       (config)
-        if [[ "$(_catkin_last_option)" =~ "--(black|white)list" ]]; then
+        _debug_log "last considered -- is ${words[1,$CURRENT-1][(I)--]}"
+        _debug_log "last considered --list is ${words[1,$CURRENT-1][(I)--(black|white)list]}"
+        _debug_log "last considered --make is ${words[1,$CURRENT-1][(I)--*make-args]}"
+        if ((${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--*make-args]})); then
+          _debug_log "lists"
           _catkin_get_packages && ret=0
+        elif ((${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--cmake-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          _debug_log "cmake"
+          # a block of --cmake-args has been started
+          # but not yet ended with --
+          # not ended with --*make-args (--make-args, --catkin-make-args, or --cmake-args)
+          # not ended with --blacklist or --whitelist
+          # ignoring the current word for the end-range (such that --cmake-args --<TAB> gives cmake completion)
+          _dispatch $service cmake
+        elif ((${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          # same as above, just for make
+          _dispatch $service make
+        elif ((${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          # same as above, just for catkin-make
+          # TODO implement
         else
+          _debug_log "normal"
+          # when returning from a --*-args sequence `catkin config --cmake-args ...... -- -<TAB>`
+          # the cmake arguments are visible to _catkin_config_complete and cause failure there
+          # might want to remove them from $words.
+          # adjust $CURRENT accordingly, esp. when CURRENT is not the last word.
+          local -a bodgedwords
+          local -i bodgedcurrent=0
+          local inignore=false
+          for (( i=1 ; i <= ${#words} ; i++ )) ; do
+            if [[ $inignore != true ]]; then
+              bodgedwords+=($words[i])
+              if (( i <= $CURRENT )); then
+                (( bodgedcurrent++ ))
+                _debug_log "incrementing bodgedcurrent at $words[$i]"
+              else
+                _debug_log "not incrementing bodgedcurrent at $words[$i] because passed the interesting part (i = $i, current = $CURRENT)"
+              fi
+            else
+              _debug_log "not incrementing bodgedcurrent at $words[$i] because in ignore"
+            fi
+            if [[ $words[$i] == '--' ]]; then inignore=false; fi
+            if [[ $words[$i] == --*make-args ]]; then
+              inignore=true
+            fi
+          done
+          words=($bodgedwords)
+          CURRENT=$bodgedcurrent
           _catkin_config_complete && ret=0
         fi
         ;;
