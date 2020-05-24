@@ -478,11 +478,20 @@ case "$state" in
       (clean) _catkin_clean_complete && ret=0
         ;;
       (config)
+        local terminating_opts
+        terminating_opts=(\
+          '--whitelist:Set the packages on the whitelist'\
+          '--blacklist:Set the packages on the blacklist'\
+          '--cmake-args:Arbitrary arguments which are passed to CMake'\
+          '--make-args:Arbitrary arguments which are passed to make'\
+          '--catkin-make-args:Arbitrary arguments which are passed to make for catkin packages'\
+          '--:Continue with other catkin config arguments')
         _debug_log "last considered -- is ${words[1,$CURRENT-1][(I)--]}"
         _debug_log "last considered --list is ${words[1,$CURRENT-1][(I)--(black|white)list]}"
         _debug_log "last considered --make is ${words[1,$CURRENT-1][(I)--*make-args]}"
         if ((${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--*make-args]})); then
           _debug_log "lists"
+          _describe -t terminators "terminate multiword argument" terminating_opts
           _catkin_get_packages && ret=0
         elif ((${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--cmake-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
           _debug_log "cmake"
@@ -492,12 +501,15 @@ case "$state" in
           # not ended with --blacklist or --whitelist
           # ignoring the current word for the end-range (such that --cmake-args --<TAB> gives cmake completion)
           _dispatch $service cmake
+          _describe -t terminators "terminate multiword argument" terminating_opts
         elif ((${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
           # same as above, just for make
           _dispatch $service make
+          _describe -t terminators "terminate multiword argument" terminating_opts
         elif ((${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
           # same as above, just for catkin-make
           # TODO implement
+          _describe -t terminators "terminate multiword argument" terminating_opts
         else
           _debug_log "normal"
           # when returning from a --*-args sequence `catkin config --cmake-args ...... -- -<TAB>`
