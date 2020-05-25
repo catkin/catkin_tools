@@ -42,18 +42,18 @@ _catkin_get_enclosing_workspace() {
     return 0
   fi
 
-  local path
-  path="$1"
+  local _path
+  _path="$1"
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/.catkin_tools"
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/.catkin_tools"
 
-    if [[ -e "$path/.catkin_tools" ]]; then
-      _debug_log "Found workspace root $path"
-      _workspace_root=$path
+    if [[ -e "$_path/.catkin_tools" ]]; then
+      _debug_log "Found workspace root $_path"
+      _workspace_root=$_path
       return 0
     else
-      path="$(/bin/readlink -f $path/..)"
+      _path="$(readlink -f $_path/..)"
     fi
   done
 
@@ -66,19 +66,19 @@ _catkin_get_enclosing_package() {
     return 0
   fi
 
-  local path
-  path="$1"
+  local _path
+  _path="$1"
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/package.xml"
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/package.xml"
 
-    if [[ -e "$path/package.xml" ]]; then
-      _debug_log "Found package root $path"
+    if [[ -e "$_path/package.xml" ]]; then
+      _debug_log "Found package root $_path"
       # Get the package name
-      _enclosing_package="$(xmllint --xpath '/package/name/text()' '$path/package.xml')"
+      _enclosing_package="$(xmllint --xpath '/package/name/text()' "$_path/package.xml")"
       return 0
     else
-      path="$(/bin/readlink -f $path/..)"
+      _path="$(readlink -f $_path/..)"
     fi
   done
 
@@ -189,14 +189,13 @@ _catkin_build_complete() {
   # Determine if we're in a package, and should autocomplete context-aware options
   local build_opts
 
-  #this_package=$(catkin list --this -u --quiet)
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
+    _debug_log "In package $_enclosing_package"
     build_opts=(\
-      "(--unbuilt)--this[Build '$this_package']"\
-      "(--start-with)--start--with--this[Skip all packages on which `$this_package` depends]"\
+      "(--unbuilt)--this[Build '$_enclosing_package']"\
+      "(--start-with)--start--with--this[Skip all packages on which '$_enclosing_package' depends]"\
       )
   else
     _debug_log "Not in a package"
@@ -228,13 +227,12 @@ _catkin_clean_complete() {
   # Determine if we're in a package, and should autocomplete context-aware options
   local clean_opts
 
-  #this_package=$(catkin list --this -u --quiet)
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
+    _debug_log "In package $_enclosing_package"
     clean_opts=(\
-      "--this[Clean '$this_package']"\
+      "--this[Clean '$_enclosing_package']"\
       )
   else
     _debug_log "Not in a package"
