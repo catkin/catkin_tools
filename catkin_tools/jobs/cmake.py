@@ -94,10 +94,11 @@ def get_python_install_dir(context):
     cmake_command.extend(['-P', script_path])
     p = subprocess.Popen(
         cmake_command,
+        cwd=os.path.join(os.path.dirname(__file__), 'cmake'),
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # only our message (containing the install directory) is written to stderr
     _, out = p.communicate()
-    return out.decode()
+    return out.decode().strip()
 
 
 def get_multiarch():
