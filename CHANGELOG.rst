@@ -2,6 +2,78 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.0 (2020-06-02)
+------------------
+* Revert "jobs: Fixing environment required to run catkin test targets on pre-indigo catkin" (`#600 <https://github.com/catkin/catkin_tools/issues/600>`_)
+  This reverts commit 050de443da4a65be23b6f62a954efea60db53d09 and partially c5daf4a6d4cb02ab7c22a553a565bddadbaa2a45.
+* Doc updates: usage of ``-d`` on cheat sheet, updated verb .txt files (`#604 <https://github.com/catkin/catkin_tools/issues/604>`_)
+  - The ``-d|--directory`` feature was introduced in `#572 <https://github.com/catkin/catkin_tools/issues/572>`_
+  - Also ran ``dump_cli`` to update help literally included on verb documentation
+  pages. This updated more than just ``docs/verbs/cli/catkin_list.txt``, but they
+  were in need of an update
+* Add ``--this`` option to ``locate`` verb (addresses `#552 <https://github.com/catkin/catkin_tools/issues/552>`_) (`#605 <https://github.com/catkin/catkin_tools/issues/605>`_)
+* Merge pull request `#608 <https://github.com/catkin/catkin_tools/issues/608>`_ from mikepurvis/fix-build-type
+  Check build_type with function from catkin_pkg.
+* Flake8 fixes for new warnings.
+* Switch to get_build_type from catkin_pkg.
+* Add failing test for an ament/catkin package.
+* Allow extending profiles and merging their contents. (`#592 <https://github.com/catkin/catkin_tools/issues/592>`_)
+* Updated regex for extracting '-l' and '-j' args for make (`#573 <https://github.com/catkin/catkin_tools/issues/573>`_)
+  * Updated regex for extracting '-l' and '-j' args for make
+  Summary of improvements:
+  - No longer consuming args that happen to begin ``jX`` or ``lX`` (where ``X`` is a
+  sequence if integers.
+  - Fixed bug where an empty 'j' arg would throw a ``ValueError`` when trying to
+  convert an empty string (``''``) to an int
+  - Both ``-l/--load-average`` and ``-j/--jobs`` can now be empty (which is
+  supported by GNU Make
+  - The ``-l/--load-average`` arg will now accept a float value (e.g. ``catkin build -l4.0``) which is supported by GNU Make
+  * Added test cases for make args regular expressions
+  Test cases also helped to make regexes slightly more robust.
+* Do not ignore metapackages (fix `#418 <https://github.com/catkin/catkin_tools/issues/418>`_) (`#596 <https://github.com/catkin/catkin_tools/issues/596>`_)
+  Metapackages must not be ignored by catkin_tools. The fact that other non-metapackages
+  cannot depend on them according to REP-140 does not imply that they do not need to be
+  built and installed at all.
+* Catch BlockingIOError in job_server. (`#599 <https://github.com/catkin/catkin_tools/issues/599>`_)
+* Drop parentheses from yields and returns (`#595 <https://github.com/catkin/catkin_tools/issues/595>`_)
+* Use distutils to handle install path (`#569 <https://github.com/catkin/catkin_tools/issues/569>`_)
+* Update release suites. (`#564 <https://github.com/catkin/catkin_tools/issues/564>`_)
+  * Add cosmic, disco, and eoan suites.
+  * Remove old suites.
+  * Bump Python3 version to 3.5 in stdeb.
+  * Drop jessie as a supported target.
+  * Add focal.
+  Co-authored-by: Mike Purvis <mpurvis@clearpathrobotics.com>
+* Also run tests with Python 3.7 and 3.8 (`#590 <https://github.com/catkin/catkin_tools/issues/590>`_)
+  Signed-off-by: Shane Loretz <sloretz@osrfoundation.org>
+* Added option to past list of directories to ``list`` verb (`#572 <https://github.com/catkin/catkin_tools/issues/572>`_)
+* Fix permissions of created setup files (`#563 <https://github.com/catkin/catkin_tools/issues/563>`_)
+* Handle empty file in ``get_metadata`` correctly (`#568 <https://github.com/catkin/catkin_tools/issues/568>`_)
+  If the ``metadata_file_path`` exists but the ``metadata_file`` is empty, ``yaml.safe_load(metadata_file)`` will return None. But the caller expects a dictionary which can lead to a crash. (e.g. in https://github.com/catkin/catkin_tools/blob/master/catkin_tools/verbs/catkin_build/cli.py#L371)
+* add authors/maintainers/licenses to context, which are the default values on package creation (`#548 <https://github.com/catkin/catkin_tools/issues/548>`_)
+* argument parser: use None instead of [] for empty jobs args (`#575 <https://github.com/catkin/catkin_tools/issues/575>`_)
+* Fix space-suffix option (`#560 <https://github.com/catkin/catkin_tools/issues/560>`_)
+* Bash completion for run_tests verb (`#562 <https://github.com/catkin/catkin_tools/issues/562>`_)
+  * bash completion for run_tests and options
+  * also completing packages
+* Revert "Set posix=False when parsing environment variables (`#578 <https://github.com/catkin/catkin_tools/issues/578>`_)" (`#584 <https://github.com/catkin/catkin_tools/issues/584>`_)
+  This reverts commit 5b121260a75ffcda863d4588a8e9efc7b4945477.
+* Add Travis CI badge to README.md (`#585 <https://github.com/catkin/catkin_tools/issues/585>`_)
+* Support globs in build/blacklist/whitelist (`#576 <https://github.com/catkin/catkin_tools/issues/576>`_)
+  * Add glob patterns to build, blacklist and whitelist
+  * Add glob patterns to clean
+  * Add test for glob pattern build
+* Set posix=False when parsing environment variables (`#578 <https://github.com/catkin/catkin_tools/issues/578>`_)
+* Revert `#561 <https://github.com/catkin/catkin_tools/issues/561>`_ (`#582 <https://github.com/catkin/catkin_tools/issues/582>`_)
+  Now that the project is only targetting python 3.5+, `#561 <https://github.com/catkin/catkin_tools/issues/561>`_ is no longer required and we can use the most up-to-date version of ``sphinx`` and ``sphinxcontrib-spelling``.
+* Do not load the environment when calling profile to allow to change the profile if the current profile is invalid (`#566 <https://github.com/catkin/catkin_tools/issues/566>`_)
+* Set Travis to check Python 3.5 and 3.6. (`#580 <https://github.com/catkin/catkin_tools/issues/580>`_)
+* Python 3 only, migrate from trollius to native asyncio (`#574 <https://github.com/catkin/catkin_tools/issues/574>`_)
+* fix(controllers): python3 fix for the controllers.py file (`#565 <https://github.com/catkin/catkin_tools/issues/565>`_)
+* Force sphinxcontrib-spelling less than 4.3.0 (`#561 <https://github.com/catkin/catkin_tools/issues/561>`_)
+* fix(docs) mechanics to linked develspace (`#546 <https://github.com/catkin/catkin_tools/issues/546>`_)
+* Contributors: Alexis Paques, Christian Henkel, Fan Jiang, Jan Strohbeck, Jarvis Schultz, Johannes Meyer, Leroy Rügemer, Matt Reynolds, Matthijs van der Burgh, Mike Purvis, Moritz Münst, Ramon Wijnands, Shane Loretz, Steven! Ragnarök, Tim de Jager, Timon Engelke, Yuki Furuta
+
 0.4.5 (2019-04-02)
 ------------------
 * Fixed jobserver not working with GNU make >= 4.2 (`#480 <https://github.com/catkin/catkin_tools/issues/480>`_)
