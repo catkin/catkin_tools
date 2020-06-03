@@ -2,6 +2,10 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.0 (2020-06-03)
+------------------
+* This release restores the 0.4.5 state due to an accident with the 0.5.0 release where we pushed it to Python2 users which it doesn't support.
+
 0.5.0 (2020-06-02)
 ------------------
 * Revert "jobs: Fixing environment required to run catkin test targets on pre-indigo catkin" (`#600 <https://github.com/catkin/catkin_tools/issues/600>`_)
