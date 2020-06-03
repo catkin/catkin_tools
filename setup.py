@@ -104,7 +104,7 @@ prefix = dist.get_option_dict('install').get('prefix',("default", sys.prefix))[1
 
 setup(
     name='catkin_tools',
-    version='0.4.5',
+    version='0.5.0',
     python_requires='>=3.5',
     packages=find_packages(exclude=['tests*', 'docs']),
     package_data={
