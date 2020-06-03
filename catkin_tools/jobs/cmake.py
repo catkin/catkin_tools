@@ -88,7 +88,7 @@ def get_python_install_dir(context):
     :returns: Python install directory for the system Python
     :rtype: str
     """
-    cmake_command = ['cmake']
+    cmake_command = [CMAKE_EXEC]
     cmake_command.extend(context.cmake_args)
     script_path = os.path.join(os.path.dirname(__file__), 'cmake', 'python_install_dir.cmake')
     cmake_command.extend(['-P', script_path])
