@@ -116,7 +116,7 @@ else:
 
 setup(
     name='catkin_tools',
-    version='0.4.5',
+    version='0.6.0',
     packages=find_packages(exclude=['tests*', 'docs']),
     package_data={
         'catkin_tools': [
