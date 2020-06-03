@@ -67,6 +67,12 @@ def test_job_flag_filtering_empty_jl():
         "--jobs --load-average", filtered), JOB_FLAG_ERR % args
 
 
+def test_no_job_flag():
+    args = "jpkg1 lpkg2"
+    filtered = extract_jobs_flags(args)
+    assert filtered is None, JOB_FLAG_ERR % args
+
+
 def test_job_flag_load_float():
     """Test ensures floating point values are handled correctly for load average"""
     args = "pkg1 pkg2 --load-average=1.23"
@@ -88,6 +94,10 @@ def test_job_flag_values():
     valdict = extract_jobs_flags_values(flags)
     assert abs(valdict['load-average'] - 4.0) < 1e-12
     flags = "-l -j"
+    valdict = extract_jobs_flags_values(flags)
+    assert 'load-average' in valdict and 'jobs' in valdict
+    assert valdict['load-average'] is None and valdict['jobs'] is None
+    flags = "--load-average --jobs"
     valdict = extract_jobs_flags_values(flags)
     assert 'load-average' in valdict and 'jobs' in valdict
     assert valdict['load-average'] is None and valdict['jobs'] is None
