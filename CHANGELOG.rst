@@ -2,7 +2,7 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.6.0 (2020-06-03)
+0.6.1 (2020-06-03)
 ------------------
 * Fixed an issue preventing the deb from being installed for python2.
 
