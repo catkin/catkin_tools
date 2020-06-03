@@ -59,10 +59,12 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     """
 
     add = parser.add_argument
-    add('-j', '--jobs', default=None,
+    add('-j', '--jobs', default=None, type=int,
         help='Maximum number of build jobs to be distributed across active packages. (default is cpu count)')
-    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None,
+    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None, type=int,
         help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+    add('-l', '--load-average', default=None, type=float,
+        help='Maximum load average before no new build jobs are scheduled')
     # Deprecated flags kept for compatibility
     add('--parallel-jobs', '--parallel', action='store_true', dest='parallel_jobs', help=argparse.SUPPRESS)
 
@@ -225,21 +227,20 @@ def extract_jobs_flags_values(mflags):
     :returns: dictionary mapping jobs flags to jobs flags values
     :rtype: dict
     """
+    jobs_dict = {'jobs': None, 'load-average': None}
 
-    regex = r'(?:^|\s)+?(?:-)(j|l)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)' + \
-            r'|' + \
-            r'(?:^|\s)+?(?:--)(jobs|load-average)(?:=|(?:\s+?)|$)?(\d*(?:\.\d*)?)?(?!-)'
+    # These regular expressions use (?P<name>...) for named capture groups
+    # (^|\s) and (?=$|\s) make sure that the flag is surrounded by whitespace
 
-    jobs_dict = {}
+    regex = r'(^|\s)(-j\s*|--jobs(=|\s+))(?P<jobs>\d*)(?=$|\s)'
+    for m in re.finditer(regex, mflags):
+        if m.group('jobs'):
+            jobs_dict['jobs'] = int(m.group('jobs'))
 
-    matches = re.findall(regex, mflags) or []
-    for k, v, key, value in matches:
-        v = v.strip()
-        value = value.strip()
-        if k == 'j' or key == 'jobs':
-            jobs_dict['jobs'] = int(v or value) if (v or value) else None
-        elif k == 'l' or key == 'load-average':
-            jobs_dict['load-average'] = float(v or value) if v or value else None
+    regex = r'(^|\s)(-l\s*|--load-average(=|\s+))(?P<load>\d*\.?\d*)(?=$|\s)'
+    for m in re.finditer(regex, mflags):
+        if m.group('load'):
+            jobs_dict['load-average'] = float(m.group('load'))
 
     return jobs_dict
 
@@ -254,13 +255,21 @@ def extract_jobs_flags(mflags):
     """
     if not mflags:
         return []
-    regex = r'(?:^|\s)(-j(?:(?:\s)*(?:\d)*)|\s|$)(?!-)|' + \
-            r'(?:^|\s)(-l(?:(?:\s)*(?:\d*(?:\.\d*)?)|\s|$))(?!-)|' + \
-            r'(?:^|\s)(--jobs(?:(?:=|\s*)(?:\d)*)|\s|$)(?!-)|' + \
-            r'(?:^|\s)(--load-average(?:(?:=|\s*)(?:\d*(?:\.\d*)?)|\s|$))(?!-)'
-    matches = re.findall(regex, mflags) or []
-    matches = [[a for a in m if a][0] for m in matches]
-    filtered_flags = [m.strip() for m in matches] if matches else []
+
+    # Each line matches a flag type, i.e. -j, -l, --jobs, --load-average
+    # (?:^|\s) and (?=$|\s) make sure that the flag is surrounded by whitespace
+    # (?:...) is just a group that will not be captured, this is necessary because the whole flag should be captured
+    # The upper two expressions are simple, they just match the flag, optional whitespace and an optional number
+    # The bottom two expressions are more complicated because the long flag may be # followed by '=' and a number,
+    # whitespace and a number or nothing
+    regex = r'(?:^|\s)(-j\s*\d*)(?=$|\s)|' + \
+            r'(?:^|\s)(-l\s*\d*\.?\d*)(?=$|\s)|' + \
+            r'(?:^|\s)(--jobs(?:(?:=|\s+)\d+)?)(?=$|\s)|' + \
+            r'(?:^|\s)(--load-average(?:(?:=|\s+)\d*\.?\d+)?)(?=$|\s)'
+
+    filtered_flags = []
+    for match in re.findall(regex, mflags):
+        filtered_flags.extend([m.strip() for m in match if m])
 
     return filtered_flags or None
 

@@ -14,7 +14,7 @@
 
 description = dict(
     default='logs',
-    short_flag='-l',
+    short_flag='-L',
     space='Log Space',
     description='Output generated during the build stages.'
 )
