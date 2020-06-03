@@ -78,7 +78,7 @@ def copy_install_manifest(
     return 0
 
 
-def get_python_install_dir():
+def get_python_install_dir(context):
     """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
 
     The PYTHON_INSTALL_DIR variable is normally set from the CMake file:
@@ -88,15 +88,17 @@ def get_python_install_dir():
     :returns: Python install directory for the system Python
     :rtype: str
     """
-    python_install_dir = 'lib'
-    if os.name != 'nt':
-        python_version_xdoty = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
-        python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
-
-    python_use_debian_layout = os.path.exists('/etc/debian_version')
-    python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
-    python_install_dir = os.path.join(python_install_dir, python_packages_dir)
-    return python_install_dir
+    cmake_command = [CMAKE_EXEC]
+    cmake_command.extend(context.cmake_args)
+    script_path = os.path.join(os.path.dirname(__file__), 'cmake', 'python_install_dir.cmake')
+    cmake_command.extend(['-P', script_path])
+    p = subprocess.Popen(
+        cmake_command,
+        cwd=os.path.join(os.path.dirname(__file__), 'cmake'),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # only our message (containing the install directory) is written to stderr
+    _, out = p.communicate()
+    return out.decode().strip()
 
 
 def get_multiarch():
@@ -185,7 +187,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     subs = {}
     subs['cmake_prefix_path'] = install_target + ":"
     subs['ld_path'] = os.path.join(install_target, 'lib') + ":"
-    pythonpath = os.path.join(install_target, get_python_install_dir())
+    pythonpath = os.path.join(install_target, get_python_install_dir(context))
     subs['pythonpath'] = pythonpath + ':'
     subs['pkgcfg_path'] = os.path.join(install_target, 'lib', 'pkgconfig') + ":"
     subs['path'] = os.path.join(install_target, 'bin') + ":"
