@@ -28,7 +28,7 @@ before_install:
   - pip install setuptools argparse catkin-pkg PyYAML psutil osrf_pycommon pyenchant sphinxcontrib-spelling
 install:
   # Install catkin_tools
-  - python setup.py develop
+  - python setup.py install
 before_script:
   # Install catkin_tools test harness dependencies
   - ./.travis.before_script.bash
