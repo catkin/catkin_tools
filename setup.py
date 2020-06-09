@@ -109,6 +109,8 @@ setup(
     packages=find_packages(exclude=['tests*', 'docs']),
     package_data={
         'catkin_tools': [
+            'jobs/cmake/python.cmake',
+            'jobs/cmake/python_install_dir.cmake',
             'notifications/resources/linux/catkin_icon.png',
             'notifications/resources/linux/catkin_icon_red.png',
             'verbs/catkin_shell_verbs.bash',
