@@ -53,7 +53,7 @@ _catkin_get_enclosing_workspace() {
       _workspace_root=$_path
       return 0
     else
-      _path="$(readlink -f $_path/..)"
+      _path="$(dirname "$_path")"
     fi
   done
 
@@ -78,7 +78,7 @@ _catkin_get_enclosing_package() {
       _enclosing_package="$(xmllint --xpath '/package/name/text()' "$_path/package.xml")"
       return 0
     else
-      _path="$(readlink -f $_path/..)"
+      _path="$(dirname "$_path")"
     fi
   done
 
@@ -285,6 +285,8 @@ _catkin_config_complete() {
     '(-b --build-space)--default-build-space[Use the default path to the build space]'\
     '(--default-install-space)'{-i,--install-space}'[Install space path]'\
     '(-i --install-space)--default-install-space[Use the default path to the install space]'\
+    '(--default-log-space)'{-L,--log-space}'[Log space path]'\
+    '(-L --log-space)--default-log-space[Use the default path to the log space]'\
     {-x,--space-suffix}'[Suffix for build, devel, and install spaces]:suffix:()'\
     '(--link-devel --isolate-devel)--merge-devel[Build products directly into a merged devel space]'\
     '(--merge-devel --isolate-devel)--link-devel[Symbolically link products into a merged devel space]'\
@@ -295,6 +297,7 @@ _catkin_config_complete() {
     '(--isolate-install)--merge-install[Install each catkin package into a single merged install space]'\
     {-j,--jobs}'[Maximum number of build jobs to be distributed across active packages]:JOBS:()'\
     {-p,--parallel-packages}'[Maximum number of packages allowed to be built in parallel]:PACKAGE_JOBS:()'\
+    {-l,--load-average}'[Maximum load average before no new build jobs are scheduled]'\
     '(--no-jobserver)--jobserver[Use the internal GNU Make job server]'\
     '(--jobserver)--no-jobserver[Disable the internal GNU Make job server]'\
     '(--no-env-cache)--env-cache[Re-use cached environment variables]'\
@@ -502,11 +505,13 @@ case "$state" in
           _describe -t terminators "terminate multiword argument" terminating_opts
         elif ((${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
           # same as above, just for make
+          _debug_log "make"
           _dispatch $service make
           _describe -t terminators "terminate multiword argument" terminating_opts
         elif ((${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
-          # same as above, just for catkin-make
-          # TODO implement
+          # same as above, just for catkin_make
+          _debug_log "catkin_make"
+          _dispatch $service catkin_make
           _describe -t terminators "terminate multiword argument" terminating_opts
         else
           _debug_log "normal"
