@@ -135,7 +135,7 @@ def prepare_arguments(parser):
     add('--orphans', action='store_true', default=False,
         help='Remove products from packages are no longer in the source space. '
         'Note that this also removes packages which are '
-        'blacklisted or which contain `CATKIN_INGORE` marker files.')
+        'denylisted or which contain `CATKIN_INGORE` marker files.')
 
     # Advanced group
     advanced_group = parser.add_argument_group(

@@ -282,9 +282,9 @@ _catkin_config_complete() {
     {-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
     '--no-extend[Unset the explicit extension of another workspace]'\
     '(--no-whitelist)--whitelist[Set the packages on the whitelist]:package:->packages'\
-    '(--no-blacklist)--blacklist[Set the packages on the blacklist]:package:->packages'\
+    '(--no-denylist)--denylist[Set the packages on the denylist]:package:->packages'\
     '(--whitelist)--no-whitelist[Clear the whitelist]'\
-    '(--blacklist)--no-blacklist[Clear the blacklist]'\
+    '(--denylist)--no-denylist[Clear the denylist]'\
     '(--default-source-space)'{-s,--source-space}'[Source space path]'\
     '(--default-build-space)'{-b,--build-space}'[Build space path]'\
     '(--default-devel-space)'{-d,--devel-space}'[Devel space path]'\

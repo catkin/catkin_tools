@@ -137,8 +137,8 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         '"typeset -px"'
     ])
 
-    # Define some "blacklisted" environment variables which shouldn't be copied
-    blacklisted_keys = ('_', 'PWD')
+    # Define some "denylisted" environment variables which shouldn't be copied
+    denylisted_keys = ('_', 'PWD')
     env_dict = {}
 
     try:
@@ -159,7 +159,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         env_dict = {
             k: v
             for k, v in parse_env_str(lines).items()
-            if k not in blacklisted_keys
+            if k not in denylisted_keys
         }
 
         # Check to make sure we got some kind of environment

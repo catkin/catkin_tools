@@ -128,19 +128,19 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
         else:
             packages_to_be_built = ordered_packages
 
-    # Filter packages with blacklist
-    if len(context.blacklist) > 0:
-        # Expand glob patterns in blacklist
-        blacklist = []
-        for blacklisted_package in context.blacklist:
-            blacklist.extend(expand_glob_package(blacklisted_package, workspace_package_names))
-        # Apply blacklist to packages and dependencies
+    # Filter packages with denylist
+    if len(context.denylist) > 0:
+        # Expand glob patterns in denylist
+        denylist = []
+        for denylisted_package in context.denylist:
+            denylist.extend(expand_glob_package(denylisted_package, workspace_package_names))
+        # Apply denylist to packages and dependencies
         packages_to_be_built = [
             (path, pkg) for path, pkg in packages_to_be_built
-            if (pkg.name not in blacklist or pkg.name in packages)]
+            if (pkg.name not in denylist or pkg.name in packages)]
         packages_to_be_built_deps = [
             (path, pkg) for path, pkg in packages_to_be_built_deps
-            if (pkg.name not in blacklist or pkg.name in packages)]
+            if (pkg.name not in denylist or pkg.name in packages)]
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
@@ -526,7 +526,7 @@ def build_isolated_workspace(
             n_jobs,
             [pkg.name for _, pkg in context.packages],
             [p for p in context.whitelist],
-            [p for p in context.blacklist],
+            [p for p in context.denylist],
             event_queue,
             show_notifications=not no_notify,
             show_active_status=not no_status,

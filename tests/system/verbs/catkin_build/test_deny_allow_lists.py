@@ -14,11 +14,11 @@ def test_whitelist():
     pass  # TODO: Write test
 
 
-def test_blacklist():
-    """Test building all packages except blacklisted packages"""
+def test_denylist():
+    """Test building all packages except denylisted packages"""
     pass  # TODO: Write test
 
 
-def test_blacklist_whitelist():
-    """Test building with non-empty blacklist and whitelist"""
+def test_denylist_whitelist():
+    """Test building with non-empty denylist and whitelist"""
     pass  # TODO: Write test

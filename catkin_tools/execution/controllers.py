@@ -125,8 +125,8 @@ _color_translation_map = {
     "[{}] Ignored: None.":
     fmt("[{}]   @/@!@{kf}Ignored:   None.@|"),
 
-    "[{}] Ignored: {} {} were skipped or are blacklisted.":
-    fmt("[{}]   @/@!@{pf}Ignored:@|   @/@!{}@| @/{} were skipped or are blacklisted.@|"),
+    "[{}] Ignored: {} {} were skipped or are denylisted.":
+    fmt("[{}]   @/@!@{pf}Ignored:@|   @/@!{}@| @/{} were skipped or are denylisted.@|"),
 
     "[{}] Failed: No {} failed.":
     fmt("[{}]   @/@!@{kf}Failed:    None.@|"),
@@ -189,7 +189,7 @@ class ConsoleStatusController(threading.Thread):
             max_toplevel_jobs,
             available_jobs,
             whitelisted_jobs,
-            blacklisted_jobs,
+            denylisted_jobs,
             event_queue,
             show_notifications=False,
             show_stage_events=False,
@@ -250,7 +250,7 @@ class ConsoleStatusController(threading.Thread):
         self.jobs = dict([(j.jid, j) for j in jobs])
 
         self.available_jobs = available_jobs
-        self.blacklisted_jobs = blacklisted_jobs
+        self.denylisted_jobs = denylisted_jobs
         self.whitelisted_jobs = whitelisted_jobs
 
         # Compute the max job id length when combined with stage labels
@@ -294,12 +294,12 @@ class ConsoleStatusController(threading.Thread):
         ignoreds = {}
         abandoneds = {}
         non_whitelisted = {}
-        blacklisted = {}
+        denylisted = {}
 
         # Give each package an output template to use
         for jid in self.available_jobs:
-            if jid in self.blacklisted_jobs:
-                blacklisted[jid] = templates['ignored']
+            if jid in self.denylisted_jobs:
+                denylisted[jid] = templates['ignored']
             elif jid not in self.jobs:
                 ignoreds[jid] = templates['ignored']
             elif len(self.whitelisted_jobs) > 0 and jid not in self.whitelisted_jobs:
@@ -334,12 +334,12 @@ class ConsoleStatusController(threading.Thread):
             wide_log("")
             print_items_in_columns(sorted(non_whitelisted.items()), number_of_columns)
 
-        # Print out blacklisted jobs
-        if len(blacklisted) > 0:
+        # Print out denylisted jobs
+        if len(denylisted) > 0:
             wide_log("")
             wide_log(clr("[{}] Blacklisted {}:").format(self.label, self.jobs_label))
             wide_log("")
-            print_items_in_columns(sorted(blacklisted.items()), number_of_columns)
+            print_items_in_columns(sorted(denylisted.items()), number_of_columns)
 
         # Print out jobs that failed
         if len(faileds) > 0:
@@ -388,7 +388,7 @@ class ConsoleStatusController(threading.Thread):
                 self.label))
         else:
             notification_msg.append("{} {} were skipped.".format(len(all_ignored_jobs), self.jobs_label))
-            wide_log(clr('[{}] Ignored: {} {} were skipped or are blacklisted.').format(
+            wide_log(clr('[{}] Ignored: {} {} were skipped or are denylisted.').format(
                 self.label,
                 len(all_ignored_jobs),
                 self.jobs_label))

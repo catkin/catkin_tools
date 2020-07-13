@@ -79,11 +79,11 @@ def prepare_arguments(parser):
     add('--no-whitelist', dest='whitelist', action='store_const', const=[], default=None,
         help='Clear all packages from the whitelist.')
     add = lists_group.add_mutually_exclusive_group().add_argument
-    add('--blacklist', metavar="PKG", dest='blacklist', nargs="+", required=False, type=str, default=None,
-        help='Set the packages on the blacklist. Packages on the blacklist are '
+    add('--denylist', metavar="PKG", dest='denylist', nargs="+", required=False, type=str, default=None,
+        help='Set the packages on the denylist. Packages on the denylist are '
         'not built with a bare call to `catkin build`.')
-    add('--no-blacklist', dest='blacklist', action='store_const', const=[], default=None,
-        help='Clear all packages from the blacklist.')
+    add('--no-denylist', dest='denylist', action='store_const', const=[], default=None,
+        help='Clear all packages from the denylist.')
 
     spaces_group = parser.add_argument_group('Spaces', 'Location of parts of the catkin workspace.')
     Context.setup_space_keys()

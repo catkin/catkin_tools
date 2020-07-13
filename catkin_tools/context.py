@@ -65,7 +65,7 @@ class Context(object):
         'use_env_cache',
         'catkin_make_args',
         'whitelist',
-        'blacklist',
+        'denylist',
         'authors',
         'maintainers',
         'licenses',
@@ -294,7 +294,7 @@ class Context(object):
         catkin_make_args=None,
         space_suffix=None,
         whitelist=None,
-        blacklist=None,
+        denylist=None,
         authors=None,
         maintainers=None,
         licenses=None,
@@ -342,8 +342,8 @@ class Context(object):
         :type space_suffix: str
         :param whitelist: a list of packages to build by default
         :type whitelist: list
-        :param blacklist: a list of packages to ignore by default
-        :type blacklist: list
+        :param denylist: a list of packages to ignore by default
+        :type denylist: list
         :raises: ValueError if workspace or source space does not exist
         :type authors: list
         :param authors: a list of default authors
@@ -379,9 +379,9 @@ class Context(object):
 
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
 
-        # Handle package whitelist/blacklist
+        # Handle package whitelist/denylist
         self.whitelist = whitelist or []
-        self.blacklist = blacklist or []
+        self.denylist = denylist or []
 
         # Handle default authors/maintainers
         self.authors = authors or []
@@ -547,7 +547,7 @@ class Context(object):
             ],
             [
                 clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
-                clr("@{cf}Blacklisted Packages:@|        @{yf}{blacklisted_packages}@|"),
+                clr("@{cf}Blacklisted Packages:@|        @{yf}{denylisted_packages}@|"),
             ]
         ]
 
@@ -593,7 +593,7 @@ class Context(object):
             'install_missing': existence_str(self.install_space_abs, used=self.__install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
             'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
-            'blacklisted_packages': ' '.join(self.__blacklist or ['None']),
+            'denylisted_packages': ' '.join(self.__denylist or ['None']),
         }
         subs.update(**self.__dict__)
         # Get the width of the shell
@@ -793,12 +793,12 @@ class Context(object):
         self.__whitelist = value
 
     @property
-    def blacklist(self):
-        return self.__blacklist
+    def denylist(self):
+        return self.__denylist
 
-    @blacklist.setter
-    def blacklist(self, value):
-        self.__blacklist = value
+    @denylist.setter
+    def denylist(self, value):
+        self.__denylist = value
 
     @property
     def authors(self):

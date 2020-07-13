@@ -32,7 +32,7 @@ List-type options include:
  - ``--make-args``
  - ``--catkin-make-args``
  - ``--whitelist``
- - ``--blacklist``
+ - ``--denylist``
 
 Installing Packages
 ^^^^^^^^^^^^^^^^^^^
@@ -138,7 +138,7 @@ This can be done with the ``--extend`` option like so:
 Whitelisting and Blacklisting Packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Packages can be added to a package *whitelist* or *blacklist* in order to change which packages get built.
+Packages can be added to a package *whitelist* or *denylist* in order to change which packages get built.
 If the *whitelist*  is non-empty, then a call to ``catkin build`` with no specific package names will only build the packages on the *whitelist*.
 This means that you can still build packages not on the *whitelist*, but only if they are named explicitly or are dependencies of other whitelisted packages.
 
@@ -154,27 +154,27 @@ To clear the whitelist, you can use the ``--no-whitelist`` option:
 
     catkin config --no-whitelist
 
-If the *blacklist* is non-empty, it will filter the packages to be built in all cases except where a given package is named explicitly.
-This means that blacklisted packages will not be built even if another package in the workspace depends on them.
+If the *denylist* is non-empty, it will filter the packages to be built in all cases except where a given package is named explicitly.
+This means that denylisted packages will not be built even if another package in the workspace depends on them.
 
 .. note::
 
     Blacklisting a package does not remove it's build directory or build
     products, it only prevents it from being rebuilt.
 
-To set the blacklist, you can call the following command:
+To set the denylist, you can call the following command:
 
 .. code-block:: text
 
-    catkin config --blacklist baz
+    catkin config --denylist baz
 
-To clear the blacklist, you can use the ``--no-blacklist`` option:
+To clear the denylist, you can use the ``--no-denylist`` option:
 
 .. code-block:: text
 
-    catkin config --no-blacklist
+    catkin config --no-denylist
 
-Note that you can still build packages on the blacklist and whitelist by passing their names to ``catkin build`` explicitly.
+Note that you can still build packages on the denylist and whitelist by passing their names to ``catkin build`` explicitly.
 
 Accelerated Building with Environment Caching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

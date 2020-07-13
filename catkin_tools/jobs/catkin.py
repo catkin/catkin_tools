@@ -234,8 +234,8 @@ def link_devel_products(
     # List of files that collide
     files_that_collide = []
 
-    # Select the blacklist
-    blacklist = DEVEL_LINK_PREBUILD_BLACKLIST if prebuild else DEVEL_LINK_BLACKLIST
+    # Select the denylist
+    denylist = DEVEL_LINK_PREBUILD_BLACKLIST if prebuild else DEVEL_LINK_BLACKLIST
 
     # Gather all of the files in the devel space
     for source_path, dirs, files in os.walk(source_devel_path):
@@ -275,8 +275,8 @@ def link_devel_products(
         # create symbolic links from the source to the dest
         for filename in files:
 
-            # Don't link files on the blacklist unless this is a prebuild package
-            if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in blacklist:
+            # Don't link files on the denylist unless this is a prebuild package
+            if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in denylist:
                 continue
 
             source_file = os.path.join(source_path, filename)

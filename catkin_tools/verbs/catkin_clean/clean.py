@@ -165,7 +165,7 @@ def clean_packages(
         1,
         [pkg.name for _, pkg in context.packages],
         [p for p in context.whitelist],
-        [p for p in context.blacklist],
+        [p for p in context.denylist],
         event_queue,
         show_notifications=False,
         show_active_status=False,
