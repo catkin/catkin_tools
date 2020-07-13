@@ -25,7 +25,6 @@ local _workspace_root
 local _workspace_profiles
 local _workspace_source_space
 local _enclosing_package
-local _getting_packages
 
 _workspace_root_hint="$PWD"
 
@@ -36,12 +35,8 @@ function _debug_log() {
   fi
 }
 
-# Get the workspace root (if available)
-_catkin_get_enclosing_workspace() {
-  if [[ -n "$_workspace_root" ]]; then
-    return 0
-  fi
-
+# Get the workspace root by following the specified path
+_catkin_find_enclosing_workspace_for_path() {
   local _path
   _path="$1"
 
@@ -56,6 +51,30 @@ _catkin_get_enclosing_workspace() {
       _path="$(dirname "$_path")"
     fi
   done
+
+  return 1
+}
+
+# Get the workspace root (if available)
+_catkin_get_enclosing_workspace() {
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
+
+  _debug_log "Search for workspace root in resolved path:"
+  _catkin_find_enclosing_workspace_for_path $(readlink -f "$1")
+
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
+
+  # search for workspace root in real path
+  _debug_log "Search for workspace root in real path:"
+  _catkin_find_enclosing_workspace_for_path $1
+
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
 
   return 1
 }
@@ -119,7 +138,6 @@ _catkin_get_packages() {
 
   # Get the workspace root
   _catkin_get_enclosing_workspace $_workspace_root_hint
-
 
   if [[ "$?" -ne 0 ]]; then
     _debug_log "Couldn't get workspace root!"
