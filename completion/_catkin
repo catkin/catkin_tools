@@ -68,7 +68,6 @@ _catkin_get_enclosing_workspace() {
     return 0
   fi
 
-  # search for workspace root in real path
   _debug_log "Search for workspace root in real path:"
   _catkin_find_enclosing_workspace_for_path $1
 
