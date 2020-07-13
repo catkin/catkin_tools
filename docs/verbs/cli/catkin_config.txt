@@ -3,7 +3,7 @@ usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
                      [--extend EXTEND_PATH | --no-extend] [--mkdirs]
                      [--authors NAME [EMAIL ...] | --maintainers NAME
                      [EMAIL ...] | --licenses LICENSE [LICENSE ...]]
-                     [--whitelist PKG [PKG ...] | --no-whitelist]
+                     [--allowlist PKG [PKG ...] | --no-allowlist]
                      [--denylist PKG [PKG ...] | --no-denylist]
                      [--build-space BUILD_SPACE | --default-build-space]
                      [--log-space LOG_SPACE | --default-log-space]
@@ -65,11 +65,11 @@ Package Create Defaults:
 Package Build Defaults:
   Packages to include or exclude from default build behavior.
 
-  --whitelist PKG [PKG ...]
-                        Set the packages on the whitelist. If the whitelist is
-                        non-empty, only the packages on the whitelist are
+  --allowlist PKG [PKG ...]
+                        Set the packages on the allowlist. If the allowlist is
+                        non-empty, only the packages on the allowlist are
                         built with a bare call to `catkin build`.
-  --no-whitelist        Clear all packages from the whitelist.
+  --no-allowlist        Clear all packages from the allowlist.
   --denylist PKG [PKG ...]
                         Set the packages on the denylist. Packages on the
                         denylist are not built with a bare call to `catkin

@@ -9,8 +9,8 @@ BUILD = ['build', '--no-notify', '--no-status']
 CLEAN = ['clean', '--all', '--yes']  # , '--no-notify', '--no-color', '--no-status']
 
 
-def test_whitelist():
-    """Test building whitelisted packages only"""
+def test_allowlist():
+    """Test building allowlisted packages only"""
     pass  # TODO: Write test
 
 
@@ -19,6 +19,6 @@ def test_denylist():
     pass  # TODO: Write test
 
 
-def test_denylist_whitelist():
-    """Test building with non-empty denylist and whitelist"""
+def test_denylist_allowlist():
+    """Test building with non-empty denylist and allowlist"""
     pass  # TODO: Write test

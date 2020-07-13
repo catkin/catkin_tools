@@ -37,8 +37,8 @@ Unformatted
 Uninstalling
 unsatisfiable
 unsetting
-whitelist
-whitelisted
+allowlist
+allowlisted
 Whitelisting
 workflow
 workspace

@@ -164,7 +164,7 @@ def clean_packages(
         jobs,
         1,
         [pkg.name for _, pkg in context.packages],
-        [p for p in context.whitelist],
+        [p for p in context.allowlist],
         [p for p in context.denylist],
         event_queue,
         show_notifications=False,

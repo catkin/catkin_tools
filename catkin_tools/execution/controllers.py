@@ -188,7 +188,7 @@ class ConsoleStatusController(threading.Thread):
             jobs,
             max_toplevel_jobs,
             available_jobs,
-            whitelisted_jobs,
+            allowlisted_jobs,
             denylisted_jobs,
             event_queue,
             show_notifications=False,
@@ -251,7 +251,7 @@ class ConsoleStatusController(threading.Thread):
 
         self.available_jobs = available_jobs
         self.denylisted_jobs = denylisted_jobs
-        self.whitelisted_jobs = whitelisted_jobs
+        self.allowlisted_jobs = allowlisted_jobs
 
         # Compute the max job id length when combined with stage labels
         self.max_jid_length = 1
@@ -293,7 +293,7 @@ class ConsoleStatusController(threading.Thread):
         faileds = {}
         ignoreds = {}
         abandoneds = {}
-        non_whitelisted = {}
+        non_allowlisted = {}
         denylisted = {}
 
         # Give each package an output template to use
@@ -302,8 +302,8 @@ class ConsoleStatusController(threading.Thread):
                 denylisted[jid] = templates['ignored']
             elif jid not in self.jobs:
                 ignoreds[jid] = templates['ignored']
-            elif len(self.whitelisted_jobs) > 0 and jid not in self.whitelisted_jobs:
-                non_whitelisted[jid] = templates['ignored']
+            elif len(self.allowlisted_jobs) > 0 and jid not in self.allowlisted_jobs:
+                non_allowlisted[jid] = templates['ignored']
             elif jid in completed_jobs:
                 if jid in failed_jobs:
                     faileds[jid] = templates['failed']
@@ -327,12 +327,12 @@ class ConsoleStatusController(threading.Thread):
             wide_log(clr("[{}] No {} succeeded.").format(self.label, self.jobs_label))
             wide_log("")
 
-        # Print out whitelisted jobs
-        if len(non_whitelisted) > 0:
+        # Print out allowlisted jobs
+        if len(non_allowlisted) > 0:
             wide_log("")
-            wide_log(clr("[{}] Non-whitelisted {}:").format(self.label, self.jobs_label))
+            wide_log(clr("[{}] Non-allowlisted {}:").format(self.label, self.jobs_label))
             wide_log("")
-            print_items_in_columns(sorted(non_whitelisted.items()), number_of_columns)
+            print_items_in_columns(sorted(non_allowlisted.items()), number_of_columns)
 
         # Print out denylisted jobs
         if len(denylisted) > 0:

@@ -297,7 +297,7 @@ Note that some ``catkin_make`` options can only be achieved with the ``catkin co
 -------------------------------------------------  --------------------------------------------
  ``-DCATKIN_INSTALL_PREFIX=PATH``                   ``config --install-space PATH`` [1]_
 -------------------------------------------------  --------------------------------------------
- ``-DCATKIN_WHITELIST_PACKAGES="PKG[;PKG ...]"``    ``config --whitelist PKG [PKG ...]`` [1]_
+ ``-DCATKIN_WHITELIST_PACKAGES="PKG[;PKG ...]"``    ``config --allowlist PKG [PKG ...]`` [1]_
 =================================================  ============================================
 
 

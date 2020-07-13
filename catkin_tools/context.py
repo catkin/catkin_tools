@@ -64,7 +64,7 @@ class Context(object):
         'use_internal_make_jobserver',
         'use_env_cache',
         'catkin_make_args',
-        'whitelist',
+        'allowlist',
         'denylist',
         'authors',
         'maintainers',
@@ -293,7 +293,7 @@ class Context(object):
         use_env_cache=False,
         catkin_make_args=None,
         space_suffix=None,
-        whitelist=None,
+        allowlist=None,
         denylist=None,
         authors=None,
         maintainers=None,
@@ -340,8 +340,8 @@ class Context(object):
         :type catkin_make_args: list
         :param space_suffix: suffix for build, devel, and install spaces which are not explicitly set.
         :type space_suffix: str
-        :param whitelist: a list of packages to build by default
-        :type whitelist: list
+        :param allowlist: a list of packages to build by default
+        :type allowlist: list
         :param denylist: a list of packages to ignore by default
         :type denylist: list
         :raises: ValueError if workspace or source space does not exist
@@ -379,8 +379,8 @@ class Context(object):
 
         self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
 
-        # Handle package whitelist/denylist
-        self.whitelist = whitelist or []
+        # Handle package allowlist/denylist
+        self.allowlist = allowlist or []
         self.denylist = denylist or []
 
         # Handle default authors/maintainers
@@ -546,7 +546,7 @@ class Context(object):
                 clr("@{cf}Cache Job Environments:@|      @{yf}{_Context__use_env_cache}@|"),
             ],
             [
-                clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
+                clr("@{cf}Whitelisted Packages:@|        @{yf}{allowlisted_packages}@|"),
                 clr("@{cf}Blacklisted Packages:@|        @{yf}{denylisted_packages}@|"),
             ]
         ]
@@ -592,7 +592,7 @@ class Context(object):
             'devel_missing': existence_str(self.devel_space_abs),
             'install_missing': existence_str(self.install_space_abs, used=self.__install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
-            'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
+            'allowlisted_packages': ' '.join(self.__allowlist or ['None']),
             'denylisted_packages': ' '.join(self.__denylist or ['None']),
         }
         subs.update(**self.__dict__)
@@ -785,12 +785,12 @@ class Context(object):
         self.__packages = value
 
     @property
-    def whitelist(self):
-        return self.__whitelist
+    def allowlist(self):
+        return self.__allowlist
 
-    @whitelist.setter
-    def whitelist(self, value):
-        self.__whitelist = value
+    @allowlist.setter
+    def allowlist(self, value):
+        self.__allowlist = value
 
     @property
     def denylist(self):

@@ -118,13 +118,13 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
                 pkg_deps = get_cached_recursive_build_depends_in_workspace(package, ordered_packages)
                 packages_to_be_built_deps.extend(pkg_deps)
     else:
-        # Only use whitelist when no other packages are specified
-        if len(context.whitelist) > 0:
-            # Expand glob patterns in whitelist
-            whitelist = []
-            for whitelisted_package in context.whitelist:
-                whitelist.extend(expand_glob_package(whitelisted_package, workspace_package_names))
-            packages_to_be_built = [p for p in ordered_packages if (p[1].name in whitelist)]
+        # Only use allowlist when no other packages are specified
+        if len(context.allowlist) > 0:
+            # Expand glob patterns in allowlist
+            allowlist = []
+            for allowlisted_package in context.allowlist:
+                allowlist.extend(expand_glob_package(allowlisted_package, workspace_package_names))
+            packages_to_be_built = [p for p in ordered_packages if (p[1].name in allowlist)]
         else:
             packages_to_be_built = ordered_packages
 
@@ -525,7 +525,7 @@ def build_isolated_workspace(
             jobs,
             n_jobs,
             [pkg.name for _, pkg in context.packages],
-            [p for p in context.whitelist],
+            [p for p in context.allowlist],
             [p for p in context.denylist],
             event_queue,
             show_notifications=not no_notify,

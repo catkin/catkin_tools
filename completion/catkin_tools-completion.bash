@@ -88,7 +88,7 @@ _catkin()
       local catkin_config_opts=$(catkin config --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
       COMPREPLY=($(compgen -W "${catkin_config_opts}" -- ${cur}))
 
-      # list package names when --whitelist or --denylist was given as last option
+      # list package names when --allowlist or --denylist was given as last option
       if [[ ${cur} != -* && $(_catkin_last_option) == --*list ]] ; then
         COMPREPLY+=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
       fi

@@ -72,12 +72,12 @@ def prepare_arguments(parser):
     lists_group = parser.add_argument_group(
         'Package Build Defaults', 'Packages to include or exclude from default build behavior.')
     add = lists_group.add_mutually_exclusive_group().add_argument
-    add('--whitelist', metavar="PKG", dest='whitelist', nargs="+", required=False, type=str, default=None,
-        help='Set the packages on the whitelist. If the whitelist is non-empty, '
-        'only the packages on the whitelist are built with a bare call to '
+    add('--allowlist', metavar="PKG", dest='allowlist', nargs="+", required=False, type=str, default=None,
+        help='Set the packages on the allowlist. If the allowlist is non-empty, '
+        'only the packages on the allowlist are built with a bare call to '
         '`catkin build`.')
-    add('--no-whitelist', dest='whitelist', action='store_const', const=[], default=None,
-        help='Clear all packages from the whitelist.')
+    add('--no-allowlist', dest='allowlist', action='store_const', const=[], default=None,
+        help='Clear all packages from the allowlist.')
     add = lists_group.add_mutually_exclusive_group().add_argument
     add('--denylist', metavar="PKG", dest='denylist', nargs="+", required=False, type=str, default=None,
         help='Set the packages on the denylist. Packages on the denylist are '
