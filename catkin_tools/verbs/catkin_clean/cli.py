@@ -328,7 +328,8 @@ def clean_profile(opts, profile):
                         opts.packages += [this_package]
                     else:
                         sys.exit(
-                            "[clean] Error: In order to use --this, the current directory must be part of a catkin package.")
+                            "[clean] Error: In order to use --this, the current directory"
+                            " must be part of a catkin package.")
                 try:
                     # Clean the packages
                     needs_force = clean_packages(
