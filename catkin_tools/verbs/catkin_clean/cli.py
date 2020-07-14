@@ -23,6 +23,7 @@ import os
 import shutil
 import sys
 
+from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
