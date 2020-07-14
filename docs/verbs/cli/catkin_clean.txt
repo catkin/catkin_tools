@@ -1,7 +1,7 @@
 usage: catkin clean [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--dry-run] [--verbose] [--yes] [--force] [--all-profiles]
                     [--deinit] [-l] [-b] [-d] [-i] [--dependents] [--orphans]
-                    [--setup-files]
+                    [--setup-files] [--this] 
                     [PKGNAME [PKGNAME ...]]
 
 Deletes various products of the build verb.
@@ -44,6 +44,8 @@ Packages:
 
   PKGNAME               Explicilty specify a list of specific packages to
                         clean from the build, devel, and install space.
+  --this                Clean the package containing the current working
+                        director from the build, devel, and install space.
   --dependents, --deps  Clean the packages which depend on the packages to be
                         cleaned.
   --orphans             Remove products from packages are no longer in the
