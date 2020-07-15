@@ -156,13 +156,20 @@ _catkin_get_packages() {
     zstyle ":completion:${curcontext}:" cache-policy _catkin_packages_caching_policy
   fi
 
-  # If cache is invalid or if the package list is not set yet and can't be retrieved from cache regenerate cache
+  # If cache is invalid, or if the package list or workspace cache file path are not set yet or this path differ from 
+  # its located path (we switched to different workspace) and variables can't be retrieved from cache regenerate cache
   # ( Remember that _retrieve_cache returns 0 if everything's fine, 1 if not. _cache_invalid returns 0 if cache needs rebuilding, 1 otherwise)
   # (see https://unix.stackexchange.com/q/588662 for the use of parentheses)
-  if _cache_invalid workspace_packages || { [[ ${+_workspace_packages} -eq 0 ]] && ! _retrieve_cache workspace_packages }; then
+  if _cache_invalid workspace_packages || \
+    {{ [[ ${+_workspace_packages} -eq 0 ]] || 
+      [[ -z "$_workspace_cache_file_path" ]] ||  
+      [[ "$_workspace_cache_file_path" != "$cache_file_path" ]] } && 
+      ! _retrieve_cache workspace_packages } ; then
+
     _debug_log "Regenerating package cache because retrieval failed ..."
     _workspace_packages=(${${(f)"$(catkin list -u --quiet)"}})
-    _store_cache workspace_packages _workspace_packages
+    _workspace_cache_file_path=$cache_file_path
+    _store_cache workspace_packages _workspace_packages _workspace_cache_file_path
   fi
 
   local expl
