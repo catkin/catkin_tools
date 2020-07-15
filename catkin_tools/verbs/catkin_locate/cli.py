@@ -110,6 +110,9 @@ def main(opts):
     workspace = find_enclosing_workspace(workspace_hint)
 
     if not workspace:
+        workspace = find_enclosing_workspace(getcwd())
+
+    if not workspace:
         if not opts.quiet:
             print(clr("@{rf}ERROR: No workspace found containing '%s'@|" % workspace_hint), file=sys.stderr)
         sys.exit(1)
