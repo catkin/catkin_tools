@@ -135,7 +135,7 @@ def prepare_arguments(parser):
     add('packages', metavar='PKGNAME', nargs='*',
         help='Explicilty specify a list of specific packages to clean from the build, devel, and install space.')
     add('--this', dest='clean_this', action='store_true', default=False,
-        help='Clean the package containing the current working director from the build, devel, and install space.')
+        help='Clean the package containing the current working directory from the build, devel, and install space.')
     add('--dependents', '--deps', action='store_true', default=False,
         help='Clean the packages which depend on the packages to be cleaned.')
     add('--orphans', action='store_true', default=False,
