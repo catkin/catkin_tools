@@ -607,7 +607,7 @@ DEVEL_LINK_BLACKLIST = DEVEL_LINK_PREBUILD_BLACKLIST + [
 
 # CMakeLists.txt for prebuild package
 SETUP_PREBUILD_CMAKELISTS_TEMPLATE = """\
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.12)
 project(catkin_tools_prebuild)
 
 find_package(catkin QUIET)
