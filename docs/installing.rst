@@ -27,6 +27,15 @@ Once you have added that repository, run these commands to install ``catkin_tool
 
     $ sudo apt-get update
     $ sudo apt-get install python-catkin-tools
+    
+.. note::
+
+    If you are on Noetic or any ROS distribution that targets Python3, instead use:
+    
+    .. code-block:: bash
+
+        $ sudo apt-get install python3-osrf-pycommon python3-catkin-tools
+
 
 Installing on other platforms with pip
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
