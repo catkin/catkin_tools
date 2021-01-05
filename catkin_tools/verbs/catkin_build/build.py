@@ -86,9 +86,15 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     ordered_packages = topological_order_packages(workspace_packages)
     # Set the packages in the workspace for the context
     context.packages = ordered_packages
-    # Determin the packages which should be built
+    # Determine the packages which should be built
     packages_to_be_built = []
     packages_to_be_built_deps = []
+
+    # Check if topological_order_packages determined any circular dependencies, if so print an error and fail.
+    # If this is the case, the last entry of ordered packages is a tuple that starts with nil.
+    if ordered_packages and ordered_packages[-1][0] is None:
+        guilty_packages = ", ".join(ordered_packages[-1][1:])
+        sys.exit("[build] Circular dependency detected in the following packages: {}".format(guilty_packages))
 
     workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     # Determine the packages to be built
