@@ -360,7 +360,7 @@ async def execute_jobs(
         completed=completed_jobs
     ))
 
-    return all(completed_jobs.values())
+    return all(completed_jobs.values()) and len(abandoned_jobs) == 0
 
 
 def run_until_complete(coroutine):
