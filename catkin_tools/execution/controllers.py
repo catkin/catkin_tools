@@ -726,7 +726,7 @@ class ConsoleStatusController(threading.Thread):
                     if header_title:
                         wide_log(header_title, file=header_title_file)
                     if len(lines) > 0:
-                        wide_log(''.join(lines), end='\r', file=lines_target)
+                        wide_log(''.join(lines), end='\n', file=lines_target)
                     if footer_border:
                         wide_log(footer_border, file=footer_border_file)
                     if footer_title:
@@ -734,11 +734,11 @@ class ConsoleStatusController(threading.Thread):
 
             elif 'STDERR' == eid:
                 if self.show_live_stderr and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\r', file=sys.stderr)
+                    wide_log(self.format_interleaved_lines(event.data), end='\n', file=sys.stderr)
 
             elif 'STDOUT' == eid:
                 if self.show_live_stdout and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\r')
+                    wide_log(self.format_interleaved_lines(event.data), end='\n')
 
             elif 'MESSAGE' == eid:
                 wide_log(event.data['msg'])
@@ -764,7 +764,7 @@ class ConsoleStatusController(threading.Thread):
         else:
             prefix = ''
 
-        template = '\r{}\r{}'.format(' ' * terminal_width(), prefix)
+        template = '\n{}\n{}'.format(' ' * terminal_width(), prefix)
         suffix = clr('@|')
 
         return ''.join(template + l + suffix for l in data['data'].splitlines(True))
