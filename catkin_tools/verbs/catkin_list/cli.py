@@ -93,6 +93,10 @@ def main(opts):
         try:
             packages = find_packages(folder, warnings=warnings)
             ordered_packages = topological_order_packages(packages)
+            if ordered_packages and ordered_packages[-1][0] is None:
+                print(clr("@{rf}ERROR: Circular dependency within packages:@| "
+                          + ordered_packages[-1][1]), file=sys.stderr)
+                sys.exit(1)
             packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
             if opts.depends_on or opts.rdepends_on:
