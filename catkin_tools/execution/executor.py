@@ -342,7 +342,10 @@ async def execute_jobs(
             new_queued_jobs, pending_jobs = split(
                 pending_jobs,
                 lambda j: j.all_deps_completed(completed_jobs))
-            queued_jobs.extend(new_queued_jobs)
+            new_queued_jobs.extend(queued_jobs)
+
+            # queued jobs should preserve the original topological sort of jobs
+            queued_jobs = [j for j in jobs if j in new_queued_jobs]
 
             # Notify of newly queued jobs
             for queued_job in new_queued_jobs:
