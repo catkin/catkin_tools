@@ -23,6 +23,7 @@ import os
 import shutil
 import sys
 
+from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
@@ -31,9 +32,12 @@ from catkin_tools.context import Context
 
 from catkin_tools.common import log
 from catkin_tools.common import wide_log
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import getcwd
 
 import catkin_tools.execution.job_server as job_server
 
+from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_paths as get_metadata_paths
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import update_metadata
@@ -130,12 +134,14 @@ def prepare_arguments(parser):
     add = packages_group.add_argument
     add('packages', metavar='PKGNAME', nargs='*',
         help='Explicilty specify a list of specific packages to clean from the build, devel, and install space.')
+    add('--this', dest='clean_this', action='store_true', default=False,
+        help='Clean the package containing the current working directory from the build, devel, and install space.')
     add('--dependents', '--deps', action='store_true', default=False,
         help='Clean the packages which depend on the packages to be cleaned.')
     add('--orphans', action='store_true', default=False,
         help='Remove products from packages are no longer in the source space. '
         'Note that this also removes packages which are '
-        'blacklisted or which contain `CATKIN_INGORE` marker files.')
+        'blacklisted or which contain `CATKIN_IGNORE` marker files.')
 
     # Advanced group
     advanced_group = parser.add_argument_group(
@@ -171,7 +177,7 @@ def clean_profile(opts, profile):
     # Check if the user wants to do something explicit
     actions = [
         'build', 'devel', 'install', 'logs',
-        'packages', 'orphans',
+        'packages', 'clean_this', 'orphans',
         'deinit',  'setup_files']
 
     logs_exists = os.path.exists(ctx.log_space_abs)
@@ -303,8 +309,28 @@ def clean_profile(opts, profile):
                     log("[clean] No buildspace exists, no potential for orphans.")
 
             # Remove specific packages
-            if len(opts.packages) > 0:
+            if len(opts.packages) > 0 or opts.clean_this:
+                # Determine the enclosing package
+                try:
+                    ws_path = find_enclosing_workspace(getcwd())
+                    # Suppress warnings since this won't necessaraly find all packages
+                    # in the workspace (it stops when it finds one package), and
+                    # relying on it for warnings could mislead people.
+                    this_package = find_enclosing_package(
+                        search_start_path=getcwd(),
+                        ws_path=ws_path,
+                        warnings=[])
+                except (InvalidPackage, RuntimeError):
+                    this_package = None
 
+                # Handle context-based package cleaning
+                if opts.clean_this:
+                    if this_package:
+                        opts.packages += [this_package]
+                    else:
+                        sys.exit(
+                            "[clean] Error: In order to use --this, the current directory"
+                            " must be part of a catkin package.")
                 try:
                     # Clean the packages
                     needs_force = clean_packages(
@@ -314,10 +340,10 @@ def clean_profile(opts, profile):
                         opts.verbose,
                         opts.dry_run)
                 except KeyboardInterrupt:
-                    wide_log("[build] User interrupted!")
+                    wide_log("[clean] User interrupted!")
                     return False
 
-        elif opts.orphans or len(opts.packages) > 0:
+        elif opts.orphans or len(opts.packages) > 0 or opts.clean_this:
             log("[clean] Error: Individual packages can only be cleaned from "
                 "workspaces with symbolically-linked develspaces (`catkin "
                 "config --link-devel`).")
@@ -342,7 +368,7 @@ def main(opts):
     # Check for exclusivity
     full_options = opts.deinit
     space_options = opts.logs or opts.build or opts.devel or opts.install
-    package_options = len(opts.packages) > 0 or opts.orphans
+    package_options = len(opts.packages) > 0 or opts.orphans or opts.clean_this
     advanced_options = opts.setup_files
 
     if full_options:

@@ -242,7 +242,9 @@ _catkin_clean_complete() {
 
   if [[ -n $_enclosing_package ]]; then
     _debug_log "In package $this_package"
-    clean_opts=()
+    clean_opts=(\
+      "--this[Clean '$this_package']"\
+      )
   else
     _debug_log "Not in a package"
     clean_opts=()
