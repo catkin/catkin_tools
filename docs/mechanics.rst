@@ -275,7 +275,7 @@ This can been done to build packages like ``opencv``, ``pcl``, and ``flann``.
 Workspace Chaining / Extending
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-An important property listed in the configuration configuration which deserves attention is the summary value of the ``Extending`` property.
+An important property listed in the configuration which deserves attention is the summary value of the ``Extending`` property.
 This affects which other collections of libraries and packages which will be visible to your workspace.
 This is process called "workspace chaining."
 
