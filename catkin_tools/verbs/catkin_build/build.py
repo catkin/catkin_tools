@@ -108,7 +108,7 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
                     packages.extend(glob_packages)
                     continue
                 else:
-                    sys.exit("[build] Given package '{0}' is not in the workspace"
+                    sys.exit("[build] Given package '{0}' is not in the workspace "
                              "and pattern does not match any package".format(package))
             # If metapackage, include run depends which are in the workspace
             package_obj = workspace_package_names[package][1]
