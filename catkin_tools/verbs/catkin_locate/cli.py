@@ -106,11 +106,8 @@ def main(opts):
         sys.exit(0)
 
     # Get the workspace (either the given directory or the enclosing ws)
-    workspace_hint = opts_vars.get('workspace', None) or os.getcwd()
+    workspace_hint = opts_vars.get('workspace', None) or getcwd()
     workspace = find_enclosing_workspace(workspace_hint)
-
-    if not workspace:
-        workspace = find_enclosing_workspace(getcwd())
 
     if not workspace:
         if not opts.quiet:
@@ -177,7 +174,7 @@ def main(opts):
 
     # Make the path relative if desired
     if opts.relative:
-        path = os.path.relpath(path, os.getcwd())
+        path = os.path.relpath(path, getcwd())
 
     # Print the path
     print(path)
