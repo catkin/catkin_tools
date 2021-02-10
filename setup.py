@@ -11,7 +11,7 @@ from setuptools.command.install import install
 
 # Setup installation dependencies
 install_requires = [
-    'catkin-pkg > 0.2.9',
+    'catkin-pkg-modules',
     'setuptools',
     'PyYAML',
     'osrf-pycommon > 0.1.1',
