@@ -68,6 +68,11 @@ def get_prebuild_package(build_space_abs, devel_space_abs, force):
         with open(package_xml_path, 'wb') as package_xml:
             package_xml.write(SETUP_PREBUILD_PACKAGE_XML_TEMPLATE.encode('utf-8'))
 
+    # Create CATKIN_IGNORE file because this package should not be found by catkin
+    # This is only necessary when the build space is inside of the source space
+    catkin_ignore_path = os.path.join(prebuild_path, 'CATKIN_IGNORE')
+    open(catkin_ignore_path, 'wb').close()
+
     # Create the build directory for this package
     mkdir_p(os.path.join(build_space_abs, 'catkin_tools_prebuild'))
 
