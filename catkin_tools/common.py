@@ -23,17 +23,7 @@ from fnmatch import fnmatch
 
 import asyncio
 
-from shlex import split as _cmd_split
-try:
-    _cmd_split(u'\u00E9')
-
-    def cmd_split(s):
-        if sys.version_info.major == 3:
-            return _cmd_split(str(s, 'utf-8'))
-        else:
-            return _cmd_split(s.decode('utf-8'))
-except UnicodeEncodeError:
-    cmd_split = _cmd_split
+from shlex import split as cmd_split
 
 try:
     from shlex import quote as cmd_quote
@@ -675,7 +665,7 @@ def parse_env_str(environ_str):
     """
 
     try:
-        split_envs = [e.split('=', 1) for e in cmd_split(environ_str)]
+        split_envs = [e.split('=', 1) for e in cmd_split(environ_str.decode())]
         return {
             e[0]: e[1] for e
             in split_envs
