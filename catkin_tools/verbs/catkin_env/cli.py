@@ -105,8 +105,7 @@ def main(opts):
     # Update environment from stdin
     if opts.stdin:
         input_env_str = sys.stdin.read()
-
-        environ.update(parse_env_str(input_env_str))
+        environ.update(parse_env_str(input_env_str.encode()))
 
     # Finally, update with explicit vars
     environ.update(opts.envs)
@@ -121,7 +120,7 @@ def main(opts):
                 if isinstance(ret, int):
                     return ret
                 else:
-                    print(ret, end='')
+                    print(ret.decode(), end='')
 
     # Flush stdout
     # NOTE: This is done to ensure that automated use of this tool doesn't miss
