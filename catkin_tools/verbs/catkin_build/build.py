@@ -60,6 +60,7 @@ from .color import clr
 
 
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
+BUILDSPACE_IGNORE_FILE = 'CATKIN_IGNORE'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
 
 
