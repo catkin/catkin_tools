@@ -18,6 +18,7 @@ import datetime
 import errno
 import os
 import re
+import shutil
 import sys
 from fnmatch import fnmatch
 
@@ -396,63 +397,9 @@ def log(*args, **kwargs):
             unicode_error_printed = True
 
 
-__warn_terminal_width_once_has_printed = False
-__default_terminal_width = 80
-
-
-def __warn_terminal_width_once():
-    global __warn_terminal_width_once_has_printed
-    if __warn_terminal_width_once_has_printed:
-        return
-    __warn_terminal_width_once_has_printed = True
-    print('NOTICE: Could not determine the width of the terminal. '
-          'A default width of {} will be used. '
-          'This warning will only be printed once.'.format(__default_terminal_width),
-          file=sys.stderr)
-
-
-def terminal_width_windows():
-    """Returns the estimated width of the terminal on Windows"""
-    from ctypes import windll, create_string_buffer
-    h = windll.kernel32.GetStdHandle(-12)
-    csbi = create_string_buffer(22)
-    res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-
-    # return default size if actual size can't be determined
-    if not res:
-        __warn_terminal_width_once()
-        return __default_terminal_width
-
-    import struct
-    (bufx, bufy, curx, cury, wattr, left, top, right, bottom, maxx, maxy)\
-        = struct.unpack("hhhhHhhhhhh", csbi.raw)
-    width = right - left + 1
-
-    return width
-
-
-def terminal_width_linux():
-    """Returns the estimated width of the terminal on linux"""
-    from fcntl import ioctl
-    from termios import TIOCGWINSZ
-    import struct
-    try:
-        with open(os.ctermid(), "rb") as f:
-            height, width = struct.unpack("hh", ioctl(f.fileno(), TIOCGWINSZ, "1234"))
-    except (IOError, OSError, struct.error):
-        # return default size if actual size can't be determined
-        __warn_terminal_width_once()
-        return __default_terminal_width
-    return width
-
-
 def terminal_width():
     """Returns the estimated width of the terminal"""
-    try:
-        return terminal_width_windows() if os.name == 'nt' else terminal_width_linux()
-    except ValueError:
-        # Failed to get the width, use the default 80
-        return __default_terminal_width
+    return shutil.get_terminal_size().columns
 
 
 _ansi_escape = re.compile(r'\x1b[^m]*m')
