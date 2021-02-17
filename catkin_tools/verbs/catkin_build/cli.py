@@ -374,7 +374,7 @@ def main(opts):
     last_devel_layout = build_metadata.get('devel_layout', ctx.devel_layout)
     if last_devel_layout != ctx.devel_layout:
         sys.exit(clr(
-            "@{rf}@!Error:@|@{rf} The current devel space layout, `{}`,"
+            "@{rf}@!Error:@|@{rf} The current devel space layout, `{}`, "
             "is incompatible with the configured layout, `{}`.@|").format(
             last_devel_layout, ctx.devel_layout))
 
