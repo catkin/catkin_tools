@@ -12,22 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
-try:
-    from md5 import md5
-except ImportError:
-    from hashlib import md5
 import os
 import subprocess
 import sys
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
-
+from hashlib import md5
 from osrf_pycommon.process_utils import execute_process
+from shlex import quote as cmd_quote
 
 from .common import parse_env_str
 from .common import string_type

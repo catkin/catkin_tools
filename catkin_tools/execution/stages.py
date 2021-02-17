@@ -14,13 +14,9 @@
 
 import os
 import traceback
+from shlex import quote as cmd_quote
 
 from catkin_tools.common import string_type
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
 
 from .io import IOBufferLogger
 from .io import IOBufferProtocol

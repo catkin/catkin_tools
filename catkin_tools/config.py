@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import yaml
-import shlex
+from shlex import split as cmd_split
 
 from .common import string_type
 
@@ -104,7 +102,7 @@ def get_verb_aliases(path=catkin_config_path):
                 parsed_value = None
                 if isinstance(value, string_type):
                     # Parse using shlex
-                    parsed_value = shlex.split(value)
+                    parsed_value = cmd_split(value)
                 elif isinstance(value, list) or isinstance(value, type(None)):
                     # Take plainly
                     parsed_value = value

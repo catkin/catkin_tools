@@ -12,23 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
+import asyncio
 import datetime
 import errno
 import os
 import re
 import sys
 from fnmatch import fnmatch
-
-import asyncio
-
 from shlex import split as cmd_split
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
+from shlex import quote as cmd_quote
 
 from catkin_pkg.packages import find_packages
 

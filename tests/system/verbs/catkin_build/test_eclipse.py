@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 
 from ....utils import in_temporary_directory

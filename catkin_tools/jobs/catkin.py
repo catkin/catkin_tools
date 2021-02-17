@@ -14,11 +14,7 @@
 
 import csv
 import os
-
-try:
-    from md5 import md5
-except ImportError:
-    from hashlib import md5
+from hashlib import md5
 
 from catkin_tools.argument_parsing import handle_make_arguments
 

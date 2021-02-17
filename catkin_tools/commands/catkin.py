@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import argparse
-from datetime import date
 import os
 import pkg_resources
 import sys
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
+from datetime import date
+from shlex import quote as cmd_quote
 
 from catkin_tools.common import is_tty
 

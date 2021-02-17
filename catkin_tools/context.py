@@ -14,8 +14,6 @@
 
 """This module implements a class for representing a catkin workspace context"""
 
-from __future__ import print_function
-
 import os
 import re
 import sys

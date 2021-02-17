@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    # Python3
-    from queue import Empty
-except ImportError:
-    # Python2
-    from Queue import Empty
-
 import math
 import itertools
 import sys
 import threading
 import time
+from queue import Empty
 
 from catkin_tools.common import disable_wide_log
 from catkin_tools.common import format_time_delta
