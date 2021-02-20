@@ -767,4 +767,4 @@ class ConsoleStatusController(threading.Thread):
         template = '\n{}\n{}'.format(' ' * terminal_width(), prefix)
         suffix = clr('@|')
 
-        return ''.join(template + l + suffix for l in data['data'].splitlines(True))
+        return ''.join(template + l.rstrip().append('\n') + suffix for l in data['data'].splitlines(True))
