@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
-try:
-    raw_input
-except NameError:
-    raw_input = input
-
 import os
 import shutil
 import sys
@@ -59,7 +52,7 @@ setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_set
 
 def yes_no_loop(question):
     while True:
-        resp = str(raw_input(question + " [yN]: "))
+        resp = str(input(question + " [yN]: "))
         if resp.lower() in ['n', 'no'] or len(resp) == 0:
             return False
         elif resp.lower() in ['y', 'yes']:

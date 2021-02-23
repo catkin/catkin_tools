@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 
 TEST_DIR = os.path.dirname(__file__)

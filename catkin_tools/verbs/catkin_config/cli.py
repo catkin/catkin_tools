@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args

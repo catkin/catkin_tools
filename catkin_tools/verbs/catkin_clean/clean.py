@@ -18,13 +18,8 @@ import pkg_resources
 import sys
 import time
 import traceback
+from queue import Queue
 
-try:
-    # Python3
-    from queue import Queue
-except ImportError:
-    # Python2
-    from Queue import Queue
 
 try:
     from catkin_pkg.packages import find_packages

@@ -16,19 +16,13 @@
 
 import os
 import pkg_resources
+from queue import Queue
 import sys
 import time
 import traceback
 import yaml
-
 import asyncio
 
-try:
-    # Python3
-    from queue import Queue
-except ImportError:
-    # Python2
-    from Queue import Queue
 
 try:
     from catkin_pkg.packages import find_packages

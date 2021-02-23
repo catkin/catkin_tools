@@ -45,13 +45,6 @@ from catkin_tools.terminal_color import ColorMapper
 mapper = ColorMapper()
 clr = mapper.clr
 
-# FileNotFoundError from Python3
-try:
-    FileNotFoundError
-except NameError:
-    class FileNotFoundError(OSError):
-        pass
-
 
 def copy_install_manifest(
         logger, event_queue,

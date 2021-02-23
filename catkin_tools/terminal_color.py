@@ -16,8 +16,6 @@
 Module to enable color terminal output
 """
 
-from __future__ import print_function
-
 import string
 import os
 

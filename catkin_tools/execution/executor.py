@@ -12,17 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
-import traceback
-
-from itertools import tee
-
 import asyncio
-
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import FIRST_COMPLETED
-
+from itertools import tee
 from osrf_pycommon.process_utils import async_execute_process
 from osrf_pycommon.process_utils import get_loop
 

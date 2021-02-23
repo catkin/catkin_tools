@@ -1,28 +1,15 @@
-from __future__ import print_function
-
 import functools
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
-
-import subprocess
+from io import StringIO
+from subprocess import TimeoutExpired
 
 from catkin_tools.commands.catkin import main as catkin_main
 
-try:
-    # Python2
-    from StringIO import StringIO
-except ImportError:
-    # Python3
-    from io import StringIO
-
-try:
-    from subprocess import TimeoutExpired
-except ImportError:
-    class TimeoutExpired(object):
-        pass
 
 TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
