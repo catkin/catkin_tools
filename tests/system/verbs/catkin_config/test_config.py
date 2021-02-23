@@ -6,6 +6,7 @@ from ....utils import assert_cmd_success
 from ....workspace_assertions import assert_workspace_initialized
 from ....workspace_assertions import assert_warning_message
 from ....workspace_assertions import assert_no_warnings
+from ....workspace_assertions import assert_in_config
 
 
 @in_temporary_directory
@@ -28,3 +29,12 @@ def test_config_non_bare():
     out = assert_cmd_success(['catkin', 'config', '--install'])
     assert_workspace_initialized('.')
     assert_warning_message(out, 'Source space .+ does not yet exist')
+
+
+@in_temporary_directory
+def test_config_unchanged():
+    cwd = os.getcwd()
+    os.mkdir(os.path.join(cwd, 'src'))
+    assert_cmd_success(['catkin', 'config', '--make-args', '-j6'])
+    assert_cmd_success(['catkin', 'config'])
+    assert_in_config('.', 'default', 'jobs_args', ['-j6'])

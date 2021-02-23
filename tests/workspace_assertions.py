@@ -1,6 +1,8 @@
 from __future__ import print_function
 
+import os
 import re
+import yaml
 
 from .utils import assert_files_exist
 
@@ -31,3 +33,10 @@ def assert_no_warnings(out_str):
     out_str_stripped = ' '.join(str(out_str).splitlines())
     found = re.findall('WARNING:', out_str_stripped)
     assert len(found) == 0
+
+
+def assert_in_config(workspace, profile, key, value):
+    with open(os.path.join(workspace, '.catkin_tools', 'profiles', profile, 'config.yaml')) as f:
+        config = yaml.safe_load(f)
+
+    assert config.get(key, None) == value
