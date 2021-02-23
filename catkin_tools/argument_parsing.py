@@ -254,7 +254,7 @@ def extract_jobs_flags(mflags):
     :rtype: list
     """
     if not mflags:
-        return []
+        return None
 
     # Each line matches a flag type, i.e. -j, -l, --jobs, --load-average
     # (?:^|\s) and (?=$|\s) make sure that the flag is surrounded by whitespace
