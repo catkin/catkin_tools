@@ -579,13 +579,25 @@ class Context(object):
         if self.__install:
             install_layout = 'merged' if not self.__isolate_install else 'isolated'
 
+        def quote(argument):
+            # Distinguish in the printout if space separates two arguments or if we
+            # print an argument with a space.
+            # e.g. -DCMAKE_C_FLAGS="-g -O3" -DCMAKE_C_COMPILER=clang
+            if ' ' in argument:
+                if "=" in argument:
+                    key, value = argument.split("=", 1)
+                    if ' ' not in key:
+                        return key + '="' + value + '"'
+                return '"' + argument + '"'
+            return argument
+
         subs = {
             'profile': self.profile,
             'extend_mode': extend_mode,
             'extend': extend_value,
             'install_layout': install_layout,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
-            'cmake_args': ' '.join(self.__cmake_args or ['None']),
+            'cmake_args': ' '.join([quote(a) for a in self.__cmake_args or ['None']]),
             'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
