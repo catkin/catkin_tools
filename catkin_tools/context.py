@@ -579,8 +579,11 @@ class Context(object):
 
         def quote(argument):
             if ' ' in argument:
-                key, value = argument.split("=")
-                return key + '="' + value + '"'
+                if "=" in argument:
+                    key, value = argument.split("=", 1)
+                    if ' ' not in key:
+                        return key + '="' + value + '"'
+                return '"' + argument + '"'
             return argument
 
         subs = {
