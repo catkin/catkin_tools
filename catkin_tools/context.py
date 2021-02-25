@@ -583,7 +583,7 @@ class Context(object):
             'extend': extend_value,
             'install_layout': install_layout,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
-            'cmake_args': ' '.join(self.__cmake_args or ['None']),
+            'cmake_args': ' '.join([a.replace(" ", "\\ ") for a in self.__cmake_args or ['None']]),
             'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
