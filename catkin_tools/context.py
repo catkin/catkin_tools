@@ -578,6 +578,9 @@ class Context(object):
             install_layout = 'merged' if not self.__isolate_install else 'isolated'
 
         def quote(argument):
+            # Distinguish in the printout if space separates two arguments or if we
+            # print an argument with a space.
+            # e.g. -DCMAKE_C_FLAGS="-g -O3" -DCMAKE_C_COMPILER=clang
             if ' ' in argument:
                 if "=" in argument:
                     key, value = argument.split("=", 1)
