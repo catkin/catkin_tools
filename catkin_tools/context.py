@@ -577,13 +577,19 @@ class Context(object):
         if self.__install:
             install_layout = 'merged' if not self.__isolate_install else 'isolated'
 
+        def quote(argument):
+            if ' ' in argument:
+                key, value = argument.split("=")
+                return key + '="' + value + '"'
+            return argument
+
         subs = {
             'profile': self.profile,
             'extend_mode': extend_mode,
             'extend': extend_value,
             'install_layout': install_layout,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
-            'cmake_args': ' '.join([a.replace(" ", "\\ ") for a in self.__cmake_args or ['None']]),
+            'cmake_args': ' '.join([quote(a) for a in self.__cmake_args or ['None']]),
             'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
