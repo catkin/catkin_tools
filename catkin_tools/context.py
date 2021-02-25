@@ -235,6 +235,10 @@ class Context(object):
                     if workspace:
                         key_origins[k] = profile
 
+        # When --no-make-args and no other jobs args are given, clean jobs args too
+        if 'make_args' in opts_vars and opts_vars['make_args'] == [] and opts_vars['jobs_args'] is None:
+            context_args['jobs_args'] = []
+
         context_args["key_origins"] = key_origins
 
         # Create the build context

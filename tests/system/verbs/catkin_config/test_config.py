@@ -1,5 +1,6 @@
 import os
 
+from ...workspace_factory import workspace_factory
 from ....utils import in_temporary_directory
 from ....utils import assert_cmd_success
 
@@ -33,8 +34,20 @@ def test_config_non_bare():
 
 @in_temporary_directory
 def test_config_unchanged():
-    cwd = os.getcwd()
-    os.mkdir(os.path.join(cwd, 'src'))
-    assert_cmd_success(['catkin', 'config', '--make-args', '-j6'])
-    assert_cmd_success(['catkin', 'config'])
-    assert_in_config('.', 'default', 'jobs_args', ['-j6'])
+    with workspace_factory() as wf:
+        wf.build()
+        assert_cmd_success(['catkin', 'config', '--make-args', '-j6'])
+        assert_cmd_success(['catkin', 'config'])
+        assert_in_config('.', 'default', 'jobs_args', ['-j6'])
+
+
+def test_config_no_args_flags():
+    with workspace_factory() as wf:
+        wf.build()
+        assert_cmd_success(['catkin', 'config', '--make-args', '-j6', 'test'])
+        assert_cmd_success(['catkin', 'config', '--cmake-args', '-DCMAKE_BUILD_TYPE=Release'])
+        assert_cmd_success(['catkin', 'config', '--catkin-make-args', 'run_tests'])
+        assert_cmd_success(['catkin', 'config', '--no-make-args', '--no-cmake-args', '--no-catkin-make-args'])
+        assert_in_config('.', 'default', 'jobs_args', [])
+        assert_in_config('.', 'default', 'make_args', [])
+        assert_in_config('.', 'default', 'cmake_args', [])
