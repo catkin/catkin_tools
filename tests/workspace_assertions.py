@@ -38,3 +38,13 @@ def assert_in_config(workspace, profile, key, value):
         config = yaml.safe_load(f)
 
     assert config.get(key, None) == value
+
+
+def assert_active_profile(workspace, profile):
+    profile_file = os.path.join(workspace, '.catkin_tools', 'profiles', 'profiles.yml')
+    if not os.path.exists(profile_file):
+        assert profile == 'default'
+    else:
+        with open(profile_file) as f:
+            profiles = yaml.safe_load(f)
+        assert profiles.get('active', 'default') == profile
