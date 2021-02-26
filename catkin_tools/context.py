@@ -264,7 +264,7 @@ class Context(object):
                 files[file] = {key: value}
 
         for key, val in data.items():
-            if key in context.key_origins:
+            if context.extends is not None and key in context.key_origins:
                 save_in_file(context.key_origins[key], key, val)
             else:
                 save_in_file(context.profile, key, val)
