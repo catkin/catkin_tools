@@ -62,6 +62,8 @@ def prepare_arguments(parser):
         help="Copy the settings from an existing profile. (default: None)")
     add('--copy-active', action='store_true', default=False,
         help="Copy the settings from the active profile.")
+    add('--extend', metavar='PARENT_PROFILE', type=str,
+        help="Extend another profile")
 
     add = parser_rename.add_argument
     add('current_name', type=str,
@@ -146,6 +148,12 @@ def main(opts):
                               'based on profile @{cf}%s@|' % (opts.name, opts.copy)))
                 else:
                     print(clr('[profile] @{rf}A profile with this name does not exist: %s@|' % opts.copy))
+            elif opts.extend:
+                if opts.extend in profiles:
+                    new_ctx = Context(workspace=ctx.workspace, profile=opts.name, extends=opts.extend)
+                    Context.save(new_ctx)
+                    print(clr('[profile] Created a new profile named @{cf}%s@| '
+                              'extending profile @{cf}%s@|' % (opts.name, opts.extend)))
             else:
                 new_ctx = Context(workspace=ctx.workspace, profile=opts.name)
                 Context.save(new_ctx)
