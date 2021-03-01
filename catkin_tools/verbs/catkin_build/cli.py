@@ -229,15 +229,16 @@ def main(opts):
         # Determine the enclosing package
         try:
             ws_path = find_enclosing_workspace(getcwd())
-            # Suppress warnings since this won't necessaraly find all packages
+            # Suppress warnings since this won't necessarily find all packages
             # in the workspace (it stops when it finds one package), and
             # relying on it for warnings could mislead people.
             this_package = find_enclosing_package(
                 search_start_path=getcwd(),
                 ws_path=ws_path,
                 warnings=[])
-        except (InvalidPackage, RuntimeError):
-            this_package = None
+        except InvalidPackage as ex:
+            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
         # Handle context-based package building
         if opts.build_this:

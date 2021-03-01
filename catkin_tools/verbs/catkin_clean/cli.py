@@ -313,8 +313,9 @@ def clean_profile(opts, profile):
                         search_start_path=getcwd(),
                         ws_path=ws_path,
                         warnings=[])
-                except (InvalidPackage, RuntimeError):
-                    this_package = None
+                except InvalidPackage as ex:
+                    sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                                 " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
                 # Handle context-based package cleaning
                 if opts.clean_this:
