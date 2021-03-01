@@ -214,7 +214,7 @@ def main(opts):
 
     # Check for develdebug mode
     if opts.develdebug is not None:
-        os.environ['TROLLIUSDEBUG'] = opts.develdebug.lower()
+        os.environ['PYTHONASYNCIODEBUG'] = opts.develdebug.lower()
         logging.basicConfig(level=opts.develdebug.upper())
 
     # Set color options
