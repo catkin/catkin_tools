@@ -2,6 +2,45 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2021-03-01)
+------------------
+* Fix placeholders for cmake warning and error coloring (#678)
+* Fix catkin clean --all-profiles when not at workspace root (#673)
+* Fix `catkin create pkg` without license parameter (#671) 
+* Support building from a symlinked workspace (#669)
+* Use loadavg over the last 1 minute (#668)
+* Fix shell completion install locations (#652)
+* Fix blank lines in build output (#666)
+* Use standard python function to determine terminal width (#653)
+* Fix handling of invalid package.xml files (#660)
+* Fixes for extending profiles (#658)
+* escape whitespaces in `catkin config` printout (#657)
+* updates to zsh completion (#609)
+* Ignore catkin_tools_prebuild package in build space (#650)
+* fix 'catkin locate' for symlinked pkgs inside workspace (#624)
+* Report circular dependencies detected by topological_order_packages() (#617)
+* Add `--this` option to `clean` verb (#623)
+* In catkin build, preserve original job list topological ordering (#626)
+* Fail build if jobs were abandoned (#644)
+* Fix installation of new cmake files (#615)
+* Abort with error message on circular dependency. (#641)
+* Changed yield from lock to await for Python 3.9 compat (#635)
+* Remove older py35+xenial config and add py39+focal (#637)
+* Install python2 before travis runs on Focal. (#639)
+* Bump cmake min ver to 2.8.12 (#634)
+* Fix byte decoding for python 3 (Issue #625) (#627)
+* Cleanup of jobs flag parsing (#610, #656, #655)
+* Fix get_python_install_dir for Python 2/3 (#601)
+* Minor cleanup:
+  - import cleanup (#651)
+  - remove hack (#659)
+  - Add missing space in devel layout error message
+  - fix TypeError on executing catkin env (#649)
+  - Put a space between 'workspace' and 'and' (#619)
+  - Remove redundant 'configuration' in mechanics.rst (#646)
+  - Use PYTHONASYNCIODEBUG instead of TROLLIUSDEBUG (#661)
+* Contributors: Akash Patel, Guglielmo Gemignani, Ivor Wanders, Kevin Jaget, Lucas Walter, Mathias Lüdtke, Matthijs van der Burgh, Mike Purvis, Robert Haschke, Simon Schmeisser, Tim Rakowski, Timon Engelke, Vojtech Spurny, ckurtz22, mobangjack, pseyfert, xiaxi, zig-for
+
 0.6.0 (2020-06-03)
 ------------------
 * This release restores the 0.4.5 state due to an accident with the 0.5.0 release where we pushed it to Python2 users which it doesn't support.
