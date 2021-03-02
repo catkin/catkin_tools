@@ -23,8 +23,9 @@ import traceback
 import yaml
 import asyncio
 
-
 try:
+    from catkin_pkg.package import parse_package
+    from catkin_pkg.package import InvalidPackage
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -32,8 +33,6 @@ except ImportError as e:
         'Importing "catkin_pkg" failed: %s\nMake sure that you have installed '
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
-
-from catkin_pkg.package import parse_package
 
 from catkin_tools.common import FakeLock, expand_glob_package
 from catkin_tools.common import format_time_delta
@@ -51,7 +50,6 @@ from catkin_tools.jobs.catkin import create_catkin_clean_job
 from catkin_tools.jobs.catkin import get_prebuild_package
 
 from .color import clr
-
 
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
 BUILDSPACE_IGNORE_FILE = 'CATKIN_IGNORE'
@@ -294,7 +292,11 @@ def build_isolated_workspace(
 
     # Get all the packages in the context source space
     # Suppress warnings since this is a utility function
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    try:
+        workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    except InvalidPackage as ex:
+        sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                     " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
     # Get packages which have not been built yet
     built_packages, unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)

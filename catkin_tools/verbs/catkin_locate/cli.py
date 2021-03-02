@@ -15,6 +15,8 @@
 import os
 import sys
 
+from catkin_pkg.package import InvalidPackage
+
 from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import getcwd
 
@@ -131,14 +133,17 @@ def main(opts):
     package = None
     if opts.package or opts.this:
         if opts.this:
-            package = find_enclosing_package(
-                search_start_path=getcwd(),
-                ws_path=ctx.workspace,
-                warnings=[])
-            if package is None:
-                print(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
-                          "Is '%s' in a package in '%s' workspace?@|" % (getcwd(), ctx.workspace)), file=sys.stderr)
-                sys.exit(2)
+            try:
+                package = find_enclosing_package(
+                    search_start_path=getcwd(),
+                    ws_path=ctx.workspace,
+                    warnings=[])
+                if package is None:
+                    sys.exit(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
+                                 "Is '%s' in a package in '%s' workspace?@|" % (getcwd(), ctx.workspace)))
+            except InvalidPackage as ex:
+                sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                             " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
         else:
             package = opts.package
         # Get the path to the given package
@@ -154,12 +159,10 @@ def main(opts):
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
-                    print(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
-                              (package, path)), file=sys.stderr)
-                    sys.exit(2)
+                    sys.exit(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
+                                 (package, path)))
             except RuntimeError as e:
-                print(clr('@{rf}ERROR: %s@|' % str(e)), file=sys.stderr)
-                sys.exit(1)
+                sys.exit(clr('@{rf}ERROR: %s@|' % str(e)))
 
     if not opts.space and package is None:
         # Get the path to the workspace root
@@ -167,8 +170,7 @@ def main(opts):
 
     # Check if the path exists
     if opts.existing_only and not os.path.exists(path):
-        print(clr("@{rf}ERROR: Requested path '%s' does not exist.@|" % path), file=sys.stderr)
-        sys.exit(1)
+        sys.exit(clr("@{rf}ERROR: Requested path '%s' does not exist.@|" % path))
 
     # Make the path relative if desired
     if opts.relative:
