@@ -19,6 +19,7 @@ import os
 import re
 import sys
 from fnmatch import fnmatch
+from itertools import chain
 from shlex import split as cmd_split
 from shlex import quote as cmd_quote
 
@@ -208,8 +209,11 @@ def get_recursive_depends_in_workspace(
 
     # Initialize working sets
     pkgs_to_check = set([
-        pkg.name for pkg in sum([root_include_function(p) for p in packages], [])
+        pkg.name
+        # Only include the packages where the condition has evaluated to true
+        for pkg in chain(*(filter(lambda pkg: pkg.evaluated_condition, root_include_function(p)) for p in packages))
     ])
+
     checked_pkgs = set()
     recursive_deps = set()
 
@@ -223,7 +227,7 @@ def get_recursive_depends_in_workspace(
         _, pkg = workspace_packages_by_name[pkg_name]
         pkgs_to_check.update([
             d.name
-            for d in include_function(pkg)
+            for d in filter(lambda pkg: pkg.evaluated_condition, include_function(pkg))
             if d.name not in checked_pkgs
         ])
         # Add this package's dependencies which shouldn't be checked
