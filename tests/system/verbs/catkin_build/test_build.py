@@ -378,3 +378,19 @@ def test_pkg_with_conditional_build_type():
             # So we have to infer this skipping by checking the build directory.
             msg = "Package with ROS 2 conditional build_type was skipped."
             assert os.path.exists(os.path.join('build', 'build_type_condition')), msg
+
+
+def test_pkg_with_conditional_depend():
+    """Test building a package with a condition attribute in the depend tag"""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            wf.create_package('ros1_pkg')
+            wf.create_package('ros2_pkg')
+            wf.build()
+            shutil.copytree(
+                os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'depend_condition'),
+                os.path.join('src/depend_condition'))
+            assert catkin_success(BUILD + ['depend_condition'], env={'ROS_VERSION': '1'})
+            assert os.path.exists(os.path.join('build', 'depend_condition'))
+            assert os.path.exists(os.path.join('build', 'ros1_pkg'))
+            assert not os.path.exists(os.path.join('build', 'ros2_pkg'))
