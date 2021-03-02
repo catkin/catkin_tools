@@ -19,6 +19,7 @@ import os
 import re
 import sys
 from fnmatch import fnmatch
+from itertools import chain
 from shlex import split as cmd_split
 from shlex import quote as cmd_quote
 
@@ -29,16 +30,6 @@ from .terminal_color import ColorMapper
 color_mapper = ColorMapper()
 clr = color_mapper.clr
 
-try:
-    string_type = basestring
-except NameError:
-    string_type = str
-
-try:
-    unicode_type = unicode
-except NameError:
-    unicode_type = str
-
 
 class FakeLock(asyncio.locks.Lock):
 
@@ -47,9 +38,8 @@ class FakeLock(asyncio.locks.Lock):
     def locked(self):
         return False
 
-    @asyncio.coroutine
-    def acquire(self):
-        return(True)
+    async def acquire(self):
+        return True
 
     def release(self):
         pass
@@ -177,18 +167,15 @@ def get_cached_recursive_build_depends_in_workspace(package, workspace_packages)
 def get_recursive_depends_in_workspace(
         packages,
         ordered_packages,
-        root_include_function,
         include_function,
         exclude_function):
     """Computes the recursive dependencies of a package in a workspace based on
     include and exclude functions of each package's dependencies.
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param packages: package for which the recursive depends should be calculated
+    :type packages: list(:py:class:`catkin_pkg.package.Package`)
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
-    :param root_include_function: a function which take a package and returns a list of root packages to include
-    :type root_include_function: callable
     :param include_function: a function which take a package and returns a list of packages to include
     :type include_function: callable
     :param exclude_function: a function which take a package and returns a list of packages to exclude
@@ -207,9 +194,12 @@ def get_recursive_depends_in_workspace(
     }
 
     # Initialize working sets
-    pkgs_to_check = set([
-        pkg.name for pkg in sum([root_include_function(p) for p in packages], [])
-    ])
+    pkgs_to_check = set(
+        pkg.name
+        # Only include the packages where the condition has evaluated to true
+        for pkg in chain(*(filter(lambda pkg: pkg.evaluated_condition, include_function(p)) for p in packages))
+    )
+
     checked_pkgs = set()
     recursive_deps = set()
 
@@ -221,16 +211,16 @@ def get_recursive_depends_in_workspace(
             continue
         # Add this package's dependencies which should be checked
         _, pkg = workspace_packages_by_name[pkg_name]
-        pkgs_to_check.update([
+        pkgs_to_check.update(
             d.name
-            for d in include_function(pkg)
+            for d in filter(lambda pkg: pkg.evaluated_condition, include_function(pkg))
             if d.name not in checked_pkgs
-        ])
+        )
         # Add this package's dependencies which shouldn't be checked
-        checked_pkgs.update([
+        checked_pkgs.update(
             d.name
             for d in exclude_function(pkg)
-        ])
+        )
         # Add the package itself in case we have a circular dependency
         checked_pkgs.add(pkg.name)
         # Add this package to the list of recursive dependencies for this package
@@ -262,11 +252,6 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
     return get_recursive_depends_in_workspace(
         [package],
         ordered_packages,
-        root_include_function=lambda p: (
-            p.build_depends +
-            p.buildtool_depends +
-            p.test_depends +
-            p.run_depends),
         include_function=lambda p: (
             p.build_depends +
             p.buildtool_depends +
@@ -281,7 +266,7 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     but excluding packages which are build depended on by another package in the list
 
     :param packages: packages for which the recursive depends should be calculated
-    :type packages: list of :py:class:`catkin_pkg.package.Package`
+    :type packages: list(:py:class:`catkin_pkg.package.Package`)
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -293,7 +278,6 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return get_recursive_depends_in_workspace(
         packages,
         ordered_packages,
-        root_include_function=lambda p: p.run_depends,
         include_function=lambda p: p.run_depends,
         exclude_function=lambda p: p.buildtool_depends + p.build_depends
     )
@@ -303,8 +287,8 @@ def get_recursive_build_dependents_in_workspace(package_name, ordered_packages):
     """Calculates the recursive build dependents of a package which are also in
     the ordered_packages
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param package_name: name of the package for which the recursive depends should be calculated
+    :type package_name: str
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -332,8 +316,8 @@ def get_recursive_run_dependents_in_workspace(package_name, ordered_packages):
     """Calculates the recursive run dependents of a package which are also in
     the ordered_packages
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param package_name: name of the package for which the recursive depends should be calculated
+    :type package_name: str
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -374,7 +358,7 @@ def log(*args, **kwargs):
     except UnicodeEncodeError:
         # Strip unicode characters from string args
         sanitized_args = [unicode_sanitizer.sub('?', a)
-                          if type(a) in [str, unicode_type]
+                          if isinstance(a, str)
                           else a
                           for a in args]
         print(*sanitized_args, **kwargs)

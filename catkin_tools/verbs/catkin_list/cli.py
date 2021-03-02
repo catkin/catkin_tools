@@ -137,8 +137,8 @@ def main(opts):
                     build_deps = [p for dp, p in get_recursive_build_depends_in_workspace(pkg, ordered_packages)]
                     run_deps = [p for dp, p in get_recursive_run_depends_in_workspace([pkg], ordered_packages)]
                 else:
-                    build_deps = pkg.build_depends
-                    run_deps = pkg.run_depends
+                    build_deps = [dep for dep in pkg.build_depends if dep.evaluated_condition]
+                    run_deps = [dep for dep in pkg.run_depends if dep.evaluated_condition]
 
                 if opts.deps or opts.rdeps:
                     if len(build_deps) > 0:

@@ -1,0 +1,11 @@
+<package format="3">
+  <name>depend_condition</name>
+  <description>Package with conditional depend element.</description>
+  <version>0.1.0</version>
+  <license>BSD</license>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend condition="$ROS_VERSION == 1">ros1_pkg</depend>
+  <depend condition="$ROS_VERSION == 2">ros2_pkg</depend>
+</package>

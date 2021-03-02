@@ -20,7 +20,6 @@ from osrf_pycommon.process_utils import execute_process
 from shlex import quote as cmd_quote
 
 from .common import parse_env_str
-from .common import string_type
 
 DEFAULT_SHELL = '/bin/bash'
 
@@ -139,7 +138,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
             for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
                 if type(ret) is bytes:
                     ret = ret.decode()
-                if isinstance(ret, string_type):
+                if isinstance(ret, str):
                     lines += ret
         else:
             p = subprocess.Popen(command, cwd=os.getcwd(), env=base_env, shell=True, stdout=subprocess.PIPE)

@@ -16,8 +16,6 @@ import os
 import yaml
 from shlex import split as cmd_split
 
-from .common import string_type
-
 catkin_config_path = os.path.join(os.path.expanduser('~'), '.config', 'catkin')
 
 builtin_verb_aliases_content = """\
@@ -96,11 +94,11 @@ def get_verb_aliases(path=catkin_config_path):
                 raise RuntimeError("Invalid alias file ('{0}'), expected a dict but got a {1}"
                                    .format(full_path, type(yaml_dict)))
             for key, value in yaml_dict.items():
-                if not isinstance(key, string_type):
+                if not isinstance(key, str):
                     raise RuntimeError("Invalid alias in file ('{0}'), expected a string but got '{1}' of type {2}"
                                        .format(full_path, key, type(key)))
                 parsed_value = None
-                if isinstance(value, string_type):
+                if isinstance(value, str):
                     # Parse using shlex
                     parsed_value = cmd_split(value)
                 elif isinstance(value, list) or isinstance(value, type(None)):
