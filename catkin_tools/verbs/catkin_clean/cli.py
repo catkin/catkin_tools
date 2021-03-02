@@ -275,7 +275,7 @@ def clean_profile(opts, profile):
                 safe_rmtree(ctx.log_space_abs, ctx.workspace, opts.force)
 
         # Find orphaned packages
-        if ctx.link_devel and not any([opts.build, opts.devel]):
+        if ctx.link_devel or ctx.isolate_devel and not any([opts.build, opts.devel]):
             if opts.orphans:
                 if os.path.exists(ctx.build_space_abs):
                     log("[clean] Determining orphaned packages...")
@@ -338,9 +338,9 @@ def clean_profile(opts, profile):
                     return False
 
         elif opts.orphans or len(opts.packages) > 0 or opts.clean_this:
-            log("[clean] Error: Individual packages can only be cleaned from "
-                "workspaces with symbolically-linked develspaces (`catkin "
-                "config --link-devel`).")
+            log("[clean] Error: Individual packages cannot be cleaned from "
+                "workspaces with merged develspaces, use a symbolically-linked "
+                "or isolated develspace instead.")
 
     except:  # noqa: E722
         # Silencing E722 here since we immediately re-raise the exception.
