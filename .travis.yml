@@ -9,9 +9,9 @@ matrix:
       env: PYTHON=/usr/bin/python2.7 CATKIN_VERSION=kinetic-devel
     - dist: xenial
       language: python
-      python: "3.4"
+      python: "3.5"
       os: linux
-      env: PYTHON=/usr/bin/python3.4 CATKIN_VERSION=kinetic-devel
+      env: PYTHON=/usr/bin/python3.5 CATKIN_VERSION=kinetic-devel
 before_install:
   # Install catkin_tools dependencies
   - source .travis.before_install.bash
