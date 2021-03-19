@@ -34,38 +34,33 @@ osx_notification_resources = [os.path.relpath(x, src_path)
                               for x in osx_notification_resources]
 
 
-def _resolve_prefix(prefix, type):
+def _resolve_prefix(type):
     osx_system_prefix = '/System/Library/Frameworks/Python.framework/Versions'
-    if type == 'man':
-        if prefix == '/usr':
-            return '/usr/share'
+    if type == 'bash_comp':
         if sys.prefix.startswith(osx_system_prefix):
-            return '/usr/share'
-    elif type == 'bash_comp':
-        if prefix == '/usr':
-            return '/'
-        if sys.prefix.startswith(osx_system_prefix):
-            return '/'
+            return '/usr'
     elif type == 'zsh_comp':
         if sys.prefix.startswith(osx_system_prefix):
             return '/usr/local'
     else:
         raise ValueError('not supported type')
-    return prefix
+    return ''
 
 
-def get_data_files(prefix):
+def get_data_files():
     data_files = []
 
     # Bash completion
-    bash_comp_dest = os.path.join(_resolve_prefix(prefix, 'bash_comp'),
-                                  'etc/bash_completion.d')
-    data_files.append((bash_comp_dest,
-                       ['completion/catkin_tools-completion.bash']))
+    bash_comp_dest = os.path.join(_resolve_prefix('bash_comp'),
+                                  'share/bash-completion/completions')
+    data_files.append((bash_comp_dest, ['completion/catkin.bash']))
 
     # Zsh completion
-    zsh_comp_dest = os.path.join(_resolve_prefix(prefix, 'zsh_comp'),
-                                 'share/zsh/site-functions')
+    if 'DEB_BUILD' in os.environ:
+        dirname = 'share/zsh/vendor-completions'
+    else:
+        dirname = 'share/zsh/site-functions'
+    zsh_comp_dest = os.path.join(_resolve_prefix('zsh_comp'), dirname)
     data_files.append((zsh_comp_dest, ['completion/_catkin']))
     return data_files
 
@@ -81,26 +76,6 @@ class PermissiveInstall(install):
                 log.info("changing permissions of %s to %o" % (file, mode))
                 os.chmod(file, mode)
 
-        # Provide information about bash completion after default install.
-        if (sys.platform.startswith("linux") and
-                self.install_data == "/usr/local"):
-            log.info("""
-----------------------------------------------------------------
-To enable tab completion, add the following to your '~/.bashrc':
-
-  source {0}
-
-----------------------------------------------------------------
-""".format(os.path.join(self.install_data,
-                        'etc/bash_completion.d',
-                        'catkin_tools-completion.bash')))
-
-from distutils.core import setup
-from distutils.dist import Distribution
-dist = Distribution()
-dist.parse_config_files()
-dist.parse_command_line()
-prefix = dist.get_option_dict('install').get('prefix',("default", sys.prefix))[1]
 
 setup(
     name='catkin_tools',
@@ -117,7 +92,7 @@ setup(
             'docs/examples',
         ] + osx_notification_resources
     },
-    data_files=get_data_files(prefix),
+    data_files=get_data_files(),
     install_requires=install_requires,
     author='William Woodall',
     author_email='william@osrfoundation.org',
