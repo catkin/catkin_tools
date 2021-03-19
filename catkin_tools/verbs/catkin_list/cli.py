@@ -75,7 +75,7 @@ def main(opts):
     ctx = Context.load(opts.workspace, opts.profile, load_env=False)
 
     if not ctx:
-        sys.exit(clr("@{rf}ERROR: Could not determine workspace.@|"), file=sys.stderr)
+        sys.exit(clr("@{rf}ERROR: Could not determine workspace.@|"))
 
     if opts.directory:
         folders = opts.directory
@@ -92,7 +92,7 @@ def main(opts):
             ordered_packages = topological_order_packages(packages)
             if ordered_packages and ordered_packages[-1][0] is None:
                 sys.exit(clr("@{rf}ERROR: Circular dependency within packages:@| "
-                             + ordered_packages[-1][1]), file=sys.stderr)
+                             + ordered_packages[-1][1]))
             packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
             if opts.depends_on or opts.rdepends_on:
