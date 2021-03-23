@@ -4,7 +4,7 @@ import shutil
 
 from ...workspace_factory import workspace_factory
 
-from ....utils import in_temporary_directory
+from ....utils import in_temporary_directory, temporary_directory
 from ....utils import assert_cmd_success
 from ....utils import assert_cmd_failure
 from ....utils import assert_files_exist
@@ -394,3 +394,15 @@ def test_pkg_with_conditional_depend():
             assert os.path.exists(os.path.join('build', 'depend_condition'))
             assert os.path.exists(os.path.join('build', 'ros1_pkg'))
             assert not os.path.exists(os.path.join('build', 'ros2_pkg'))
+
+
+def test_symlinked_workspace():
+    """Test building from a symlinked workspace"""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            wf.create_package('pkg')
+            wf.build()
+            assert catkin_success(BUILD)
+            with temporary_directory() as t:
+                os.symlink(wf.workspace, os.path.join(t, 'ws'))
+                assert catkin_success(BUILD + ['-w', os.path.join(t, 'ws')])

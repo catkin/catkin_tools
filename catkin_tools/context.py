@@ -90,7 +90,7 @@ class Context(object):
             if self.__locked:
                 raise RuntimeError("Setting of context members is not allowed while locked.")
             setattr(self, '__%s_space' % space, value)
-            setattr(self, '__%s_space_abs' % space, os.path.join(self.__workspace, value))
+            setattr(self, '__%s_space_abs' % space, os.path.realpath(os.path.join(self.__workspace, value)))
 
         def space_exists(self):
             """
@@ -651,7 +651,7 @@ class Context(object):
         # Validate Workspace
         if not os.path.exists(value):
             raise ValueError("Workspace path '{0}' does not exist.".format(value))
-        self.__workspace = os.path.abspath(value)
+        self.__workspace = os.path.realpath(os.path.abspath(value))
 
     @property
     def extend_path(self):
