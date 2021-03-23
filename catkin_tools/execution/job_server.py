@@ -219,7 +219,7 @@ class JobServer(object):
         if cls._max_load is not None:
             try:
                 load = os.getloadavg()
-                if load[1] < cls._max_load:
+                if load[0] < cls._max_load:
                     cls._load_ok = True
                 else:
                     cls._load_ok = False
