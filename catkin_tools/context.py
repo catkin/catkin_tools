@@ -388,7 +388,7 @@ class Context(object):
         # Handle default authors/maintainers
         self.authors = authors or []
         self.maintainers = maintainers or []
-        self.licenses = licenses or 'TODO'
+        self.licenses = licenses or ['TODO']
 
         # Handle build options
         self.devel_layout = devel_layout if devel_layout else 'linked'
