@@ -379,7 +379,7 @@ def main(opts):
 
     # Check for all profiles option
     if opts.all_profiles:
-        profiles = get_profile_names(opts.workspace or os.getcwd())
+        profiles = get_profile_names(opts.workspace or find_enclosing_workspace(getcwd()))
     else:
         profiles = [opts.profile]
 
