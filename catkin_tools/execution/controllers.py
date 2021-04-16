@@ -729,11 +729,11 @@ class ConsoleStatusController(threading.Thread):
 
             elif 'STDERR' == eid:
                 if self.show_live_stderr and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\n', file=sys.stderr)
+                    wide_log(self.format_interleaved_lines(event.data), file=sys.stderr)
 
             elif 'STDOUT' == eid:
                 if self.show_live_stdout and len(event.data['data']) > 0:
-                    wide_log(self.format_interleaved_lines(event.data), end='\n')
+                    wide_log(self.format_interleaved_lines(event.data))
 
             elif 'MESSAGE' == eid:
                 wide_log(event.data['msg'])
@@ -759,7 +759,8 @@ class ConsoleStatusController(threading.Thread):
         else:
             prefix = ''
 
-        template = '\n{}\n{}'.format(' ' * terminal_width(), prefix)
+        # This is used to clear the status bar that is printed in the current line
+        clear_line = '\r{}\r'.format(' ' * terminal_width())
         suffix = clr('@|')
-
-        return ''.join(template + line + '\n' + suffix for line in data['data'].splitlines())
+        lines = data['data'].splitlines()
+        return clear_line + '\n'.join(prefix + line + suffix for line in lines)
