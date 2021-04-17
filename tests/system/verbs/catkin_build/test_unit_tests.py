@@ -5,6 +5,7 @@ from ....utils import in_temporary_directory
 from ....utils import assert_cmd_success
 from ....utils import assert_cmd_failure
 from ....utils import catkin_success
+from ....utils import catkin_failure
 from ....utils import redirected_stdio
 
 TEST_DIR = os.path.dirname(__file__)
@@ -23,9 +24,7 @@ def test_build_pkg_unit_tests():
              'python_tests', '--make-args', 'run_tests'])
         assert_cmd_success(['catkin_test_results', 'build/python_tests'])
 
-        assert catkin_success(
-            ['run_tests', 'python_tests', '--no-deps', '--no-notify', '--no-status'])
-        assert_cmd_success(['catkin_test_results', 'build/python_tests'])
+        assert catkin_success(['test', 'python_tests', '--no-notify', '--no-status'])
 
 
 @in_temporary_directory
@@ -41,6 +40,4 @@ def test_build_pkg_unit_tests_broken():
              'python_tests_err', '--make-args', 'run_tests'])
         assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
 
-        assert catkin_success(
-            ['run_tests', 'python_tests_err', '--no-deps', '--no-notify', '--no-status'])
-        assert_cmd_failure(['catkin_test_results', 'build/python_tests_err'])
+        assert catkin_failure(['test', 'python_tests_err', '--no-notify', '--no-status'])
