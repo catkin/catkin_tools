@@ -19,7 +19,7 @@ from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
 
-from catkin_tools.common import clr, wide_log
+from catkin_tools.common import clr, wide_log, expand_glob_package
 from catkin_tools.execution import job_server
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import run_until_complete, execute_jobs
@@ -55,9 +55,6 @@ def test_workspace(
         sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
                      " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
-    ordered_packages = topological_order_packages(workspace_packages)
-    n_jobs = 1
-
     # Get all build type plugins
     test_job_creators = {
         ep.name: ep.load()['create_test_job']
@@ -68,12 +65,49 @@ def test_workspace(
     if len(test_job_creators) == 0:
         sys.exit('Error: No build types available. Please check your catkin_tools installation.')
 
-    # Construct jobs
-    jobs = []
-    for pkg_path, pkg in ordered_packages:
-        if pkg.name not in packages:
-            continue
+    # Get list of packages to test
+    ordered_packages = topological_order_packages(workspace_packages)
+    workspace_packages = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
+    packages_to_test = []
+    if packages:
+        for package in packages:
+            if package not in workspace_packages:
+                # Try whether package is a pattern and matches
+                glob_packages = expand_glob_package(package, workspace_packages)
+                if len(glob_packages) > 0:
+                    packages.extend(glob_packages)
+                else:
+                    sys.exit("[test] Given packages '{}' is not in the workspace "
+                             "and pattern does not match any package".format(package))
+        for pkg_path, package in ordered_packages:
+            if package.name in packages:
+                packages_to_test.append((pkg_path, package))
+    else:
+        # Only use whitelist when no other packages are specified
+        if len(context.whitelist) > 0:
+            # Expand glob patterns in whitelist
+            whitelist = []
+            for whitelisted_package in context.whitelist:
+                whitelist.extend(expand_glob_package(whitelisted_package, workspace_packages))
+            packages_to_test = [p for p in ordered_packages if (p[1].name in whitelist)]
+        else:
+            packages_to_test = ordered_packages
 
+    # Filter packages on blacklist
+    if len(context.blacklist) > 0:
+        # Expand glob patterns in blacklist
+        blacklist = []
+        for blacklisted_package in context.blacklist:
+            blacklist.extend(expand_glob_package(blacklisted_package, workspace_packages))
+        # Apply blacklist to packages and dependencies
+        packages_to_test = [
+            (path, pkg) for path, pkg in packages_to_test
+            if (pkg.name not in blacklist or pkg.name in packages)]
+
+    # Construct jobs
+    n_jobs = 1
+    jobs = []
+    for pkg_path, pkg in packages_to_test:
         # Determine the job parameters
         test_job_kwargs = dict(
             context=context,
