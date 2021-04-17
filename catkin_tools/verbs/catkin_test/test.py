@@ -28,6 +28,7 @@ from catkin_tools.execution.executor import run_until_complete, execute_jobs
 def test_workspace(
     context,
     packages=None,
+    n_jobs=None,
     quiet=False,
     no_status=False,
     no_notify=False,
@@ -39,6 +40,8 @@ def test_workspace(
     :type context: :py:class:`catkin_tools.context.Context`
     :param packages: list of packages to test
     :type packages: list
+    :param n_jobs: number of parallel package test jobs
+    :type n_jobs: int
     :param quiet: suppresses verbose build or test information
     :type quiet: bool
     :param no_status: suppresses the bottom status line
@@ -108,7 +111,6 @@ def test_workspace(
             if (pkg.name not in blacklist or pkg.name in packages)]
 
     # Construct jobs
-    n_jobs = 1
     jobs = []
     for pkg_path, pkg in packages_to_test:
         # Determine the job parameters
@@ -128,8 +130,9 @@ def test_workspace(
 
     # Initialize job server
     job_server.initialize(
-        max_jobs=1,
+        max_jobs=n_jobs,
         max_load=None,
+        gnu_make_enabled=context.use_internal_make_jobserver,
     )
 
     try:

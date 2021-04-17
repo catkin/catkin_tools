@@ -51,8 +51,13 @@ packages in a catkin workspace.\
     add('--continue-on-failure', '-c', action='store_true', default=False,
         help='Continue testing packages even if the tests for other requested packages fail.')
 
-    behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
-    add = behavior_group.add_argument
+    config_group = parser.add_argument_group('Config', 'Parameters for the underlying build system.')
+    add = config_group.add_argument
+    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None, type=int,
+        help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+
+    interface_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
+    add = interface_group.add_argument
     add('--verbose', '-v', action='store_true', default=False,
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--no-status', action='store_true', default=False,
@@ -105,6 +110,12 @@ def main(opts):
             sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
                          (ctx.extend_path, exc.message)))
 
+    # Get parallel toplevel jobs
+    try:
+        parallel_jobs = int(opts.parallel_jobs)
+    except TypeError:
+        parallel_jobs = None
+
     # Set VERBOSE environment variable
     if opts.verbose and 'VERBOSE' not in os.environ:
         os.environ['VERBOSE'] = '1'
@@ -112,6 +123,7 @@ def main(opts):
     return test_workspace(
         ctx,
         packages=opts.packages,
+        n_jobs=parallel_jobs,
         quiet=not opts.verbose,
         no_status=opts.no_status,
         no_notify=opts.no_notify,
