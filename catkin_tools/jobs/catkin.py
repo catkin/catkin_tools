@@ -586,8 +586,6 @@ def create_catkin_test_job(
 ):
     """Generate a job that tests a package"""
 
-    # Package source space path
-    pkg_dir = os.path.join(context.source_space_abs, package_path)
     # Package build space path
     build_space = context.package_build_space(package)
     # Environment dictionary for the job, which will be built

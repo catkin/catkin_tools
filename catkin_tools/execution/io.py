@@ -293,7 +293,8 @@ class CatkinTestResultsIOBufferProtocol(IOBufferProtocol):
         for line in lines:
             match = re.match(r'(.*): (\d+) tests, (\d+) errors, (\d+) failures, (\d+) skipped', line)
             if match:
-                line = fmt('@!{}@|: {} tests, @{rf}{} errors@|, @{rf}{} failures@|, @{kf}{} skipped@|').format(*match.groups())
+                line = fmt('@!{}@|: {} tests, @{rf}{} errors@|, @{rf}{} failures@|, @{kf}{} skipped@|')
+                line = line.format(*match.groups())
             clines.append(line)
 
         cdata = '\n'.join(clines) + '\n'
