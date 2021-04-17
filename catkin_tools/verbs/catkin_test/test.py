@@ -11,6 +11,7 @@
 # limitations under the License.
 import sys
 import traceback
+import time
 from queue import Queue
 
 import pkg_resources
@@ -27,6 +28,9 @@ from catkin_tools.execution.executor import run_until_complete, execute_jobs
 def test_workspace(
     context,
     packages=None,
+    quiet=False,
+    no_status=False,
+    no_notify=False,
 ):
     """Tests a catkin workspace
 
@@ -34,7 +38,15 @@ def test_workspace(
     :type context: :py:class:`catkin_tools.context.Context`
     :param packages: list of packages to test
     :type packages: list
+    :param quiet: suppresses verbose build or test information
+    :type quiet: bool
+    :param no_status: suppresses the bottom status line
+    :type no_status: bool
+    :param no_notify: suppresses system notifications
+    :type no_notify: bool
     """
+    pre_start_time = time.time()
+
     # Get all the packages in the context source space
     # Suppress warnings since this is a utility function
     try:
@@ -94,10 +106,14 @@ def test_workspace(
             [p for p in context.whitelist],
             [p for p in context.blacklist],
             event_queue,
-            show_live_stdout=True,
-            show_live_stderr=True,
+            show_notifications=not no_notify,
+            show_active_status=not no_status,
             show_buffered_stdout=False,
             show_buffered_stderr=False,
+            show_live_stdout=True,
+            show_live_stderr=True,
+            show_stage_events=not quiet,
+            pre_start_time=pre_start_time,
         )
 
         status_thread.start()

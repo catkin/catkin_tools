@@ -9,11 +9,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+import sys
 
+from catkin_pkg.package import InvalidPackage
 
 from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.common import is_tty
+from catkin_tools.common import getcwd
+from catkin_tools.common import find_enclosing_package
+
 from catkin_tools.context import Context
-from catkin_tools.verbs.catkin_test.test import test_workspace
+from catkin_tools.context import clr
+
+from catkin_tools.metadata import find_enclosing_workspace
+
+from catkin_tools.resultspace import load_resultspace_environment
+
+from catkin_tools.terminal_color import set_color
+
+from .test import test_workspace
 
 
 def prepare_arguments(parser):
@@ -31,14 +46,71 @@ packages in a catkin workspace.\
     add = pkg_group.add_argument
     add('packages', metavar='PKGNAME', nargs='*',
         help='Workspace packages to test. If no packages are given, then all the packages are tested.')
+    add('--this', dest='build_this', action='store_true', default=False,
+        help='Test the package containing the current working directory.')
+
+    behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
+    add = behavior_group.add_argument
+    add('--verbose', '-v', action='store_true', default=False,
+        help='Print output from commands in ordered blocks once the command finishes.')
+    add('--no-status', action='store_true', default=False,
+        help='Suppresses status line, useful in situations where carriage return is not properly supported.')
+    add('--no-notify', action='store_true', default=False,
+        help='Suppresses system pop-up notification.')
 
     return parser
 
 
 def main(opts):
+    # Set color options
+    opts.force_color = os.environ.get('CATKIN_TOOLS_FORCE_COLOR', opts.force_color)
+    if (opts.force_color or is_tty(sys.stdout)) and not opts.no_color:
+        set_color(True)
+    else:
+        set_color(False)
+
+    # Context-aware args
+    if opts.build_this:
+        # Determine the enclosing package
+        try:
+            ws_path = find_enclosing_workspace(getcwd())
+            # Suppress warnings since this won't necessarily find all packages
+            # in the workspace (it stops when it finds one package), and
+            # relying on it for warnings could mislead people.
+            this_package = find_enclosing_package(
+                search_start_path=getcwd(),
+                ws_path=ws_path,
+                warnings=[])
+        except InvalidPackage as ex:
+            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+
+        # Handle context-based package building
+        if this_package:
+            opts.packages += [this_package]
+        else:
+            sys.exit(
+                "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
+
+    # Load the context
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
+
+    # Load the environment of the workspace to extend
+    if ctx.extend_path is not None:
+        try:
+            load_resultspace_environment(ctx.extend_path)
+        except IOError as exc:
+            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
+                         (ctx.extend_path, exc.message)))
+
+    # Set VERBOSE environment variable
+    if opts.verbose and 'VERBOSE' not in os.environ:
+        os.environ['VERBOSE'] = '1'
 
     return test_workspace(
         ctx,
         packages=opts.packages,
+        quiet=not opts.verbose,
+        no_status=opts.no_status,
+        no_notify=opts.no_notify,
     )
