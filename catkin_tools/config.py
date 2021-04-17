@@ -31,6 +31,7 @@ bt: b --this
 ls: list
 install: config --install
 p: create pkg
+run_tests: test
 """
 
 
