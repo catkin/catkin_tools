@@ -116,6 +116,19 @@ def test_workspace(
             (path, pkg) for path, pkg in packages_to_test
             if (pkg.name not in blacklist or pkg.name in packages)]
 
+    # Check if all packages to test are already built
+    built_packages = set([
+        pkg.name for (path, pkg) in
+        find_packages(context.package_metadata_path(), warnings=[]).items()])
+
+    packages_to_test_names = set(pkg.name for path, pkg in packages_to_test)
+    if not built_packages.issuperset(packages_to_test_names):
+        wide_log(clr("@{rf}Error: Packages have to be built before they can be tested.@|"))
+        wide_log(clr("The following requested packages are not built yet:"))
+        for package_name in packages_to_test_names.difference(built_packages):
+            wide_log(' - ' + package_name)
+        sys.exit(1)
+
     # Construct jobs
     jobs = []
     for pkg_path, pkg in packages_to_test:
