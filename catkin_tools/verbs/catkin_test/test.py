@@ -30,6 +30,7 @@ def test_workspace(
     packages=None,
     n_jobs=None,
     quiet=False,
+    interleave_output=False,
     no_status=False,
     no_notify=False,
     continue_on_failure=False,
@@ -44,6 +45,8 @@ def test_workspace(
     :type n_jobs: int
     :param quiet: suppresses verbose build or test information
     :type quiet: bool
+    :param interleave_output: prints the output of commands as they are received
+    :type interleave_output: bool
     :param no_status: suppresses the bottom status line
     :type no_status: bool
     :param no_notify: suppresses system notifications
@@ -148,10 +151,10 @@ def test_workspace(
             event_queue,
             show_notifications=not no_notify,
             show_active_status=not no_status,
-            show_buffered_stdout=False,
-            show_buffered_stderr=False,
-            show_live_stdout=True,
-            show_live_stderr=True,
+            show_buffered_stdout=not interleave_output,
+            show_buffered_stderr=not interleave_output,
+            show_live_stdout=interleave_output,
+            show_live_stderr=interleave_output,
             show_stage_events=not quiet,
             pre_start_time=pre_start_time,
         )
