@@ -13,11 +13,15 @@
 # limitations under the License.
 
 import os
+import re
 import shutil
 from glob import glob
+
 from osrf_pycommon.process_utils import AsyncSubprocessProtocol
 
 from catkin_tools.common import mkdir_p
+
+from catkin_tools.terminal_color import fmt
 
 from .events import ExecutionEvent
 
@@ -279,3 +283,19 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
             self.on_stdout_received(self.intermediate_stdout_buffer + b'\n')
         if len(self.intermediate_stderr_buffer) > 0:
             self.on_stderr_received(self.intermediate_stderr_buffer + b'\n')
+
+
+class CatkinTestResultsIOBufferProtocol(IOBufferProtocol):
+    """An IOBufferProtocol which parses the output of catkin_test_results"""
+    def on_stdout_received(self, data):
+        lines = data.decode().splitlines()
+        clines = []
+        for line in lines:
+            match = re.match(r'(.*): (\d+) tests, (\d+) errors, (\d+) failures, (\d+) skipped', line)
+            if match:
+                line = fmt('@!{}@|: {} tests, @{rf}{} errors@|, @{rf}{} failures@|, @{kf}{} skipped@|').format(*match.groups())
+            clines.append(line)
+
+        cdata = '\n'.join(clines) + '\n'
+
+        super(CatkinTestResultsIOBufferProtocol, self).on_stdout_received(cdata.encode())

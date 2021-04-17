@@ -23,6 +23,7 @@ from catkin_tools.common import mkdir_p
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
+from catkin_tools.execution.io import CatkinTestResultsIOBufferProtocol
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
@@ -613,6 +614,14 @@ def create_catkin_test_job(
         [MAKE_EXEC, 'run_tests'],
         cwd=build_space,
         logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
+    ))
+
+    # catkin_test_results
+    stages.append(CommandStage(
+        'results',
+        ['catkin_test_results'],
+        cwd=build_space,
+        logger_factory=CatkinTestResultsIOBufferProtocol.factory,
     ))
 
     return Job(
