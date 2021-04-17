@@ -577,11 +577,58 @@ def create_catkin_clean_job(
         stages=stages)
 
 
+def create_catkin_test_job(
+    context,
+    package,
+    package_path,
+):
+    """Generate a job that tests a package"""
+
+    # Package source space path
+    pkg_dir = os.path.join(context.source_space_abs, package_path)
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
+
+    # Create job stages
+    stages = []
+
+    # Load environment for job
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource=None,
+        job_env=job_env,
+        package=package,
+        context=context,
+        verbose=False,
+    ))
+
+    # Make command
+    stages.append(CommandStage(
+        'make',
+        [MAKE_EXEC, 'run_tests'],
+        cwd=build_space,
+        #logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
+        logger_factory=CMakeMakeIOBufferProtocol.factory,
+    ))
+
+    return Job(
+        jid=package.name,
+        deps=[],
+        env=job_env,
+        stages=stages,
+    )
+
+
 description = dict(
     build_type='catkin',
     description="Builds a catkin package.",
     create_build_job=create_catkin_build_job,
-    create_clean_job=create_catkin_clean_job
+    create_clean_job=create_catkin_clean_job,
+    create_test_job=create_catkin_test_job,
 )
 
 

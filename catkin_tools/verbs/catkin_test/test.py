@@ -13,6 +13,7 @@ import sys
 import traceback
 from queue import Queue
 
+import pkg_resources
 from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
@@ -21,7 +22,6 @@ from catkin_tools.common import clr, wide_log
 from catkin_tools.execution import job_server
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import run_until_complete, execute_jobs
-from catkin_tools.jobs.test import create_test_job
 
 
 def test_workspace(
@@ -46,6 +46,16 @@ def test_workspace(
     ordered_packages = topological_order_packages(workspace_packages)
     n_jobs = 1
 
+    # Get all build type plugins
+    test_job_creators = {
+        ep.name: ep.load()['create_test_job']
+        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+    }
+
+    # It's a problem if there aren't any build types available
+    if len(test_job_creators) == 0:
+        sys.exit('Error: No build types available. Please check your catkin_tools installation.')
+
     # Construct jobs
     jobs = []
     for pkg_path, pkg in ordered_packages:
@@ -58,7 +68,11 @@ def test_workspace(
             package=pkg,
             package_path=pkg_path)
 
-        jobs.append(create_test_job(**test_job_kwargs))
+        # Create the job based on the build type
+        build_type = pkg.get_build_type()
+
+        if build_type in test_job_creators:
+            jobs.append(test_job_creators[build_type](**test_job_kwargs))
 
     # Queue for communicating status
     event_queue = Queue()
