@@ -172,6 +172,47 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
                 percent=str(progress_matches.groups()[0])))
 
 
+class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
+    """An IOBufferProtocol which parses the output of `make run_tests`."""
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
+        super(CMakeMakeRunTestsIOBufferProtocol, self).__init__(
+            label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
+
+        # Line formatting filters
+        # Each is a 2-tuple:
+        #  - regular expression
+        #  - output formatting line
+        filters = [
+            (r'^-- run_tests.py:', '@!@{kf}{}@|'),
+            (r'^Removing test result files from ', '@!@{kf}{}@|'),
+            (r'^- removing ', '@!@{kf}{}@|'),
+        ]
+
+        self.filters = [(re.compile(p), r) for (p, r) in filters]
+
+    def on_stdout_received(self, data):
+        # Parse CMake Make completion progress
+        progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
+        if progress_matches:
+            self.event_queue.put(ExecutionEvent(
+                'STAGE_PROGRESS',
+                job_id=self.job_id,
+                stage_label=self.stage_label,
+                percent=str(progress_matches.groups()[0])))
+        else:
+            # Write to stdout
+            colored = self.colorize_run_tests(data)
+            super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(colored.encode())
+
+    def colorize_run_tests(self, line):
+        cline = sanitize(line.decode()).rstrip()
+        for p, r in self.filters:
+            if p.match(cline):
+                lines = [fmt(r).format(line) for line in cline.splitlines()]
+                cline = '\n'.join(lines)
+        return cline + '\n'
+
+
 def get_installed_files(path):
     """Get a set of files installed by a CMake package as specified by an
     install_manifest.txt in a given directory."""

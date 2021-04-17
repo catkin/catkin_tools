@@ -96,6 +96,8 @@ def test_workspace(
             event_queue,
             show_live_stdout=True,
             show_live_stderr=True,
+            show_buffered_stdout=False,
+            show_buffered_stderr=False,
         )
 
         status_thread.start()

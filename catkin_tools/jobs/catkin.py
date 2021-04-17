@@ -27,6 +27,7 @@ from catkin_tools.execution.stages import FunctionStage
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
@@ -611,8 +612,7 @@ def create_catkin_test_job(
         'make',
         [MAKE_EXEC, 'run_tests'],
         cwd=build_space,
-        #logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
-        logger_factory=CMakeMakeIOBufferProtocol.factory,
+        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
     ))
 
     return Job(

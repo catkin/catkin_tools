@@ -27,6 +27,7 @@ from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
@@ -436,7 +437,7 @@ def create_cmake_test_job(
         'make',
         [MAKE_EXEC, 'test'],
         cwd=build_space,
-        logger_factory=CMakeMakeIOBufferProtocol.factory
+        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
     ))
 
     return Job(
