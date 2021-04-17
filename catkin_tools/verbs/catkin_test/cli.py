@@ -48,6 +48,8 @@ packages in a catkin workspace.\
         help='Workspace packages to test. If no packages are given, then all the packages are tested.')
     add('--this', dest='build_this', action='store_true', default=False,
         help='Test the package containing the current working directory.')
+    add('--continue-on-failure', '-c', action='store_true', default=False,
+        help='Continue testing packages even if the tests for other requested packages fail.')
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -113,4 +115,5 @@ def main(opts):
         quiet=not opts.verbose,
         no_status=opts.no_status,
         no_notify=opts.no_notify,
+        continue_on_failure=opts.continue_on_failure,
     )

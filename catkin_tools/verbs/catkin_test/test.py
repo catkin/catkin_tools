@@ -31,6 +31,7 @@ def test_workspace(
     quiet=False,
     no_status=False,
     no_notify=False,
+    continue_on_failure=False,
 ):
     """Tests a catkin workspace
 
@@ -44,6 +45,8 @@ def test_workspace(
     :type no_status: bool
     :param no_notify: suppresses system notifications
     :type no_notify: bool
+    :param continue_on_failure: do not stop testing other packages on error
+    :type continue_on_failure: bool
     """
     pre_start_time = time.time()
 
@@ -163,6 +166,7 @@ def test_workspace(
                 event_queue,
                 context.log_space_abs,
                 max_toplevel_jobs=n_jobs,
+                continue_on_failure=continue_on_failure,
                 continue_without_deps=False))
         except Exception:
             status_thread.keep_running = False
