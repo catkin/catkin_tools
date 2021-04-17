@@ -34,6 +34,7 @@ def test_workspace(
     no_status=False,
     no_notify=False,
     continue_on_failure=False,
+    summarize_build=False,
 ):
     """Tests a catkin workspace
 
@@ -53,6 +54,8 @@ def test_workspace(
     :type no_notify: bool
     :param continue_on_failure: do not stop testing other packages on error
     :type continue_on_failure: bool
+    :param summarize_build: summarizes the build at the end
+    :type summarize_build: bool
     """
     pre_start_time = time.time()
 
@@ -145,7 +148,7 @@ def test_workspace(
             ['package', 'packages'],
             jobs,
             n_jobs,
-            [pkg.name for _, pkg in context.packages],
+            [pkg.name for path, pkg in packages_to_test],
             [p for p in context.whitelist],
             [p for p in context.blacklist],
             event_queue,
@@ -155,6 +158,7 @@ def test_workspace(
             show_buffered_stderr=not interleave_output,
             show_live_stdout=interleave_output,
             show_live_stderr=interleave_output,
+            show_full_summary=summarize_build,
             show_stage_events=not quiet,
             pre_start_time=pre_start_time,
         )

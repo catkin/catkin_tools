@@ -64,6 +64,8 @@ packages in a catkin workspace.\
         help='Prevents ordering of command output when multiple commands are running at the same time.')
     add('--no-status', action='store_true', default=False,
         help='Suppresses status line, useful in situations where carriage return is not properly supported.')
+    add('--summarize', '--summary', '-s', action='store_true', default=None,
+        help='Adds a summary to the end of the log')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system pop-up notification.')
 
@@ -131,4 +133,5 @@ def main(opts):
         no_status=opts.no_status,
         no_notify=opts.no_notify,
         continue_on_failure=opts.continue_on_failure,
+        summarize_build=opts.summarize,
     )
