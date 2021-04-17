@@ -42,7 +42,7 @@ jobs:
       - name: Test catkin_tools
         run: |
           source /tmp/catkin_source/build/devel/setup.bash
-          nosetests -s
+          nosetests -s tests
       - name: Build documentation
         run: |
           pushd docs
