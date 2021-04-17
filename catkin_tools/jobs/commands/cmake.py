@@ -189,18 +189,24 @@ class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
         ]
 
         self.filters = [(re.compile(p), r) for (p, r) in filters]
+        self.progress = '0'
 
     def on_stdout_received(self, data):
         # Parse CMake Make completion progress
         progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
+        # CMake also has output 'Scanning dependencies of target...', filter them
+        scanning_dependencies_matches = re.search(r'Scanning dependencies of target ', self._decode(data))
         if progress_matches:
+            self.progress = str(progress_matches.groups()[0])
             self.event_queue.put(ExecutionEvent(
                 'STAGE_PROGRESS',
                 job_id=self.job_id,
                 stage_label=self.stage_label,
-                percent=str(progress_matches.groups()[0])))
-        else:
-            # Write to stdout
+                percent=self.progress))
+        elif scanning_dependencies_matches:
+            pass
+        elif self.progress == '100':
+            # Only when make is finished, write to stdout
             colored = self.colorize_run_tests(data)
             super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(colored.encode())
 
