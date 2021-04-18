@@ -148,7 +148,7 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
                 raise TypeError("Bad Job Stage: {}".format(stage))
 
             # Set whether this stage succeeded
-            stage_succeeded = (retcode == 0)
+            stage_succeeded = (retcode in stage.success_retcodes)
 
             # Update success tracker from this stage
             all_stages_succeeded = all_stages_succeeded and stage_succeeded
@@ -165,6 +165,10 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
                 logfile_filename=logger.unique_logfile_name,
                 repro=stage.get_reproduction_cmd(verb, job.jid),
                 retcode=retcode))
+
+            # Early termination of the whole job
+            if retcode == stage.early_termination_retcode:
+                break
 
             # Close logger
             logger.close()

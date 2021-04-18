@@ -432,6 +432,17 @@ def create_cmake_test_job(
         verbose=False,
     ))
 
+    # Check if the test target exists
+    # make -q test returns 2 if the test target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', 'test'],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
     # Make command
     stages.append(CommandStage(
         'make',

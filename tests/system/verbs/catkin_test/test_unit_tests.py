@@ -57,3 +57,15 @@ def test_cmake_failure():
     with redirected_stdio() as (out, err):
         assert catkin_success(['build', 'test_err_pkg', '--no-notify', '--no-status'])
         assert catkin_failure(['test', 'test_err_pkg', '--no-notify', '--no-status'])
+
+
+@in_temporary_directory
+def test_skip_missing_test():
+    """Test to skip packages without tests"""
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'cmake_pkgs', 'cmake_pkg'), source_space)
+
+    with redirected_stdio() as (out, err):
+        assert catkin_success(['build', 'cmake_pkg', '--no-notify', '--no-status'])
+        assert catkin_success(['test', '--no-notify', '--no-status'])
