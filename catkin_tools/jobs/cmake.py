@@ -27,7 +27,6 @@ from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
-from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
@@ -37,6 +36,7 @@ from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
 
+from catkin_tools.execution.io import IOBufferProtocol
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
@@ -437,7 +437,7 @@ def create_cmake_test_job(
         'make',
         [MAKE_EXEC, 'test'],
         cwd=build_space,
-        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
+        logger_factory=IOBufferProtocol.factory,
     ))
 
     return Job(
