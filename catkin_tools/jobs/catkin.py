@@ -583,6 +583,7 @@ def create_catkin_test_job(
     context,
     package,
     package_path,
+    test_target,
 ):
     """Generate a job that tests a package"""
 
@@ -606,10 +607,21 @@ def create_catkin_test_job(
         verbose=False,
     ))
 
+    # Check if the test target exists
+    # make -q target_name returns 2 if the target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', test_target],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
     # Make command
     stages.append(CommandStage(
         'make',
-        [MAKE_EXEC, 'run_tests'],
+        [MAKE_EXEC, test_target],
         cwd=build_space,
         logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
     ))

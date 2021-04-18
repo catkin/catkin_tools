@@ -35,6 +35,8 @@ def test_workspace(
     no_notify=False,
     continue_on_failure=False,
     summarize_build=False,
+    catkin_test_target='run_tests',
+    cmake_test_target='test',
 ):
     """Tests a catkin workspace
 
@@ -56,6 +58,10 @@ def test_workspace(
     :type continue_on_failure: bool
     :param summarize_build: summarizes the build at the end
     :type summarize_build: bool
+    :param catkin_test_target: make target for tests in catkin packages
+    :type catkin_test_target: str
+    :param cmake_test_target: make target for tests in cmake packages
+    :type cmake_test_target: str
     """
     pre_start_time = time.time()
 
@@ -140,6 +146,11 @@ def test_workspace(
 
         # Create the job based on the build type
         build_type = pkg.get_build_type()
+
+        if build_type == 'catkin':
+            test_job_kwargs['test_target'] = catkin_test_target
+        elif build_type == 'cmake':
+            test_job_kwargs['test_target'] = cmake_test_target
 
         if build_type in test_job_creators:
             jobs.append(test_job_creators[build_type](**test_job_kwargs))

@@ -69,3 +69,18 @@ def test_skip_missing_test():
     with redirected_stdio() as (out, err):
         assert catkin_success(['build', 'cmake_pkg', '--no-notify', '--no-status'])
         assert catkin_success(['test', '--no-notify', '--no-status'])
+
+
+@in_temporary_directory
+def test_other_target():
+    """Test with a manually specified target"""
+    cwd = os.getcwd()
+    source_space = os.path.join(cwd, 'src')
+    shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'python_tests_targets'), source_space)
+
+    with redirected_stdio() as (out, err):
+        assert catkin_success(['build', 'python_tests_targets', '--no-notify', '--no-status'])
+        assert catkin_success(['test', '--test-target', 'run_tests_python_tests_targets_nosetests_test_good.py',
+                               '--no-notify', '--no-status'])
+        assert catkin_failure(['test', '--test-target', 'run_tests_python_tests_targets_nosetests_test_bad.py',
+                               '--no-notify', '--no-status'])

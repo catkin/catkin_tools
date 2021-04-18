@@ -55,6 +55,10 @@ packages in a catkin workspace.\
     add = config_group.add_argument
     add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None, type=int,
         help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+    add('-t', '--test-target', metavar='TARGET', default=None, type=str,
+        help='Make target to run for tests (default is "run_tests" for catkin and "test" for cmake)')
+    add('--catkin-test-target', metavar='TARGET', default=None, type=str,
+        help='Make target to run for tests for catkin packages, overwrites --test-target (default is "run_tests")')
 
     interface_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = interface_group.add_argument
@@ -124,6 +128,15 @@ def main(opts):
     if opts.verbose and 'VERBOSE' not in os.environ:
         os.environ['VERBOSE'] = '1'
 
+    # Get test targets
+    catkin_test_target = 'run_tests'
+    cmake_test_target = 'test'
+    if opts.test_target:
+        catkin_test_target = opts.test_target
+        cmake_test_target = opts.test_target
+    if opts.catkin_test_target:
+        catkin_test_target = opts.catkin_test_target
+
     return test_workspace(
         ctx,
         packages=opts.packages,
@@ -134,4 +147,6 @@ def main(opts):
         no_notify=opts.no_notify,
         continue_on_failure=opts.continue_on_failure,
         summarize_build=opts.summarize,
+        catkin_test_target=catkin_test_target,
+        cmake_test_target=cmake_test_target,
     )
