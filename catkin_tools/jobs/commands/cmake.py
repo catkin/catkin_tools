@@ -70,8 +70,8 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             (r'CMake Error at (.+):(.+)', '@{rf}@!CMake Error@| at {}:{}', self.abspath),
             (r'CMake Warning at (.+):(.+)', '@{yf}@!CMake Warning@| at {}:{}', self.abspath),
             (r'CMake Warning (dev) at (.+):(.+)', '@{yf}@!CMake Warning (dev)@| at {}:{}', self.abspath),
-            (r'(?i)(warning.*)', '@(yf){}@|', None),
-            (r'(?i)ERROR:(.*)', '@!@(rf)ERROR:@|{}@|', None),
+            (r'(?i)(warning.*)', '@{yf}{}@|', None),
+            (r'(?i)ERROR:(.*)', '@!@{rf}ERROR:@|{}@|', None),
             (r'Call Stack \(most recent call first\):(.*)', '@{cf}Call Stack (most recent call first):@|{}', None),
         ]
 
