@@ -584,6 +584,7 @@ def create_catkin_test_job(
     package,
     package_path,
     test_target,
+    verbose,
 ):
     """Generate a job that tests a package"""
 
@@ -623,7 +624,7 @@ def create_catkin_test_job(
         'make',
         [MAKE_EXEC, test_target],
         cwd=build_space,
-        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory,
+        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory_factory(verbose),
     ))
 
     # catkin_test_results

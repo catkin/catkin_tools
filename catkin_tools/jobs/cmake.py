@@ -410,7 +410,8 @@ def create_cmake_test_job(
     context,
     package,
     package_path,
-    test_target
+    test_target,
+    verbose,
 ):
     """Generate a job to test a cmake package"""
     # Package build space path

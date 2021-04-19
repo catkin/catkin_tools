@@ -174,7 +174,7 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
 
 class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
     """An IOBufferProtocol which parses the output of `make run_tests`."""
-    def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs):
         super(CMakeMakeRunTestsIOBufferProtocol, self).__init__(
             label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
 
@@ -190,6 +190,7 @@ class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
 
         self.filters = [(re.compile(p), r) for (p, r) in filters]
         self.progress = '0'
+        self.verbose = verbose
 
     def on_stdout_received(self, data):
         # Parse CMake Make completion progress
@@ -203,10 +204,11 @@ class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
                 job_id=self.job_id,
                 stage_label=self.stage_label,
                 percent=self.progress))
-        elif scanning_dependencies_matches:
-            pass
-        elif self.progress == '100':
-            # Only when make is finished, write to stdout
+            super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(data)
+        elif self.progress == '100' or self.verbose:
+            # Only when make is finished or we are verbose, write to stdout
+            if scanning_dependencies_matches and not self.verbose:
+                return
             colored = self.colorize_run_tests(data)
             super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(colored.encode())
 
@@ -217,6 +219,17 @@ class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
                 lines = [fmt(r).format(line) for line in cline.splitlines()]
                 cline = '\n'.join(lines)
         return cline + '\n'
+
+    @classmethod
+    def factory_factory(cls, verbose):
+        """Factory factory for constructing protocols that know the verbosity."""
+        def factory(label, job_id, stage_label, event_queue, log_path):
+            # factory is called by caktin_tools executor
+            def init_proxy(*args, **kwargs):
+                # init_proxy is called by asyncio
+                return cls(label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs)
+            return init_proxy
+        return factory
 
 
 def get_installed_files(path):

@@ -142,7 +142,8 @@ def test_workspace(
         test_job_kwargs = dict(
             context=context,
             package=pkg,
-            package_path=pkg_path)
+            package_path=pkg_path,
+            verbose=not quiet)
 
         # Create the job based on the build type
         build_type = pkg.get_build_type()
