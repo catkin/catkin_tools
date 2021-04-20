@@ -161,8 +161,10 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
 
     def on_stdout_received(self, data):
         super(CMakeMakeIOBufferProtocol, self).on_stdout_received(data)
+        self.send_progress(data)
 
-        # Parse CMake Make completion progress
+    def send_progress(self, data):
+        """Parse CMake Make completion progress"""
         progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
         if progress_matches is not None:
             self.event_queue.put(ExecutionEvent(
@@ -172,7 +174,7 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
                 percent=str(progress_matches.groups()[0])))
 
 
-class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
+class CMakeMakeRunTestsIOBufferProtocol(CMakeMakeIOBufferProtocol):
     """An IOBufferProtocol which parses the output of `make run_tests`."""
     def __init__(self, label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs):
         super(CMakeMakeRunTestsIOBufferProtocol, self).__init__(
@@ -182,38 +184,28 @@ class CMakeMakeRunTestsIOBufferProtocol(IOBufferProtocol):
         # Each is a 2-tuple:
         #  - regular expression
         #  - output formatting line
-        filters = [
-            (r'^-- run_tests.py:', '@!@{kf}{}@|'),
-            (r'^Removing test result files from ', '@!@{kf}{}@|'),
-            (r'^- removing ', '@!@{kf}{}@|'),
+        self.filters = [
+            (re.compile(r'^-- run_tests.py:'), '@!@{kf}{}@|'),
         ]
 
-        self.filters = [(re.compile(p), r) for (p, r) in filters]
-        self.progress = '0'
+        self.in_test_output = False
         self.verbose = verbose
 
     def on_stdout_received(self, data):
-        # Parse CMake Make completion progress
-        progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
-        # CMake also has output 'Scanning dependencies of target...', filter them
-        scanning_dependencies_matches = re.search(r'Scanning dependencies of target ', self._decode(data))
-        if progress_matches:
-            self.progress = str(progress_matches.groups()[0])
-            self.event_queue.put(ExecutionEvent(
-                'STAGE_PROGRESS',
-                job_id=self.job_id,
-                stage_label=self.stage_label,
-                percent=self.progress))
-            super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(data)
-        elif self.progress == '100' or self.verbose:
-            # Only when make is finished or we are verbose, write to stdout
-            if scanning_dependencies_matches and not self.verbose:
-                return
+        self.send_progress(data)
+
+        data = self._decode(data)
+        if data.startswith('-- run_tests.py: execute command'):
+            self.in_test_output = True
+        elif data.startswith('-- run_tests.py: verify result'):
+            self.in_test_output = False
+
+        if self.verbose or self.in_test_output:
             colored = self.colorize_run_tests(data)
             super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(colored.encode())
 
     def colorize_run_tests(self, line):
-        cline = sanitize(line.decode()).rstrip()
+        cline = sanitize(line).rstrip()
         for p, r in self.filters:
             if p.match(cline):
                 lines = [fmt(r).format(line) for line in cline.splitlines()]
