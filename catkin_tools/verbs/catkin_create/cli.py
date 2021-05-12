@@ -26,7 +26,7 @@ def prepare_arguments(parser):
     # Workspace / profile args
     add_context_args(parser)
 
-    subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
+    subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help', required=True)
 
     parser_pkg = subparsers.add_parser('pkg', help='Create a new catkin package.')
 
