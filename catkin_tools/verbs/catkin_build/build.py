@@ -77,6 +77,11 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
 
     # Order the packages by topology
     ordered_packages = topological_order_packages(workspace_packages)
+    # Check if there is circular dependency
+    circular_deps = [pkg for path, pkg in ordered_packages if path is None]
+    if circular_deps:
+        sys.exit("[build] There is a circular dependencies for '{0}' in the workspace"
+                 " which need to be resolved".format(circular_deps[0]))
     # Set the packages in the workspace for the context
     context.packages = ordered_packages
     # Determine the packages which should be built
