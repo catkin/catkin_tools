@@ -406,3 +406,28 @@ def test_symlinked_workspace():
             with temporary_directory() as t:
                 os.symlink(wf.workspace, os.path.join(t, 'ws'))
                 assert catkin_success(BUILD + ['-w', os.path.join(t, 'ws')])
+
+
+def test_generate_setup_util():
+    """Test generation of setup utilities in a linked devel space"""
+    with redirected_stdio() as (out, err):
+        with workspace_factory() as wf:
+            wf.create_package('pkg')
+            wf.build()
+            # Test that the files are generated in a clean workspace
+            assert catkin_success(['config', '--install'])
+            assert catkin_success(BUILD)
+            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
+            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))
+
+            # Test that the files are regenerated after clean
+            assert catkin_success(['clean', '--yes'])
+            assert catkin_success(BUILD)
+            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
+            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))
+
+            # Test that the files are regenerated after cleaning the install space
+            assert catkin_success(['clean', '--yes', '--install'])
+            assert catkin_success(BUILD)
+            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
+            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))

@@ -391,6 +391,8 @@ def build_isolated_workspace(
     # Generate prebuild and prebuild clean jobs, if necessary
     prebuild_jobs = {}
     setup_util_present = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    if context.install:
+        setup_util_present &= os.path.exists(os.path.join(context.install_space_abs, '_setup_util.py'))
     catkin_present = 'catkin' in (packages_to_be_built_names + packages_to_be_built_deps_names)
     catkin_built = 'catkin' in built_packages
     prebuild_built = 'catkin_tools_prebuild' in built_packages
