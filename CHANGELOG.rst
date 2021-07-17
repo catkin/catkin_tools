@@ -2,6 +2,10 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2021-07-17)
+------------------
+* Fixes in the build system requiring a version increase
+
 0.7.0 (2021-03-01)
 ------------------
 * Fix placeholders for cmake warning and error coloring (#678)
