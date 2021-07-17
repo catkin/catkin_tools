@@ -11,11 +11,15 @@ from setuptools.command.install import install
 
 # Setup installation dependencies
 install_requires = [
-    'catkin-pkg > 0.2.9',
     'setuptools',
     'PyYAML',
     'osrf-pycommon > 0.1.1',
 ]
+
+# When building the deb, do not require catkin_pkg
+if 'DEB_BUILD' not in os.environ:
+    install_requires += ['catkin_pkg >= 0.3.0']
+
 
 # Figure out the resources that need to be installed
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -79,7 +83,7 @@ class PermissiveInstall(install):
 
 setup(
     name='catkin_tools',
-    version='0.5.0',
+    version='0.7.1',
     python_requires='>=3.5',
     packages=find_packages(exclude=['tests*', 'docs']),
     package_data={
