@@ -260,7 +260,14 @@ def main(opts):
         sys.exit(clr("[build] @!@{rf}Error:@| With --no-deps, you must specify packages to build."))
 
     # Load the context
-    ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
+    if opts.build_this or opts.start_with_this:
+        ctx = Context.load(opts.workspace, opts.profile, opts, append=True, strict=True)
+    else:
+        ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
+
+    # Handle no workspace
+    if ctx is None:
+        sys.exit(clr("[build] @!@{rf}Error:@| The current folder is not part of a catkin workspace."))
 
     # Initialize the build configuration
     make_args, makeflags, cli_flags, jobserver = configure_make_args(
