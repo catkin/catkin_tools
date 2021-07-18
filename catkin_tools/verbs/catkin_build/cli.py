@@ -203,7 +203,7 @@ def print_build_env(context, package_name):
         if pkg.name == package_name:
             environ = dict(os.environ)
             loadenv(None, None, environ, pkg, context)
-            print(format_env_dict(environ))
+            print(format_env_dict(environ, human_readable=sys.stdout.isatty()))
             return 0
     print('[build] Error: Package `{}` not in workspace.'.format(package_name),
           file=sys.stderr)

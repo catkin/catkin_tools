@@ -16,7 +16,6 @@ import os
 import subprocess
 import sys
 from hashlib import md5
-from osrf_pycommon.process_utils import execute_process
 from shlex import quote as cmd_quote
 
 from .common import parse_env_str
@@ -113,17 +112,11 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         )
 
     # Construct a command list which sources the setup file and prints the env to stdout
-    norc_flags = {
-        'bash': '--norc',
-        'zsh': '-f'
-    }
-
     command = ' '.join([
         cmd_quote(setup_file_path),
         shell_path,
-        norc_flags[shell_name],
         '-c',
-        '"typeset -px"'
+        '"env --null"',
     ])
 
     # Define some "blacklisted" environment variables which shouldn't be copied
@@ -132,17 +125,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
 
     try:
         # Run the command synchronously to get the resultspace environmnet
-        if 0:
-            # NOTE: This sometimes fails to get all output (returns prematurely)
-            lines = ''
-            for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
-                if type(ret) is bytes:
-                    ret = ret.decode()
-                if isinstance(ret, str):
-                    lines += ret
-        else:
-            p = subprocess.Popen(command, cwd=os.getcwd(), env=base_env, shell=True, stdout=subprocess.PIPE)
-            lines, _ = p.communicate()
+        lines = subprocess.check_output(command, cwd=os.getcwd(), env=base_env, shell=True)
 
         # Extract the environment variables
         env_dict = {

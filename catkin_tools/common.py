@@ -21,8 +21,6 @@ import shutil
 import sys
 from fnmatch import fnmatch
 from itertools import chain
-from shlex import split as cmd_split
-from shlex import quote as cmd_quote
 
 from catkin_pkg.packages import find_packages
 
@@ -572,11 +570,15 @@ def mkdir_p(path):
             raise
 
 
-def format_env_dict(environ):
+def format_env_dict(environ, human_readable=True):
     """Format an environment dict for printing to console similarly to `typeset` builtin."""
 
-    return '\n'.join([
-        'typeset -x {}={}'.format(k, cmd_quote(v))
+    if human_readable:
+        separator = '\n'
+    else:
+        separator = '\x00'
+    return separator.join([
+        '{}={}'.format(k, v)
         for k, v in environ.items()
     ])
 
@@ -586,18 +588,16 @@ def parse_env_str(environ_str):
 
     environ_str must be encoded in utf-8
     """
-
-    try:
-        split_envs = [e.split('=', 1) for e in cmd_split(environ_str.decode())]
-        return {
-            e[0]: e[1] for e
-            in split_envs
-            if len(e) == 2
-        }
-    except ValueError:
-        print('WARNING: Could not parse env string: `{}`'.format(environ_str),
-              file=sys.stderr)
-        raise
+    variables = environ_str.decode().rstrip('\x00').split('\x00')
+    environment = {}
+    for v in variables:
+        try:
+            key, value = v.split('=', 1)
+            environment[key] = value
+        except ValueError:
+            print('WARNING: Could not parse env string: `{}`'.format(v),
+                  file=sys.stderr)
+    return environment
 
 
 def expand_glob_package(pattern, all_workspace_packages):
