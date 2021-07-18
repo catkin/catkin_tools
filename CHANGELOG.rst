@@ -2,6 +2,11 @@
 Changelog for package catkin_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Upcoming
+--------
+
+* Add possibility to clean individual package with isolated devel space (#683)
+
 0.7.1 (2021-07-17)
 ------------------
 * Fixes in the build system requiring a version increase
