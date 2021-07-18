@@ -85,6 +85,13 @@ def test_workspace(
 
     # Get list of packages to test
     ordered_packages = topological_order_packages(workspace_packages)
+
+    # Check if topological_order_packages determined any circular dependencies, if so print an error and fail.
+    # If this is the case, the last entry of ordered packages is a tuple that starts with nil.
+    if ordered_packages and ordered_packages[-1][0] is None:
+        guilty_packages = ", ".join(ordered_packages[-1][1:])
+        sys.exit("[test] Circular dependency detected in the following packages: {}".format(guilty_packages))
+
     workspace_packages = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     packages_to_test = []
     if packages:
