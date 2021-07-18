@@ -1,4 +1,4 @@
-# catkin_tools [![Build Status](https://travis-ci.org/catkin/catkin_tools.svg?branch=master)](https://travis-ci.org/catkin/catkin_tools)
+# catkin_tools [![Build Status](https://github.com/catkin/catkin_tools/actions/workflows/workflow.yml/badge.svg)](https://github.com/catkin/catkin_tools/actions/workflows/workflow.yml)
 
 Command line tools for working with [catkin](https://github.com/ros/catkin)
 
