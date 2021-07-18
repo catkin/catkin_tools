@@ -6,6 +6,8 @@ Upcoming
 --------
 
 * Add possibility to clean individual package with isolated devel space (#683)
+* Fix regeneration of setup file when the install space was cleaned (#682)
+* Fix workspace generation with catkin build --this and --start-with-this (#685)
 
 0.7.1 (2021-07-17)
 ------------------
