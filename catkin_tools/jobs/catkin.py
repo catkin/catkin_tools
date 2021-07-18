@@ -622,7 +622,7 @@ def create_catkin_test_job(
     # Make command
     stages.append(CommandStage(
         'make',
-        [MAKE_EXEC, test_target],
+        [MAKE_EXEC, test_target] + context.make_args,
         cwd=build_space,
         logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory_factory(verbose),
     ))

@@ -59,6 +59,9 @@ packages in a catkin workspace.\
         help='Make target to run for tests (default is "run_tests" for catkin and "test" for cmake)')
     add('--catkin-test-target', metavar='TARGET', default=None, type=str,
         help='Make target to run for tests for catkin packages, overwrites --test-target (default is "run_tests")')
+    add('--make-args', metavar='ARG', dest='make_args', nargs='+', required=False, type=str, default=None,
+        help='Arbitrary arguments which are passed to make. '
+             'It collects all of following arguments until a "--" is read.')
 
     interface_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = interface_group.add_argument

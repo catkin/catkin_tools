@@ -1,8 +1,8 @@
 usage: catkin test [-h] [--workspace WORKSPACE] [--profile PROFILE] [--this]
                    [--continue-on-failure] [-p PACKAGE_JOBS] [-t TARGET]
-                   [--catkin-test-target TARGET] [--verbose]
-                   [--interleave-output] [--no-status] [--summarize]
-                   [--no-notify]
+                   [--catkin-test-target TARGET] [--make-args ARG [ARG ...]]
+                   [--verbose] [--interleave-output] [--no-status]
+                   [--summarize] [--no-notify]
                    [PKGNAME ...]
 
 Test one or more packages in a catkin workspace. This invokes `make run_tests`
@@ -39,6 +39,10 @@ Config:
   --catkin-test-target TARGET
                         Make target to run for tests for catkin packages,
                         overwrites --test-target (default is "run_tests")
+  --make-args ARG [ARG ...]
+                        Arbitrary arguments which are passed to make. It
+                        collects all of following arguments until a "--" is
+                        read.
 
 Interface:
   The behavior of the command-line interface.
