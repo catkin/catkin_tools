@@ -588,6 +588,8 @@ def create_catkin_test_job(
 ):
     """Generate a job that tests a package"""
 
+    # Package source space path
+    pkg_dir = os.path.join(context.source_space_abs, package_path)
     # Package build space path
     build_space = context.package_build_space(package)
     # Environment dictionary for the job, which will be built
@@ -606,6 +608,17 @@ def create_catkin_test_job(
         package=package,
         context=context,
         verbose=False,
+    ))
+
+    # Check buildsystem command
+    # The stdout is suppressed here instead of globally because for the actual tests,
+    # stdout contains important information, but for cmake it is only relevant when verbose
+    stages.append(CommandStage(
+        'check',
+        [MAKE_EXEC, 'cmake_check_build_system'],
+        cwd=build_space,
+        logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir, suppress_stdout=not verbose),
+        occupy_job=True
     ))
 
     # Check if the test target exists

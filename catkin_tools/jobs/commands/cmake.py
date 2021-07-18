@@ -50,9 +50,11 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         """Group filter that turns source-relative paths into absolute paths."""
         return (groups[0] if groups[0].startswith(os.sep) else os.path.join(self.source_path, groups[0]),) + groups[1:]
 
-    def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs):
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, suppress_stdout, *args,
+                 **kwargs):
         super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
         self.source_path = source_path
+        self.suppress_stdout = suppress_stdout
 
         # These are buffers for incomplete lines that we want to wait to parse
         # until we have received them completely
@@ -78,9 +80,10 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         self.filters = [(re.compile(p), r, f) for (p, r, f) in filters]
 
     def on_stdout_received(self, data):
-        data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
-        colored = self.color_lines(data_head)
-        super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
+        if not self.suppress_stdout:
+            data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
+            colored = self.color_lines(data_head)
+            super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
 
     def on_stderr_received(self, data):
         data_head, self.stderr_tail = split_to_last_line_break(self.stderr_tail + data)
@@ -116,13 +119,14 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         return encoded_data
 
     @classmethod
-    def factory_factory(cls, source_path):
+    def factory_factory(cls, source_path, suppress_stdout=False):
         """Factory factory for constructing protocols that know the source path for this CMake package."""
         def factory(label, job_id, stage_label, event_queue, log_path):
             # factory is called by caktin_tools executor
             def init_proxy(*args, **kwargs):
                 # init_proxy is called by asyncio
-                return cls(label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs)
+                return cls(label, job_id, stage_label, event_queue, log_path, source_path, suppress_stdout, *args,
+                           **kwargs)
             return init_proxy
         return factory
 
