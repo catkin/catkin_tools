@@ -26,7 +26,7 @@ Once you have added that repository, run these commands to install ``catkin_tool
 .. code-block:: bash
 
     $ sudo apt-get update
-    $ sudo apt-get install python-catkin-tools
+    $ sudo apt-get install python3-catkin-tools
 
 Installing on other platforms with pip
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,7 +35,7 @@ Simply install it with ``pip``:
 
 .. code-block:: bash
 
-    $ sudo pip install -U catkin_tools
+    $ sudo pip3 install -U catkin_tools
 
 Installing from source
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -51,13 +51,13 @@ Then install the dependencies with ``pip``:
 
 .. code-block:: bash
 
-    $ pip install -r requirements.txt --upgrade
+    $ pip3 install -r requirements.txt --upgrade
 
 Then install with the ``setup.py`` file:
 
 .. code-block:: bash
 
-    $ python setup.py install --record install_manifest.txt
+    $ python3 setup.py install --record install_manifest.txt
 
 .. note::
 
@@ -74,14 +74,14 @@ To setup ``catkin_tools`` for fast iteration during development, use the ``devel
 
 .. code-block:: bash
 
-    $ python setup.py develop
+    $ python3 setup.py develop
 
 Now the commands, like ``catkin``, will be in the system path and the local source files located in the ``catkin_tools`` folder will be on the ``PYTHONPATH``.
 When you are done with your development, undo this by running this command:
 
 .. code-block:: bash
 
-    $ python setup.py develop -u
+    $ python3 setup.py develop -u
 
 
 Uninstalling from Source
