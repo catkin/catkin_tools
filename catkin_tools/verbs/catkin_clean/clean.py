@@ -22,7 +22,6 @@ from queue import Queue
 
 
 try:
-    from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
@@ -38,6 +37,7 @@ from catkin_tools.execution.executor import run_until_complete
 from catkin_tools.common import expand_glob_package
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
+from catkin_tools.common import find_packages
 
 
 def determine_packages_to_be_cleaned(context, include_dependents, packages):
