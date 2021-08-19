@@ -26,7 +26,6 @@ import yaml
 try:
     from catkin_pkg.package import InvalidPackage
     from catkin_pkg.package import parse_package
-    from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
@@ -36,6 +35,7 @@ except ImportError as e:
 
 from catkin_tools.common import FakeLock
 from catkin_tools.common import expand_glob_package
+from catkin_tools.common import find_packages
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
