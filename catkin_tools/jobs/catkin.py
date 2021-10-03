@@ -23,10 +23,12 @@ from catkin_tools.common import mkdir_p
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
+from catkin_tools.execution.io import CatkinTestResultsIOBufferProtocol
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
@@ -577,11 +579,89 @@ def create_catkin_clean_job(
         stages=stages)
 
 
+def create_catkin_test_job(
+    context,
+    package,
+    package_path,
+    test_target,
+    verbose,
+):
+    """Generate a job that tests a package"""
+
+    # Package source space path
+    pkg_dir = os.path.join(context.source_space_abs, package_path)
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
+
+    # Create job stages
+    stages = []
+
+    # Load environment for job
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource=None,
+        job_env=job_env,
+        package=package,
+        context=context,
+        verbose=False,
+    ))
+
+    # Check buildsystem command
+    # The stdout is suppressed here instead of globally because for the actual tests,
+    # stdout contains important information, but for cmake it is only relevant when verbose
+    stages.append(CommandStage(
+        'check',
+        [MAKE_EXEC, 'cmake_check_build_system'],
+        cwd=build_space,
+        logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir, suppress_stdout=not verbose),
+        occupy_job=True
+    ))
+
+    # Check if the test target exists
+    # make -q target_name returns 2 if the target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', test_target],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
+    # Make command
+    stages.append(CommandStage(
+        'make',
+        [MAKE_EXEC, test_target] + context.make_args,
+        cwd=build_space,
+        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory_factory(verbose),
+    ))
+
+    # catkin_test_results
+    stages.append(CommandStage(
+        'results',
+        ['catkin_test_results'],
+        cwd=build_space,
+        logger_factory=CatkinTestResultsIOBufferProtocol.factory,
+    ))
+
+    return Job(
+        jid=package.name,
+        deps=[],
+        env=job_env,
+        stages=stages,
+    )
+
+
 description = dict(
     build_type='catkin',
     description="Builds a catkin package.",
     create_build_job=create_catkin_build_job,
-    create_clean_job=create_catkin_clean_job
+    create_clean_job=create_catkin_clean_job,
+    create_test_job=create_catkin_test_job,
 )
 
 

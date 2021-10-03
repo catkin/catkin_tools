@@ -36,6 +36,7 @@ from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
 
+from catkin_tools.execution.io import IOBufferProtocol
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
@@ -405,11 +406,67 @@ def create_cmake_clean_job(
         stages=stages)
 
 
+def create_cmake_test_job(
+    context,
+    package,
+    package_path,
+    test_target,
+    verbose,
+):
+    """Generate a job to test a cmake package"""
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
+
+    # Create job stages
+    stages = []
+
+    # Load environment for job
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource=None,
+        job_env=job_env,
+        package=package,
+        context=context,
+        verbose=False,
+    ))
+
+    # Check if the test target exists
+    # make -q target_name returns 2 if the target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', test_target],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
+    # Make command
+    stages.append(CommandStage(
+        'make',
+        [MAKE_EXEC, test_target] + context.make_args,
+        cwd=build_space,
+        logger_factory=IOBufferProtocol.factory,
+    ))
+
+    return Job(
+        jid=package.name,
+        deps=[],
+        env=job_env,
+        stages=stages,
+    )
+
+
 description = dict(
     build_type='cmake',
     description="Builds a plain CMake package.",
     create_build_job=create_cmake_build_job,
-    create_clean_job=create_cmake_clean_job
+    create_clean_job=create_cmake_clean_job,
+    create_test_job=create_cmake_test_job,
 )
 
 

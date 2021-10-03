@@ -15,3 +15,4 @@ catkin profile set -h > catkin_profile_set.txt
 catkin profile add -h > catkin_profile_add.txt
 catkin profile rename -h > catkin_profile_rename.txt
 catkin profile remove -h > catkin_profile_remove.txt
+catkin test -h > catkin_test.txt

@@ -205,6 +205,7 @@ _catkin_verbs_complete() {
     'list:List workspace components'
     'locate:Locate workspace components'
     'profile:Switch between configurations'
+    'test:Test packages'
   )
   _describe -t verbs 'catkin verb' verbs_array -V verbs && return 0
 }
@@ -468,6 +469,28 @@ _catkin_locate_complete() {
 }
 
 
+_catkin_test_complete() {
+  local test_opts
+
+  test_opts=(
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[The workspace to test]:workspace:_files'\
+    '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
+    {-v,--verbose}'[Print all output from test commands]'\
+    {-i,--interleave-output}"[Print output from test commands as it's generated]"\
+    '--this[Test the current package]'\
+    {-c,--continue-on-failure}"[Continue testing after failed tests]"\
+    {-p,--parallel-packages}"[Number of packages to build in parallel]:number"\
+    {-t,--test-target}"[make target to run for tests]:target"\
+    '--catkin-test-target[make target to run for tests in catkin packages]:target'\
+    '--no-status[Suppress status line]'\
+    {-s,--summarize}"[Add a summary at the end]"\
+    '*:package:_catkin_get_packages')
+
+  _arguments -C $test_opts && return 0
+}
+
+
 local curcontext="$curcontext" state line ret
 
 ret=1
@@ -579,6 +602,8 @@ case "$state" in
       (locate) _catkin_locate_complete && ret=0
         ;;
       (profile) _catkin_profile_complete && ret=0
+        ;;
+      (test) _catkin_test_complete && ret=0
         ;;
     esac
     ret=0

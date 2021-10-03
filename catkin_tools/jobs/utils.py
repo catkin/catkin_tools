@@ -101,7 +101,7 @@ def merge_envs(job_env, overlay_envs):
         job_env[key] = os.pathsep.join(reversed(new_values_list))
 
 
-def loadenv(logger, event_queue, job_env, package, context):
+def loadenv(logger, event_queue, job_env, package, context, verbose=True):
     # Get the paths to the env loaders
     env_loader_paths = get_env_loaders(package, context)
     # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
@@ -110,7 +110,7 @@ def loadenv(logger, event_queue, job_env, package, context):
 
     envs = []
     for env_loader_path in env_loader_paths:
-        if logger:
+        if logger and verbose:
             logger.out('Loading environment from: {}'.format(env_loader_path))
         envs.append(get_resultspace_environment(
             os.path.split(env_loader_path)[0],
