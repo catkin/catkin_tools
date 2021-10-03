@@ -15,6 +15,7 @@ import sys
 from catkin_pkg.package import InvalidPackage
 
 from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.argument_parsing import configure_make_args
 from catkin_tools.common import is_tty
 from catkin_tools.common import getcwd
 from catkin_tools.common import find_enclosing_package
@@ -120,6 +121,10 @@ def main(opts):
         except IOError as exc:
             sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
                          (ctx.extend_path, exc.message)))
+
+    # Extract make arguments
+    make_args, _, _, _ = configure_make_args(ctx.make_args, ctx.jobs_args, ctx.use_internal_make_jobserver)
+    ctx.make_args = make_args
 
     # Get parallel toplevel jobs
     try:

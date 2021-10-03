@@ -392,12 +392,12 @@ def argument_preprocessor(args):
     jobs_args = extract_jobs_flags(' '.join(args))
     if jobs_args:
         # Remove jobs flags from cli args if they're present
-        args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
+        args = [arg for arg in args if arg not in jobs_args]
     elif make_args is not None:
         jobs_args = extract_jobs_flags(' '.join(make_args))
         if jobs_args:
             # Remove jobs flags from cli args if they're present
-            make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
+            make_args = [arg for arg in make_args if arg not in jobs_args]
 
     extras = {
         'cmake_args': cmake_args,
