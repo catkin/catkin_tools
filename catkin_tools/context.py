@@ -379,7 +379,7 @@ class Context(object):
         if len(kwargs) > 0:
             print('Warning: Unhandled config context options: {}'.format(kwargs), file=sys.stderr)
 
-        self.destdir = os.environ['DESTDIR'] if 'DESTDIR' in os.environ else None
+        self.destdir = os.environ.get('DESTDIR', None)
 
         # Handle package whitelist/blacklist
         self.whitelist = whitelist or []
