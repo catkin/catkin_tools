@@ -576,8 +576,8 @@ class Context(object):
                 return clr(' @{bf}[unused]@|')
 
         install_layout = 'None'
-        if self.__install:
-            install_layout = 'merged' if not self.__isolate_install else 'isolated'
+        if self.install:
+            install_layout = 'merged' if not self.isolate_install else 'isolated'
 
         def quote(argument):
             # Distinguish in the printout if space separates two arguments or if we
@@ -604,7 +604,7 @@ class Context(object):
             'log_missing': existence_str(self.log_space_abs),
             'build_missing': existence_str(self.build_space_abs),
             'devel_missing': existence_str(self.devel_space_abs),
-            'install_missing': existence_str(self.install_space_abs, used=self.__install),
+            'install_missing': existence_str(self.install_space_abs, used=self.install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
             'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
             'blacklisted_packages': ' '.join(self.__blacklist or ['None']),
