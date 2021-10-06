@@ -90,7 +90,7 @@ class Context(object):
             if self.__locked:
                 raise RuntimeError("Setting of context members is not allowed while locked.")
             setattr(self, '__%s_space' % space, value)
-            setattr(self, '__%s_space_abs' % space, os.path.realpath(os.path.join(self.__workspace, value)))
+            setattr(self, '__%s_space_abs' % space, os.path.realpath(os.path.join(self.workspace, value)))
 
         def space_exists(self):
             """
@@ -597,17 +597,17 @@ class Context(object):
             'extend': extend_value,
             'install_layout': install_layout,
             'cmake_prefix_path': (self.cmake_prefix_path or ['Empty']),
-            'cmake_args': ' '.join([quote(a) for a in self.__cmake_args or ['None']]),
-            'make_args': ' '.join(self.__make_args + self.__jobs_args or ['None']),
-            'catkin_make_args': ', '.join(self.__catkin_make_args or ['None']),
+            'cmake_args': ' '.join([quote(a) for a in self.cmake_args or ['None']]),
+            'make_args': ' '.join(self.make_args + self.jobs_args or ['None']),
+            'catkin_make_args': ', '.join(self.catkin_make_args or ['None']),
             'source_missing': existence_str(self.source_space_abs),
             'log_missing': existence_str(self.log_space_abs),
             'build_missing': existence_str(self.build_space_abs),
             'devel_missing': existence_str(self.devel_space_abs),
             'install_missing': existence_str(self.install_space_abs, used=self.install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
-            'whitelisted_packages': ' '.join(self.__whitelist or ['None']),
-            'blacklisted_packages': ' '.join(self.__blacklist or ['None']),
+            'whitelisted_packages': ' '.join(self.whitelist or ['None']),
+            'blacklisted_packages': ' '.join(self.blacklist or ['None']),
         }
         subs.update(**self.__dict__)
         # Get the width of the shell
