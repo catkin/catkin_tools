@@ -600,15 +600,18 @@ class Context(object):
             'cmake_args': ' '.join([quote(a) for a in self.cmake_args or ['None']]),
             'make_args': ' '.join(self.make_args + self.jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.catkin_make_args or ['None']),
-            'source_missing': existence_str(self.source_space_abs),
-            'log_missing': existence_str(self.log_space_abs),
-            'build_missing': existence_str(self.build_space_abs),
-            'devel_missing': existence_str(self.devel_space_abs),
-            'install_missing': existence_str(self.install_space_abs, used=self.install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
             'whitelisted_packages': ' '.join(self.whitelist or ['None']),
             'blacklisted_packages': ' '.join(self.blacklist or ['None']),
         }
+        for space, space_dict in sorted(Context.SPACES.items()):
+            key_missing = '{}_missing'.format(space)
+            space_abs = getattr(self, '{}_space_abs'.format(space))
+            if hasattr(self, space):
+                subs[key_missing] = existence_str(space_abs, used=getattr(self, space))
+            else:
+                subs[key_missing] = existence_str(space_abs)
+
         subs.update(**self.__dict__)
         # Get the width of the shell
         width = terminal_width()
