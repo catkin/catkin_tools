@@ -102,7 +102,7 @@ setup(
     author_email='william@osrfoundation.org',
     maintainer='William Woodall',
     maintainer_email='william@osrfoundation.org',
-    url='http://catkin-tools.readthedocs.org/',
+    url='https://catkin-tools.readthedocs.org/',
     keywords=['catkin'],
     classifiers=[
         'Environment :: Console',

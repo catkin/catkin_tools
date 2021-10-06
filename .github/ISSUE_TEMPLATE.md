@@ -13,10 +13,10 @@
 ### Build / Run Issue
 
 [//]: # (If you are migrating from catkin_make, please follow the migration guide:)
-[//]: # (http://catkin-tools.readthedocs.org/en/latest/migration.html)
+[//]: # (https://catkin-tools.readthedocs.org/en/latest/migration.html)
 
 [//]: # (Please also check for solved issues here:)
-[//]: # (http://catkin-tools.readthedocs.org/en/latest/troubleshooting.html)
+[//]: # (https://catkin-tools.readthedocs.org/en/latest/troubleshooting.html)
 
 [//]: # (And check for open issues here:)
 [//]: # (https://github.com/catkin/catkin_tools/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
