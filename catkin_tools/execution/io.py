@@ -129,13 +129,15 @@ class IOBufferContainer(object):
         except UnicodeDecodeError:
             return "stderr_log: some output cannot be displayed.\n"
 
-    def _encode(self, data):
+    @staticmethod
+    def _encode(data):
         """Encode a Python str into bytes.
         :type data: str
         """
         return _encode(data)
 
-    def _decode(self, data):
+    @staticmethod
+    def _decode(data):
         """Decode bytes into Python str.
         :type data: bytes
         """
@@ -225,7 +227,8 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
         self.intermediate_stdout_buffer = b''
         self.intermediate_stderr_buffer = b''
 
-    def _split(self, data):
+    @staticmethod
+    def _split(data):
         try:
             last_break = data.rindex(b'\n') + 1
             return data[0:last_break], data[last_break:]
