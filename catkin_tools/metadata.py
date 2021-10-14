@@ -396,7 +396,7 @@ def get_metadata(workspace_path, profile, verb):
         return yaml.safe_load(metadata_file)
 
 
-def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, merge=True):
+def update_metadata(workspace_path, profile, verb, new_data=None, no_init=False, merge=True):
     """Update the catkin_tools verb metadata for a given profile.
 
     :param workspace_path: The path to the root of a catkin workspace
@@ -408,6 +408,8 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
     :param new_data: A python dictionary or array to write to the metadata file
     :type new_data: dict
     """
+    if new_data is None:
+        new_data = {}
 
     migrate_metadata(workspace_path)
 
@@ -451,7 +453,7 @@ def get_active_metadata(workspace_path, verb):
     get_metadata(workspace_path, active_profile, verb)
 
 
-def update_active_metadata(workspace_path, verb, new_data={}):
+def update_active_metadata(workspace_path, verb, new_data=None):
     """Update the catkin_tools verb metadata for the active profile.
 
     :param workspace_path: The path to the root of a catkin workspace
@@ -461,6 +463,8 @@ def update_active_metadata(workspace_path, verb, new_data={}):
     :param new_data: A python dictionary or array to write to the metadata file
     :type new_data: dict
     """
+    if new_data is None:
+        new_data = {}
 
     active_profile = get_active_profile(workspace_path)
     update_metadata(workspace_path, active_profile, verb, new_data)
