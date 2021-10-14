@@ -463,4 +463,4 @@ def update_active_metadata(workspace_path, verb, new_data={}):
     """
 
     active_profile = get_active_profile(workspace_path)
-    update_active_metadata(workspace_path, active_profile, verb, new_data)
+    update_metadata(workspace_path, active_profile, verb, new_data)
