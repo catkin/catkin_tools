@@ -149,9 +149,9 @@ def rmfile(logger, event_queue, path):
     return 0
 
 
-def rmdirs(logger, event_queue, paths):
+def rmdirs(logger, event_queue, paths, dry_run):
     """FunctionStage functor that removes a directory tree."""
-    return rmfiles(logger, event_queue, paths, remove_empty=False)
+    return rmfiles(logger, event_queue, paths, dry_run, remove_empty=False)
 
 
 def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root='/'):
