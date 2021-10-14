@@ -202,7 +202,7 @@ def test_workspace(
         # Block while running N jobs asynchronously
         try:
             all_succeeded = run_until_complete(execute_jobs(
-                'build',
+                'test',
                 jobs,
                 locks,
                 event_queue,

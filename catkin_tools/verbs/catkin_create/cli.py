@@ -55,7 +55,7 @@ def prepare_arguments(parser):
     #     default='catkin',
     #     help='The buildtool to use to build the package. (default: catkin)')
 
-    rosdistro_name = os.environ['ROS_DISTRO'] if 'ROS_DISTRO' in os.environ else None
+    rosdistro_name = os.environ.get('ROS_DISTRO', None)
     add('--rosdistro', required=rosdistro_name is None, default=rosdistro_name,
         help='The ROS distro (default: environment variable ROS_DISTRO if defined)')
 

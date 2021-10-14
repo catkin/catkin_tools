@@ -138,7 +138,7 @@ the --save-config argument. To see the current config, use the
     add('--no-summarize', '--no-summary', action='store_false', dest='summarize',
         help='Explicitly disable the end of build summary')
     add('--override-build-tool-check', action='store_true', default=False,
-        help='use to override failure due to using differnt build tools on the same workspace.')
+        help='use to override failure due to using different build tools on the same workspace.')
 
     # Deprecated args now handled by main catkin command
     add('--no-color', action='store_true', help=argparse.SUPPRESS)
