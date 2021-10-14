@@ -176,7 +176,7 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
             lock.release()
 
     # Finally, return whether all stages of the job completed
-    return (job.jid, all_stages_succeeded)
+    return job.jid, all_stages_succeeded
 
 
 async def execute_jobs(

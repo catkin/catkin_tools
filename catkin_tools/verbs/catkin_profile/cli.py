@@ -128,11 +128,11 @@ def main(opts):
         elif opts.subcommand == 'add':
             if opts.name in profiles:
                 if opts.force:
-                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}%s@|' % (opts.name)))
+                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}%s@|' % opts.name))
                 else:
                     print(clr('catkin profile: error: A profile named '
                               '@{cf}%s@| already exists. Use `--force` to '
-                              'overwrite.' % (opts.name)))
+                              'overwrite.' % opts.name))
                     return 1
             if opts.copy_active:
                 ctx.profile = opts.name
@@ -157,7 +157,7 @@ def main(opts):
             else:
                 new_ctx = Context(workspace=ctx.workspace, profile=opts.name)
                 Context.save(new_ctx)
-                print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % (opts.name)))
+                print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % opts.name))
 
             profiles = get_profile_names(ctx.workspace)
             active_profile = get_active_profile(ctx.workspace)
@@ -183,11 +183,11 @@ def main(opts):
                 if opts.new_name in profiles:
                     if opts.force:
                         print(clr('[profile] @{yf}Warning:@| Overwriting '
-                                  'existing profile named @{cf}%s@|' % (opts.new_name)))
+                                  'existing profile named @{cf}%s@|' % opts.new_name))
                     else:
                         print(clr('catkin profile: error: A profile named '
                                   '@{cf}%s@| already exists. Use `--force` to '
-                                  'overwrite.' % (opts.new_name)))
+                                  'overwrite.' % opts.new_name))
                         return 1
                 ctx.profile = opts.new_name
                 Context.save(ctx)

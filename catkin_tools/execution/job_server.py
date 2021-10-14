@@ -83,7 +83,7 @@ def test_gnu_make_support_common(makefile_content):
     ret = subprocess.call(['make', '-f', makefile, '-j2'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     os.unlink(makefile)
-    return (ret == 0)
+    return ret == 0
 
 
 def test_gnu_make_support_old():

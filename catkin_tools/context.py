@@ -637,7 +637,7 @@ class Context(object):
 
         return (divider + "\n" +
                 ("\n" + divider + "\n").join(groups) + "\n" + divider + "\n" +
-                ((("\n\n").join(notes) + "\n" + divider) if notes else '') +
+                (("\n\n".join(notes) + "\n" + divider) if notes else '') +
                 warnings_joined)
 
     @property

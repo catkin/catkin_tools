@@ -64,7 +64,7 @@ def prepare_arguments(parser):
     add('--maintainers', metavar=('NAME', 'EMAIL'), dest='maintainers', nargs='+',
         required=False, type=str, default=None,
         help='Set the default maintainers of created packages')
-    add('--licenses', metavar=('LICENSE'), dest='licenses', nargs='+', required=False, type=str, default=None,
+    add('--licenses', metavar='LICENSE', dest='licenses', nargs='+', required=False, type=str, default=None,
         help='Set the default licenses of created packages')
 
     lists_group = parser.add_argument_group(

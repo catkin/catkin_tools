@@ -40,7 +40,7 @@ def main(opts):
 
         # Initialize the workspace if necessary
         if ctx:
-            print('Catkin workspace `%s` is already initialized. No action taken.' % (ctx.workspace))
+            print('Catkin workspace `%s` is already initialized. No action taken.' % ctx.workspace)
         else:
             print('Initializing catkin workspace in `%s`.' % (opts.workspace or os.getcwd()))
             # initialize the workspace

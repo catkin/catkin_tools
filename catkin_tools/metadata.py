@@ -99,7 +99,7 @@ def get_paths(workspace_path, profile_name, verb=None):
     # Get the metadata for this verb
     metadata_file_path = os.path.join(metadata_path, '%s.yaml' % verb) if profile_name and verb else None
 
-    return (metadata_path, metadata_file_path)
+    return metadata_path, metadata_file_path
 
 
 def find_enclosing_workspace(search_start_path):
@@ -210,7 +210,7 @@ def init_metadata_root(workspace_path, reset=False):
     if not os.path.exists(workspace_path):
         raise IOError(
             "Can't initialize Catkin workspace in path %s because it does "
-            "not exist." % (workspace_path))
+            "not exist." % workspace_path)
 
     # Check if the desired workspace is enclosed in another workspace
     marked_workspace = find_enclosing_workspace(workspace_path)
@@ -228,7 +228,7 @@ def init_metadata_root(workspace_path, reset=False):
     if os.path.exists(metadata_root_path):
         # Reset the directory if requested
         if reset:
-            print("Deleting existing metadata from catkin_tools metadata directory: %s" % (metadata_root_path))
+            print("Deleting existing metadata from catkin_tools metadata directory: %s" % metadata_root_path)
             shutil.rmtree(metadata_root_path)
             os.mkdir(metadata_root_path)
     else:
@@ -264,7 +264,7 @@ def init_profile(workspace_path, profile_name, reset=False):
     if os.path.exists(profile_path):
         # Reset the directory if requested
         if reset:
-            print("Deleting existing profile from catkin_tools profile directory: %s" % (profile_path))
+            print("Deleting existing profile from catkin_tools profile directory: %s" % profile_path)
             shutil.rmtree(profile_path)
             os.mkdir(profile_path)
     else:
@@ -430,7 +430,7 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
         with open(metadata_file_path, 'w') as metadata_file:
             yaml.dump(data, metadata_file, default_flow_style=False)
     except PermissionError:
-        print("Could not write to metadata file '%s'!" % (metadata_file_path))
+        print("Could not write to metadata file '%s'!" % metadata_file_path)
 
     return data
 
