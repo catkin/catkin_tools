@@ -322,6 +322,8 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     :param make_args: arguments to be passed to GNU Make
     :type make_args: list
+    :param jobs_args: job arguments overriding make flags
+    :type jobs_args: list
     :param use_internal_make_jobserver: if true, use the internal jobserver
     :type make_args: bool
     :rtype: tuple (final make_args, using makeflags, using cliflags, using jobserver)

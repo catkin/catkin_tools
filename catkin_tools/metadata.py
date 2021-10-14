@@ -254,6 +254,8 @@ def init_profile(workspace_path, profile_name, reset=False):
     :type workspace_path: str
     :param profile_name: The catkin_tools metadata profile name to initialize
     :type profile_name: str
+    :param reset: Delete profile with the same name if existing
+    :type reset: bool
     """
 
     init_metadata_root(workspace_path)
@@ -407,6 +409,10 @@ def update_metadata(workspace_path, profile, verb, new_data=None, no_init=False,
     :type verb: str
     :param new_data: A python dictionary or array to write to the metadata file
     :type new_data: dict
+    :param no_init: Do not init metadata root and/or profile folder (default: False)
+    :type no_init: bool
+    :param merge: Merge new data with current data or ignore current data (default: True)
+    :type merge: bool
     """
     if new_data is None:
         new_data = {}

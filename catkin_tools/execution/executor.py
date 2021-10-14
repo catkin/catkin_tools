@@ -40,9 +40,12 @@ def split(values, cond):
 async def async_job(verb, job, threadpool, locks, event_queue, log_path):
     """Run a sequence of Stages from a Job and collect their output.
 
+    :param verb: Current command verb
     :param job: A Job instance
-    :threadpool: A thread pool executor for blocking stages
-    :event_queue: A queue for asynchronous events
+    :param threadpool: A thread pool executor for blocking stages
+    :param locks: Dict containing the locks to acquire
+    :param event_queue: A queue for asynchronous events
+    :param log_path: The path in which logfiles can be written
     """
 
     # Initialize success flag
@@ -190,7 +193,9 @@ async def execute_jobs(
         continue_without_deps=False):
     """Process a number of jobs asynchronously.
 
+    :param verb: Current command verb
     :param jobs: A list of topologically-sorted Jobs with no circular dependencies.
+    :param locks: Dict containing the locks to acquire
     :param event_queue: A python queue for reporting events.
     :param log_path: The path in which logfiles can be written
     :param max_toplevel_jobs: Max number of top-level jobs

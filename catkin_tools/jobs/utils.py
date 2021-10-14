@@ -62,12 +62,12 @@ def get_env_loaders(package, context):
 
 
 def merge_envs(job_env, overlay_envs):
-    '''
+    """
     In the merged/linked case of single env, this function amounts to a straight
     assignment, but a more complex merge is required with isolated result spaces,
     since a package's build environment may require extending that of multiple
     other result spaces.
-    '''
+    """
     merge_path_values = {}
 
     for overlay_env in overlay_envs:

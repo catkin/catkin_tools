@@ -63,6 +63,8 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     :type packages: list
     :param context: Workspace context
     :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
+    :param workspace_packages: list of all packages in the workspace
+    :type workspace_packages: list
     :returns: tuple of packages to be built and those package's deps
     :rtype: tuple
     """
@@ -206,10 +208,14 @@ def build_isolated_workspace(
     :type start_with: str
     :param no_deps: If True, the dependencies of packages will not be built first
     :type no_deps: bool
+    :param unbuilt: Handle unbuilt packages
+    :type unbuilt: bool
     :param n_jobs: number of parallel package build n_jobs
     :type n_jobs: int
     :param force_cmake: forces invocation of CMake if True, default is False
     :type force_cmake: bool
+    :param pre_clean: Clean current build before building
+    :type pre_clean: bool
     :param force_color: forces colored output even if terminal does not support it
     :type force_color: bool
     :param quiet: suppresses the output of commands unless there is an error

@@ -294,6 +294,7 @@ def initialize(max_jobs=None, max_load=None, max_mem=None, gnu_make_enabled=Fals
     :param max_mem: do not dispatch additional jobs if system physical
     memory usage exceeds this value (see _set_max_mem for additional
     documentation)
+    :param gnu_make_enabled: Set gnu make compatibility enabled
     """
 
     # Check initialization

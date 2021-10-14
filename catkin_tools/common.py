@@ -528,7 +528,15 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
     """Get the package containing a specific directory.
 
     :param search_start_path: The path to crawl upward to find a package, CWD if None
+    :type search_start_path: str
     :param ws_path: The path at which the search should stop
+    :type ws_path: str
+    :param warnings: Print warnings if None or return them in the given list
+    :type warnings: list
+    :param symlinks: If True, then get the path considering symlinks. If false,
+    resolve the path to the actual path.
+    :type symlinks: bool
+    :returns:
     """
 
     search_path = search_start_path or getcwd(symlinks=symlinks)

@@ -34,7 +34,9 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
-    :param quiet: don't throw exceptions, ``bool``
+    :param base_env: Base environment dictionary (default: os.environ)
+    :type base_env: dict
+    :param quiet: don't throw exceptions
     :type quiet: bool
     :param cached: use the cached environment
     :type cached: bool
@@ -156,6 +158,8 @@ def load_resultspace_environment(result_space_path, base_env=None, cached=True):
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
+    :param base_env: Base environment dictionary (default: os.environ)
+    :type base_env: dict
     :param cached: use the cached environment
     :type cached: bool
     """

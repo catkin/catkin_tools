@@ -171,6 +171,7 @@ class IOBufferLogger(IOBufferContainer):
     def out(self, data, end='\n'):
         """
         :type data: str
+        :type end: str
         """
         # Buffer the encoded data
         data += end
@@ -191,6 +192,7 @@ class IOBufferLogger(IOBufferContainer):
     def err(self, data, end='\n'):
         """
         :type data: str
+        :type end: str
         """
         # Buffer the encoded data
         data += end

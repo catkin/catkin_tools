@@ -88,9 +88,10 @@ def clean_linked_files(
 
     This function synchronizes access to the devel collisions file.
 
-    :param devel_space_abs: absolute path to merged devel space
+    :param metadata_path: absolute path to the general metadata directory
     :param files_that_collide: list of absolute paths to files that collide
     :param files_to_clean: list of absolute paths to files to clean
+    :param dry_run: Perform a dry-run
     """
 
     # Get paths
@@ -166,8 +167,10 @@ def unlink_devel_products(
 
     :param devel_space_abs: Path to a merged devel space.
     :param private_devel_path: Path to the private devel space
-    :param devel_manifest_path: Path to the directory containing the package's
+    :param metadata_path: Path to the directory containing the general metadata
+    :param package_metadata_path: Path to the directory containing the package's
     catkin_tools metadata
+    :param dry_run: Perform a dry-run
     """
 
     # Check paths

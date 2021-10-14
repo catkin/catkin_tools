@@ -72,10 +72,7 @@ class CommandStage(Stage):
             success_retcodes=(0,)):
         """
         :param label: The label for the stage
-        :param command: A list of strings composing a system command
-        :param protocol: A protocol class to use for this stage
-
-        :parma cmd: The command to run
+        :param cmd: The command to run
         :param cwd: The directory in which to run the command (default: os.getcwd())
         :param env: The base environment. (default: {})
         :param env_overrides: The variables that override the base environment. (default: {})
