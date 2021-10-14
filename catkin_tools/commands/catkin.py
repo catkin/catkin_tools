@@ -189,7 +189,7 @@ def catkin_main(sysargs):
             date.today().year)
         )
         print('catkin_tools is released under the Apache License,'
-              ' Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+              ' Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)')
         print('---')
         print('Using Python {}'.format(''.join(sys.version.split('\n'))))
         sys.exit(0)
