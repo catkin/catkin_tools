@@ -72,7 +72,7 @@ all:
 
 def test_gnu_make_support_common(makefile_content):
     """
-    Test if "make -f MAKEFILE -j2" runs successfullyn when MAKEFILE
+    Test if "make -f MAKEFILE -j2" runs successfully when MAKEFILE
     contains makefile_content.
     """
 
@@ -308,7 +308,7 @@ def initialize(max_jobs=None, max_load=None, max_mem=None, gnu_make_enabled=Fals
         log(clr('@!@{yf}WARNING:@| Make job server not supported. The number of Make '
                 'jobs may exceed the number of CPU cores.@|'))
 
-    # Set gnu make compatibilty enabled
+    # Set gnu make compatibility enabled
     JobServer._gnu_make_enabled = gnu_make_enabled
 
     # Set the maximum number of jobs

@@ -84,7 +84,7 @@ def clean_linked_files(
         files_that_collide,
         files_to_clean,
         dry_run):
-    """Removes a list of files and adjusts collison counts for colliding files.
+    """Removes a list of files and adjusts collision counts for colliding files.
 
     This function synchronizes access to the devel collisions file.
 
@@ -202,7 +202,7 @@ def unlink_devel_products(
                 # Clean the file or decrement the collision count
                 files_to_clean.append(dest_file)
 
-    # Remove all listed symli and empty directories which have been removed
+    # Remove all listed symlinks and empty directories which have been removed
     # after this build, and update the collision file
     clean_linked_files(logger, event_queue, metadata_path, [], files_to_clean, dry_run)
 

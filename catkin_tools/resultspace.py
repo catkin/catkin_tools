@@ -28,7 +28,7 @@ _resultspace_env_cache = {}
 
 
 def get_resultspace_environment(result_space_path, base_env=None, quiet=False, cached=True, strict=True):
-    """Get the environemt variables which result from sourcing another catkin
+    """Get the environment variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This cmake command is used to be as portable as possible.
 
@@ -124,7 +124,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
     env_dict = {}
 
     try:
-        # Run the command synchronously to get the resultspace environmnet
+        # Run the command synchronously to get the resultspace environment
         lines = subprocess.check_output(command, cwd=os.getcwd(), env=base_env, shell=True)
 
         # Extract the environment variables
@@ -151,7 +151,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
 
 
 def load_resultspace_environment(result_space_path, base_env=None, cached=True):
-    """Load the environemt variables which result from sourcing another
+    """Load the environment variables which result from sourcing another
     workspace path into this process's environment.
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``

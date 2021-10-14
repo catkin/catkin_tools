@@ -418,7 +418,7 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
         init_metadata_root(workspace_path)
         init_profile(workspace_path, profile)
 
-    # Get the curent metadata for this verb
+    # Get the current metadata for this verb
     if merge:
         data = get_metadata(workspace_path, profile, verb)
     else:

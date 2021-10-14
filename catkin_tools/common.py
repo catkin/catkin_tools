@@ -60,7 +60,7 @@ def getcwd(symlinks=True):
     realpath = os.getcwd()
 
     # The `PWD` environment variable should contain the path that we took to
-    # get here, includng symlinks
+    # get here, including symlinks
     if symlinks:
         cwd = os.environ.get('PWD', '')
 
@@ -138,7 +138,7 @@ __recursive_build_depends_cache = {}
 
 
 def get_cached_recursive_build_depends_in_workspace(package, workspace_packages):
-    """Returns cached or calculated recursive build dependes for a given package
+    """Returns cached or calculated recursive build depends for a given package
 
     If the recursive build depends for this package and this set of workspace
     packages has already been calculated, the cached results are returned.
@@ -423,7 +423,7 @@ def slice_to_printed_length(string, length):
 
 
 def printed_fill(string, length):
-    """Textwrapping for strings with esacpe characters."""
+    """Textwrapping for strings with escape characters."""
 
     splat = string.replace('\\n', ' \\n ').split()
     count = 0

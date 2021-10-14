@@ -24,7 +24,7 @@ from catkin_tools.execution.events import ExecutionEvent
 
 
 class CommandMissing(Exception):
-    '''A required command is missing.'''
+    """A required command is missing."""
 
     def __init__(self, name):
         super(CommandMissing, self).__init__(
@@ -44,7 +44,7 @@ def get_env_loaders(package, context):
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
         space = context.install_space_abs if context.install else context.devel_space_abs
-        # Get the recursive dependcies
+        # Get the recursive dependencies
         depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
         # For each dep add a line to source its setup file
         for dep_pth, dep in depends:
@@ -158,7 +158,7 @@ def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root=
     """FunctionStage functor that removes a list of files and directories.
 
     If remove_empty is True, then this will also remove directories which
-    become emprt after deleting the files in `paths`. It will delete files up
+    become empty after deleting the files in `paths`. It will delete files up
     to the path specified by `empty_root`.
     """
 
@@ -201,7 +201,7 @@ def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root=
             if dir_descendants[path] == 0:
                 paths.append(path)
 
-    # REmove the paths
+    # Remove the paths
     for index, path in enumerate(paths):
 
         # Remove the path

@@ -329,7 +329,7 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     # Configure default jobs options: use all CPUs in each package
     try:
-        # NOTE: this will yeild greater than 100% CPU utilization
+        # NOTE: this will yield greater than 100% CPU utilization
         n_cpus = cpu_count()
         jobs_flags = {
             'jobs': n_cpus,
@@ -376,7 +376,7 @@ def argument_preprocessor(args):
 
     :param args: system arguments from which special arguments need to be extracted
     :type args: list
-    :returns: a tuple contianing a list of the arguments which can be handled
+    :returns: a tuple containing a list of the arguments which can be handled
     by argparse and a dict of the extra arguments which this function has
     extracted
     :rtype: tuple

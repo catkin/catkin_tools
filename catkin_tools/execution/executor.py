@@ -95,7 +95,7 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
 
                             # Get the logger
                             protocol_type = stage.logger_factory(verb, job.jid, stage.label, event_queue, log_path)
-                            # Start asynchroonous execution
+                            # Start asynchronous execution
                             transport, logger = await (
                                 async_execute_process(
                                     protocol_type,
@@ -120,7 +120,7 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
                     # Asynchronously yield until this command is completed
                     retcode = await logger.complete
                 except:  # noqa: E722
-                    # Bare except is permissable here because the set of errors which the CommandState might raise
+                    # Bare except is permissible here because the set of errors which the CommandState might raise
                     # is unbounded. We capture the traceback here and save it to the build's log files.
                     logger = IOBufferLogger(verb, job.jid, stage.label, event_queue, log_path)
                     logger.err(str(traceback.format_exc()))
@@ -136,7 +136,7 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
                         logger,
                         event_queue)
                 except:  # noqa: E722
-                    # Bare except is permissable here because the set of errors which the FunctionStage might raise
+                    # Bare except is permissible here because the set of errors which the FunctionStage might raise
                     # is unbounded. We capture the traceback here and save it to the build's log files.
                     logger.err('Stage `{}` failed with arguments:'.format(stage.label))
                     for arg_val in stage.args:

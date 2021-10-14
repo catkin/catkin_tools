@@ -126,7 +126,7 @@ def clean_packages(
 
         # It's a problem if there aren't any build types available
         if len(clean_job_creators) == 0:
-            sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
+            sys.exit('Error: No build types available. Please check your catkin_tools installation.')
 
         # Determine the job parameters
         clean_job_kwargs = dict(

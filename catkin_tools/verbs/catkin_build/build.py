@@ -671,7 +671,7 @@ SETUP_SH_TEMPLATE = """\
 
 # This file is aggregates the many setup.sh files in the various
 # unmerged devel spaces in this folder.
-# This is occomplished by sourcing each leaf package and all the
+# This is accomplished by sourcing each leaf package and all the
 # recursive run dependencies of those leaf packages
 
 # Source the first package's setup.sh without the --extend option
