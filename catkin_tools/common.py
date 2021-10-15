@@ -60,7 +60,7 @@ def getcwd(symlinks=True):
     realpath = os.getcwd()
 
     # The `PWD` environment variable should contain the path that we took to
-    # get here, includng symlinks
+    # get here, including symlinks
     if symlinks:
         cwd = os.environ.get('PWD', '')
 
@@ -138,7 +138,7 @@ __recursive_build_depends_cache = {}
 
 
 def get_cached_recursive_build_depends_in_workspace(package, workspace_packages):
-    """Returns cached or calculated recursive build dependes for a given package
+    """Returns cached or calculated recursive build depends for a given package
 
     If the recursive build depends for this package and this set of workspace
     packages has already been calculated, the cached results are returned.
@@ -423,7 +423,7 @@ def slice_to_printed_length(string, length):
 
 
 def printed_fill(string, length):
-    """Textwrapping for strings with esacpe characters."""
+    """Textwrapping for strings with escape characters."""
 
     splat = string.replace('\\n', ' \\n ').split()
     count = 0
@@ -528,7 +528,15 @@ def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, 
     """Get the package containing a specific directory.
 
     :param search_start_path: The path to crawl upward to find a package, CWD if None
+    :type search_start_path: str
     :param ws_path: The path at which the search should stop
+    :type ws_path: str
+    :param warnings: Print warnings if None or return them in the given list
+    :type warnings: list
+    :param symlinks: If True, then get the path considering symlinks. If false,
+    resolve the path to the actual path.
+    :type symlinks: bool
+    :returns:
     """
 
     search_path = search_start_path or getcwd(symlinks=symlinks)

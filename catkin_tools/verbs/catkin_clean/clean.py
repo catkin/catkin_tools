@@ -45,6 +45,8 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
 
     :param context: Workspace context
     :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
+    :param include_dependents: Also clean dependents of the packages to be cleaned
+    :type include_dependents: bool
     :param packages: list of package names to be cleaned
     :type packages: list
     :returns: full list of package names to be cleaned
@@ -126,7 +128,7 @@ def clean_packages(
 
         # It's a problem if there aren't any build types available
         if len(clean_job_creators) == 0:
-            sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
+            sys.exit('Error: No build types available. Please check your catkin_tools installation.')
 
         # Determine the job parameters
         clean_job_kwargs = dict(

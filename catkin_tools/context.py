@@ -316,7 +316,7 @@ class Context(object):
         :type source_space: str
         :param log_space: relative location of log space, defaults to '<workspace>/logs'
         :type log_space: str
-        :param build_space: relativetarget location of build space, defaults to '<workspace>/build'
+        :param build_space: relative target location of build space, defaults to '<workspace>/build'
         :type build_space: str
         :param devel_space: relative target location of devel space, defaults to '<workspace>/devel'
         :type devel_space: str
@@ -334,7 +334,7 @@ class Context(object):
         :type make_args: list
         :param jobs_args: -j and -l jobs args
         :type jobs_args: list
-        :param use_internal_make_jobserver: true if this configuration should use an internal make jobserv
+        :param use_internal_make_jobserver: true if this configuration should use an internal make jobserver
         :type use_internal_make_jobserver: bool
         :param use_env_cache: true if this configuration should cache job environments loaded from resultspaces
         :type use_env_cache: bool
@@ -471,7 +471,7 @@ class Context(object):
                 "requires the `catkin` CMake package in your source space "
                 "in order to be built.")]
 
-        # Add warnings based on conflicing CMAKE_PREFIX_PATH
+        # Add warnings based on conflicting CMAKE_PREFIX_PATH
         elif self.cached_cmake_prefix_path and self.extend_path:
             ep_not_in_lcpp = any([self.extend_path in p for p in self.cached_cmake_prefix_path.split(':')])
             if not ep_not_in_lcpp:
@@ -637,7 +637,7 @@ class Context(object):
 
         return (divider + "\n" +
                 ("\n" + divider + "\n").join(groups) + "\n" + divider + "\n" +
-                ((("\n\n").join(notes) + "\n" + divider) if notes else '') +
+                (("\n\n".join(notes) + "\n" + divider) if notes else '') +
                 warnings_joined)
 
     @property
@@ -849,7 +849,7 @@ class Context(object):
     @property
     def private_devel_path(self):
         """The path to the hidden directory in the develspace that
-        contains the symbollically-linked isolated develspaces."""
+        contains the symbolically-linked isolated develspaces."""
         return os.path.join(self.devel_space_abs, '.private')
 
     def package_private_devel_path(self, package):
@@ -871,7 +871,7 @@ class Context(object):
         elif self.link_devel:
             return os.path.join(self.private_devel_path, package.name)
         else:
-            raise ValueError('Unkown devel space layout: {}'.format(self.devel_layout))
+            raise ValueError('Unknown devel space layout: {}'.format(self.devel_layout))
 
     def package_install_space(self, package):
         """Get the install directory for a specific package.
@@ -883,7 +883,7 @@ class Context(object):
         elif self.isolate_install:
             return os.path.join(self.install_space_abs, package.name)
         else:
-            raise ValueError('Unkown install space layout: {}'.format(self.devel_layout))
+            raise ValueError('Unknown install space layout: {}'.format(self.devel_layout))
 
     def package_dest_path(self, package):
         """Get the intermediate destination into which a specific package is built."""

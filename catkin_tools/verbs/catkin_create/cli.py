@@ -33,14 +33,14 @@ def prepare_arguments(parser):
     parser_pkg.description = (
         "Create a new Catkin package. Note that while the "
         "default options used by this command are sufficient for prototyping and "
-        "local usage, it is important that any publically-available packages have "
+        "local usage, it is important that any publicly-available packages have "
         "a valid license and a valid maintainer e-mail address.")
 
     add = parser_pkg.add_argument
 
     add('name', metavar='PKG_NAME', nargs='+',
         help='The name of one or more packages to create. This name should be '
-        'completely lower-case with individual words separated by undercores.')
+        'completely lower-case with individual words separated by underscores.')
 
     add('-p', '--path', action='store', default=os.getcwd(),
         help='The path into which the package should be generated.')

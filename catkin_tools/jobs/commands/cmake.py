@@ -110,7 +110,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         """Apply colorization rules to each line in data"""
         decoded_data = self._decode(data)
         # TODO: This will only work if all lines are received at once. Instead
-        # of direclty splitting lines, we should buffer the data lines until
+        # of directly splitting lines, we should buffer the data lines until
         # the last character is a line break
         lines = decoded_data.splitlines(True)  # Keep line breaks
         colored_lines = [self.colorize_cmake(line) for line in lines]
@@ -122,7 +122,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
     def factory_factory(cls, source_path, suppress_stdout=False):
         """Factory factory for constructing protocols that know the source path for this CMake package."""
         def factory(label, job_id, stage_label, event_queue, log_path):
-            # factory is called by caktin_tools executor
+            # factory is called by catkin_tools executor
             def init_proxy(*args, **kwargs):
                 # init_proxy is called by asyncio
                 return cls(label, job_id, stage_label, event_queue, log_path, source_path, suppress_stdout, *args,
@@ -157,7 +157,7 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
 
 class CMakeMakeIOBufferProtocol(IOBufferProtocol):
 
-    """An IOBufferProtocol which parses CMake's progree prefixes and emits corresponding STAGE_PROGRESS events."""
+    """An IOBufferProtocol which parses CMake's progress prefixes and emits corresponding STAGE_PROGRESS events."""
 
     def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
         super(CMakeMakeIOBufferProtocol, self).__init__(
@@ -220,7 +220,7 @@ class CMakeMakeRunTestsIOBufferProtocol(CMakeMakeIOBufferProtocol):
     def factory_factory(cls, verbose):
         """Factory factory for constructing protocols that know the verbosity."""
         def factory(label, job_id, stage_label, event_queue, log_path):
-            # factory is called by caktin_tools executor
+            # factory is called by catkin_tools executor
             def init_proxy(*args, **kwargs):
                 # init_proxy is called by asyncio
                 return cls(label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs)

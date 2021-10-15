@@ -84,13 +84,14 @@ def clean_linked_files(
         files_that_collide,
         files_to_clean,
         dry_run):
-    """Removes a list of files and adjusts collison counts for colliding files.
+    """Removes a list of files and adjusts collision counts for colliding files.
 
     This function synchronizes access to the devel collisions file.
 
-    :param devel_space_abs: absolute path to merged devel space
+    :param metadata_path: absolute path to the general metadata directory
     :param files_that_collide: list of absolute paths to files that collide
     :param files_to_clean: list of absolute paths to files to clean
+    :param dry_run: Perform a dry-run
     """
 
     # Get paths
@@ -166,8 +167,10 @@ def unlink_devel_products(
 
     :param devel_space_abs: Path to a merged devel space.
     :param private_devel_path: Path to the private devel space
-    :param devel_manifest_path: Path to the directory containing the package's
+    :param metadata_path: Path to the directory containing the general metadata
+    :param package_metadata_path: Path to the directory containing the package's
     catkin_tools metadata
+    :param dry_run: Perform a dry-run
     """
 
     # Check paths
@@ -202,7 +205,7 @@ def unlink_devel_products(
                 # Clean the file or decrement the collision count
                 files_to_clean.append(dest_file)
 
-    # Remove all listed symli and empty directories which have been removed
+    # Remove all listed symlinks and empty directories which have been removed
     # after this build, and update the collision file
     clean_linked_files(logger, event_queue, metadata_path, [], files_to_clean, dry_run)
 
@@ -261,7 +264,7 @@ def link_devel_products(
                         logger.out('Linked: ({}, {})'.format(source_dir, dest_dir))
                 else:
                     # Create a symlink
-                    logger.out('Symlinking %s' % (dest_dir))
+                    logger.out('Symlinking %s' % dest_dir)
                     try:
                         os.symlink(source_dir, dest_dir)
                     except OSError:
@@ -306,7 +309,7 @@ def link_devel_products(
                     logger.out('Linked: ({}, {})'.format(source_file, dest_file))
             else:
                 # Create the symlink
-                logger.out('Symlinking %s' % (dest_file))
+                logger.out('Symlinking %s' % dest_file)
                 try:
                     os.symlink(source_file, dest_file)
                 except OSError:

@@ -153,7 +153,7 @@ class ColorMapper(object):
     functionality to convert them into colorized version.
     """
 
-    # This map translates more human reable format strings into colorized versions
+    # This map translates more human readable format strings into colorized versions
     default_color_translation_map = {
         # 'output': 'colorized_output'
         '': fmt('@!' + sanitize('') + '@|')
@@ -162,7 +162,7 @@ class ColorMapper(object):
     def __init__(self, color_map={}):
         """Create a color mapper with a given map.
 
-        :param color_map: A dictionary of format strings and colorized verisons
+        :param color_map: A dictionary of format strings and colorized versions
         :type color_map: dict
         """
         self.color_map = ColorMapper.default_color_translation_map
@@ -171,7 +171,7 @@ class ColorMapper(object):
     def clr(self, key):
         """Returns a colorized version of the string given.
 
-        This is occomplished by either returning a hit from the color translation
+        This is accomplished by either returning a hit from the color translation
         map or by calling :py:func:`fmt` on the string and returning it.
 
         :param key: string to be colorized
