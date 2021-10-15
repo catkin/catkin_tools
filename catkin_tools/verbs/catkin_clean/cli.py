@@ -31,10 +31,10 @@ from catkin_tools.common import getcwd
 import catkin_tools.execution.job_server as job_server
 
 from catkin_tools.metadata import find_enclosing_workspace
+from catkin_tools.metadata import get_metadata_root_path
 from catkin_tools.metadata import get_paths as get_metadata_paths
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import update_metadata
-from catkin_tools.metadata import METADATA_DIR_NAME
 
 from catkin_tools.terminal_color import ColorMapper
 
@@ -404,7 +404,7 @@ def main(opts):
         # Nuke .catkin_tools
         if opts.deinit:
             ctx = Context.load(opts.workspace, profile, opts, strict=True, load_env=False)
-            metadata_dir = os.path.join(ctx.workspace, METADATA_DIR_NAME)
+            metadata_dir = get_metadata_root_path(ctx.workspace)
             log("[clean] Deinitializing workspace by removing catkin_tools config: %s" % metadata_dir)
             if not opts.dry_run:
                 safe_rmtree(metadata_dir, ctx.workspace, opts.force)
