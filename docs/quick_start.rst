@@ -80,7 +80,7 @@ Now that there are some packages in the workspace, Catkin has something to build
 .. note::
 
     Catkin utilizes an "out-of-source" and "aggregated" build pattern.
-    This means that temporary or final build will products never be placed in a package's source directory (or anywhere in the **source space**.
+    This means that temporary or final build products will never be placed in a package's source directory (or anywhere in the **source space**.
     Instead all build directories are aggregated in the **build space** and all final build products like executables, libraries, etc., will be put in the **devel space**.
 
 Building the Workspace
