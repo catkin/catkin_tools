@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import argparse
 import os
 import sys
 
@@ -76,6 +77,13 @@ packages in a catkin workspace.\
         help='Adds a summary to the end of the log')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system pop-up notification.')
+
+    # Deprecated arguments
+    # colors are handled by the main catkin command
+    add('--no-color', action='store_true', help=argparse.SUPPRESS)
+    add('--force-color', action='store_true', help=argparse.SUPPRESS)
+    # no-deps became the default
+    add('--no-deps', action='store_true', help=argparse.SUPPRESS)
 
     return parser
 
