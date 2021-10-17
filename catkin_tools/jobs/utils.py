@@ -247,3 +247,22 @@ def yaml_dump_file(logger, event_queue, contents: Any, dest_path: str, dumper=ya
         yaml.dump(contents, f, dumper)
 
     return 0
+
+
+def write_file(logger, event_queue, contents: Any, dest_path: str, mode: str = 'w') -> int:
+    """
+    FunctionStage functor that writes the contents to a file.
+    In case the file exists, the file is overwritten.
+
+    :param logger:
+    :param event_queue:
+    :param contents: Contents to write
+    :param dest_path: File to which the contents should be written
+    :param mode: file mode (default: 'w')
+    :return: return code
+    """
+    mkdir_p(os.path.dirname(dest_path))
+    with open(dest_path, mode) as f:
+        f.write(contents)
+
+    return 0
