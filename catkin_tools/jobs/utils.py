@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
+
 import os
 import shutil
+import yaml
 
 from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
@@ -223,5 +226,24 @@ def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root=
             job_id=logger.job_id,
             stage_label=logger.stage_label,
             percent=str(index / float(len(paths)))))
+
+    return 0
+
+
+def yaml_dump_file(logger, event_queue, contents: Any, dest_path: str, dumper=yaml.SafeDumper) -> int:
+    """
+    FunctionStage functor that dumps the contents of an object, which is accepted by yaml dumper, to a file.
+    In case the file exists, the file is overwritten.
+
+    :param logger:
+    :param event_queue:
+    :param contents: Object which is dumped to the yaml file.
+    :param dest_path: File to which the contents should be written
+    :param dumper: Yaml dumper to use (default: yaml.SafeDumper)
+    :return: return code
+    """
+    mkdir_p(os.path.dirname(dest_path))
+    with open(dest_path, 'w') as f:
+        yaml.dump(contents, f, dumper)
 
     return 0
