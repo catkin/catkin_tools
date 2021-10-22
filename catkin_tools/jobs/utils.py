@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, List, Union
 
 import os
 import shutil
@@ -129,6 +129,37 @@ def loadenv(logger, event_queue, job_env, package, context, verbose=True):
         merge_envs(job_env, envs)
     elif len(envs) == 1:
         job_env.update(envs[0])
+    return 0
+
+
+def unset_env(logger, event_queue, job_env: dict, keys: Union[List[str], None] = None) -> int:
+    """
+    FunctionStage functor that removes keys from the job_env.
+    In case no keys are provide, the job_env is cleared.
+
+    :param logger:
+    :param event_queue:
+    :param job_env: Job environment
+    :param keys: Keys to remove from the job environment
+    :return: return code
+    """
+    if keys is None:
+        job_env.clear()
+        return 0
+
+    for index, key in enumerate(keys):
+        try:
+            job_env.pop(key)
+        except KeyError:
+            logger.err("Could not delete missing key '{}' from the job environment".format(key))
+        finally:
+            event_queue.put(ExecutionEvent(
+                'STAGE_PROGRESS',
+                job_id=logger.job_id,
+                stage_label=logger.stage_label,
+                percent=str(index/float(len(keys)))
+            ))
+
     return 0
 
 
