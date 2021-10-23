@@ -57,6 +57,8 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
     workspace_packages = find_packages(context.package_metadata_path(), exclude_subspaces=True, warnings=[])
     # Order the packages by topology
     ordered_packages = topological_order_packages(workspace_packages)
+    # Set the packages in the workspace for the context
+    context.packages = ordered_packages
 
     # Create a dict of all packages in the workspace by name
     workspace_packages_by_name = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
