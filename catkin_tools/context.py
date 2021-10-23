@@ -99,9 +99,20 @@ class Context(object):
             space_abs = getattr(self, '__%s_space_abs' % space)
             return os.path.exists(space_abs) and os.path.isdir(space_abs)
 
+        def package_space(self, package):
+            """
+            Get the package specific path in a space
+            """
+            space_abs = getattr(self, '__%s_space_abs' % space)
+            return os.path.join(space_abs, package.name)
+
         setattr(cls, '%s_space' % space, property(space_getter, space_setter))
         setattr(cls, '%s_space_abs' % space, property(space_abs_getter))
         setattr(cls, '%s_space_exists' % space, space_exists)
+
+        package_space_name = "package_%s_space" % space
+        if not hasattr(cls, package_space_name):
+            setattr(cls, package_space_name, package_space)
 
     @classmethod
     def setup_space_keys(cls):
@@ -869,10 +880,6 @@ class Context(object):
                     return pkg_dir
 
         return None
-
-    def package_build_space(self, package):
-        """Get the build directory for a specific package."""
-        return os.path.join(self.build_space_abs, package.name)
 
     def package_devel_space(self, package):
         """Get the devel directory for a specific package.
