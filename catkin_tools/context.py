@@ -859,6 +859,17 @@ class Context(object):
         """The path to the linked devel space for a given package."""
         return os.path.join(self.private_devel_path, package.name)
 
+    def package_source_space(self, package):
+        """Get the source directory of a specific package."""
+        for pkg_name, pkg in self.packages:
+            if pkg_name == package.name:
+                pkg_dir = os.path.dirname(pkg.filename)
+                # Need to check if the pkg_dir is the source space as it can also be loaded from the metadata
+                if os.path.commonpath([self.source_space_abs, pkg_dir]) == self.source_space_abs:
+                    return pkg_dir
+
+        return None
+
     def package_build_space(self, package):
         """Get the build directory for a specific package."""
         return os.path.join(self.build_space_abs, package.name)
