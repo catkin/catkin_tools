@@ -37,6 +37,7 @@ from .utils import loadenv
 from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
+from .cmake import copy_install_manifest
 
 
 def get_prebuild_package(build_space_abs, devel_space_abs, force):
@@ -483,6 +484,13 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             cwd=build_space,
             logger_factory=CMakeMakeIOBufferProtocol.factory,
             locked_resource=None if context.isolate_install else 'installspace'
+        ))
+        # Copy install manifest
+        stages.append(FunctionStage(
+            'register',
+            copy_install_manifest,
+            src_install_manifest_path=build_space,
+            dst_install_manifest_path=context.package_metadata_path(package)
         ))
 
     return Job(
