@@ -5,6 +5,13 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.7.2 (2021-11-18)
+------------------
+
+* Update installation docs for python 3 (#687)
+* Fix environment variable parsing (#686)
+* Switch from Travis CI to GitHub actions (#684)
+* Regenerate setup files when the install space was cleaned (#682)
 * Add possibility to clean individual package with isolated devel space (#683)
 * Fix regeneration of setup file when the install space was cleaned (#682)
 * Fix workspace generation with catkin build --this and --start-with-this (#685)
