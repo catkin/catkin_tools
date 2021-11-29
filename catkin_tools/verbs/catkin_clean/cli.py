@@ -203,7 +203,7 @@ def clean_profile(opts, profile):
             if getattr(ctx, '{}_space_exists'.format(space))():
                 space_name = Context.SPACES[space]['space']
                 space_abs = getattr(ctx, '{}_space_abs'.format(space))
-                spaces_to_clean_msgs.append(clr("[clean] {}:     @{yf}{}").format(space_name, space_abs))
+                spaces_to_clean_msgs.append(clr("[clean] {:14} @{yf}{}").format(space_name + ':', space_abs))
 
         if len(spaces_to_clean_msgs) == 0 and not opts.deinit:
             log("[clean] Nothing to be cleaned for profile:  `{}`".format(profile))
