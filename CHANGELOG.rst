@@ -5,6 +5,16 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.0 (2021-11-30)
+------------------
+
+* Add catkin test verb (#676)
+* Code cleanup (#692)
+* Documentation: https in docs, properties over vars, sphinx cleanup (#690)
+* Documentation: Improve wording (#694)
+* Documentation: Add custom build, devel, install dirs (#697)
+* Contributors: Balint, Jim Aldon D'Souza, Matthijs van der Burgh, mobangjack, pseyfert, Timon Engelke
+
 0.7.2 (2021-11-18)
 ------------------
 
