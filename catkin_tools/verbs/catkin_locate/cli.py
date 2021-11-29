@@ -45,20 +45,17 @@ def prepare_arguments(parser):
         help="Suppress warning output.")
 
     # Path options
-    dir_group = parser.add_argument_group(
+    spaces_group = parser.add_argument_group(
         'Sub-Space Options',
         'Get the absolute path to one of the following locations in the given '
         'workspace with the given profile.')
-    dir_group_mut = dir_group.add_mutually_exclusive_group()
-    add = dir_group_mut.add_argument
-    add('-s', '--src', dest='space', action='store_const', const='src',
-        help="Get the path to the source space.")
-    add('-b', '--build', dest='space', action='store_const', const='build',
-        help="Get the path to the build space.")
-    add('-d', '--devel', dest='space', action='store_const', const='devel',
-        help="Get the path to the devel space.")
-    add('-i', '--install', dest='space', action='store_const', const='install',
-        help="Get the path to the install space.")
+    Context.setup_space_keys()
+    add = spaces_group.add_mutually_exclusive_group().add_argument
+    for space, space_dict in Context.SPACES.items():
+        flags = ['--{}-space'.format(space)]
+        flags.extend([space_dict['short_flag']] if 'short_flag' in space_dict else [])
+        add(*flags, dest='space', action='store_const', const=space,
+            help='Get the path to the {} space.'.format(space))
 
     pkg_group = parser.add_argument_group(
         'Package Directories',
@@ -120,15 +117,7 @@ def main(opts):
     path = None
 
     if opts.space:
-        # Get the subspace
-        if opts.space == 'src':
-            path = ctx.source_space_abs
-        elif opts.space == 'build':
-            path = ctx.build_space_abs
-        elif opts.space == 'devel':
-            path = ctx.devel_space_abs
-        elif opts.space == 'install':
-            path = ctx.install_space_abs
+        path = getattr(ctx, "{}_space_abs".format(opts.space))
 
     package = None
     if opts.package or opts.this:
@@ -148,11 +137,7 @@ def main(opts):
             package = opts.package
         # Get the path to the given package
         path = path or ctx.source_space_abs
-        if opts.space == 'build':
-            path = os.path.join(path, package)
-        elif opts.space in ['devel', 'install']:
-            path = os.path.join(path, 'share', package)
-        else:
+        if not opts.space or opts.space == 'source':
             try:
                 packages = find_packages(path, warnings=[])
                 catkin_package = [pkg_path for pkg_path, p in packages.items() if p.name == package]
@@ -163,6 +148,10 @@ def main(opts):
                                  (package, path)))
             except RuntimeError as e:
                 sys.exit(clr('@{rf}ERROR: %s@|' % str(e)))
+        elif opts.space in ['devel', 'install']:
+            path = os.path.join(path, 'share', package)
+        else:
+            path = os.path.join(path, package)
 
     if not opts.space and package is None:
         # Get the path to the workspace root

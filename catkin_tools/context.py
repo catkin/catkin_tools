@@ -99,9 +99,20 @@ class Context(object):
             space_abs = getattr(self, '__%s_space_abs' % space)
             return os.path.exists(space_abs) and os.path.isdir(space_abs)
 
+        def package_space(self, package):
+            """
+            Get the package specific path in a space
+            """
+            space_abs = getattr(self, '__%s_space_abs' % space)
+            return os.path.join(space_abs, package.name)
+
         setattr(cls, '%s_space' % space, property(space_getter, space_setter))
         setattr(cls, '%s_space_abs' % space, property(space_abs_getter))
         setattr(cls, '%s_space_exists' % space, space_exists)
+
+        package_space_name = "package_%s_space" % space
+        if not hasattr(cls, package_space_name):
+            setattr(cls, package_space_name, package_space)
 
     @classmethod
     def setup_space_keys(cls):
@@ -600,15 +611,18 @@ class Context(object):
             'cmake_args': ' '.join([quote(a) for a in self.cmake_args or ['None']]),
             'make_args': ' '.join(self.make_args + self.jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.catkin_make_args or ['None']),
-            'source_missing': existence_str(self.source_space_abs),
-            'log_missing': existence_str(self.log_space_abs),
-            'build_missing': existence_str(self.build_space_abs),
-            'devel_missing': existence_str(self.devel_space_abs),
-            'install_missing': existence_str(self.install_space_abs, used=self.install),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
             'whitelisted_packages': ' '.join(self.whitelist or ['None']),
             'blacklisted_packages': ' '.join(self.blacklist or ['None']),
         }
+        for space, space_dict in sorted(Context.SPACES.items()):
+            key_missing = '{}_missing'.format(space)
+            space_abs = getattr(self, '{}_space_abs'.format(space))
+            if hasattr(self, space):
+                subs[key_missing] = existence_str(space_abs, used=getattr(self, space))
+            else:
+                subs[key_missing] = existence_str(space_abs)
+
         subs.update(**self.__dict__)
         # Get the width of the shell
         width = terminal_width()
@@ -856,9 +870,16 @@ class Context(object):
         """The path to the linked devel space for a given package."""
         return os.path.join(self.private_devel_path, package.name)
 
-    def package_build_space(self, package):
-        """Get the build directory for a specific package."""
-        return os.path.join(self.build_space_abs, package.name)
+    def package_source_space(self, package):
+        """Get the source directory of a specific package."""
+        for pkg_name, pkg in self.packages:
+            if pkg_name == package.name:
+                pkg_dir = os.path.dirname(pkg.filename)
+                # Need to check if the pkg_dir is the source space as it can also be loaded from the metadata
+                if os.path.commonpath([self.source_space_abs, pkg_dir]) == self.source_space_abs:
+                    return pkg_dir
+
+        return None
 
     def package_devel_space(self, package):
         """Get the devel directory for a specific package.
