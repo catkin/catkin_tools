@@ -5,6 +5,11 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.1 (2021-11-30)
+------------------
+
+* catkin test: add --limit-status-rate option (#699)
+
 0.8.0 (2021-11-30)
 ------------------
 
