@@ -243,7 +243,7 @@ def build_isolated_workspace(
 
     # Assert that the limit_status_rate is valid
     if limit_status_rate < 0:
-        sys.exit("[build] @!@{rf}Error:@| The value of --status-rate must be greater than or equal to zero.")
+        sys.exit("[build] @!@{rf}Error:@| The value of --limit-status-rate must be greater than or equal to zero.")
 
     # Declare a buildspace marker describing the build config for error checking
     buildspace_marker_data = {
