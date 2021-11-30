@@ -32,6 +32,7 @@ def test_workspace(
     quiet=False,
     interleave_output=False,
     no_status=False,
+    limit_status_rate=10.0,
     no_notify=False,
     continue_on_failure=False,
     summarize_build=False,
@@ -52,6 +53,8 @@ def test_workspace(
     :type interleave_output: bool
     :param no_status: suppresses the bottom status line
     :type no_status: bool
+    :param limit_status_rate: rate to which status updates are limited; the default 0, places no limit.
+    :type limit_status_rate: float
     :param no_notify: suppresses system notifications
     :type no_notify: bool
     :param continue_on_failure: do not stop testing other packages on error
@@ -64,6 +67,10 @@ def test_workspace(
     :type cmake_test_target: str
     """
     pre_start_time = time.time()
+
+    # Assert that the limit_status_rate is valid
+    if limit_status_rate < 0:
+        sys.exit("[test] @!@{rf}Error:@| The value of --limit-status-rate must be greater than or equal to zero.")
 
     # Get all the packages in the context source space
     # Suppress warnings since this is a utility function
@@ -193,6 +200,7 @@ def test_workspace(
             show_full_summary=summarize_build,
             show_stage_events=not quiet,
             pre_start_time=pre_start_time,
+            active_status_rate=limit_status_rate,
         )
 
         status_thread.start()
