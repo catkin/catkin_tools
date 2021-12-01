@@ -52,9 +52,9 @@ def prepare_arguments(parser):
     Context.setup_space_keys()
     add = spaces_group.add_mutually_exclusive_group().add_argument
     for space, space_dict in Context.SPACES.items():
-        flags = ['--{}-space'.format(space)]
+        flags = [space_dict['short_flag']] if 'short_flag' in space_dict else []
         flags.append('--{}'.format(space_dict['default']))
-        flags.extend([space_dict['short_flag']] if 'short_flag' in space_dict else [])
+        flags.append('--{}-space'.format(space))
         add(*flags, dest='space', action='store_const', const=space,
             help='Get the path to the {} space.'.format(space))
 
