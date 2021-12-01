@@ -1,11 +1,15 @@
-usage: catkin profile add [-h] [-f] [--copy BASE_PROFILE | --copy-active] name
+usage: catkin profile add [-h] [-f]
+                          [--copy BASE_PROFILE | --copy-active | --extend PARENT_PROFILE]
+                          name
 
 positional arguments:
-  name                 The new profile name.
+  name                  The new profile name.
 
 optional arguments:
-  -h, --help           show this help message and exit
-  -f, --force          Overwrite an existing profile.
-  --copy BASE_PROFILE  Copy the settings from an existing profile. (default:
-                       None)
-  --copy-active        Copy the settings from the active profile.
+  -h, --help            show this help message and exit
+  -f, --force           Overwrite an existing profile.
+  --copy BASE_PROFILE   Copy the settings from an existing profile. (default:
+                        None)
+  --copy-active         Copy the settings from the active profile.
+  --extend PARENT_PROFILE
+                        Extend another profile

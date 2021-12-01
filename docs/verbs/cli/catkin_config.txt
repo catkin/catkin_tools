@@ -6,15 +6,16 @@ usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
                      [--whitelist PKG [PKG ...] | --no-whitelist]
                      [--blacklist PKG [PKG ...] | --no-blacklist]
                      [--build-space BUILD_SPACE | --default-build-space]
-                     [--log-space LOG_SPACE | --default-log-space]
-                     [--install-space INSTALL_SPACE | --default-install-space]
                      [--devel-space DEVEL_SPACE | --default-devel-space]
+                     [--install-space INSTALL_SPACE | --default-install-space]
+                     [--log-space LOG_SPACE | --default-log-space]
                      [--source-space SOURCE_SPACE | --default-source-space]
                      [-x SPACE_SUFFIX]
                      [--link-devel | --merge-devel | --isolate-devel]
                      [--install | --no-install]
                      [--isolate-install | --merge-install] [-j JOBS]
-                     [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                     [-p PACKAGE_JOBS] [-l LOAD_AVERAGE]
+                     [--jobserver | --no-jobserver]
                      [--env-cache | --no-env-cache]
                      [--cmake-args ARG [ARG ...] | --no-cmake-args]
                      [--make-args ARG [ARG ...] | --no-make-args]
@@ -83,17 +84,17 @@ Spaces:
                         The path to the build space.
   --default-build-space
                         Use the default path to the build space ("build")
-  --log-space LOG_SPACE, -l LOG_SPACE
-                        The path to the log space.
-  --default-log-space   Use the default path to the log space ("logs")
-  --install-space INSTALL_SPACE, -i INSTALL_SPACE
-                        The path to the install space.
-  --default-install-space
-                        Use the default path to the install space ("install")
   --devel-space DEVEL_SPACE, -d DEVEL_SPACE
                         The path to the devel space.
   --default-devel-space
                         Use the default path to the devel space ("devel")
+  --install-space INSTALL_SPACE, -i INSTALL_SPACE
+                        The path to the install space.
+  --default-install-space
+                        Use the default path to the install space ("install")
+  --log-space LOG_SPACE, -L LOG_SPACE
+                        The path to the log space.
+  --default-log-space   Use the default path to the log space ("logs")
   --source-space SOURCE_SPACE, -s SOURCE_SPACE
                         The path to the source space.
   --default-source-space
@@ -133,6 +134,9 @@ Build Options:
   -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
                         Maximum number of packages allowed to be built in
                         parallel (default is cpu count)
+  -l LOAD_AVERAGE, --load-average LOAD_AVERAGE
+                        Maximum load average before no new build jobs are
+                        scheduled
   --jobserver           Use the internal GNU Make job server which will limit
                         the number of Make jobs across all active packages.
   --no-jobserver        Disable the internal GNU Make job server, and use an

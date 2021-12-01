@@ -1,6 +1,6 @@
 usage: catkin locate [-h] [--workspace WORKSPACE] [--profile PROFILE] [-e]
-                     [-r] [-q] [-s | -b | -d | -i] [--this] [--shell-verbs]
-                     [--examples]
+                     [-r] [-q] [-b | -d | -i | -L | -s] [--this]
+                     [--shell-verbs] [--examples]
                      [PACKAGE]
 
 Get the paths to various locations in a workspace.
@@ -22,10 +22,16 @@ Sub-Space Options:
   Get the absolute path to one of the following locations in the given
   workspace with the given profile.
 
-  -s, --src             Get the path to the source space.
-  -b, --build           Get the path to the build space.
-  -d, --devel           Get the path to the devel space.
-  -i, --install         Get the path to the install space.
+  -b, --build, --build-space
+                        Get the path to the build space.
+  -d, --devel, --devel-space
+                        Get the path to the devel space.
+  -i, --install, --install-space
+                        Get the path to the install space.
+  -L, --logs, --log-space
+                        Get the path to the log space.
+  -s, --src, --source-space
+                        Get the path to the source space.
 
 Package Directories:
   Get the absolute path to package directories in the given workspace and
