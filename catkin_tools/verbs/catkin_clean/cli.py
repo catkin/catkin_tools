@@ -113,6 +113,7 @@ def prepare_arguments(parser):
         if space == 'source':
             continue
         flags = ['--{}-space'.format(space)]
+        flags.append('--{}'.format(space_dict['default']))
         flags.extend([space_dict['short_flag']] if 'short_flag' in space_dict else [])
         add(*flags, dest='spaces', action='append_const', const=space,
             help='Remove the entire {} space.'.format(space))
