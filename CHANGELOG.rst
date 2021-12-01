@@ -5,6 +5,12 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.2 (2021-12-01)
+------------------
+
+* Add back flags that were removed in #691 (#702)
+* Documentation: Update CLI documentation
+
 0.8.1 (2021-11-30)
 ------------------
 
