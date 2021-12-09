@@ -195,8 +195,9 @@ _catkin_get_profiles() {
 
 _catkin_verbs_complete() {
   local verbs_array;
-  verbs_array=(
-    'build:Build packages'
+  verbs_array=('build:Build packages')
+  [[ -f $(which catkin) ]] || verbs_array+=('cd:Change directory to a package')
+  verbs_array+=(
     'clean:Clean workspace components'
     'config:Configure workspace'
     'create:Create workspace components'
@@ -205,8 +206,9 @@ _catkin_verbs_complete() {
     'list:List workspace components'
     'locate:Locate workspace components'
     'profile:Switch between configurations'
-    'test:Test packages'
   )
+  [[ -f $(which catkin) ]] || verbs_array+=('source:Source a workspace')
+  verbs_array+=('test:Test packages')
   _describe -t verbs 'catkin verb' verbs_array -V verbs && return 0
 }
 
@@ -246,6 +248,10 @@ _catkin_build_complete() {
     '*:package:_catkin_get_packages')
 
   _arguments -C $build_opts && return 0
+}
+
+_catkin_cd_complete() {
+  _arguments -C ':package:_catkin_get_packages' && return 0
 }
 
 _catkin_clean_complete() {
@@ -468,6 +474,9 @@ _catkin_locate_complete() {
   return 1
 }
 
+_catkin_source_complete() {
+  return 0
+}
 
 _catkin_test_complete() {
   local test_opts
@@ -522,6 +531,8 @@ case "$state" in
   (options)
     case $line[1] in
       (build) _catkin_build_complete && ret=0
+        ;;
+      (cd) _catkin_cd_complete && ret=0
         ;;
       (clean) _catkin_clean_complete && ret=0
         ;;
@@ -602,6 +613,8 @@ case "$state" in
       (locate) _catkin_locate_complete && ret=0
         ;;
       (profile) _catkin_profile_complete && ret=0
+        ;;
+      (source) _catkin_source_complete && ret=0
         ;;
       (test) _catkin_test_complete && ret=0
         ;;
