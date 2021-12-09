@@ -1,8 +1,8 @@
 usage: catkin clean [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--dry-run] [--verbose] [--yes] [--force] [--all-profiles]
-                    [--deinit] [-l] [-b] [-d] [-i] [--dependents] [--orphans]
-                    [--setup-files]
-                    [PKGNAME [PKGNAME ...]]
+                    [--deinit] [-b] [-d] [-i] [-L] [--this] [--dependents]
+                    [--orphans] [--setup-files]
+                    [PKGNAME ...]
 
 Deletes various products of the build verb.
 
@@ -31,10 +31,14 @@ Full:
 Spaces:
   Clean workspace subdirectories for the selected profile.
 
-  -l, --logs            Remove the entire log space.
-  -b, --build           Remove the entire build space.
-  -d, --devel           Remove the entire devel space.
-  -i, --install         Remove the entire install space.
+  -b, --build, --build-space
+                        Remove the entire build space.
+  -d, --devel, --devel-space
+                        Remove the entire devel space.
+  -i, --install, --install-space
+                        Remove the entire install space.
+  -L, --logs, --log-space
+                        Remove the entire log space.
 
 Packages:
   Clean products from specific packages in the workspace. Note that these
@@ -44,11 +48,13 @@ Packages:
 
   PKGNAME               Explicilty specify a list of specific packages to
                         clean from the build, devel, and install space.
+  --this                Clean the package containing the current working
+                        directory from the build, devel, and install space.
   --dependents, --deps  Clean the packages which depend on the packages to be
                         cleaned.
   --orphans             Remove products from packages are no longer in the
                         source space. Note that this also removes packages
-                        which are blacklisted or which contain `CATKIN_INGORE`
+                        which are blacklisted or which contain `CATKIN_IGNORE`
                         marker files.
 
 Advanced:

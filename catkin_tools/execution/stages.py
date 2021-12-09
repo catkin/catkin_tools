@@ -14,13 +14,7 @@
 
 import os
 import traceback
-
-from catkin_tools.common import string_type
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
+from shlex import quote as cmd_quote
 
 from .io import IOBufferLogger
 from .io import IOBufferProtocol
@@ -40,12 +34,16 @@ class Stage(object):
             logger_factory=IOBufferProtocol.factory,
             occupy_job=True,
             locked_resource=None,
+            early_termination_retcode=None,
+            success_retcodes=(0,),
             repro=None):
         self.label = str(label)
         self.logger_factory = logger_factory
         self.occupy_job = occupy_job
         self.repro = repro
         self.locked_resource = locked_resource
+        self.early_termination_retcode = early_termination_retcode
+        self.success_retcodes = success_retcodes
 
     def get_reproduction_cmd(self, verb, jid):
         """Get a command line to reproduce this stage with the proper environment."""
@@ -69,13 +67,12 @@ class CommandStage(Stage):
             stderr_to_stdout=False,
             occupy_job=True,
             locked_resource=None,
-            logger_factory=IOBufferProtocol.factory):
+            logger_factory=IOBufferProtocol.factory,
+            early_termination_retcode=None,
+            success_retcodes=(0,)):
         """
         :param label: The label for the stage
-        :param command: A list of strings composing a system command
-        :param protocol: A protocol class to use for this stage
-
-        :parma cmd: The command to run
+        :param cmd: The command to run
         :param cwd: The directory in which to run the command (default: os.getcwd())
         :param env: The base environment. (default: {})
         :param env_overrides: The variables that override the base environment. (default: {})
@@ -85,11 +82,14 @@ class CommandStage(Stage):
 
         :param occupy_job: Whether this stage should wait for a worker from the job server (default: True)
         :param logger_factory: The factory to use to construct a logger (default: IOBufferProtocol.factory)
+        :param early_termination_retcode: A return code that ends the whole job successfully (default: None)
+        :param success_retcodes: A tuple of return codes that mean successful termination of the command (default: (0,))
         """
 
-        if not type(cmd) in [list, tuple] or not all([isinstance(s, string_type) for s in cmd]):
+        if not type(cmd) in [list, tuple] or not all([isinstance(s, str) for s in cmd]):
             raise ValueError('Command stage must be a list of strings: {}'.format(cmd))
-        super(CommandStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
+        super(CommandStage, self).__init__(label, logger_factory, occupy_job, locked_resource,
+                                           early_termination_retcode, success_retcodes)
 
         # Store environment overrides
         self.env_overrides = env_overrides or {}
@@ -160,11 +160,14 @@ class FunctionStage(Stage):
             logger_factory=IOBufferLogger.factory,
             occupy_job=True,
             locked_resource=None,
+            early_termination_retcode=None,
+            success_retcodes=(0,),
             *args,
             **kwargs):
         if not callable(function):
             raise ValueError('Function stage must be callable.')
-        super(FunctionStage, self).__init__(label, logger_factory, occupy_job, locked_resource)
+        super(FunctionStage, self).__init__(label, logger_factory, occupy_job, locked_resource,
+                                            early_termination_retcode, success_retcodes)
 
         self.args = args
         self.kwargs = kwargs

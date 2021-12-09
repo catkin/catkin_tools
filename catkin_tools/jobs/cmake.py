@@ -36,6 +36,7 @@ from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
 
+from catkin_tools.execution.io import IOBufferProtocol
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
@@ -44,13 +45,6 @@ from catkin_tools.terminal_color import ColorMapper
 
 mapper = ColorMapper()
 clr = mapper.clr
-
-# FileNotFoundError from Python3
-try:
-    FileNotFoundError
-except NameError:
-    class FileNotFoundError(OSError):
-        pass
 
 
 def copy_install_manifest(
@@ -78,7 +72,7 @@ def copy_install_manifest(
     return 0
 
 
-def get_python_install_dir():
+def get_python_install_dir(context):
     """Returns the same value as the CMake variable PYTHON_INSTALL_DIR
 
     The PYTHON_INSTALL_DIR variable is normally set from the CMake file:
@@ -88,15 +82,17 @@ def get_python_install_dir():
     :returns: Python install directory for the system Python
     :rtype: str
     """
-    python_install_dir = 'lib'
-    if os.name != 'nt':
-        python_version_xdoty = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
-        python_install_dir = os.path.join(python_install_dir, 'python' + python_version_xdoty)
-
-    python_use_debian_layout = os.path.exists('/etc/debian_version')
-    python_packages_dir = 'dist-packages' if python_use_debian_layout else 'site-packages'
-    python_install_dir = os.path.join(python_install_dir, python_packages_dir)
-    return python_install_dir
+    cmake_command = [CMAKE_EXEC]
+    cmake_command.extend(context.cmake_args)
+    script_path = os.path.join(os.path.dirname(__file__), 'cmake', 'python_install_dir.cmake')
+    cmake_command.extend(['-P', script_path])
+    p = subprocess.Popen(
+        cmake_command,
+        cwd=os.path.join(os.path.dirname(__file__), 'cmake'),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # only our message (containing the install directory) is written to stderr
+    _, out = p.communicate()
+    return out.decode().strip()
 
 
 def get_multiarch():
@@ -149,9 +145,14 @@ def generate_env_file(logger, event_queue, context, install_target):
     os.write(tmp_dst_handle, data.encode('utf-8'))
     os.close(tmp_dst_handle)
 
+    # Make the file executable without overwriting the permissions for
+    # the group and others (copy r flags to x)
+    mode = os.stat(tmp_dst_path).st_mode
+    mode |= (mode & 0o444) >> 2
+    os.chmod(tmp_dst_path, mode)
+
     # Do an atomic rename with os.rename
     os.rename(tmp_dst_path, env_file_path)
-    os.chmod(env_file_path, 0o755)
 
     return 0
 
@@ -180,7 +181,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     subs = {}
     subs['cmake_prefix_path'] = install_target + ":"
     subs['ld_path'] = os.path.join(install_target, 'lib') + ":"
-    pythonpath = os.path.join(install_target, get_python_install_dir())
+    pythonpath = os.path.join(install_target, get_python_install_dir(context))
     subs['pythonpath'] = pythonpath + ':'
     subs['pkgcfg_path'] = os.path.join(install_target, 'lib', 'pkgconfig') + ":"
     subs['path'] = os.path.join(install_target, 'bin') + ":"
@@ -406,11 +407,67 @@ def create_cmake_clean_job(
         stages=stages)
 
 
+def create_cmake_test_job(
+    context,
+    package,
+    package_path,
+    test_target,
+    verbose,
+):
+    """Generate a job to test a cmake package"""
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
+
+    # Create job stages
+    stages = []
+
+    # Load environment for job
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource=None,
+        job_env=job_env,
+        package=package,
+        context=context,
+        verbose=False,
+    ))
+
+    # Check if the test target exists
+    # make -q target_name returns 2 if the target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', test_target],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
+    # Make command
+    stages.append(CommandStage(
+        'make',
+        [MAKE_EXEC, test_target] + context.make_args,
+        cwd=build_space,
+        logger_factory=IOBufferProtocol.factory,
+    ))
+
+    return Job(
+        jid=package.name,
+        deps=[],
+        env=job_env,
+        stages=stages,
+    )
+
+
 description = dict(
     build_type='cmake',
     description="Builds a plain CMake package.",
     create_build_job=create_cmake_build_job,
-    create_clean_job=create_cmake_clean_job
+    create_clean_job=create_cmake_clean_job,
+    create_test_job=create_cmake_test_job,
 )
 
 

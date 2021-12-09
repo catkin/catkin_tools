@@ -13,6 +13,8 @@ class MockPackage(mock.Mock):
         self.run_depends = []
         self.exec_depends = []
         self.build_export_depends = []
+        self.evaluated_condition = True
+
 
 def test_get_recursive_build_depends_in_workspace_with_test_depend():
     pkg1 = MockPackage('pkg1')
@@ -26,6 +28,23 @@ def test_get_recursive_build_depends_in_workspace_with_test_depend():
 
     r = common.get_recursive_build_depends_in_workspace(pkg1, ordered_packages)
     assert r == ordered_packages[1:], r
+
+
+def test_get_recursive_build_depends_in_workspace_with_condition():
+    pkg = MockPackage('pkg')
+    cond_false_pkg = MockPackage('cond_false_pkg')
+    cond_false_pkg.evaluated_condition = False
+    cond_true_pkg = MockPackage('cond_true_pkg')
+    pkg.build_depends = [cond_true_pkg, cond_false_pkg]
+
+    ordered_packages = [
+        ('/path/to/pkg', pkg),
+        ('/path/to/cond_false_pkg', cond_false_pkg),
+        ('/path/to/cond_true_pkg', cond_true_pkg),
+    ]
+
+    r = common.get_recursive_build_depends_in_workspace(pkg, ordered_packages)
+    assert r == ordered_packages[2:], r
 
 
 def test_get_recursive_build_depends_in_workspace_circular_run_depend():

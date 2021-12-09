@@ -16,22 +16,16 @@
 
 import os
 import pkg_resources
-import stat
+from queue import Queue
 import sys
 import time
 import traceback
 import yaml
-
-import trollius as asyncio
-
-try:
-    # Python3
-    from queue import Queue
-except ImportError:
-    # Python2
-    from Queue import Queue
+import asyncio
 
 try:
+    from catkin_pkg.package import parse_package
+    from catkin_pkg.package import InvalidPackage
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -40,11 +34,8 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
-from catkin_pkg.package import parse_package
-
-from catkin_tools.common import FakeLock
+from catkin_tools.common import FakeLock, expand_glob_package
 from catkin_tools.common import format_time_delta
-from catkin_tools.common import get_build_type
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
@@ -60,8 +51,8 @@ from catkin_tools.jobs.catkin import get_prebuild_package
 
 from .color import clr
 
-
 BUILDSPACE_MARKER_FILE = '.catkin_tools.yaml'
+BUILDSPACE_IGNORE_FILE = 'CATKIN_IGNORE'
 DEVELSPACE_MARKER_FILE = '.catkin_tools.yaml'
 
 
@@ -72,6 +63,8 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     :type packages: list
     :param context: Workspace context
     :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
+    :param workspace_packages: list of all packages in the workspace
+    :type workspace_packages: list
     :returns: tuple of packages to be built and those package's deps
     :rtype: tuple
     """
@@ -88,17 +81,30 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     ordered_packages = topological_order_packages(workspace_packages)
     # Set the packages in the workspace for the context
     context.packages = ordered_packages
-    # Determin the packages which should be built
+    # Determine the packages which should be built
     packages_to_be_built = []
     packages_to_be_built_deps = []
 
+    # Check if topological_order_packages determined any circular dependencies, if so print an error and fail.
+    # If this is the case, the last entry of ordered packages is a tuple that starts with nil.
+    if ordered_packages and ordered_packages[-1][0] is None:
+        guilty_packages = ", ".join(ordered_packages[-1][1:])
+        sys.exit("[build] Circular dependency detected in the following packages: {}".format(guilty_packages))
+
+    workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     # Determine the packages to be built
     if packages:
         # First assert all of the packages given are in the workspace
-        workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
         for package in packages:
             if package not in workspace_package_names:
-                sys.exit("[build] Given package '{0}' is not in the workspace".format(package))
+                # Try whether package is a pattern and matches
+                glob_packages = expand_glob_package(package, workspace_package_names)
+                if len(glob_packages) > 0:
+                    packages.extend(glob_packages)
+                    continue
+                else:
+                    sys.exit("[build] Given package '{0}' is not in the workspace "
+                             "and pattern does not match any package".format(package))
             # If metapackage, include run depends which are in the workspace
             package_obj = workspace_package_names[package][1]
             if 'metapackage' in [e.tagname for e in package_obj.exports]:
@@ -115,19 +121,27 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     else:
         # Only use whitelist when no other packages are specified
         if len(context.whitelist) > 0:
-            packages_to_be_built = [p for p in ordered_packages if (p[1].name in context.whitelist)]
+            # Expand glob patterns in whitelist
+            whitelist = []
+            for whitelisted_package in context.whitelist:
+                whitelist.extend(expand_glob_package(whitelisted_package, workspace_package_names))
+            packages_to_be_built = [p for p in ordered_packages if (p[1].name in whitelist)]
         else:
             packages_to_be_built = ordered_packages
 
     # Filter packages with blacklist
     if len(context.blacklist) > 0:
+        # Expand glob patterns in blacklist
+        blacklist = []
+        for blacklisted_package in context.blacklist:
+            blacklist.extend(expand_glob_package(blacklisted_package, workspace_package_names))
+        # Apply blacklist to packages and dependencies
         packages_to_be_built = [
             (path, pkg) for path, pkg in packages_to_be_built
-            if (pkg.name not in context.blacklist or pkg.name in packages)]
+            if (pkg.name not in blacklist or pkg.name in packages)]
         packages_to_be_built_deps = [
             (path, pkg) for path, pkg in packages_to_be_built_deps
-            if (pkg.name not in context.blacklist or pkg.name in packages)]
-        ordered_packages = ordered_packages
+            if (pkg.name not in blacklist or pkg.name in packages)]
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
@@ -153,9 +167,8 @@ def get_built_unbuilt_packages(context, workspace_packages):
     # Get names of all unbuilt packages
     unbuilt_pkgs = set()
     for path, pkg in workspace_packages.items():
-        if 'metapackage' not in [e.tagname for e in pkg.exports]:
-            if pkg.name not in built_packages:
-                unbuilt_pkgs.add(pkg.name)
+        if pkg.name not in built_packages:
+            unbuilt_pkgs.add(pkg.name)
 
     return built_packages, unbuilt_pkgs
 
@@ -196,10 +209,14 @@ def build_isolated_workspace(
     :type start_with: str
     :param no_deps: If True, the dependencies of packages will not be built first
     :type no_deps: bool
+    :param unbuilt: Handle unbuilt packages
+    :type unbuilt: bool
     :param n_jobs: number of parallel package build n_jobs
     :type n_jobs: int
     :param force_cmake: forces invocation of CMake if True, default is False
     :type force_cmake: bool
+    :param pre_clean: Clean current build before building
+    :type pre_clean: bool
     :param force_color: forces colored output even if terminal does not support it
     :type force_color: bool
     :param quiet: suppresses the output of commands unless there is an error
@@ -229,7 +246,7 @@ def build_isolated_workspace(
 
     # Assert that the limit_status_rate is valid
     if limit_status_rate < 0:
-        sys.exit("[build] @!@{rf}Error:@| The value of --status-rate must be greater than or equal to zero.")
+        sys.exit("[build] @!@{rf}Error:@| The value of --limit-status-rate must be greater than or equal to zero.")
 
     # Declare a buildspace marker describing the build config for error checking
     buildspace_marker_data = {
@@ -272,9 +289,10 @@ def build_isolated_workspace(
     if os.path.exists(context.build_space_abs):
         if os.path.isfile(context.build_space_abs):
             sys.exit(clr(
-                "[build] @{rf}Error:@| Build space '{0}' exists but is a file and not a folder."
+                "[build] @{rf}Error:@| " +
+                "Build space '{0}' exists but is a file and not a folder."
                 .format(context.build_space_abs)))
-    # If it dosen't exist, create it
+    # If it doesn't exist, create it
     else:
         log("[build] Creating build space: '{0}'".format(context.build_space_abs))
         os.makedirs(context.build_space_abs)
@@ -285,7 +303,11 @@ def build_isolated_workspace(
 
     # Get all the packages in the context source space
     # Suppress warnings since this is a utility function
-    workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    try:
+        workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
+    except InvalidPackage as ex:
+        sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                     " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
     # Get packages which have not been built yet
     built_packages, unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)
@@ -380,6 +402,8 @@ def build_isolated_workspace(
     # Generate prebuild and prebuild clean jobs, if necessary
     prebuild_jobs = {}
     setup_util_present = os.path.exists(os.path.join(context.devel_space_abs, '_setup_util.py'))
+    if context.install:
+        setup_util_present &= os.path.exists(os.path.join(context.install_space_abs, '_setup_util.py'))
     catkin_present = 'catkin' in (packages_to_be_built_names + packages_to_be_built_deps_names)
     catkin_built = 'catkin' in built_packages
     prebuild_built = 'catkin_tools_prebuild' in built_packages
@@ -472,11 +496,7 @@ def build_isolated_workspace(
         if pkg.name not in packages_to_be_built_names:
             continue
 
-        # Ignore metapackages
-        if 'metapackage' in [e.tagname for e in pkg.exports]:
-            continue
-
-        # Get actual execution deps
+        # Get actual build deps
         deps = [
             p.name for _, p
             in get_cached_recursive_build_depends_in_workspace(pkg, packages_to_be_built)
@@ -498,7 +518,7 @@ def build_isolated_workspace(
             skip_install=skip_install)
 
         # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
 
         if build_type in build_job_creators:
             jobs.append(build_job_creators[build_type](**build_job_kwargs))
@@ -639,19 +659,16 @@ def _create_unmerged_devel_setup(context, unbuilt):
     )
     with open(setup_sh_path, 'w') as f:
         f.write(env_file)
-    os.chmod(setup_sh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
     # Create setup.bash file
     setup_bash_path = os.path.join(context.devel_space_abs, 'setup.bash')
     with open(setup_bash_path, 'w') as f:
         f.write(SETUP_BASH_TEMPLATE)
-    os.chmod(setup_bash_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
     # Create setup.zsh file
     setup_zsh_path = os.path.join(context.devel_space_abs, 'setup.zsh')
     with open(setup_zsh_path, 'w') as f:
         f.write(SETUP_ZSH_TEMPLATE)
-    os.chmod(setup_zsh_path, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR)
 
 
 def _create_unmerged_devel_setup_for_install(context):
@@ -667,7 +684,7 @@ SETUP_SH_TEMPLATE = """\
 
 # This file is aggregates the many setup.sh files in the various
 # unmerged devel spaces in this folder.
-# This is occomplished by sourcing each leaf package and all the
+# This is accomplished by sourcing each leaf package and all the
 # recursive run dependencies of those leaf packages
 
 # Source the first package's setup.sh without the --extend option

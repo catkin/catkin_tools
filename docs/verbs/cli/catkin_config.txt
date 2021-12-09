@@ -1,18 +1,21 @@
 usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
                      [--append-args | --remove-args] [--init]
                      [--extend EXTEND_PATH | --no-extend] [--mkdirs]
+                     [--authors NAME [EMAIL ...] | --maintainers NAME
+                     [EMAIL ...] | --licenses LICENSE [LICENSE ...]]
                      [--whitelist PKG [PKG ...] | --no-whitelist]
                      [--blacklist PKG [PKG ...] | --no-blacklist]
-                     [-s SOURCE_SPACE | --default-source-space]
-                     [-l LOG_SPACE | --default-log-space]
-                     [-b BUILD_SPACE | --default-build-space]
-                     [-d DEVEL_SPACE | --default-devel-space]
-                     [-i INSTALL_SPACE | --default-install-space]
+                     [--build-space BUILD_SPACE | --default-build-space]
+                     [--devel-space DEVEL_SPACE | --default-devel-space]
+                     [--install-space INSTALL_SPACE | --default-install-space]
+                     [--log-space LOG_SPACE | --default-log-space]
+                     [--source-space SOURCE_SPACE | --default-source-space]
                      [-x SPACE_SUFFIX]
                      [--link-devel | --merge-devel | --isolate-devel]
                      [--install | --no-install]
                      [--isolate-install | --merge-install] [-j JOBS]
-                     [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                     [-p PACKAGE_JOBS] [-l LOAD_AVERAGE]
+                     [--jobserver | --no-jobserver]
                      [--env-cache | --no-env-cache]
                      [--cmake-args ARG [ARG ...] | --no-cmake-args]
                      [--make-args ARG [ARG ...] | --no-make-args]
@@ -50,6 +53,16 @@ Workspace Context:
   --mkdirs              Create directories required by the configuration (e.g.
                         source space) if they do not already exist.
 
+Package Create Defaults:
+  Information of default authors/maintainers of created packages
+
+  --authors NAME [EMAIL ...]
+                        Set the default authors of created packages
+  --maintainers NAME [EMAIL ...]
+                        Set the default maintainers of created packages
+  --licenses LICENSE [LICENSE ...]
+                        Set the default licenses of created packages
+
 Package Build Defaults:
   Packages to include or exclude from default build behavior.
 
@@ -67,25 +80,25 @@ Package Build Defaults:
 Spaces:
   Location of parts of the catkin workspace.
 
-  -s SOURCE_SPACE, --source-space SOURCE_SPACE
-                        The path to the source space.
-  --default-source-space
-                        Use the default path to the source space ("src")
-  -l LOG_SPACE, --log-space LOG_SPACE
-                        The path to the log space.
-  --default-log-space   Use the default path to the log space ("logs")
-  -b BUILD_SPACE, --build-space BUILD_SPACE
+  --build-space BUILD_SPACE, -b BUILD_SPACE
                         The path to the build space.
   --default-build-space
                         Use the default path to the build space ("build")
-  -d DEVEL_SPACE, --devel-space DEVEL_SPACE
-                        Sets the target devel space
+  --devel-space DEVEL_SPACE, -d DEVEL_SPACE
+                        The path to the devel space.
   --default-devel-space
-                        Sets the default target devel space ("devel")
-  -i INSTALL_SPACE, --install-space INSTALL_SPACE
-                        Sets the target install space
+                        Use the default path to the devel space ("devel")
+  --install-space INSTALL_SPACE, -i INSTALL_SPACE
+                        The path to the install space.
   --default-install-space
-                        Sets the default target install space ("install")
+                        Use the default path to the install space ("install")
+  --log-space LOG_SPACE, -L LOG_SPACE
+                        The path to the log space.
+  --default-log-space   Use the default path to the log space ("logs")
+  --source-space SOURCE_SPACE, -s SOURCE_SPACE
+                        The path to the source space.
+  --default-source-space
+                        Use the default path to the source space ("src")
   -x SPACE_SUFFIX, --space-suffix SPACE_SUFFIX
                         Suffix for build, devel, and install space if they are
                         not otherwise explicitly set.
@@ -121,6 +134,9 @@ Build Options:
   -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
                         Maximum number of packages allowed to be built in
                         parallel (default is cpu count)
+  -l LOAD_AVERAGE, --load-average LOAD_AVERAGE
+                        Maximum load average before no new build jobs are
+                        scheduled
   --jobserver           Use the internal GNU Make job server which will limit
                         the number of Make jobs across all active packages.
   --no-jobserver        Disable the internal GNU Make job server, and use an
@@ -131,19 +147,19 @@ Build Options:
   --no-env-cache        Don't cache environment variables when re-sourcing the
                         same resultspace.
   --cmake-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to CMake. It
+                        Arbitrary arguments which are passed to CMake. It
                         collects all of following arguments until a "--" is
                         read.
   --no-cmake-args       Pass no additional arguments to CMake.
   --make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make.It
+                        Arbitrary arguments which are passed to make. It
                         collects all of following arguments until a "--" is
                         read.
   --no-make-args        Pass no additional arguments to make (does not affect
                         --catkin-make-args).
   --catkin-make-args ARG [ARG ...]
-                        Arbitrary arguments which are passes to make but only
-                        for catkin packages.It collects all of following
+                        Arbitrary arguments which are passed to make but only
+                        for catkin packages. It collects all of following
                         arguments until a "--" is read.
   --no-catkin-make-args
                         Pass no additional arguments to make for catkin

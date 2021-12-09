@@ -1,7 +1,7 @@
-usage: catkin profile list [-h] [--unformatted]
+usage: catkin profile list [-h] [--unformatted] [--active]
 
 optional arguments:
   -h, --help         show this help message and exit
   --unformatted, -u  Print profile list without punctuation and additional
                      details.
-  --active           show only the active profile
+  --active           Print only active profile.

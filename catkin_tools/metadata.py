@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import pkg_resources
 import shutil
@@ -101,7 +99,7 @@ def get_paths(workspace_path, profile_name, verb=None):
     # Get the metadata for this verb
     metadata_file_path = os.path.join(metadata_path, '%s.yaml' % verb) if profile_name and verb else None
 
-    return (metadata_path, metadata_file_path)
+    return metadata_path, metadata_file_path
 
 
 def find_enclosing_workspace(search_start_path):
@@ -212,7 +210,7 @@ def init_metadata_root(workspace_path, reset=False):
     if not os.path.exists(workspace_path):
         raise IOError(
             "Can't initialize Catkin workspace in path %s because it does "
-            "not exist." % (workspace_path))
+            "not exist." % workspace_path)
 
     # Check if the desired workspace is enclosed in another workspace
     marked_workspace = find_enclosing_workspace(workspace_path)
@@ -230,7 +228,7 @@ def init_metadata_root(workspace_path, reset=False):
     if os.path.exists(metadata_root_path):
         # Reset the directory if requested
         if reset:
-            print("Deleting existing metadata from catkin_tools metadata directory: %s" % (metadata_root_path))
+            print("Deleting existing metadata from catkin_tools metadata directory: %s" % metadata_root_path)
             shutil.rmtree(metadata_root_path)
             os.mkdir(metadata_root_path)
     else:
@@ -256,6 +254,8 @@ def init_profile(workspace_path, profile_name, reset=False):
     :type workspace_path: str
     :param profile_name: The catkin_tools metadata profile name to initialize
     :type profile_name: str
+    :param reset: Delete profile with the same name if existing
+    :type reset: bool
     """
 
     init_metadata_root(workspace_path)
@@ -266,7 +266,7 @@ def init_profile(workspace_path, profile_name, reset=False):
     if os.path.exists(profile_path):
         # Reset the directory if requested
         if reset:
-            print("Deleting existing profile from catkin_tools profile directory: %s" % (profile_path))
+            print("Deleting existing profile from catkin_tools profile directory: %s" % profile_path)
             shutil.rmtree(profile_path)
             os.mkdir(profile_path)
     else:
@@ -391,14 +391,14 @@ def get_metadata(workspace_path, profile, verb):
 
     (metadata_path, metadata_file_path) = get_paths(workspace_path, profile, verb)
 
-    if not os.path.exists(metadata_file_path):
+    if not os.path.exists(metadata_file_path) or os.path.getsize(metadata_file_path) == 0:
         return dict()
 
     with open(metadata_file_path, 'r') as metadata_file:
         return yaml.safe_load(metadata_file)
 
 
-def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, merge=True):
+def update_metadata(workspace_path, profile, verb, new_data=None, no_init=False, merge=True):
     """Update the catkin_tools verb metadata for a given profile.
 
     :param workspace_path: The path to the root of a catkin workspace
@@ -409,7 +409,13 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
     :type verb: str
     :param new_data: A python dictionary or array to write to the metadata file
     :type new_data: dict
+    :param no_init: Do not init metadata root and/or profile folder (default: False)
+    :type no_init: bool
+    :param merge: Merge new data with current data or ignore current data (default: True)
+    :type merge: bool
     """
+    if new_data is None:
+        new_data = {}
 
     migrate_metadata(workspace_path)
 
@@ -420,7 +426,7 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
         init_metadata_root(workspace_path)
         init_profile(workspace_path, profile)
 
-    # Get the curent metadata for this verb
+    # Get the current metadata for this verb
     if merge:
         data = get_metadata(workspace_path, profile, verb)
     else:
@@ -428,8 +434,11 @@ def update_metadata(workspace_path, profile, verb, new_data={}, no_init=False, m
 
     # Update the metadata for this verb
     data.update(new_data)
-    with open(metadata_file_path, 'w') as metadata_file:
-        yaml.dump(data, metadata_file, default_flow_style=False)
+    try:
+        with open(metadata_file_path, 'w') as metadata_file:
+            yaml.dump(data, metadata_file, default_flow_style=False)
+    except PermissionError:
+        print("Could not write to metadata file '%s'!" % metadata_file_path)
 
     return data
 
@@ -450,7 +459,7 @@ def get_active_metadata(workspace_path, verb):
     get_metadata(workspace_path, active_profile, verb)
 
 
-def update_active_metadata(workspace_path, verb, new_data={}):
+def update_active_metadata(workspace_path, verb, new_data=None):
     """Update the catkin_tools verb metadata for the active profile.
 
     :param workspace_path: The path to the root of a catkin workspace
@@ -460,6 +469,8 @@ def update_active_metadata(workspace_path, verb, new_data={}):
     :param new_data: A python dictionary or array to write to the metadata file
     :type new_data: dict
     """
+    if new_data is None:
+        new_data = {}
 
     active_profile = get_active_profile(workspace_path)
-    update_active_metadata(workspace_path, active_profile, verb, new_data)
+    update_metadata(workspace_path, active_profile, verb, new_data)

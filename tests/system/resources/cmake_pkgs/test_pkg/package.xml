@@ -1,0 +1,10 @@
+<package>
+  <name>test_pkg</name>
+  <description>This package has a passing ctest test</description>
+  <version>0.1.0</version>
+  <license>BSD</license>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

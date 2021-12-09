@@ -14,11 +14,7 @@
 
 import csv
 import os
-
-try:
-    from md5 import md5
-except ImportError:
-    from hashlib import md5
+from hashlib import md5
 
 from catkin_tools.argument_parsing import handle_make_arguments
 
@@ -27,10 +23,12 @@ from catkin_tools.common import mkdir_p
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
+from catkin_tools.execution.io import CatkinTestResultsIOBufferProtocol
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
+from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
@@ -68,6 +66,11 @@ def get_prebuild_package(build_space_abs, devel_space_abs, force):
         with open(package_xml_path, 'wb') as package_xml:
             package_xml.write(SETUP_PREBUILD_PACKAGE_XML_TEMPLATE.encode('utf-8'))
 
+    # Create CATKIN_IGNORE file because this package should not be found by catkin
+    # This is only necessary when the build space is inside of the source space
+    catkin_ignore_path = os.path.join(prebuild_path, 'CATKIN_IGNORE')
+    open(catkin_ignore_path, 'wb').close()
+
     # Create the build directory for this package
     mkdir_p(os.path.join(build_space_abs, 'catkin_tools_prebuild'))
 
@@ -81,13 +84,14 @@ def clean_linked_files(
         files_that_collide,
         files_to_clean,
         dry_run):
-    """Removes a list of files and adjusts collison counts for colliding files.
+    """Removes a list of files and adjusts collision counts for colliding files.
 
     This function synchronizes access to the devel collisions file.
 
-    :param devel_space_abs: absolute path to merged devel space
+    :param metadata_path: absolute path to the general metadata directory
     :param files_that_collide: list of absolute paths to files that collide
     :param files_to_clean: list of absolute paths to files to clean
+    :param dry_run: Perform a dry-run
     """
 
     # Get paths
@@ -163,8 +167,10 @@ def unlink_devel_products(
 
     :param devel_space_abs: Path to a merged devel space.
     :param private_devel_path: Path to the private devel space
-    :param devel_manifest_path: Path to the directory containing the package's
+    :param metadata_path: Path to the directory containing the general metadata
+    :param package_metadata_path: Path to the directory containing the package's
     catkin_tools metadata
+    :param dry_run: Perform a dry-run
     """
 
     # Check paths
@@ -199,7 +205,7 @@ def unlink_devel_products(
                 # Clean the file or decrement the collision count
                 files_to_clean.append(dest_file)
 
-    # Remove all listed symli and empty directories which have been removed
+    # Remove all listed symlinks and empty directories which have been removed
     # after this build, and update the collision file
     clean_linked_files(logger, event_queue, metadata_path, [], files_to_clean, dry_run)
 
@@ -258,7 +264,7 @@ def link_devel_products(
                         logger.out('Linked: ({}, {})'.format(source_dir, dest_dir))
                 else:
                     # Create a symlink
-                    logger.out('Symlinking %s' % (dest_dir))
+                    logger.out('Symlinking %s' % dest_dir)
                     try:
                         os.symlink(source_dir, dest_dir)
                     except OSError:
@@ -303,7 +309,7 @@ def link_devel_products(
                     logger.out('Linked: ({}, {})'.format(source_file, dest_file))
             else:
                 # Create the symlink
-                logger.out('Symlinking %s' % (dest_file))
+                logger.out('Symlinking %s' % dest_file)
                 try:
                     os.symlink(source_file, dest_file)
                 except OSError:
@@ -342,18 +348,6 @@ def link_devel_products(
         for source_file, dest_file in products:
             manifest_writer.writerow([source_file, dest_file])
 
-    return 0
-
-
-def ctr_nuke(logger, event_queue, prefix):
-    """Adds an env-hook which clears the catkin and ros test results dir."""
-
-    ctr_nuke_path = os.path.join(prefix, 'etc', 'catkin', 'profile.d')
-    ctr_nuke_filename = os.path.join(ctr_nuke_path, '06-ctr-nuke.sh')
-    mkdir_p(ctr_nuke_path)
-    if not os.path.exists(ctr_nuke_filename):
-        with open(ctr_nuke_filename, 'w') as ctr_nuke_file:
-            ctr_nuke_file.write(CTR_NUKE_SH)
     return 0
 
 
@@ -418,30 +412,11 @@ def create_catkin_build_job(
         dest_path=os.path.join(metadata_path, 'package.xml')
     ))
 
-    # Define test results directory
-    catkin_test_results_dir = os.path.join(build_space, 'test_results')
-    # Always override the CATKIN and ROS _TEST_RESULTS_DIR environment variables.
-    # This is in order to avoid cross talk due to parallel builds.
-    # This is only needed for ROS Hydro and earlier (the problem was addressed upstream in Indigo).
-    # See: https://github.com/catkin/catkin_tools/issues/139
-    ctr_env = {
-        'CATKIN_TEST_RESULTS_DIR': catkin_test_results_dir,
-        'ROS_TEST_RESULTS_DIR': catkin_test_results_dir
-    }
-
     # Only run CMake if the Makefile doesn't exist or if --force-cmake is given
     # TODO: This would need to be different with `cmake --build`
     makefile_path = os.path.join(build_space, 'Makefile')
 
     if not os.path.isfile(makefile_path) or force_cmake:
-
-        # Create an env-hook which clears the catkin and ros test results environment variable.
-        if not (context.install and skip_install):
-            stages.append(FunctionStage(
-                'ctr-nuke',
-                ctr_nuke,
-                prefix=context.package_dest_path(package)
-            ))
 
         require_command('cmake', CMAKE_EXEC)
 
@@ -474,9 +449,6 @@ def create_catkin_build_job(
         context.make_args +
         context.catkin_make_args)
 
-    # Determine if the catkin test results env needs to be overridden
-    env_overrides = ctr_env if 'test' in make_args else {}
-
     # Pre-clean command
     if pre_clean:
         # TODO: Remove target args from `make_args`
@@ -493,7 +465,6 @@ def create_catkin_build_job(
         'make',
         [MAKE_EXEC] + make_args,
         cwd=build_space,
-        env_overrides=env_overrides,
         logger_factory=CMakeMakeIOBufferProtocol.factory
     ))
 
@@ -619,19 +590,91 @@ def create_catkin_clean_job(
         stages=stages)
 
 
+def create_catkin_test_job(
+    context,
+    package,
+    package_path,
+    test_target,
+    verbose,
+):
+    """Generate a job that tests a package"""
+
+    # Package source space path
+    pkg_dir = os.path.join(context.source_space_abs, package_path)
+    # Package build space path
+    build_space = context.package_build_space(package)
+    # Environment dictionary for the job, which will be built
+    # up by the executions in the loadenv stage.
+    job_env = dict(os.environ)
+
+    # Create job stages
+    stages = []
+
+    # Load environment for job
+    stages.append(FunctionStage(
+        'loadenv',
+        loadenv,
+        locked_resource=None,
+        job_env=job_env,
+        package=package,
+        context=context,
+        verbose=False,
+    ))
+
+    # Check buildsystem command
+    # The stdout is suppressed here instead of globally because for the actual tests,
+    # stdout contains important information, but for cmake it is only relevant when verbose
+    stages.append(CommandStage(
+        'check',
+        [MAKE_EXEC, 'cmake_check_build_system'],
+        cwd=build_space,
+        logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir, suppress_stdout=not verbose),
+        occupy_job=True
+    ))
+
+    # Check if the test target exists
+    # make -q target_name returns 2 if the target does not exist, in that case we want to terminate this test job
+    # the other cases (0=target is up-to-date, 1=target exists but is not up-to-date) can be ignored
+    stages.append(CommandStage(
+        'findtest',
+        [MAKE_EXEC, '-q', test_target],
+        cwd=build_space,
+        early_termination_retcode=2,
+        success_retcodes=(0, 1, 2),
+    ))
+
+    # Make command
+    stages.append(CommandStage(
+        'make',
+        [MAKE_EXEC, test_target] + context.make_args,
+        cwd=build_space,
+        logger_factory=CMakeMakeRunTestsIOBufferProtocol.factory_factory(verbose),
+    ))
+
+    # catkin_test_results
+    stages.append(CommandStage(
+        'results',
+        ['catkin_test_results'],
+        cwd=build_space,
+        logger_factory=CatkinTestResultsIOBufferProtocol.factory,
+    ))
+
+    return Job(
+        jid=package.name,
+        deps=[],
+        env=job_env,
+        stages=stages,
+    )
+
+
 description = dict(
     build_type='catkin',
     description="Builds a catkin package.",
     create_build_job=create_catkin_build_job,
-    create_clean_job=create_catkin_clean_job
+    create_clean_job=create_catkin_clean_job,
+    create_test_job=create_catkin_test_job,
 )
 
-
-CTR_NUKE_SH = """\
-#!/usr/bin/env sh
-unset CATKIN_TEST_RESULTS_DIR
-unset ROS_TEST_RESULTS_DIR
-"""
 
 DEVEL_MANIFEST_FILENAME = 'devel_manifest.txt'
 
@@ -656,7 +699,7 @@ DEVEL_LINK_BLACKLIST = DEVEL_LINK_PREBUILD_BLACKLIST + [
 
 # CMakeLists.txt for prebuild package
 SETUP_PREBUILD_CMAKELISTS_TEMPLATE = """\
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.12)
 project(catkin_tools_prebuild)
 
 find_package(catkin QUIET)

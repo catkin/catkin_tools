@@ -34,8 +34,6 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    #'sphinxcontrib.programoutput',
-    #'sphinxcontrib.ansi',
 ]
 
 # Conditionally add spelling

@@ -1,0 +1,64 @@
+usage: catkin test [-h] [--workspace WORKSPACE] [--profile PROFILE] [--this]
+                   [--continue-on-failure] [-p PACKAGE_JOBS] [-t TARGET]
+                   [--catkin-test-target TARGET] [--make-args ARG [ARG ...]]
+                   [--verbose] [--interleave-output] [--summarize]
+                   [--no-status] [--limit-status-rate LIMIT_STATUS_RATE]
+                   [--no-notify]
+                   [PKGNAME ...]
+
+Test one or more packages in a catkin workspace. This invokes `make run_tests`
+or `make test` for either all or the specified packages in a catkin workspace.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --workspace WORKSPACE, -w WORKSPACE
+                        The path to the catkin_tools workspace or a directory
+                        contained within it (default: ".")
+  --profile PROFILE     The name of a config profile to use (default: active
+                        profile)
+
+Packages:
+  Control which packages get tested.
+
+  PKGNAME               Workspace packages to test. If no packages are given,
+                        then all the packages are tested.
+  --this                Test the package containing the current working
+                        directory.
+  --continue-on-failure, -c
+                        Continue testing packages even if the tests for other
+                        requested packages fail.
+
+Config:
+  Parameters for the underlying build system.
+
+  -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
+                        Maximum number of packages allowed to be built in
+                        parallel (default is cpu count)
+  -t TARGET, --test-target TARGET
+                        Make target to run for tests (default is "run_tests"
+                        for catkin and "test" for cmake)
+  --catkin-test-target TARGET
+                        Make target to run for tests for catkin packages,
+                        overwrites --test-target (default is "run_tests")
+  --make-args ARG [ARG ...]
+                        Arbitrary arguments which are passed to make. It
+                        collects all of following arguments until a "--" is
+                        read.
+
+Interface:
+  The behavior of the command-line interface.
+
+  --verbose, -v         Print output from commands in ordered blocks once the
+                        command finishes.
+  --interleave-output, -i
+                        Prevents ordering of command output when multiple
+                        commands are running at the same time.
+  --summarize, --summary, -s
+                        Adds a summary to the end of the log
+  --no-status           Suppresses status line, useful in situations where
+                        carriage return is not properly supported.
+  --limit-status-rate LIMIT_STATUS_RATE, --status-rate LIMIT_STATUS_RATE
+                        Limit the update rate of the status bar to this
+                        frequency. Zero means unlimited. Must be positive,
+                        default is 10 Hz.
+  --no-notify           Suppresses system pop-up notification.

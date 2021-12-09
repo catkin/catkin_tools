@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import yaml
-import shlex
-
-from .common import string_type
+from shlex import split as cmd_split
 
 catkin_config_path = os.path.join(os.path.expanduser('~'), '.config', 'catkin')
 
@@ -35,8 +31,7 @@ bt: b --this
 ls: list
 install: config --install
 p: create pkg
-test: build --verbose --skip-install --make-args test --
-run_tests: build --verbose --skip-install --catkin-make-args run_tests --
+run_tests: test
 """
 
 
@@ -98,13 +93,13 @@ def get_verb_aliases(path=catkin_config_path):
                 raise RuntimeError("Invalid alias file ('{0}'), expected a dict but got a {1}"
                                    .format(full_path, type(yaml_dict)))
             for key, value in yaml_dict.items():
-                if not isinstance(key, string_type):
+                if not isinstance(key, str):
                     raise RuntimeError("Invalid alias in file ('{0}'), expected a string but got '{1}' of type {2}"
                                        .format(full_path, key, type(key)))
                 parsed_value = None
-                if isinstance(value, string_type):
+                if isinstance(value, str):
                     # Parse using shlex
-                    parsed_value = shlex.split(value)
+                    parsed_value = cmd_split(value)
                 elif isinstance(value, list) or isinstance(value, type(None)):
                     # Take plainly
                     parsed_value = value

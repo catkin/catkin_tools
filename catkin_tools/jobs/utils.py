@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import shutil
 
@@ -26,7 +24,7 @@ from catkin_tools.execution.events import ExecutionEvent
 
 
 class CommandMissing(Exception):
-    '''A required command is missing.'''
+    """A required command is missing."""
 
     def __init__(self, name):
         super(CommandMissing, self).__init__(
@@ -46,7 +44,7 @@ def get_env_loaders(package, context):
     if (context.install and context.isolate_install) or (not context.install and context.isolate_devel):
         # Source each package's install or devel space
         space = context.install_space_abs if context.install else context.devel_space_abs
-        # Get the recursive dependcies
+        # Get the recursive dependencies
         depends = get_cached_recursive_build_depends_in_workspace(package, context.packages)
         # For each dep add a line to source its setup file
         for dep_pth, dep in depends:
@@ -64,12 +62,12 @@ def get_env_loaders(package, context):
 
 
 def merge_envs(job_env, overlay_envs):
-    '''
+    """
     In the merged/linked case of single env, this function amounts to a straight
     assignment, but a more complex merge is required with isolated result spaces,
     since a package's build environment may require extending that of multiple
     other result spaces.
-    '''
+    """
     merge_path_values = {}
 
     for overlay_env in overlay_envs:
@@ -103,7 +101,7 @@ def merge_envs(job_env, overlay_envs):
         job_env[key] = os.pathsep.join(reversed(new_values_list))
 
 
-def loadenv(logger, event_queue, job_env, package, context):
+def loadenv(logger, event_queue, job_env, package, context, verbose=True):
     # Get the paths to the env loaders
     env_loader_paths = get_env_loaders(package, context)
     # If DESTDIR is set, set _CATKIN_SETUP_DIR as well
@@ -112,7 +110,7 @@ def loadenv(logger, event_queue, job_env, package, context):
 
     envs = []
     for env_loader_path in env_loader_paths:
-        if logger:
+        if logger and verbose:
             logger.out('Loading environment from: {}'.format(env_loader_path))
         envs.append(get_resultspace_environment(
             os.path.split(env_loader_path)[0],
@@ -151,16 +149,16 @@ def rmfile(logger, event_queue, path):
     return 0
 
 
-def rmdirs(logger, event_queue, paths):
+def rmdirs(logger, event_queue, paths, dry_run):
     """FunctionStage functor that removes a directory tree."""
-    return rmfiles(logger, event_queue, paths, remove_empty=False)
+    return rmfiles(logger, event_queue, paths, dry_run, remove_empty=False)
 
 
 def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root='/'):
     """FunctionStage functor that removes a list of files and directories.
 
     If remove_empty is True, then this will also remove directories which
-    become emprt after deleting the files in `paths`. It will delete files up
+    become empty after deleting the files in `paths`. It will delete files up
     to the path specified by `empty_root`.
     """
 
@@ -203,7 +201,7 @@ def rmfiles(logger, event_queue, paths, dry_run, remove_empty=False, empty_root=
             if dir_descendants[path] == 0:
                 paths.append(path)
 
-    # REmove the paths
+    # Remove the paths
     for index, path in enumerate(paths):
 
         # Remove the path

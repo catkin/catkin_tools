@@ -1,20 +1,19 @@
 usage: catkin create pkg [-h] [-p PATH] --rosdistro ROSDISTRO
                          [-v MAJOR.MINOR.PATCH] [-l LICENSE] [-m NAME EMAIL]
                          [-a NAME EMAIL] [-d DESCRIPTION]
-                         [--catkin-deps [DEP [DEP ...]]]
-                         [--system-deps [DEP [DEP ...]]]
-                         [--boost-components [COMP [COMP ...]]]
+                         [--catkin-deps [DEP ...]] [--system-deps [DEP ...]]
+                         [--boost-components [COMP ...]]
                          PKG_NAME [PKG_NAME ...]
 
 Create a new Catkin package. Note that while the default options used by this
 command are sufficient for prototyping and local usage, it is important that
-any publically-available packages have a valid license and a valid maintainer
+any publicly-available packages have a valid license and a valid maintainer
 e-mail address.
 
 positional arguments:
   PKG_NAME              The name of one or more packages to create. This name
                         should be completely lower-case with individual words
-                        separated by undercores.
+                        separated by underscores.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,15 +40,15 @@ Package Metadata:
                         Description of the package. (default: empty)
 
 Package Dependencies:
-  --catkin-deps [DEP [DEP ...]], -c [DEP [DEP ...]]
+  --catkin-deps [DEP ...], -c [DEP ...]
                         The names of one or more Catkin dependencies. These
                         are Catkin-based packages which are either built as
                         source or installed by your system's package manager.
-  --system-deps [DEP [DEP ...]], -s [DEP [DEP ...]]
+  --system-deps [DEP ...], -s [DEP ...]
                         The names of one or more system dependencies. These
                         are other packages installed by your operating
                         system's package manager.
 
 C++ Options:
-  --boost-components [COMP [COMP ...]]
+  --boost-components [COMP ...]
                         One or more boost components used by the package.

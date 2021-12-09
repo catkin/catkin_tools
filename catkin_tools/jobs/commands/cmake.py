@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import re
 
@@ -52,9 +50,11 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         """Group filter that turns source-relative paths into absolute paths."""
         return (groups[0] if groups[0].startswith(os.sep) else os.path.join(self.source_path, groups[0]),) + groups[1:]
 
-    def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs):
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, source_path, suppress_stdout, *args,
+                 **kwargs):
         super(CMakeIOBufferProtocol, self).__init__(label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
         self.source_path = source_path
+        self.suppress_stdout = suppress_stdout
 
         # These are buffers for incomplete lines that we want to wait to parse
         # until we have received them completely
@@ -72,17 +72,18 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
             (r'CMake Error at (.+):(.+)', '@{rf}@!CMake Error@| at {}:{}', self.abspath),
             (r'CMake Warning at (.+):(.+)', '@{yf}@!CMake Warning@| at {}:{}', self.abspath),
             (r'CMake Warning (dev) at (.+):(.+)', '@{yf}@!CMake Warning (dev)@| at {}:{}', self.abspath),
-            (r'(?i)(warning.*)', '@(yf){}@|', None),
-            (r'(?i)ERROR:(.*)', '@!@(rf)ERROR:@|{}@|', None),
+            (r'(?i)(warning.*)', '@{yf}{}@|', None),
+            (r'(?i)ERROR:(.*)', '@!@{rf}ERROR:@|{}@|', None),
             (r'Call Stack \(most recent call first\):(.*)', '@{cf}Call Stack (most recent call first):@|{}', None),
         ]
 
         self.filters = [(re.compile(p), r, f) for (p, r, f) in filters]
 
     def on_stdout_received(self, data):
-        data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
-        colored = self.color_lines(data_head)
-        super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
+        if not self.suppress_stdout:
+            data_head, self.stdout_tail = split_to_last_line_break(self.stdout_tail + data)
+            colored = self.color_lines(data_head)
+            super(CMakeIOBufferProtocol, self).on_stdout_received(colored)
 
     def on_stderr_received(self, data):
         data_head, self.stderr_tail = split_to_last_line_break(self.stderr_tail + data)
@@ -109,22 +110,23 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
         """Apply colorization rules to each line in data"""
         decoded_data = self._decode(data)
         # TODO: This will only work if all lines are received at once. Instead
-        # of direclty splitting lines, we should buffer the data lines until
+        # of directly splitting lines, we should buffer the data lines until
         # the last character is a line break
         lines = decoded_data.splitlines(True)  # Keep line breaks
-        colored_lines = [self.colorize_cmake(l) for l in lines]
+        colored_lines = [self.colorize_cmake(line) for line in lines]
         colored_data = ''.join(colored_lines)
         encoded_data = self._encode(colored_data)
         return encoded_data
 
     @classmethod
-    def factory_factory(cls, source_path):
+    def factory_factory(cls, source_path, suppress_stdout=False):
         """Factory factory for constructing protocols that know the source path for this CMake package."""
         def factory(label, job_id, stage_label, event_queue, log_path):
-            # factory is called by caktin_tools executor
+            # factory is called by catkin_tools executor
             def init_proxy(*args, **kwargs):
                 # init_proxy is called by asyncio
-                return cls(label, job_id, stage_label, event_queue, log_path, source_path, *args, **kwargs)
+                return cls(label, job_id, stage_label, event_queue, log_path, source_path, suppress_stdout, *args,
+                           **kwargs)
             return init_proxy
         return factory
 
@@ -150,12 +152,12 @@ class CMakeIOBufferProtocol(IOBufferProtocol):
                         cline = cline.format(*match.groups())
                     break
 
-        return cline + '\r\n'
+        return cline + '\n'
 
 
 class CMakeMakeIOBufferProtocol(IOBufferProtocol):
 
-    """An IOBufferProtocol which parses CMake's progree prefixes and emits corresponding STAGE_PROGRESS events."""
+    """An IOBufferProtocol which parses CMake's progress prefixes and emits corresponding STAGE_PROGRESS events."""
 
     def __init__(self, label, job_id, stage_label, event_queue, log_path, *args, **kwargs):
         super(CMakeMakeIOBufferProtocol, self).__init__(
@@ -163,8 +165,10 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
 
     def on_stdout_received(self, data):
         super(CMakeMakeIOBufferProtocol, self).on_stdout_received(data)
+        self.send_progress(data)
 
-        # Parse CMake Make completion progress
+    def send_progress(self, data):
+        """Parse CMake Make completion progress"""
         progress_matches = re.match(r'\[\s*([0-9]+)%\]', self._decode(data))
         if progress_matches is not None:
             self.event_queue.put(ExecutionEvent(
@@ -172,6 +176,56 @@ class CMakeMakeIOBufferProtocol(IOBufferProtocol):
                 job_id=self.job_id,
                 stage_label=self.stage_label,
                 percent=str(progress_matches.groups()[0])))
+
+
+class CMakeMakeRunTestsIOBufferProtocol(CMakeMakeIOBufferProtocol):
+    """An IOBufferProtocol which parses the output of `make run_tests`."""
+    def __init__(self, label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs):
+        super(CMakeMakeRunTestsIOBufferProtocol, self).__init__(
+            label, job_id, stage_label, event_queue, log_path, *args, **kwargs)
+
+        # Line formatting filters
+        # Each is a 2-tuple:
+        #  - regular expression
+        #  - output formatting line
+        self.filters = [
+            (re.compile(r'^-- run_tests.py:'), '@!@{kf}{}@|'),
+        ]
+
+        self.in_test_output = False
+        self.verbose = verbose
+
+    def on_stdout_received(self, data):
+        self.send_progress(data)
+
+        data = self._decode(data)
+        if data.startswith('-- run_tests.py: execute command'):
+            self.in_test_output = True
+        elif data.startswith('-- run_tests.py: verify result'):
+            self.in_test_output = False
+
+        if self.verbose or self.in_test_output:
+            colored = self.colorize_run_tests(data)
+            super(CMakeMakeRunTestsIOBufferProtocol, self).on_stdout_received(colored.encode())
+
+    def colorize_run_tests(self, line):
+        cline = sanitize(line).rstrip()
+        for p, r in self.filters:
+            if p.match(cline):
+                lines = [fmt(r).format(line) for line in cline.splitlines()]
+                cline = '\n'.join(lines)
+        return cline + '\n'
+
+    @classmethod
+    def factory_factory(cls, verbose):
+        """Factory factory for constructing protocols that know the verbosity."""
+        def factory(label, job_id, stage_label, event_queue, log_path):
+            # factory is called by catkin_tools executor
+            def init_proxy(*args, **kwargs):
+                # init_proxy is called by asyncio
+                return cls(label, job_id, stage_label, event_queue, log_path, verbose, *args, **kwargs)
+            return init_proxy
+        return factory
 
 
 def get_installed_files(path):

@@ -12,29 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
+import asyncio
 import datetime
 import errno
 import os
 import re
+import shutil
 import sys
-
-import trollius as asyncio
-
-from shlex import split as _cmd_split
-try:
-    _cmd_split(u'\u00E9')
-
-    def cmd_split(s):
-        return _cmd_split(s.decode('utf-8'))
-except UnicodeEncodeError:
-    cmd_split = _cmd_split
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
+from fnmatch import fnmatch
+from itertools import chain
 
 from catkin_pkg.packages import find_packages
 
@@ -42,16 +28,6 @@ from .terminal_color import ColorMapper
 
 color_mapper = ColorMapper()
 clr = color_mapper.clr
-
-try:
-    string_type = basestring
-except NameError:
-    string_type = str
-
-try:
-    unicode_type = unicode
-except NameError:
-    unicode_type = str
 
 
 class FakeLock(asyncio.locks.Lock):
@@ -61,9 +37,8 @@ class FakeLock(asyncio.locks.Lock):
     def locked(self):
         return False
 
-    @asyncio.coroutine
-    def acquire(self):
-        raise asyncio.Return(True)
+    async def acquire(self):
+        return True
 
     def release(self):
         pass
@@ -85,7 +60,7 @@ def getcwd(symlinks=True):
     realpath = os.getcwd()
 
     # The `PWD` environment variable should contain the path that we took to
-    # get here, includng symlinks
+    # get here, including symlinks
     if symlinks:
         cwd = os.environ.get('PWD', '')
 
@@ -163,7 +138,7 @@ __recursive_build_depends_cache = {}
 
 
 def get_cached_recursive_build_depends_in_workspace(package, workspace_packages):
-    """Returns cached or calculated recursive build dependes for a given package
+    """Returns cached or calculated recursive build depends for a given package
 
     If the recursive build depends for this package and this set of workspace
     packages has already been calculated, the cached results are returned.
@@ -191,18 +166,15 @@ def get_cached_recursive_build_depends_in_workspace(package, workspace_packages)
 def get_recursive_depends_in_workspace(
         packages,
         ordered_packages,
-        root_include_function,
         include_function,
         exclude_function):
     """Computes the recursive dependencies of a package in a workspace based on
     include and exclude functions of each package's dependencies.
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param packages: package for which the recursive depends should be calculated
+    :type packages: list(:py:class:`catkin_pkg.package.Package`)
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path, :py:class:`catkin_pkg.package.Package`))
-    :param root_include_function: a function which take a package and returns a list of root packages to include
-    :type root_include_function: callable
     :param include_function: a function which take a package and returns a list of packages to include
     :type include_function: callable
     :param exclude_function: a function which take a package and returns a list of packages to exclude
@@ -221,9 +193,12 @@ def get_recursive_depends_in_workspace(
     }
 
     # Initialize working sets
-    pkgs_to_check = set([
-        pkg.name for pkg in sum([root_include_function(p) for p in packages], [])
-    ])
+    pkgs_to_check = set(
+        pkg.name
+        # Only include the packages where the condition has evaluated to true
+        for pkg in chain(*(filter(lambda pkg: pkg.evaluated_condition, include_function(p)) for p in packages))
+    )
+
     checked_pkgs = set()
     recursive_deps = set()
 
@@ -235,16 +210,16 @@ def get_recursive_depends_in_workspace(
             continue
         # Add this package's dependencies which should be checked
         _, pkg = workspace_packages_by_name[pkg_name]
-        pkgs_to_check.update([
+        pkgs_to_check.update(
             d.name
-            for d in include_function(pkg)
+            for d in filter(lambda pkg: pkg.evaluated_condition, include_function(pkg))
             if d.name not in checked_pkgs
-        ])
+        )
         # Add this package's dependencies which shouldn't be checked
-        checked_pkgs.update([
+        checked_pkgs.update(
             d.name
             for d in exclude_function(pkg)
-        ])
+        )
         # Add the package itself in case we have a circular dependency
         checked_pkgs.add(pkg.name)
         # Add this package to the list of recursive dependencies for this package
@@ -276,11 +251,6 @@ def get_recursive_build_depends_in_workspace(package, ordered_packages):
     return get_recursive_depends_in_workspace(
         [package],
         ordered_packages,
-        root_include_function=lambda p: (
-            p.build_depends +
-            p.buildtool_depends +
-            p.test_depends +
-            p.run_depends),
         include_function=lambda p: (
             p.build_depends +
             p.buildtool_depends +
@@ -295,7 +265,7 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     but excluding packages which are build depended on by another package in the list
 
     :param packages: packages for which the recursive depends should be calculated
-    :type packages: list of :py:class:`catkin_pkg.package.Package`
+    :type packages: list(:py:class:`catkin_pkg.package.Package`)
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -307,7 +277,6 @@ def get_recursive_run_depends_in_workspace(packages, ordered_packages):
     return get_recursive_depends_in_workspace(
         packages,
         ordered_packages,
-        root_include_function=lambda p: p.run_depends,
         include_function=lambda p: p.run_depends,
         exclude_function=lambda p: p.buildtool_depends + p.build_depends
     )
@@ -317,8 +286,8 @@ def get_recursive_build_dependents_in_workspace(package_name, ordered_packages):
     """Calculates the recursive build dependents of a package which are also in
     the ordered_packages
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param package_name: name of the package for which the recursive depends should be calculated
+    :type package_name: str
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -346,8 +315,8 @@ def get_recursive_run_dependents_in_workspace(package_name, ordered_packages):
     """Calculates the recursive run dependents of a package which are also in
     the ordered_packages
 
-    :param package: package for which the recursive depends should be calculated
-    :type package: :py:class:`catkin_pkg.package.Package`
+    :param package_name: name of the package for which the recursive depends should be calculated
+    :type package_name: str
     :param ordered_packages: packages in the workspace, ordered topologically
     :type ordered_packages: list(tuple(package path,
         :py:class:`catkin_pkg.package.Package`))
@@ -388,7 +357,7 @@ def log(*args, **kwargs):
     except UnicodeEncodeError:
         # Strip unicode characters from string args
         sanitized_args = [unicode_sanitizer.sub('?', a)
-                          if type(a) in [str, unicode_type]
+                          if isinstance(a, str)
                           else a
                           for a in args]
         print(*sanitized_args, **kwargs)
@@ -402,63 +371,9 @@ def log(*args, **kwargs):
             unicode_error_printed = True
 
 
-__warn_terminal_width_once_has_printed = False
-__default_terminal_width = 80
-
-
-def __warn_terminal_width_once():
-    global __warn_terminal_width_once_has_printed
-    if __warn_terminal_width_once_has_printed:
-        return
-    __warn_terminal_width_once_has_printed = True
-    print('NOTICE: Could not determine the width of the terminal. '
-          'A default width of {} will be used. '
-          'This warning will only be printed once.'.format(__default_terminal_width),
-          file=sys.stderr)
-
-
-def terminal_width_windows():
-    """Returns the estimated width of the terminal on Windows"""
-    from ctypes import windll, create_string_buffer
-    h = windll.kernel32.GetStdHandle(-12)
-    csbi = create_string_buffer(22)
-    res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-
-    # return default size if actual size can't be determined
-    if not res:
-        __warn_terminal_width_once()
-        return __default_terminal_width
-
-    import struct
-    (bufx, bufy, curx, cury, wattr, left, top, right, bottom, maxx, maxy)\
-        = struct.unpack("hhhhHhhhhhh", csbi.raw)
-    width = right - left + 1
-
-    return width
-
-
-def terminal_width_linux():
-    """Returns the estimated width of the terminal on linux"""
-    from fcntl import ioctl
-    from termios import TIOCGWINSZ
-    import struct
-    try:
-        with open(os.ctermid(), "rb") as f:
-            height, width = struct.unpack("hh", ioctl(f.fileno(), TIOCGWINSZ, "1234"))
-    except (IOError, OSError, struct.error):
-        # return default size if actual size can't be determined
-        __warn_terminal_width_once()
-        return __default_terminal_width
-    return width
-
-
 def terminal_width():
     """Returns the estimated width of the terminal"""
-    try:
-        return terminal_width_windows() if os.name == 'nt' else terminal_width_linux()
-    except ValueError:
-        # Failed to get the width, use the default 80
-        return __default_terminal_width
+    return shutil.get_terminal_size().columns
 
 
 _ansi_escape = re.compile(r'\x1b[^m]*m')
@@ -508,7 +423,7 @@ def slice_to_printed_length(string, length):
 
 
 def printed_fill(string, length):
-    """Textwrapping for strings with esacpe characters."""
+    """Textwrapping for strings with escape characters."""
 
     splat = string.replace('\\n', ' \\n ').split()
     count = 0
@@ -609,27 +524,19 @@ def wide_log(msg, **kwargs):
         pass
 
 
-def get_build_type(package):
-    """Returns the build type for a given package.
-
-    :param package: package object
-    :type package: :py:class:`catkin_pkg.package.Package`
-    :returns: build type of the package, e.g. 'catkin' or 'cmake'
-    :rtype: str
-    """
-    export_tags = [e.tagname for e in package.exports]
-    if 'build_type' in export_tags:
-        build_type_tag = [e.content for e in package.exports if e.tagname == 'build_type'][0]
-    else:
-        build_type_tag = 'catkin'
-    return build_type_tag
-
-
 def find_enclosing_package(search_start_path=None, ws_path=None, warnings=None, symlinks=True):
     """Get the package containing a specific directory.
 
     :param search_start_path: The path to crawl upward to find a package, CWD if None
+    :type search_start_path: str
     :param ws_path: The path at which the search should stop
+    :type ws_path: str
+    :param warnings: Print warnings if None or return them in the given list
+    :type warnings: list
+    :param symlinks: If True, then get the path considering symlinks. If false,
+    resolve the path to the actual path.
+    :type symlinks: bool
+    :returns:
     """
 
     search_path = search_start_path or getcwd(symlinks=symlinks)
@@ -671,11 +578,15 @@ def mkdir_p(path):
             raise
 
 
-def format_env_dict(environ):
+def format_env_dict(environ, human_readable=True):
     """Format an environment dict for printing to console similarly to `typeset` builtin."""
 
-    return '\n'.join([
-        'typeset -x {}={}'.format(k, cmd_quote(v))
+    if human_readable:
+        separator = '\n'
+    else:
+        separator = '\x00'
+    return separator.join([
+        '{}={}'.format(k, v)
         for k, v in environ.items()
     ])
 
@@ -685,15 +596,18 @@ def parse_env_str(environ_str):
 
     environ_str must be encoded in utf-8
     """
+    variables = environ_str.decode().rstrip('\x00').split('\x00')
+    environment = {}
+    for v in variables:
+        try:
+            key, value = v.split('=', 1)
+            environment[key] = value
+        except ValueError:
+            print('WARNING: Could not parse env string: `{}`'.format(v),
+                  file=sys.stderr)
+    return environment
 
-    try:
-        split_envs = [e.split('=', 1) for e in cmd_split(environ_str)]
-        return {
-            e[0]: e[1] for e
-            in split_envs
-            if len(e) == 2
-        }
-    except ValueError:
-        print('WARNING: Could not parse env string: `{}`'.format(environ_str),
-              file=sys.stderr)
-        raise
+
+def expand_glob_package(pattern, all_workspace_packages):
+    """Return all packages that match the pattern"""
+    return [p for p in all_workspace_packages if fnmatch(p, pattern)]

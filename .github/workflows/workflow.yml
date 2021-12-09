@@ -1,0 +1,51 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        versions:
+          - dist: ubuntu-18.04
+            python: 3.6
+            catkin: indigo-devel
+          - dist: ubuntu-18.04
+            python: 3.7
+            catkin: indigo-devel
+          - dist: ubuntu-18.04
+            python: 3.8
+            catkin: indigo-devel
+          - dist: ubuntu-20.04
+            python: 3.9
+            catkin: indigo-devel
+
+    runs-on: ${{ matrix.versions.dist }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.versions.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.versions.python }}
+      - name: Install package and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install --upgrade empy sphinx_rtd_theme sphinxcontrib-spelling nose coverage flake8 mock
+      - name: Set up catkin
+        run: |
+          git clone https://github.com/ros/catkin.git -b ${{ matrix.versions.catkin }} /tmp/catkin_source
+          mkdir /tmp/catkin_source/build
+          pushd /tmp/catkin_source/build
+          cmake .. && make
+          popd
+      - name: Test catkin_tools
+        run: |
+          source /tmp/catkin_source/build/devel/setup.bash
+          nosetests -s tests
+      - name: Build documentation
+        run: |
+          pushd docs
+          make html
+          sphinx-build -b spelling . build -t use_spelling
+          popd

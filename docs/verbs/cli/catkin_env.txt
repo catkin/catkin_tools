@@ -1,5 +1,4 @@
-usage: catkin env [-h] [-i] [-s]
-                  [NAME=VALUE [NAME=VALUE ...]] [COMMAND] [ARG [ARG ...]]
+usage: catkin env [-h] [-i] [-s] [NAME=VALUE ...] [COMMAND] [ARG ...]
 
 Run an arbitrary command in a modified environment.
 
@@ -12,7 +11,8 @@ optional arguments:
   -i, --ignore-environment
                         Start with an empty environment.
   -s, --stdin           Read environment variable definitions from stdin.
-                        Variables should be given in NAME=VALUE format.
+                        Variables should be given in NAME=VALUE format,
+                        separated by null-bytes.
 
 command:
   COMMAND               Command to run. If omitted, the environment is printed

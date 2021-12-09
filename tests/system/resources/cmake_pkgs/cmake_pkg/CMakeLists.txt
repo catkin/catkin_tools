@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 project(cmake_pkg)
 
 add_executable(vanilla vanilla.cpp)

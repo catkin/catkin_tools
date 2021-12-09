@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import sys
+
+from catkin_pkg.package import InvalidPackage
+
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import getcwd
 
 from catkin_pkg.packages import find_packages
 
@@ -42,20 +45,18 @@ def prepare_arguments(parser):
         help="Suppress warning output.")
 
     # Path options
-    dir_group = parser.add_argument_group(
+    spaces_group = parser.add_argument_group(
         'Sub-Space Options',
         'Get the absolute path to one of the following locations in the given '
         'workspace with the given profile.')
-    dir_group_mut = dir_group.add_mutually_exclusive_group()
-    add = dir_group_mut.add_argument
-    add('-s', '--src', dest='space', action='store_const', const='src',
-        help="Get the path to the source space.")
-    add('-b', '--build', dest='space', action='store_const', const='build',
-        help="Get the path to the build space.")
-    add('-d', '--devel', dest='space', action='store_const', const='devel',
-        help="Get the path to the devel space.")
-    add('-i', '--install', dest='space', action='store_const', const='install',
-        help="Get the path to the install space.")
+    Context.setup_space_keys()
+    add = spaces_group.add_mutually_exclusive_group().add_argument
+    for space, space_dict in Context.SPACES.items():
+        flags = [space_dict['short_flag']] if 'short_flag' in space_dict else []
+        flags.append('--{}'.format(space_dict['default']))
+        flags.append('--{}-space'.format(space))
+        add(*flags, dest='space', action='store_const', const=space,
+            help='Get the path to the {} space.'.format(space))
 
     pkg_group = parser.add_argument_group(
         'Package Directories',
@@ -68,9 +69,12 @@ def prepare_arguments(parser):
         "space paths are printed, e.g. `catkin locate -s` might return "
         "`/path/to/ws/src` and `catkin locate -s foo` might return "
         "`/path/to/ws/src/foo`.")
-    add = pkg_group.add_argument
+    pkg_group_mut = pkg_group.add_mutually_exclusive_group()
+    add = pkg_group_mut.add_argument
     add('package', metavar='PACKAGE', nargs='?',
         help="The name of a package to locate.")
+    add('--this', action="store_true",
+        help="Locate package containing current working directory.")
 
     special_group = parser.add_argument_group(
         'Special Directories',
@@ -100,7 +104,7 @@ def main(opts):
         sys.exit(0)
 
     # Get the workspace (either the given directory or the enclosing ws)
-    workspace_hint = opts_vars.get('workspace', None) or os.getcwd()
+    workspace_hint = opts_vars.get('workspace', None) or getcwd()
     workspace = find_enclosing_workspace(workspace_hint)
 
     if not workspace:
@@ -114,48 +118,53 @@ def main(opts):
     path = None
 
     if opts.space:
-        # Get the subspace
-        if opts.space == 'src':
-            path = ctx.source_space_abs
-        elif opts.space == 'build':
-            path = ctx.build_space_abs
-        elif opts.space == 'devel':
-            path = ctx.devel_space_abs
-        elif opts.space == 'install':
-            path = ctx.install_space_abs
+        path = getattr(ctx, "{}_space_abs".format(opts.space))
 
-    if opts.package:
+    package = None
+    if opts.package or opts.this:
+        if opts.this:
+            try:
+                package = find_enclosing_package(
+                    search_start_path=getcwd(),
+                    ws_path=ctx.workspace,
+                    warnings=[])
+                if package is None:
+                    sys.exit(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
+                                 "Is '%s' in a package in '%s' workspace?@|" % (getcwd(), ctx.workspace)))
+            except InvalidPackage as ex:
+                sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                             " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+        else:
+            package = opts.package
         # Get the path to the given package
         path = path or ctx.source_space_abs
-        if opts.space == 'build':
-            path = os.path.join(path, opts.package)
-        elif opts.space in ['devel', 'install']:
-            path = os.path.join(path, 'share', opts.package)
-        else:
+        if not opts.space or opts.space == 'source':
             try:
                 packages = find_packages(path, warnings=[])
-                catkin_package = [pkg_path for pkg_path, p in packages.items() if p.name == opts.package]
+                catkin_package = [pkg_path for pkg_path, p in packages.items() if p.name == package]
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
-                    print(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
-                              (opts.package, path)), file=sys.stderr)
-                    sys.exit(2)
+                    sys.exit(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
+                                 (package, path)))
             except RuntimeError as e:
-                print(clr('@{rf}ERROR: %s@|' % str(e)), file=sys.stderr)
-                sys.exit(1)
-    elif not opts.space:
+                sys.exit(clr('@{rf}ERROR: %s@|' % str(e)))
+        elif opts.space in ['devel', 'install']:
+            path = os.path.join(path, 'share', package)
+        else:
+            path = os.path.join(path, package)
+
+    if not opts.space and package is None:
         # Get the path to the workspace root
         path = workspace
 
     # Check if the path exists
     if opts.existing_only and not os.path.exists(path):
-        print(clr("@{rf}ERROR: Requested path '%s' does not exist.@|" % path), file=sys.stderr)
-        sys.exit(1)
+        sys.exit(clr("@{rf}ERROR: Requested path '%s' does not exist.@|" % path))
 
     # Make the path relative if desired
     if opts.relative:
-        path = os.path.relpath(path, os.getcwd())
+        path = os.path.relpath(path, getcwd())
 
     # Print the path
     print(path)

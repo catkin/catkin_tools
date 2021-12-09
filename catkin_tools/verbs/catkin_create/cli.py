@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 
+from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.context import Context
 from catkin_pkg.package_templates import create_package_files, PackageTemplate
 
 # Exempt build directories
@@ -24,7 +24,7 @@ from catkin_pkg.package_templates import create_package_files, PackageTemplate
 
 def prepare_arguments(parser):
     # Workspace / profile args
-    # add_context_args(parser)
+    add_context_args(parser)
 
     subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
 
@@ -33,14 +33,14 @@ def prepare_arguments(parser):
     parser_pkg.description = (
         "Create a new Catkin package. Note that while the "
         "default options used by this command are sufficient for prototyping and "
-        "local usage, it is important that any publically-available packages have "
+        "local usage, it is important that any publicly-available packages have "
         "a valid license and a valid maintainer e-mail address.")
 
     add = parser_pkg.add_argument
 
     add('name', metavar='PKG_NAME', nargs='+',
         help='The name of one or more packages to create. This name should be '
-        'completely lower-case with individual words separated by undercores.')
+        'completely lower-case with individual words separated by underscores.')
 
     add('-p', '--path', action='store', default=os.getcwd(),
         help='The path into which the package should be generated.')
@@ -55,7 +55,7 @@ def prepare_arguments(parser):
     #     default='catkin',
     #     help='The buildtool to use to build the package. (default: catkin)')
 
-    rosdistro_name = os.environ['ROS_DISTRO'] if 'ROS_DISTRO' in os.environ else None
+    rosdistro_name = os.environ.get('ROS_DISTRO', None)
     add('--rosdistro', required=rosdistro_name is None, default=rosdistro_name,
         help='The ROS distro (default: environment variable ROS_DISTRO if defined)')
 
@@ -114,6 +114,8 @@ def prepare_arguments(parser):
 
 def main(opts):
 
+    # Load the context
+    ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
     try:
         # Get absolute path to directory containing package
         package_dest_path = os.path.abspath(opts.path)
@@ -121,10 +123,26 @@ def main(opts):
         # Sort list of maintainers and authors (it will also be sorted inside
         # PackageTemplate so by sorting it here, we ensure that the same order
         # is used.  This is important later when email addresses are assigned.
+        if not opts.maintainers:
+            maintainers = []
+            for x in ctx.maintainers:
+                email = x.split()[-1]
+                name = ' '.join(x.split()[:-1])
+                maintainers += [[name, email]]
+            opts.maintainers = maintainers
         if opts.maintainers:
             opts.maintainers.sort(key=lambda x: x[0])
+        if not opts.authors:
+            authors = []
+            for x in ctx.authors:
+                email = x.split()[-1]
+                name = ' '.join(x.split()[:-1])
+                authors += [[name, email]]
+            opts.authors = authors
         if opts.authors:
             opts.authors.sort(key=lambda x: x[0])
+        if not opts.license:
+            opts.license = ctx.licenses or []
 
         for package_name in opts.name:
             print('Creating package "%s" in "%s"...' % (package_name, package_dest_path))
@@ -132,7 +150,7 @@ def main(opts):
             package_template = PackageTemplate._create_package_template(
                 package_name=package_name,
                 description=opts.description,
-                licenses=opts.license or [],
+                licenses=opts.license,
                 maintainer_names=[m[0] for m in opts.maintainers] if opts.maintainers else [],
                 author_names=[a[0] for a in opts.authors] if opts.authors else [],
                 version=opts.version,

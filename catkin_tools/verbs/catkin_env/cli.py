@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 import re
 import sys
@@ -32,7 +30,7 @@ def prepare_arguments(parser):
         help='Start with an empty environment.')
     add('-s', '--stdin', default=False, action='store_true',
         help='Read environment variable definitions from stdin. '
-             'Variables should be given in NAME=VALUE format. ')
+             'Variables should be given in NAME=VALUE format, separated by null-bytes.')
 
     add('envs_', metavar='NAME=VALUE', nargs='*', type=str, default=[],
         help='Explicitly set environment variables for the subcommand. '
@@ -54,7 +52,7 @@ def argument_preprocessor(args):
 
     :param args: system arguments from which special arguments need to be extracted
     :type args: list
-    :returns: a tuple contianing a list of the arguments which can be handled
+    :returns: a tuple containing a list of the arguments which can be handled
     by argparse and a dict of the extra arguments which this function has
     extracted
     :rtype: tuple
@@ -104,9 +102,8 @@ def main(opts):
 
     # Update environment from stdin
     if opts.stdin:
-        input_env_str = sys.stdin.read()
-
-        environ.update(parse_env_str(input_env_str))
+        input_env_str = sys.stdin.read().strip()
+        environ.update(parse_env_str(input_env_str.encode()))
 
     # Finally, update with explicit vars
     environ.update(opts.envs)
@@ -121,7 +118,7 @@ def main(opts):
                 if isinstance(ret, int):
                     return ret
                 else:
-                    print(ret, end='')
+                    print(ret.decode(), end='')
 
     # Flush stdout
     # NOTE: This is done to ensure that automated use of this tool doesn't miss

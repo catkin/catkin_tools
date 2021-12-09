@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 from catkin_tools.context import Context
 
 from catkin_tools.metadata import get_active_profile
@@ -64,6 +62,8 @@ def prepare_arguments(parser):
         help="Copy the settings from an existing profile. (default: None)")
     add('--copy-active', action='store_true', default=False,
         help="Copy the settings from the active profile.")
+    add('--extend', metavar='PARENT_PROFILE', type=str,
+        help="Extend another profile")
 
     add = parser_rename.add_argument
     add('current_name', type=str,
@@ -113,7 +113,7 @@ def list_profiles(profiles, active_profile, unformatted=False, active=False):
 def main(opts):
     try:
         # Load a context with initialization
-        ctx = Context.load(opts.workspace)
+        ctx = Context.load(opts.workspace, load_env=False)
 
         if not ctx.initialized():
             print("A catkin workspace must be initialized before profiles can be managed.")
@@ -128,11 +128,11 @@ def main(opts):
         elif opts.subcommand == 'add':
             if opts.name in profiles:
                 if opts.force:
-                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}%s@|' % (opts.name)))
+                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}%s@|' % opts.name))
                 else:
                     print(clr('catkin profile: error: A profile named '
                               '@{cf}%s@| already exists. Use `--force` to '
-                              'overwrite.' % (opts.name)))
+                              'overwrite.' % opts.name))
                     return 1
             if opts.copy_active:
                 ctx.profile = opts.name
@@ -148,10 +148,16 @@ def main(opts):
                               'based on profile @{cf}%s@|' % (opts.name, opts.copy)))
                 else:
                     print(clr('[profile] @{rf}A profile with this name does not exist: %s@|' % opts.copy))
+            elif opts.extend:
+                if opts.extend in profiles:
+                    new_ctx = Context(workspace=ctx.workspace, profile=opts.name, extends=opts.extend)
+                    Context.save(new_ctx)
+                    print(clr('[profile] Created a new profile named @{cf}%s@| '
+                              'extending profile @{cf}%s@|' % (opts.name, opts.extend)))
             else:
                 new_ctx = Context(workspace=ctx.workspace, profile=opts.name)
                 Context.save(new_ctx)
-                print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % (opts.name)))
+                print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % opts.name))
 
             profiles = get_profile_names(ctx.workspace)
             active_profile = get_active_profile(ctx.workspace)
@@ -177,11 +183,11 @@ def main(opts):
                 if opts.new_name in profiles:
                     if opts.force:
                         print(clr('[profile] @{yf}Warning:@| Overwriting '
-                                  'existing profile named @{cf}%s@|' % (opts.new_name)))
+                                  'existing profile named @{cf}%s@|' % opts.new_name))
                     else:
                         print(clr('catkin profile: error: A profile named '
                                   '@{cf}%s@| already exists. Use `--force` to '
-                                  'overwrite.' % (opts.new_name)))
+                                  'overwrite.' % opts.new_name))
                         return 1
                 ctx.profile = opts.new_name
                 Context.save(ctx)

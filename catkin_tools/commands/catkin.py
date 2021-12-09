@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import argparse
-from datetime import date
 import os
 import pkg_resources
 import sys
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
+from datetime import date
+from shlex import quote as cmd_quote
 
 from catkin_tools.common import is_tty
 
@@ -195,7 +189,7 @@ def catkin_main(sysargs):
             date.today().year)
         )
         print('catkin_tools is released under the Apache License,'
-              ' Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+              ' Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)')
         print('---')
         print('Using Python {}'.format(''.join(sys.version.split('\n'))))
         sys.exit(0)

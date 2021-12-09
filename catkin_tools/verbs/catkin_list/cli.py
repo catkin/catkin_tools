@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import sys
 
 from catkin_tools.argument_parsing import add_context_args
@@ -58,6 +56,8 @@ def prepare_arguments(parser):
         help="Only show packages that recursively depend on specific package(s).")
     add('--this', action='store_true',
         help="Show the package which contains the current working directory.")
+    add('--directory', '-d', nargs='*', default=[],
+        help="Pass list of directories process all packages in directory")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -75,10 +75,12 @@ def main(opts):
     ctx = Context.load(opts.workspace, opts.profile, load_env=False)
 
     if not ctx:
-        print(clr("@{rf}ERROR: Could not determine workspace.@|"), file=sys.stderr)
-        sys.exit(1)
+        sys.exit(clr("@{rf}ERROR: Could not determine workspace.@|"))
 
-    folders = [ctx.source_space_abs]
+    if opts.directory:
+        folders = opts.directory
+    else:
+        folders = [ctx.source_space_abs]
 
     list_entry_format = '@{pf}-@| @{cf}%s@|' if not opts.unformatted else '%s'
 
@@ -88,6 +90,9 @@ def main(opts):
         try:
             packages = find_packages(folder, warnings=warnings)
             ordered_packages = topological_order_packages(packages)
+            if ordered_packages and ordered_packages[-1][0] is None:
+                sys.exit(clr("@{rf}ERROR: Circular dependency within packages:@| "
+                             + ordered_packages[-1][1]))
             packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
             if opts.depends_on or opts.rdepends_on:
@@ -132,8 +137,8 @@ def main(opts):
                     build_deps = [p for dp, p in get_recursive_build_depends_in_workspace(pkg, ordered_packages)]
                     run_deps = [p for dp, p in get_recursive_run_depends_in_workspace([pkg], ordered_packages)]
                 else:
-                    build_deps = pkg.build_depends
-                    run_deps = pkg.run_depends
+                    build_deps = [dep for dep in pkg.build_depends if dep.evaluated_condition]
+                    run_deps = [dep for dep in pkg.run_depends if dep.evaluated_condition]
 
                 if opts.deps or opts.rdeps:
                     if len(build_deps) > 0:
@@ -145,9 +150,8 @@ def main(opts):
                         for dep in run_deps:
                             print(clr('  @{pf}-@| %s' % dep.name))
         except InvalidPackage as ex:
-            message = '\n'.join(ex.args)
-            print(clr("@{rf}Error:@| The directory %s contains an invalid package."
-                      " See below for details:\n\n%s" % (folder, message)))
+            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
+                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
 
     # Print out warnings
     if not opts.quiet:

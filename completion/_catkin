@@ -25,7 +25,6 @@ local _workspace_root
 local _workspace_profiles
 local _workspace_source_space
 local _enclosing_package
-local _getting_packages
 
 _workspace_root_hint="$PWD"
 
@@ -36,14 +35,24 @@ function _debug_log() {
   fi
 }
 
-# search backwards for the last given option
-_catkin_last_option() {
-  for (( i=${CURRENT} ; i > 0 ; i-- )) ; do
-    if [[ ${words[i]} == -* ]]; then
-      echo ${words[i]}
-      return
+# Get the workspace root by following the specified path
+_catkin_find_enclosing_workspace_for_path() {
+  local _path
+  _path="$1"
+
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/.catkin_tools"
+
+    if [[ -e "$_path/.catkin_tools" ]]; then
+      _debug_log "Found workspace root $_path"
+      _workspace_root=$_path
+      return 0
+    else
+      _path="$(dirname "$_path")"
     fi
   done
+
+  return 1
 }
 
 # Get the workspace root (if available)
@@ -52,20 +61,19 @@ _catkin_get_enclosing_workspace() {
     return 0
   fi
 
-  local path
-  path="$1"
+  _debug_log "Search for workspace root in resolved path:"
+  _catkin_find_enclosing_workspace_for_path $(readlink -f "$1")
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/.catkin_tools"
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
 
-    if [[ -e "$path/.catkin_tools" ]]; then
-      _debug_log "Found workspace root $path"
-      _workspace_root=$path
-      return 0
-    else
-      path="$(/bin/readlink -f $path/..)"
-    fi
-  done
+  _debug_log "Search for workspace root in real path:"
+  _catkin_find_enclosing_workspace_for_path $1
+
+  if [[ -n "$_workspace_root" ]]; then
+    return 0
+  fi
 
   return 1
 }
@@ -76,19 +84,19 @@ _catkin_get_enclosing_package() {
     return 0
   fi
 
-  local path
-  path="$1"
+  local _path
+  _path="$1"
 
-  while [[ "$path" != "/" ]]; do
-    _debug_log "Checking $path/package.xml"
+  while [[ "$_path" != "/" ]]; do
+    _debug_log "Checking $_path/package.xml"
 
-    if [[ -e "$path/package.xml" ]]; then
-      _debug_log "Found package root $path"
+    if [[ -e "$_path/package.xml" ]]; then
+      _debug_log "Found package root $_path"
       # Get the package name
-      _enclosing_package="$(xmllint --xpath '/package/name/text()' '$path/package.xml')"
+      _enclosing_package="$(xmllint --xpath '/package/name/text()' "$_path/package.xml")"
       return 0
     else
-      path="$(/bin/readlink -f $path/..)"
+      _path="$(dirname "$_path")"
     fi
   done
 
@@ -130,7 +138,6 @@ _catkin_get_packages() {
   # Get the workspace root
   _catkin_get_enclosing_workspace $_workspace_root_hint
 
-
   if [[ "$?" -ne 0 ]]; then
     _debug_log "Couldn't get workspace root!"
     return
@@ -149,12 +156,20 @@ _catkin_get_packages() {
     zstyle ":completion:${curcontext}:" cache-policy _catkin_packages_caching_policy
   fi
 
-  # If cache is invalid or if the package list is not set yet and can't be retrieved from cache regenerate cache
+  # If cache is invalid, or if the package list or workspace cache file path are not set yet or this path differ from 
+  # its located path (we switched to different workspace) and variables can't be retrieved from cache regenerate cache
   # ( Remember that _retrieve_cache returns 0 if everything's fine, 1 if not. _cache_invalid returns 0 if cache needs rebuilding, 1 otherwise)
-  if _cache_invalid workspace_packages || ( [[ ${+_workspace_packages} -eq 0 ]] && ! _retrieve_cache workspace_packages ); then
-    _debug_log "Regenerating package cache..."
+  # (see https://unix.stackexchange.com/q/588662 for the use of parentheses)
+  if _cache_invalid workspace_packages || \
+    {{ [[ ${+_workspace_packages} -eq 0 ]] || 
+      [[ -z "$_workspace_cache_file_path" ]] ||  
+      [[ "$_workspace_cache_file_path" != "$cache_file_path" ]] } && 
+      ! _retrieve_cache workspace_packages } ; then
+
+    _debug_log "Regenerating package cache because retrieval failed ..."
     _workspace_packages=(${${(f)"$(catkin list -u --quiet)"}})
-    _store_cache workspace_packages _workspace_packages
+    _workspace_cache_file_path=$cache_file_path
+    _store_cache workspace_packages _workspace_packages _workspace_cache_file_path
   fi
 
   local expl
@@ -190,6 +205,7 @@ _catkin_verbs_complete() {
     'list:List workspace components'
     'locate:Locate workspace components'
     'profile:Switch between configurations'
+    'test:Test packages'
   )
   _describe -t verbs 'catkin verb' verbs_array -V verbs && return 0
 }
@@ -198,14 +214,13 @@ _catkin_build_complete() {
   # Determine if we're in a package, and should autocomplete context-aware options
   local build_opts
 
-  #this_package=$(catkin list --this -u --quiet)
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
+    _debug_log "In package $_enclosing_package"
     build_opts=(\
-      "(--unbuilt)--this[Build '$this_package']"\
-      "(--start-with)--start--with--this[Skip all packages on which `$this_package` depends]"\
+      "(--unbuilt)--this[Build '$_enclosing_package']"\
+      "(--start-with)--start--with--this[Skip all packages on which '$_enclosing_package' depends]"\
       )
   else
     _debug_log "Not in a package"
@@ -237,12 +252,13 @@ _catkin_clean_complete() {
   # Determine if we're in a package, and should autocomplete context-aware options
   local clean_opts
 
-  #this_package=$(catkin list --this -u --quiet)
   _catkin_get_enclosing_package "$PWD"
 
   if [[ -n $_enclosing_package ]]; then
-    _debug_log "In package $this_package"
-    clean_opts=()
+    _debug_log "In package $_enclosing_package"
+    clean_opts=(\
+      "--this[Clean '$_enclosing_package']"\
+      )
   else
     _debug_log "Not in a package"
     clean_opts=()
@@ -276,23 +292,47 @@ _catkin_config_complete() {
     {-h,--help}'[Show usage help]'\
     {-w,--workspace}'[Workspace path]:workspace:_files -/'\
     '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
-    {-a,--append-args}'[Append elements for list-type arguments]'\
-    {-r,--remove-args}'[Remove elements for list-type arguments]'\
+    '(-r --remove-args)'{-a,--append-args}'[Append elements for list-type arguments]'\
+    '(-a --append-args)'{-r,--remove-args}'[Remove elements for list-type arguments]'\
     '--init[Initialize a workspace]'\
-    {-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
-    '--no-extend[Unset the explicit extension of another workspace]'\
+    '(--no-extend)'{-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
+    '(-e --extend)--no-extend[Unset the explicit extension of another workspace]'\
+    '--mkdirs[Create directories required by the configuration]'\
     '(--no-whitelist)--whitelist[Set the packages on the whitelist]:package:->packages'\
     '(--no-blacklist)--blacklist[Set the packages on the blacklist]:package:->packages'\
     '(--whitelist)--no-whitelist[Clear the whitelist]'\
     '(--blacklist)--no-blacklist[Clear the blacklist]'\
-    '(--default-source-space)'{-s,--source-space}'[Source space path]'\
-    '(--default-build-space)'{-b,--build-space}'[Build space path]'\
+    '(--default-source-space)'{-s,--source-space}'[Source space path]:source space:_files'\
+    '(-s --source-space)--default-source-space[Use the default path to the source space]'\
     '(--default-devel-space)'{-d,--devel-space}'[Devel space path]'\
+    '(-d --devel-space)--default-devel-space[Use the default path to the devel space]'\
+    '(--default-build-space)'{-b,--build-space}'[Build space path]'\
+    '(-b --build-space)--default-build-space[Use the default path to the build space]'\
     '(--default-install-space)'{-i,--install-space}'[Install space path]'\
+    '(-i --install-space)--default-install-space[Use the default path to the install space]'\
+    '(--default-log-space)'{-L,--log-space}'[Log space path]'\
+    '(-L --log-space)--default-log-space[Use the default path to the log space]'\
     {-x,--space-suffix}'[Suffix for build, devel, and install spaces]:suffix:()'\
-    '--merge-devel[Build products directly into a merged devel space]'\
-    '--link-devel[Symbolically link products into a merged devel space]'\
-    '--isolate-devel[Isolate devel speaces for each package]')
+    '(--link-devel --isolate-devel)--merge-devel[Build products directly into a merged devel space]'\
+    '(--merge-devel --isolate-devel)--link-devel[Symbolically link products into a merged devel space]'\
+    '(--merge-devel --link-devel)--isolate-devel[Isolate devel speaces for each package]'\
+    '(--no-install)--install[Causes each package to be installed to the install space]'\
+    '(--install)--no-install[Disables installing each package into the install space]'\
+    '(--merge-install)--isolate-install[Install each catkin package into a separate install space]'\
+    '(--isolate-install)--merge-install[Install each catkin package into a single merged install space]'\
+    {-j,--jobs}'[Maximum number of build jobs to be distributed across active packages]:JOBS:()'\
+    {-p,--parallel-packages}'[Maximum number of packages allowed to be built in parallel]:PACKAGE_JOBS:()'\
+    {-l,--load-average}'[Maximum load average before no new build jobs are scheduled]'\
+    '(--no-jobserver)--jobserver[Use the internal GNU Make job server]'\
+    '(--jobserver)--no-jobserver[Disable the internal GNU Make job server]'\
+    '(--no-env-cache)--env-cache[Re-use cached environment variables]'\
+    "(--env-cache)--no-env-cache[Don't cache environment variables]"\
+    '(--no-cmake-args)--cmake-args[Arbitrary arguments which are passed to CMake]'\
+    '(--cmake-args)--no-cmake-args[Pass no additional arguments to CMake]'\
+    '(--no-make-args)--make-args[Arbitrary arguments which are passed to make]'\
+    '(--make-args)--no-make-args[Pass no additional arguments to make]'
+    '(--no-catkin-make-args)--catkin-make-args[Arbitrary arguments which are passed to make for catkin packages]'\
+    '(--catkin-make-args)--no-catkin-make-args[Pass no additional arguments to make for catkin packages]')
 
   _arguments -C $config_opts && return 0
   return 1
@@ -429,6 +469,28 @@ _catkin_locate_complete() {
 }
 
 
+_catkin_test_complete() {
+  local test_opts
+
+  test_opts=(
+    {-h,--help}'[Show usage help]'\
+    {-w,--workspace}'[The workspace to test]:workspace:_files'\
+    '--profile[Which configuration profile to use]:profile:_catkin_get_profiles'\
+    {-v,--verbose}'[Print all output from test commands]'\
+    {-i,--interleave-output}"[Print output from test commands as it's generated]"\
+    '--this[Test the current package]'\
+    {-c,--continue-on-failure}"[Continue testing after failed tests]"\
+    {-p,--parallel-packages}"[Number of packages to build in parallel]:number"\
+    {-t,--test-target}"[make target to run for tests]:target"\
+    '--catkin-test-target[make target to run for tests in catkin packages]:target'\
+    '--no-status[Suppress status line]'\
+    {-s,--summarize}"[Add a summary at the end]"\
+    '*:package:_catkin_get_packages')
+
+  _arguments -C $test_opts && return 0
+}
+
+
 local curcontext="$curcontext" state line ret
 
 ret=1
@@ -464,9 +526,68 @@ case "$state" in
       (clean) _catkin_clean_complete && ret=0
         ;;
       (config)
-        if [[ "$(_catkin_last_option)" =~ "--(black|white)list" ]]; then
+        local terminating_opts
+        terminating_opts=(\
+          '--whitelist:Set the packages on the whitelist'\
+          '--blacklist:Set the packages on the blacklist'\
+          '--cmake-args:Arbitrary arguments which are passed to CMake'\
+          '--make-args:Arbitrary arguments which are passed to make'\
+          '--catkin-make-args:Arbitrary arguments which are passed to make for catkin packages'\
+          '--:Continue with other catkin config arguments')
+        _debug_log "last considered -- is ${words[1,$CURRENT-1][(I)--]}"
+        _debug_log "last considered --list is ${words[1,$CURRENT-1][(I)--(black|white)list]}"
+        _debug_log "last considered --make is ${words[1,$CURRENT-1][(I)--*make-args]}"
+        if ((${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--(black|white)list]} > ${words[1,$CURRENT-1][(I)--*make-args]})); then
+          _debug_log "lists"
+          _describe -t terminators "terminate multiword argument" terminating_opts
           _catkin_get_packages && ret=0
+        elif ((${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--cmake-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--cmake-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          _debug_log "cmake"
+          # a block of --cmake-args has been started
+          # but not yet ended with --
+          # not ended with --*make-args (--make-args, --catkin-make-args, or --cmake-args)
+          # not ended with --blacklist or --whitelist
+          # ignoring the current word for the end-range (such that --cmake-args --<TAB> gives cmake completion)
+          _dispatch $service cmake
+          _describe -t terminators "terminate multiword argument" terminating_opts
+        elif ((${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          # same as above, just for make
+          _debug_log "make"
+          _dispatch $service make
+          _describe -t terminators "terminate multiword argument" terminating_opts
+        elif ((${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} >= ${words[1,$CURRENT-1][(I)--*make-args]} && ${words[1,$CURRENT-1][(I)--catkin-make-args]} > ${words[1,$CURRENT-1][(I)--(black|white)list]})); then
+          # same as above, just for catkin_make
+          _debug_log "catkin_make"
+          _dispatch $service catkin_make
+          _describe -t terminators "terminate multiword argument" terminating_opts
         else
+          _debug_log "normal"
+          # when returning from a --*-args sequence `catkin config --cmake-args ...... -- -<TAB>`
+          # the cmake arguments are visible to _catkin_config_complete and cause failure there
+          # might want to remove them from $words.
+          # adjust $CURRENT accordingly, esp. when CURRENT is not the last word.
+          local -a bodgedwords
+          local -i bodgedcurrent=0
+          local inignore=false
+          for (( i=1 ; i <= ${#words} ; i++ )) ; do
+            if [[ $inignore != true ]]; then
+              bodgedwords+=($words[i])
+              if (( i <= $CURRENT )); then
+                (( bodgedcurrent++ ))
+                _debug_log "incrementing bodgedcurrent at $words[$i]"
+              else
+                _debug_log "not incrementing bodgedcurrent at $words[$i] because passed the interesting part (i = $i, current = $CURRENT)"
+              fi
+            else
+              _debug_log "not incrementing bodgedcurrent at $words[$i] because in ignore"
+            fi
+            if [[ $words[$i] == '--' ]]; then inignore=false; fi
+            if [[ $words[$i] == --*make-args ]]; then
+              inignore=true
+            fi
+          done
+          words=($bodgedwords)
+          CURRENT=$bodgedcurrent
           _catkin_config_complete && ret=0
         fi
         ;;
@@ -481,6 +602,8 @@ case "$state" in
       (locate) _catkin_locate_complete && ret=0
         ;;
       (profile) _catkin_profile_complete && ret=0
+        ;;
+      (test) _catkin_test_complete && ret=0
         ;;
     esac
     ret=0

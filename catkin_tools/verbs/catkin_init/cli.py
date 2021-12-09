@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 
 from catkin_tools.argument_parsing import add_workspace_arg
@@ -42,7 +40,7 @@ def main(opts):
 
         # Initialize the workspace if necessary
         if ctx:
-            print('Catkin workspace `%s` is already initialized. No action taken.' % (ctx.workspace))
+            print('Catkin workspace `%s` is already initialized. No action taken.' % ctx.workspace)
         else:
             print('Initializing catkin workspace in `%s`.' % (opts.workspace or os.getcwd()))
             # initialize the workspace

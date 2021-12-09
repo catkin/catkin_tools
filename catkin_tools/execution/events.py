@@ -21,7 +21,7 @@ class ExecutionEvent(object):
 
     Events can be jobs starting/finishing, commands starting/failing/finishing,
     commands producing output (each line is an event), or when the executor
-    quits or failes.
+    quits or fails.
     """
 
     # TODO: Make this a map of ID -> fields

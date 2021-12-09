@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import os
 
 
 def which(program):
     """Custom version of the ``which`` built-in shell command.
 
-    Searches the pathes in the ``PATH`` environment variable for a given
+    Searches the paths in the ``PATH`` environment variable for a given
     executable name. It returns the full path to the first instance of the
     executable found or None if it was not found.
 

@@ -13,13 +13,15 @@
 # limitations under the License.
 
 import os
+import re
 import shutil
-
 from glob import glob
 
 from osrf_pycommon.process_utils import AsyncSubprocessProtocol
 
 from catkin_tools.common import mkdir_p
+
+from catkin_tools.terminal_color import fmt
 
 from .events import ExecutionEvent
 
@@ -127,13 +129,15 @@ class IOBufferContainer(object):
         except UnicodeDecodeError:
             return "stderr_log: some output cannot be displayed.\n"
 
-    def _encode(self, data):
+    @staticmethod
+    def _encode(data):
         """Encode a Python str into bytes.
         :type data: str
         """
         return _encode(data)
 
-    def _decode(self, data):
+    @staticmethod
+    def _decode(data):
         """Decode bytes into Python str.
         :type data: bytes
         """
@@ -167,6 +171,7 @@ class IOBufferLogger(IOBufferContainer):
     def out(self, data, end='\n'):
         """
         :type data: str
+        :type end: str
         """
         # Buffer the encoded data
         data += end
@@ -187,6 +192,7 @@ class IOBufferLogger(IOBufferContainer):
     def err(self, data, end='\n'):
         """
         :type data: str
+        :type end: str
         """
         # Buffer the encoded data
         data += end
@@ -223,7 +229,8 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
         self.intermediate_stdout_buffer = b''
         self.intermediate_stderr_buffer = b''
 
-    def _split(self, data):
+    @staticmethod
+    def _split(data):
         try:
             last_break = data.rindex(b'\n') + 1
             return data[0:last_break], data[last_break:]
@@ -281,3 +288,20 @@ class IOBufferProtocol(IOBufferContainer, AsyncSubprocessProtocol):
             self.on_stdout_received(self.intermediate_stdout_buffer + b'\n')
         if len(self.intermediate_stderr_buffer) > 0:
             self.on_stderr_received(self.intermediate_stderr_buffer + b'\n')
+
+
+class CatkinTestResultsIOBufferProtocol(IOBufferProtocol):
+    """An IOBufferProtocol which parses the output of catkin_test_results"""
+    def on_stdout_received(self, data):
+        lines = data.decode().splitlines()
+        clines = []
+        for line in lines:
+            match = re.match(r'(.*): (\d+) tests, (\d+) errors, (\d+) failures, (\d+) skipped', line)
+            if match:
+                line = fmt('@!{}@|: {} tests, @{rf}{} errors@|, @{rf}{} failures@|, @{kf}{} skipped@|')
+                line = line.format(*match.groups())
+            clines.append(line)
+
+        cdata = '\n'.join(clines) + '\n'
+
+        super(CatkinTestResultsIOBufferProtocol, self).on_stdout_received(cdata.encode())

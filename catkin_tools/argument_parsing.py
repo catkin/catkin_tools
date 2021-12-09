@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import argparse
 import os
 import re
@@ -59,10 +57,12 @@ def add_cmake_and_make_and_catkin_make_args(parser):
     """
 
     add = parser.add_argument
-    add('-j', '--jobs', default=None,
+    add('-j', '--jobs', default=None, type=int,
         help='Maximum number of build jobs to be distributed across active packages. (default is cpu count)')
-    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None,
+    add('-p', '--parallel-packages', metavar='PACKAGE_JOBS', dest='parallel_jobs', default=None, type=int,
         help='Maximum number of packages allowed to be built in parallel (default is cpu count)')
+    add('-l', '--load-average', default=None, type=float,
+        help='Maximum load average before no new build jobs are scheduled')
     # Deprecated flags kept for compatibility
     add('--parallel-jobs', '--parallel', action='store_true', dest='parallel_jobs', help=argparse.SUPPRESS)
 
@@ -218,28 +218,27 @@ def extract_cmake_and_make_arguments(args):
 
 
 def extract_jobs_flags_values(mflags):
-    """Gets the values of tha make jobs flags
+    """Gets the values of the make jobs flags
 
     :param mflags: string of space separated make arguments
     :type mflags: str
     :returns: dictionary mapping jobs flags to jobs flags values
     :rtype: dict
     """
+    jobs_dict = {'jobs': None, 'load-average': None}
 
-    regex = r'(?:^|\s)(?:-?(j|l)(\s*[0-9]+|\s|$))' + \
-            r'|' + \
-            r'(?:^|\s)(?:(?:--)?(jobs|load-average)(?:(?:=|\s+)([0-9]+)|(?:\s|$)))'
+    # These regular expressions use (?P<name>...) for named capture groups
+    # (^|\s) and (?=$|\s) make sure that the flag is surrounded by whitespace
 
-    jobs_dict = {}
+    regex = r'(^|\s)(-j\s*|--jobs(=|\s+))(?P<jobs>\d*)(?=$|\s)'
+    for m in re.finditer(regex, mflags):
+        if m.group('jobs'):
+            jobs_dict['jobs'] = int(m.group('jobs'))
 
-    matches = re.findall(regex, mflags) or []
-    for k, v, key, value in matches:
-        v = v.strip()
-        value = value.strip()
-        if k == 'j' or key == 'jobs':
-            jobs_dict['jobs'] = int(v or value) if (v or value) else ''
-        elif k == 'l' or key == 'load-average':
-            jobs_dict['load-average'] = float(v or value)
+    regex = r'(^|\s)(-l\s*|--load-average(=|\s+))(?P<load>\d*\.?\d*)(?=$|\s)'
+    for m in re.finditer(regex, mflags):
+        if m.group('load'):
+            jobs_dict['load-average'] = float(m.group('load'))
 
     return jobs_dict
 
@@ -252,14 +251,25 @@ def extract_jobs_flags(mflags):
     :returns: list of make jobs flags
     :rtype: list
     """
-    regex = r'(?:^|\s)(-?(?:j|l)(?:\s*[0-9]+|\s|$))' + \
-            r'|' + \
-            r'(?:^|\s)((?:--)?(?:jobs|load-average)(?:(?:=|\s+)[0-9]+|(?:\s|$)))'
-    matches = re.findall(regex, mflags) or []
-    matches = [m[0] or m[1] for m in matches]
-    filtered_flags = [m.strip() for m in matches] if matches else []
+    if not mflags:
+        return None
 
-    return filtered_flags
+    # Each line matches a flag type, i.e. -j, -l, --jobs, --load-average
+    # (?:^|\s) and (?=$|\s) make sure that the flag is surrounded by whitespace
+    # (?:...) is just a group that will not be captured, this is necessary because the whole flag should be captured
+    # The upper two expressions are simple, they just match the flag, optional whitespace and an optional number
+    # The bottom two expressions are more complicated because the long flag may be # followed by '=' and a number,
+    # whitespace and a number or nothing
+    regex = r'(?:^|\s)(-j\s*\d*)(?=$|\s)|' + \
+            r'(?:^|\s)(-l\s*\d*\.?\d*)(?=$|\s)|' + \
+            r'(?:^|\s)(--jobs(?:(?:=|\s+)\d+)?)(?=$|\s)|' + \
+            r'(?:^|\s)(--load-average(?:(?:=|\s+)\d*\.?\d+)?)(?=$|\s)'
+
+    filtered_flags = []
+    for match in re.findall(regex, mflags):
+        filtered_flags.extend([m.strip() for m in match if m])
+
+    return filtered_flags or None
 
 
 def handle_make_arguments(
@@ -285,7 +295,7 @@ def handle_make_arguments(
     # Get the values for the jobs flags which may be in the make args
     jobs_dict = extract_jobs_flags_values(' '.join(make_args))
     jobs_args = extract_jobs_flags(' '.join(make_args))
-    if len(jobs_args) > 0:
+    if jobs_args:
         # Remove jobs flags from cli args if they're present
         make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
 
@@ -312,6 +322,8 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     :param make_args: arguments to be passed to GNU Make
     :type make_args: list
+    :param jobs_args: job arguments overriding make flags
+    :type jobs_args: list
     :param use_internal_make_jobserver: if true, use the internal jobserver
     :type make_args: bool
     :rtype: tuple (final make_args, using makeflags, using cliflags, using jobserver)
@@ -319,7 +331,7 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     # Configure default jobs options: use all CPUs in each package
     try:
-        # NOTE: this will yeild greater than 100% CPU utilization
+        # NOTE: this will yield greater than 100% CPU utilization
         n_cpus = cpu_count()
         jobs_flags = {
             'jobs': n_cpus,
@@ -332,7 +344,7 @@ def configure_make_args(make_args, jobs_args, use_internal_make_jobserver):
 
     # Get MAKEFLAGS from environment
     makeflags_jobs_flags = extract_jobs_flags(os.environ.get('MAKEFLAGS', ''))
-    using_makeflags_jobs_flags = len(makeflags_jobs_flags) > 0
+    using_makeflags_jobs_flags = makeflags_jobs_flags is not None
     if using_makeflags_jobs_flags:
         makeflags_jobs_flags_dict = extract_jobs_flags_values(' '.join(makeflags_jobs_flags))
         jobs_flags.update(makeflags_jobs_flags_dict)
@@ -366,7 +378,7 @@ def argument_preprocessor(args):
 
     :param args: system arguments from which special arguments need to be extracted
     :type args: list
-    :returns: a tuple contianing a list of the arguments which can be handled
+    :returns: a tuple containing a list of the arguments which can be handled
     by argparse and a dict of the extra arguments which this function has
     extracted
     :rtype: tuple
@@ -380,14 +392,14 @@ def argument_preprocessor(args):
 
     # Extract make jobs flags (these override MAKEFLAGS later on)
     jobs_args = extract_jobs_flags(' '.join(args))
-    if len(jobs_args) > 0:
+    if jobs_args:
         # Remove jobs flags from cli args if they're present
-        args = re.sub(' '.join(jobs_args), '', ' '.join(args)).split()
+        args = [arg for arg in args if arg not in jobs_args]
     elif make_args is not None:
         jobs_args = extract_jobs_flags(' '.join(make_args))
-        if len(jobs_args) > 0:
+        if jobs_args:
             # Remove jobs flags from cli args if they're present
-            make_args = re.sub(' '.join(jobs_args), '', ' '.join(make_args)).split()
+            make_args = [arg for arg in make_args if arg not in jobs_args]
 
     extras = {
         'cmake_args': cmake_args,

@@ -18,13 +18,8 @@ import pkg_resources
 import sys
 import time
 import traceback
+from queue import Queue
 
-try:
-    # Python3
-    from queue import Queue
-except ImportError:
-    # Python2
-    from Queue import Queue
 
 try:
     from catkin_pkg.packages import find_packages
@@ -40,7 +35,7 @@ from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
 
-from catkin_tools.common import get_build_type
+from catkin_tools.common import expand_glob_package
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
 
@@ -50,6 +45,8 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
 
     :param context: Workspace context
     :type context: :py:class:`catkin_tools.verbs.catkin_build.context.Context`
+    :param include_dependents: Also clean dependents of the packages to be cleaned
+    :type include_dependents: bool
     :param packages: list of package names to be cleaned
     :type packages: list
     :returns: full list of package names to be cleaned
@@ -60,12 +57,20 @@ def determine_packages_to_be_cleaned(context, include_dependents, packages):
     workspace_packages = find_packages(context.package_metadata_path(), exclude_subspaces=True, warnings=[])
     # Order the packages by topology
     ordered_packages = topological_order_packages(workspace_packages)
+    # Set the packages in the workspace for the context
+    context.packages = ordered_packages
 
     # Create a dict of all packages in the workspace by name
     workspace_packages_by_name = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
 
     # Initialize empty output
     packages_to_be_cleaned = set()
+
+    # Expand glob patterns in packages
+    expanded_packages = []
+    for package_name in packages:
+        expanded_packages.extend(expand_glob_package(package_name, workspace_packages_by_name))
+    packages = expanded_packages
 
     # Expand metapackages into their constituents
     for package_name in packages:
@@ -125,7 +130,7 @@ def clean_packages(
 
         # It's a problem if there aren't any build types available
         if len(clean_job_creators) == 0:
-            sys.exit('Error: No build types availalbe. Please check your catkin_tools installation.')
+            sys.exit('Error: No build types available. Please check your catkin_tools installation.')
 
         # Determine the job parameters
         clean_job_kwargs = dict(
@@ -139,7 +144,7 @@ def clean_packages(
             clean_install=True)
 
         # Create the job based on the build type
-        build_type = get_build_type(pkg)
+        build_type = pkg.get_build_type()
 
         if build_type in clean_job_creators:
             jobs.append(clean_job_creators[build_type](**clean_job_kwargs))

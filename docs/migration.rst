@@ -52,7 +52,7 @@ To make iterating easier, use ``catkin_make`` with build and devel spaces with t
 .. code-block:: bash
 
     cd /path/to/ws
-    catkin_make --cmake-args [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
+    catkin_make --build build_cm --cmake-args -DCATKIN_DEVEL_PREFIX=devel_cm -DCMAKE_INSTALL_PREFIX=install_cm [CMAKE_ARGS...] --make-args [MAKE_ARGS...]
 
 If your packages build and other appropriate tests pass, continue to the next step.
 

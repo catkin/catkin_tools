@@ -12,25 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
-try:
-    from md5 import md5
-except ImportError:
-    from hashlib import md5
 import os
 import subprocess
 import sys
-
-try:
-    from shlex import quote as cmd_quote
-except ImportError:
-    from pipes import quote as cmd_quote
-
-from osrf_pycommon.process_utils import execute_process
+from hashlib import md5
+from shlex import quote as cmd_quote
 
 from .common import parse_env_str
-from .common import string_type
 
 DEFAULT_SHELL = '/bin/bash'
 
@@ -40,13 +28,15 @@ _resultspace_env_cache = {}
 
 
 def get_resultspace_environment(result_space_path, base_env=None, quiet=False, cached=True, strict=True):
-    """Get the environemt variables which result from sourcing another catkin
+    """Get the environment variables which result from sourcing another catkin
     workspace's setup files as the string output of `cmake -E environment`.
     This cmake command is used to be as portable as possible.
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
-    :param quiet: don't throw exceptions, ``bool``
+    :param base_env: Base environment dictionary (default: os.environ)
+    :type base_env: dict
+    :param quiet: don't throw exceptions
     :type quiet: bool
     :param cached: use the cached environment
     :type cached: bool
@@ -124,17 +114,11 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         )
 
     # Construct a command list which sources the setup file and prints the env to stdout
-    norc_flags = {
-        'bash': '--norc',
-        'zsh': '-f'
-    }
-
     command = ' '.join([
         cmd_quote(setup_file_path),
         shell_path,
-        norc_flags[shell_name],
         '-c',
-        '"typeset -px"'
+        '"env --null"',
     ])
 
     # Define some "blacklisted" environment variables which shouldn't be copied
@@ -142,18 +126,8 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
     env_dict = {}
 
     try:
-        # Run the command synchronously to get the resultspace environmnet
-        if 0:
-            # NOTE: This sometimes fails to get all output (returns prematurely)
-            lines = ''
-            for ret in execute_process(command, cwd=os.getcwd(), env=base_env, emulate_tty=False, shell=True):
-                if type(ret) is bytes:
-                    ret = ret.decode()
-                if isinstance(ret, string_type):
-                    lines += ret
-        else:
-            p = subprocess.Popen(command, cwd=os.getcwd(), env=base_env, shell=True, stdout=subprocess.PIPE)
-            lines, _ = p.communicate()
+        # Run the command synchronously to get the resultspace environment
+        lines = subprocess.check_output(command, cwd=os.getcwd(), env=base_env, shell=True)
 
         # Extract the environment variables
         env_dict = {
@@ -179,11 +153,13 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
 
 
 def load_resultspace_environment(result_space_path, base_env=None, cached=True):
-    """Load the environemt variables which result from sourcing another
+    """Load the environment variables which result from sourcing another
     workspace path into this process's environment.
 
     :param result_space_path: path to a Catkin result-space whose environment should be loaded, ``str``
     :type result_space_path: str
+    :param base_env: Base environment dictionary (default: os.environ)
+    :type base_env: dict
     :param cached: use the cached environment
     :type cached: bool
     """
