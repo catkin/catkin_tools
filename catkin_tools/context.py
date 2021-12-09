@@ -25,7 +25,7 @@ from .common import printed_fill
 from .common import remove_ansi_escape
 from .common import terminal_width
 
-from .metadata import find_enclosing_workspace
+from .metadata import find_enclosing_workspaces
 
 from .resultspace import get_resultspace_environment
 
@@ -183,9 +183,16 @@ class Context(object):
         # Initialize dictionary version of opts namespace
         opts_vars = vars(opts) if opts else {}
 
-        # Get the workspace (either the given directory or the enclosing ws)
-        workspace_hint = workspace_hint or opts_vars.get('workspace', None) or getcwd()
-        workspace = find_enclosing_workspace(workspace_hint)
+        # Get the workspace (either the given directory or the outermost ws enclosing cwd)
+        workspace = workspace_hint or opts_vars.get('workspace', None)
+        if not workspace:
+            workspace_hint = getcwd()
+            workspaces = find_enclosing_workspaces(workspace_hint)
+            if workspaces:
+                workspace = workspaces[-1]
+            else:
+                workspace = workspace_hint
+
         if not workspace:
             if strict or not workspace_hint:
                 return None
@@ -684,7 +691,7 @@ class Context(object):
 
     def initialized(self):
         """Check if this context is initialized."""
-        return self.workspace == find_enclosing_workspace(self.workspace)
+        return self.workspace in (find_enclosing_workspaces(self.workspace) or [])
 
     @property
     def destdir(self):
