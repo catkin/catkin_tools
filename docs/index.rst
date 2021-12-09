@@ -105,6 +105,7 @@ Each of the following verbs is built-in to the ``catkin`` command and has its ow
 - :doc:`list -- Find and list information about catkin packages in a workspace <verbs/catkin_list>`
 - :doc:`locate -- Get important workspace directory paths <verbs/catkin_locate>`
 - :doc:`profile -- Manage different named configuration profiles <verbs/catkin_profile>`
+- :doc:`test -- Test one or more packages in a catkin workspace <verbs/catkin_test>`
 
 Contributed Third Party Verbs
 -----------------------------
