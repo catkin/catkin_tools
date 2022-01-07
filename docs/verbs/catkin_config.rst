@@ -159,7 +159,7 @@ This means that blacklisted packages will not be built even if another package i
 
 .. note::
 
-    Blacklisting a package does not remove it's build directory or build
+    Blacklisting a package does not remove its build directory or build
     products, it only prevents it from being rebuilt.
 
 To set the blacklist, you can call the following command:
