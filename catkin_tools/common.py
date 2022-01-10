@@ -534,7 +534,6 @@ def find_packages(*args, **kwargs):
     :param ignore_markers: A set of filenames to be used as ignore markers, ``set``
     :returns: A list of relative paths containing package manifest files ``list``
     """
-    print("common.find_packages")
     return find_packages_(*args, ignore_markers={'CATKIN_IGNORE'}, **kwargs)
 
 
