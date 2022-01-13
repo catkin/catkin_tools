@@ -1,4 +1,4 @@
-usage: catkin profile remove [-h] [name [name ...]]
+usage: catkin profile remove [-h] [name ...]
 
 positional arguments:
   name        One or more profile names to remove.

@@ -3,7 +3,8 @@ usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--unbuilt] [--start-with PKGNAME | --start-with-this]
                     [--continue-on-failure] [--force-cmake] [--pre-clean]
                     [--no-install-lock] [--save-config] [-j JOBS]
-                    [-p PACKAGE_JOBS] [--jobserver | --no-jobserver]
+                    [-p PACKAGE_JOBS] [-l LOAD_AVERAGE]
+                    [--jobserver | --no-jobserver]
                     [--env-cache | --no-env-cache] [--cmake-args ARG [ARG ...]
                     | --no-cmake-args] [--make-args ARG [ARG ...] |
                     --no-make-args] [--catkin-make-args ARG [ARG ...] |
@@ -11,7 +12,7 @@ usage: catkin build [-h] [--workspace WORKSPACE] [--profile PROFILE]
                     [--no-status] [--summarize] [--no-summarize]
                     [--override-build-tool-check]
                     [--limit-status-rate LIMIT_STATUS_RATE] [--no-notify]
-                    [PKGNAME [PKGNAME ...]]
+                    [PKGNAME ...]
 
 Build one or more packages in a catkin workspace. This invokes `CMake`,
 `make`, and optionally `make install` for either all or the specified packages
@@ -69,6 +70,9 @@ Config:
   -p PACKAGE_JOBS, --parallel-packages PACKAGE_JOBS
                         Maximum number of packages allowed to be built in
                         parallel (default is cpu count)
+  -l LOAD_AVERAGE, --load-average LOAD_AVERAGE
+                        Maximum load average before no new build jobs are
+                        scheduled
   --jobserver           Use the internal GNU Make job server which will limit
                         the number of Make jobs across all active packages.
   --no-jobserver        Disable the internal GNU Make job server, and use an
@@ -113,7 +117,7 @@ Interface:
   --no-summarize, --no-summary
                         Explicitly disable the end of build summary
   --override-build-tool-check
-                        use to override failure due to using differnt build
+                        use to override failure due to using different build
                         tools on the same workspace.
   --limit-status-rate LIMIT_STATUS_RATE, --status-rate LIMIT_STATUS_RATE
                         Limit the update rate of the status bar to this

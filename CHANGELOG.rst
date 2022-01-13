@@ -5,6 +5,34 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.2 (2021-12-01)
+------------------
+
+* Add back flags that were removed in #691 (#702)
+* Documentation: Update CLI documentation
+
+0.8.1 (2021-11-30)
+------------------
+
+* catkin test: add --limit-status-rate option (#699)
+
+0.8.0 (2021-11-30)
+------------------
+
+* Add catkin test verb (#676)
+* Code cleanup (#692)
+* Documentation: https in docs, properties over vars, sphinx cleanup (#690)
+* Documentation: Improve wording (#694)
+* Documentation: Add custom build, devel, install dirs (#697)
+* Contributors: Balint, Jim Aldon D'Souza, Matthijs van der Burgh, mobangjack, pseyfert, Timon Engelke
+
+0.7.2 (2021-11-18)
+------------------
+
+* Update installation docs for python 3 (#687)
+* Fix environment variable parsing (#686)
+* Switch from Travis CI to GitHub actions (#684)
+* Regenerate setup files when the install space was cleaned (#682)
 * Add possibility to clean individual package with isolated devel space (#683)
 * Fix regeneration of setup file when the install space was cleaned (#682)
 * Fix workspace generation with catkin build --this and --start-with-this (#685)

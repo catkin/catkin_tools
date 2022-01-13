@@ -71,10 +71,20 @@ packages in a catkin workspace.\
         help='Print output from commands in ordered blocks once the command finishes.')
     add('--interleave-output', '-i', action='store_true', default=False,
         help='Prevents ordering of command output when multiple commands are running at the same time.')
-    add('--no-status', action='store_true', default=False,
-        help='Suppresses status line, useful in situations where carriage return is not properly supported.')
     add('--summarize', '--summary', '-s', action='store_true', default=None,
         help='Adds a summary to the end of the log')
+    add('--no-status', action='store_true', default=False,
+        help='Suppresses status line, useful in situations where carriage return is not properly supported.')
+
+    def status_rate_type(rate):
+        rate = float(rate)
+        if rate < 0:
+            raise argparse.ArgumentTypeError("must be greater than or equal to zero.")
+        return rate
+
+    add('--limit-status-rate', '--status-rate', type=status_rate_type, default=10.0,
+        help='Limit the update rate of the status bar to this frequency. Zero means unlimited. '
+             'Must be positive, default is 10 Hz.')
     add('--no-notify', action='store_true', default=False,
         help='Suppresses system pop-up notification.')
 
@@ -160,6 +170,7 @@ def main(opts):
         quiet=not opts.verbose,
         interleave_output=opts.interleave_output,
         no_status=opts.no_status,
+        limit_status_rate=opts.limit_status_rate,
         no_notify=opts.no_notify,
         continue_on_failure=opts.continue_on_failure,
         summarize_build=opts.summarize,

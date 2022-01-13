@@ -31,10 +31,10 @@ from catkin_tools.common import getcwd
 import catkin_tools.execution.job_server as job_server
 
 from catkin_tools.metadata import find_enclosing_workspace
+from catkin_tools.metadata import get_metadata_root_path
 from catkin_tools.metadata import get_paths as get_metadata_paths
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import update_metadata
-from catkin_tools.metadata import METADATA_DIR_NAME
 
 from catkin_tools.terminal_color import ColorMapper
 
@@ -104,18 +104,19 @@ def prepare_arguments(parser):
         ' the workspace.')
 
     # Basic group
-    basic_group = parser.add_argument_group(
+    spaces_group = parser.add_argument_group(
         'Spaces',
         'Clean workspace subdirectories for the selected profile.')
-    add = basic_group.add_argument
-    add('-l', '--logs', action='store_true', default=False,
-        help='Remove the entire log space.')
-    add('-b', '--build', action='store_true', default=False,
-        help='Remove the entire build space.')
-    add('-d', '--devel', action='store_true', default=False,
-        help='Remove the entire devel space.')
-    add('-i', '--install', action='store_true', default=False,
-        help='Remove the entire install space.')
+    Context.setup_space_keys()
+    add = spaces_group.add_argument
+    for space, space_dict in Context.SPACES.items():
+        if space == 'source':
+            continue
+        flags = [space_dict['short_flag']] if 'short_flag' in space_dict else []
+        flags.append('--{}'.format(space_dict['default']))
+        flags.append('--{}-space'.format(space))
+        add(*flags, dest='spaces', action='append_const', const=space,
+            help='Remove the entire {} space.'.format(space))
 
     # Packages group
     packages_group = parser.add_argument_group(
@@ -168,20 +169,22 @@ def clean_profile(opts, profile):
     profile = ctx.profile
 
     # Check if the user wants to do something explicit
-    actions = [
-        'build', 'devel', 'install', 'logs',
-        'packages', 'clean_this', 'orphans',
-        'deinit',  'setup_files']
+    actions = ['spaces', 'packages', 'clean_this', 'orphans', 'deinit',  'setup_files']
 
-    logs_exists = os.path.exists(ctx.log_space_abs)
-    build_exists = os.path.exists(ctx.build_space_abs)
-    devel_exists = os.path.exists(ctx.devel_space_abs)
+    paths = {}  # noqa
+    paths_exists = {}  # noqa
 
-    install_path = (
+    paths['install'] = (
         os.path.join(ctx.destdir, ctx.install_space_abs.lstrip(os.sep))
         if ctx.destdir
         else ctx.install_space_abs)
-    install_exists = os.path.exists(install_path)
+    paths_exists['install'] = os.path.exists(paths['install']) and os.path.isdir(paths['install'])
+
+    for space in Context.SPACES.keys():
+        if space in paths:
+            continue
+        paths[space] = getattr(ctx, '{}_space_abs'.format(space))
+        paths_exists[space] = getattr(ctx, '{}_space_exists'.format(space))()
 
     # Default is to clean all products for this profile
     no_specific_action = not any([
@@ -191,21 +194,17 @@ def clean_profile(opts, profile):
 
     # Initialize action options
     if clean_all:
-        opts.logs = opts.build = opts.devel = opts.install = True
+        opts.spaces = [k for k in Context.SPACES.keys() if k != 'source']
 
-    # Make sure the user intends to clena everything
-    spaces_to_clean = (opts.logs or opts.build or opts.devel or opts.install)
+    # Make sure the user intends to clean everything
     spaces_to_clean_msgs = []
 
-    if spaces_to_clean and not (opts.yes or opts.dry_run):
-        if opts.logs and logs_exists:
-            spaces_to_clean_msgs.append(clr("[clean] Log Space:     @{yf}{}").format(ctx.log_space_abs))
-        if opts.build and build_exists:
-            spaces_to_clean_msgs.append(clr("[clean] Build Space:   @{yf}{}").format(ctx.build_space_abs))
-        if opts.devel and devel_exists:
-            spaces_to_clean_msgs.append(clr("[clean] Devel Space:   @{yf}{}").format(ctx.devel_space_abs))
-        if opts.install and install_exists:
-            spaces_to_clean_msgs.append(clr("[clean] Install Space: @{yf}{}").format(install_path))
+    if opts.spaces and not (opts.yes or opts.dry_run):
+        for space in opts.spaces:
+            if getattr(ctx, '{}_space_exists'.format(space))():
+                space_name = Context.SPACES[space]['space']
+                space_abs = getattr(ctx, '{}_space_abs'.format(space))
+                spaces_to_clean_msgs.append(clr("[clean] {:14} @{yf}{}").format(space_name + ':', space_abs))
 
         if len(spaces_to_clean_msgs) == 0 and not opts.deinit:
             log("[clean] Nothing to be cleaned for profile:  `{}`".format(profile))
@@ -232,50 +231,41 @@ def clean_profile(opts, profile):
     needs_force = False
 
     try:
-        # Remove all installspace files
-        if opts.install and install_exists:
-            log("[clean] Removing installspace: %s" % install_path)
-            if not opts.dry_run:
-                safe_rmtree(install_path, ctx.workspace, opts.force)
+        for space in opts.spaces:
+            if space == 'devel':
+                # Remove all develspace files
+                if paths_exists['devel']:
+                    log("[clean] Removing {}: {}".format(Context.SPACES['devel']['space'], ctx.devel_space_abs))
+                    if not opts.dry_run:
+                        safe_rmtree(ctx.devel_space_abs, ctx.workspace, opts.force)
+                # Clear the cached metadata from the last build run
+                _, build_metadata_file = get_metadata_paths(ctx.workspace, profile, 'build')
+                if os.path.exists(build_metadata_file):
+                    os.unlink(build_metadata_file)
+                # Clear the cached packages data, if it exists
+                packages_metadata_path = ctx.package_metadata_path()
+                if os.path.exists(packages_metadata_path):
+                    safe_rmtree(packages_metadata_path, ctx.workspace, opts.force)
 
-        # Remove all develspace files
-        if opts.devel:
-            if devel_exists:
-                log("[clean] Removing develspace: %s" % ctx.devel_space_abs)
-                if not opts.dry_run:
-                    safe_rmtree(ctx.devel_space_abs, ctx.workspace, opts.force)
-            # Clear the cached metadata from the last build run
-            _, build_metadata_file = get_metadata_paths(ctx.workspace, profile, 'build')
-            if os.path.exists(build_metadata_file):
-                os.unlink(build_metadata_file)
-            # Clear the cached packages data, if it exists
-            packages_metadata_path = ctx.package_metadata_path()
-            if os.path.exists(packages_metadata_path):
-                safe_rmtree(packages_metadata_path, ctx.workspace, opts.force)
-
-        # Remove all buildspace files
-        if opts.build and build_exists:
-            log("[clean] Removing buildspace: %s" % ctx.build_space_abs)
-            if not opts.dry_run:
-                safe_rmtree(ctx.build_space_abs, ctx.workspace, opts.force)
+            else:
+                if paths_exists[space]:
+                    space_name = Context.SPACES[space]['space']
+                    space_path = paths[space]
+                    log("[clean] Removing {}: {}".format(space_name, space_path))
+                    if not opts.dry_run:
+                        safe_rmtree(space_path, ctx.workspace, opts.force)
 
         # Setup file removal
         if opts.setup_files:
-            if devel_exists:
-                log("[clean] Removing setup files from develspace: %s" % ctx.devel_space_abs)
+            if paths_exists['devel']:
+                log("[clean] Removing setup files from {}: {}".format(Context.SPACES['devel']['space'], paths['devel']))
                 opts.packages.append('catkin')
                 opts.packages.append('catkin_tools_prebuild')
             else:
-                log("[clean] No develspace exists, no setup files to clean.")
-
-        # Clean log files
-        if opts.logs and logs_exists:
-            log("[clean] Removing log space: {}".format(ctx.log_space_abs))
-            if not opts.dry_run:
-                safe_rmtree(ctx.log_space_abs, ctx.workspace, opts.force)
+                log("[clean] No {} exists, no setup files to clean.".format(Context.SPACES['devel']['space']))
 
         # Find orphaned packages
-        if ctx.link_devel or ctx.isolate_devel and not any([opts.build, opts.devel]):
+        if ctx.link_devel or ctx.isolate_devel and not ('devel' in opts.spaces or 'build' in opts.spaces):
             if opts.orphans:
                 if os.path.exists(ctx.build_space_abs):
                     log("[clean] Determining orphaned packages...")
@@ -299,14 +289,14 @@ def clean_profile(opts, profile):
                     else:
                         log("[clean] No orphans in the workspace.")
                 else:
-                    log("[clean] No buildspace exists, no potential for orphans.")
+                    log("[clean] No {} exists, no potential for orphans.".format(Context.SPACES['build']['space']))
 
             # Remove specific packages
             if len(opts.packages) > 0 or opts.clean_this:
                 # Determine the enclosing package
                 try:
                     ws_path = find_enclosing_workspace(getcwd())
-                    # Suppress warnings since this won't necessaraly find all packages
+                    # Suppress warnings since this won't necessarily find all packages
                     # in the workspace (it stops when it finds one package), and
                     # relying on it for warnings could mislead people.
                     this_package = find_enclosing_package(
@@ -361,21 +351,23 @@ def clean_profile(opts, profile):
 def main(opts):
     # Check for exclusivity
     full_options = opts.deinit
-    space_options = opts.logs or opts.build or opts.devel or opts.install
     package_options = len(opts.packages) > 0 or opts.orphans or opts.clean_this
     advanced_options = opts.setup_files
 
+    if opts.spaces is None:
+        opts.spaces = []
+
     if full_options:
-        if space_options or package_options or advanced_options:
+        if opts.spaces or package_options or advanced_options:
             log("[clean] Error: Using `--deinit` will remove all spaces, so"
                 " additional partial cleaning options will be ignored.")
-    elif space_options:
+    elif opts.spaces:
         if package_options:
             log("[clean] Error: Package arguments are not allowed with space"
-                " arguments (--build, --devel, --install, --logs). See usage.")
+                " arguments. See usage.")
         elif advanced_options:
             log("[clean] Error: Advanced arguments are not allowed with space"
-                " arguments (--build, --devel, --install, --logs). See usage.")
+                " arguments. See usage.")
 
     # Check for all profiles option
     if opts.all_profiles:
@@ -413,7 +405,7 @@ def main(opts):
         # Nuke .catkin_tools
         if opts.deinit:
             ctx = Context.load(opts.workspace, profile, opts, strict=True, load_env=False)
-            metadata_dir = os.path.join(ctx.workspace, METADATA_DIR_NAME)
+            metadata_dir = get_metadata_root_path(ctx.workspace)
             log("[clean] Deinitializing workspace by removing catkin_tools config: %s" % metadata_dir)
             if not opts.dry_run:
                 safe_rmtree(metadata_dir, ctx.workspace, opts.force)

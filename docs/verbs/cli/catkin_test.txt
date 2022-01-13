@@ -1,8 +1,9 @@
 usage: catkin test [-h] [--workspace WORKSPACE] [--profile PROFILE] [--this]
                    [--continue-on-failure] [-p PACKAGE_JOBS] [-t TARGET]
                    [--catkin-test-target TARGET] [--make-args ARG [ARG ...]]
-                   [--verbose] [--interleave-output] [--no-status]
-                   [--summarize] [--no-notify]
+                   [--verbose] [--interleave-output] [--summarize]
+                   [--no-status] [--limit-status-rate LIMIT_STATUS_RATE]
+                   [--no-notify]
                    [PKGNAME ...]
 
 Test one or more packages in a catkin workspace. This invokes `make run_tests`
@@ -52,8 +53,12 @@ Interface:
   --interleave-output, -i
                         Prevents ordering of command output when multiple
                         commands are running at the same time.
-  --no-status           Suppresses status line, useful in situations where
-                        carriage return is not properly supported.
   --summarize, --summary, -s
                         Adds a summary to the end of the log
+  --no-status           Suppresses status line, useful in situations where
+                        carriage return is not properly supported.
+  --limit-status-rate LIMIT_STATUS_RATE, --status-rate LIMIT_STATUS_RATE
+                        Limit the update rate of the status bar to this
+                        frequency. Zero means unlimited. Must be positive,
+                        default is 10 Hz.
   --no-notify           Suppresses system pop-up notification.
