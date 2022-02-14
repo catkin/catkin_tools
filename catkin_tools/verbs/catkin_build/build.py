@@ -119,29 +119,29 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
                 pkg_deps = get_cached_recursive_build_depends_in_workspace(package, ordered_packages)
                 packages_to_be_built_deps.extend(pkg_deps)
     else:
-        # Only use whitelist when no other packages are specified
-        if len(context.whitelist) > 0:
-            # Expand glob patterns in whitelist
-            whitelist = []
-            for whitelisted_package in context.whitelist:
-                whitelist.extend(expand_glob_package(whitelisted_package, workspace_package_names))
-            packages_to_be_built = [p for p in ordered_packages if (p[1].name in whitelist)]
+        # Only use buildlist when no other packages are specified
+        if len(context.buildlist) > 0:
+            # Expand glob patterns in buildlist
+            buildlist = []
+            for buildlisted_package in context.buildlist:
+                buildlist.extend(expand_glob_package(buildlisted_package, workspace_package_names))
+            packages_to_be_built = [p for p in ordered_packages if (p[1].name in buildlist)]
         else:
             packages_to_be_built = ordered_packages
 
-    # Filter packages with blacklist
-    if len(context.blacklist) > 0:
-        # Expand glob patterns in blacklist
-        blacklist = []
-        for blacklisted_package in context.blacklist:
-            blacklist.extend(expand_glob_package(blacklisted_package, workspace_package_names))
-        # Apply blacklist to packages and dependencies
+    # Filter packages with skiplist
+    if len(context.skiplist) > 0:
+        # Expand glob patterns in skiplist
+        skiplist = []
+        for skiplisted_package in context.skiplist:
+            skiplist.extend(expand_glob_package(skiplisted_package, workspace_package_names))
+        # Apply skiplist to packages and dependencies
         packages_to_be_built = [
             (path, pkg) for path, pkg in packages_to_be_built
-            if (pkg.name not in blacklist or pkg.name in packages)]
+            if (pkg.name not in skiplist or pkg.name in packages)]
         packages_to_be_built_deps = [
             (path, pkg) for path, pkg in packages_to_be_built_deps
-            if (pkg.name not in blacklist or pkg.name in packages)]
+            if (pkg.name not in skiplist or pkg.name in packages)]
 
     return packages_to_be_built, packages_to_be_built_deps, ordered_packages
 
@@ -536,8 +536,8 @@ def build_isolated_workspace(
             jobs,
             n_jobs,
             [pkg.name for _, pkg in context.packages],
-            [p for p in context.whitelist],
-            [p for p in context.blacklist],
+            [p for p in context.buildlist],
+            [p for p in context.skiplist],
             event_queue,
             show_notifications=not no_notify,
             show_active_status=not no_status,

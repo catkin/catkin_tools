@@ -298,10 +298,10 @@ _catkin_config_complete() {
     '(--no-extend)'{-e,--extend}'[Explicitly extend another workspace]:workspace:_files'\
     '(-e --extend)--no-extend[Unset the explicit extension of another workspace]'\
     '--mkdirs[Create directories required by the configuration]'\
-    '(--no-whitelist)--whitelist[Set the packages on the whitelist]:package:->packages'\
-    '(--no-blacklist)--blacklist[Set the packages on the blacklist]:package:->packages'\
-    '(--whitelist)--no-whitelist[Clear the whitelist]'\
-    '(--blacklist)--no-blacklist[Clear the blacklist]'\
+    '(--no-buildlist)--buildlist[Set the packages on the buildlist]:package:->packages'\
+    '(--no-skiplist)--skiplist[Set the packages on the skiplist]:package:->packages'\
+    '(--buildlist)--no-buildlist[Clear the buildlist]'\
+    '(--skiplist)--no-skiplist[Clear the skiplist]'\
     '(--default-source-space)'{-s,--source-space}'[Source space path]:source space:_files'\
     '(-s --source-space)--default-source-space[Use the default path to the source space]'\
     '(--default-devel-space)'{-d,--devel-space}'[Devel space path]'\
@@ -528,8 +528,8 @@ case "$state" in
       (config)
         local terminating_opts
         terminating_opts=(\
-          '--whitelist:Set the packages on the whitelist'\
-          '--blacklist:Set the packages on the blacklist'\
+          '--buildlist:Set the packages on the buildlist'\
+          '--skiplist:Set the packages on the skiplist'\
           '--cmake-args:Arbitrary arguments which are passed to CMake'\
           '--make-args:Arbitrary arguments which are passed to make'\
           '--catkin-make-args:Arbitrary arguments which are passed to make for catkin packages'\
@@ -546,7 +546,7 @@ case "$state" in
           # a block of --cmake-args has been started
           # but not yet ended with --
           # not ended with --*make-args (--make-args, --catkin-make-args, or --cmake-args)
-          # not ended with --blacklist or --whitelist
+          # not ended with --skiplist or --buildlist
           # ignoring the current word for the end-range (such that --cmake-args --<TAB> gives cmake completion)
           _dispatch $service cmake
           _describe -t terminators "terminate multiword argument" terminating_opts

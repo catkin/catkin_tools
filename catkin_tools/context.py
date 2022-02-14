@@ -62,8 +62,8 @@ class Context(object):
         'use_internal_make_jobserver',
         'use_env_cache',
         'catkin_make_args',
-        'whitelist',
-        'blacklist',
+        'buildlist',
+        'skiplist',
         'authors',
         'maintainers',
         'licenses',
@@ -306,8 +306,8 @@ class Context(object):
         use_env_cache=False,
         catkin_make_args=None,
         space_suffix=None,
-        whitelist=None,
-        blacklist=None,
+        buildlist=None,
+        skiplist=None,
         authors=None,
         maintainers=None,
         licenses=None,
@@ -353,10 +353,10 @@ class Context(object):
         :type catkin_make_args: list
         :param space_suffix: suffix for build, devel, and install spaces which are not explicitly set.
         :type space_suffix: str
-        :param whitelist: a list of packages to build by default
-        :type whitelist: list
-        :param blacklist: a list of packages to ignore by default
-        :type blacklist: list
+        :param buildlist: a list of packages to build by default
+        :type buildlist: list
+        :param skiplist: a list of packages to ignore by default
+        :type skiplist: list
         :raises: ValueError if workspace or source space does not exist
         :type authors: list
         :param authors: a list of default authors
@@ -392,9 +392,9 @@ class Context(object):
 
         self.destdir = os.environ.get('DESTDIR', None)
 
-        # Handle package whitelist/blacklist
-        self.whitelist = whitelist or []
-        self.blacklist = blacklist or []
+        # Handle package buildlist/skiplist
+        self.buildlist = buildlist or []
+        self.skiplist = skiplist or []
 
         # Handle default authors/maintainers
         self.authors = authors or []
@@ -559,8 +559,8 @@ class Context(object):
                 clr("@{cf}Cache Job Environments:@|      @{yf}{_Context__use_env_cache}@|"),
             ],
             [
-                clr("@{cf}Whitelisted Packages:@|        @{yf}{whitelisted_packages}@|"),
-                clr("@{cf}Blacklisted Packages:@|        @{yf}{blacklisted_packages}@|"),
+                clr("@{cf}Buildlisted Packages:@|        @{yf}{buildlisted_packages}@|"),
+                clr("@{cf}Skiplisted Packages:@|         @{yf}{skiplisted_packages}@|"),
             ]
         ]
 
@@ -612,8 +612,8 @@ class Context(object):
             'make_args': ' '.join(self.make_args + self.jobs_args or ['None']),
             'catkin_make_args': ', '.join(self.catkin_make_args or ['None']),
             'destdir_missing': existence_str(self.destdir, used=self.destdir),
-            'whitelisted_packages': ' '.join(self.whitelist or ['None']),
-            'blacklisted_packages': ' '.join(self.blacklist or ['None']),
+            'buildlisted_packages': ' '.join(self.buildlist or ['None']),
+            'skiplisted_packages': ' '.join(self.skiplist or ['None']),
         }
         for space, space_dict in sorted(Context.SPACES.items()):
             key_missing = '{}_missing'.format(space)
@@ -813,20 +813,20 @@ class Context(object):
         self.__packages = value
 
     @property
-    def whitelist(self):
-        return self.__whitelist
+    def buildlist(self):
+        return self.__buildlist
 
-    @whitelist.setter
-    def whitelist(self, value):
-        self.__whitelist = value
+    @buildlist.setter
+    def buildlist(self, value):
+        self.__buildlist = value
 
     @property
-    def blacklist(self):
-        return self.__blacklist
+    def skiplist(self):
+        return self.__skiplist
 
-    @blacklist.setter
-    def blacklist(self, value):
-        self.__blacklist = value
+    @skiplist.setter
+    def skiplist(self, value):
+        self.__skiplist = value
 
     @property
     def authors(self):

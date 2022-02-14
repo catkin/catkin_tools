@@ -3,8 +3,8 @@ usage: catkin config [-h] [--workspace WORKSPACE] [--profile PROFILE]
                      [--extend EXTEND_PATH | --no-extend] [--mkdirs]
                      [--authors NAME [EMAIL ...] | --maintainers NAME
                      [EMAIL ...] | --licenses LICENSE [LICENSE ...]]
-                     [--whitelist PKG [PKG ...] | --no-whitelist]
-                     [--blacklist PKG [PKG ...] | --no-blacklist]
+                     [--buildlist PKG [PKG ...] | --no-buildlist]
+                     [--skiplist PKG [PKG ...] | --no-skiplist]
                      [--build-space BUILD_SPACE | --default-build-space]
                      [--devel-space DEVEL_SPACE | --default-devel-space]
                      [--install-space INSTALL_SPACE | --default-install-space]
@@ -66,16 +66,16 @@ Package Create Defaults:
 Package Build Defaults:
   Packages to include or exclude from default build behavior.
 
-  --whitelist PKG [PKG ...]
-                        Set the packages on the whitelist. If the whitelist is
-                        non-empty, only the packages on the whitelist are
+  --buildlist PKG [PKG ...]
+                        Set the packages on the buildlist. If the buildlist is
+                        non-empty, only the packages on the buildlist are
                         built with a bare call to `catkin build`.
-  --no-whitelist        Clear all packages from the whitelist.
-  --blacklist PKG [PKG ...]
-                        Set the packages on the blacklist. Packages on the
-                        blacklist are not built with a bare call to `catkin
+  --no-buildlist        Clear all packages from the buildlist.
+  --skiplist PKG [PKG ...]
+                        Set the packages on the skiplist. Packages on the
+                        skiplist are not built with a bare call to `catkin
                         build`.
-  --no-blacklist        Clear all packages from the blacklist.
+  --no-skiplist        Clear all packages from the skiplist.
 
 Spaces:
   Location of parts of the catkin workspace.

@@ -121,8 +121,8 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         '"env --null"',
     ])
 
-    # Define some "blacklisted" environment variables which shouldn't be copied
-    blacklisted_keys = ('_', 'PWD')
+    # Define some "skiplisted" environment variables which shouldn't be copied
+    skiplisted_keys = ('_', 'PWD')
     env_dict = {}
 
     try:
@@ -133,7 +133,7 @@ def get_resultspace_environment(result_space_path, base_env=None, quiet=False, c
         env_dict = {
             k: v
             for k, v in parse_env_str(lines).items()
-            if k not in blacklisted_keys
+            if k not in skiplisted_keys
         }
 
         # Check to make sure we got some kind of environment

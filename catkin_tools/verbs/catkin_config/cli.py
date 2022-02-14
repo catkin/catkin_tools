@@ -70,18 +70,20 @@ def prepare_arguments(parser):
     lists_group = parser.add_argument_group(
         'Package Build Defaults', 'Packages to include or exclude from default build behavior.')
     add = lists_group.add_mutually_exclusive_group().add_argument
-    add('--whitelist', metavar="PKG", dest='whitelist', nargs="+", required=False, type=str, default=None,
-        help='Set the packages on the whitelist. If the whitelist is non-empty, '
-        'only the packages on the whitelist are built with a bare call to '
+    add('--buildlist', '--whitelist', metavar="PKG", dest='buildlist', nargs="+", required=False, type=str, default=None,
+        help='Set the packages on the buildlist. If the buildlist is non-empty, '
+        'only the packages on the buildlist are built with a bare call to '
         '`catkin build`.')
-    add('--no-whitelist', dest='whitelist', action='store_const', const=[], default=None,
-        help='Clear all packages from the whitelist.')
+    add('--no-buildlist', '--no-whitelist', dest='buildlist', action='store_const', const=[], default=None,
+        help='Clear all packages from the buildlist.')
     add = lists_group.add_mutually_exclusive_group().add_argument
-    add('--blacklist', metavar="PKG", dest='blacklist', nargs="+", required=False, type=str, default=None,
-        help='Set the packages on the blacklist. Packages on the blacklist are '
+    add('--skiplist', '--blacklist', metavar="PKG", dest='skiplist', nargs="+", required=False, type=str, default=None,
+        help='Set the packages on the skiplist. Packages on the skiplist are '
         'not built with a bare call to `catkin build`.')
-    add('--no-blacklist', dest='blacklist', action='store_const', const=[], default=None,
-        help='Clear all packages from the blacklist.')
+    add('--no-skiplist', '--no-blacklist', dest='skiplist', action='store_const', const=[], default=None,
+        help='Clear all packages from the skiplist.')
+
+
 
     spaces_group = parser.add_argument_group('Spaces', 'Location of parts of the catkin workspace.')
     Context.setup_space_keys()
