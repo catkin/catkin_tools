@@ -212,7 +212,7 @@ def catkin_main(sysargs):
     if any(used_deprecated_args):
         print('')
         print(fmt('@!@{rf}WARNING:@| Some arguments are deprecated and will be'
-            ' removed in a future release.\n'))
+                  ' removed in a future release.\n'))
         print('Please switch to using their replacements as follows:')
         for old_arg, new_arg in used_deprecated_args:
             print(" - note: '{}' is deprecated, use '{}' instead".format(
