@@ -38,8 +38,8 @@ display the standard configuration summary, as shown below:
     Internal Make Job Server:    True
     Cache Job Environments:      False
     --------------------------------------------------------------
-    Whitelisted Packages:        None
-    Blacklisted Packages:        None
+    Buildlisted Packages:        None
+    Skiplisted Packages:        None
     --------------------------------------------------------------
     Workspace configuration appears valid.
     --------------------------------------------------------------
@@ -91,8 +91,8 @@ Build Tool Arguments Section
 Package Filter Section
 ----------------------
 
-- **Package Whitelist** -- Packages that will be built with a bare call to ``catkin build``.
-- **Package Blacklist** -- Packages that will *not* be built unless explicitly named.
+- **Package Buildlist** -- Packages that will be built with a bare call to ``catkin build``.
+- **Package Skiplist** -- Packages that will *not* be built unless explicitly named.
 
 Notes Section
 -------------

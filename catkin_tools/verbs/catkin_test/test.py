@@ -115,26 +115,26 @@ def test_workspace(
             if package.name in packages:
                 packages_to_test.append((pkg_path, package))
     else:
-        # Only use whitelist when no other packages are specified
-        if len(context.whitelist) > 0:
-            # Expand glob patterns in whitelist
-            whitelist = []
-            for whitelisted_package in context.whitelist:
-                whitelist.extend(expand_glob_package(whitelisted_package, workspace_packages))
-            packages_to_test = [p for p in ordered_packages if (p[1].name in whitelist)]
+        # Only use buildlist when no other packages are specified
+        if len(context.buildlist) > 0:
+            # Expand glob patterns in buildlist
+            buildlist = []
+            for buildlisted_package in context.buildlist:
+                buildlist.extend(expand_glob_package(buildlisted_package, workspace_packages))
+            packages_to_test = [p for p in ordered_packages if (p[1].name in buildlist)]
         else:
             packages_to_test = ordered_packages
 
-    # Filter packages on blacklist
-    if len(context.blacklist) > 0:
-        # Expand glob patterns in blacklist
-        blacklist = []
-        for blacklisted_package in context.blacklist:
-            blacklist.extend(expand_glob_package(blacklisted_package, workspace_packages))
-        # Apply blacklist to packages and dependencies
+    # Filter packages on skiplist
+    if len(context.skiplist) > 0:
+        # Expand glob patterns in skiplist
+        skiplist = []
+        for skiplisted_package in context.skiplist:
+            skiplist.extend(expand_glob_package(skiplisted_package, workspace_packages))
+        # Apply skiplist to packages and dependencies
         packages_to_test = [
             (path, pkg) for path, pkg in packages_to_test
-            if (pkg.name not in blacklist or pkg.name in packages)]
+            if (pkg.name not in skiplist or pkg.name in packages)]
 
     # Check if all packages to test are already built
     built_packages = set([
@@ -188,8 +188,8 @@ def test_workspace(
             jobs,
             n_jobs,
             [pkg.name for path, pkg in packages_to_test],
-            [p for p in context.whitelist],
-            [p for p in context.blacklist],
+            [p for p in context.buildlist],
+            [p for p in context.skiplist],
             event_queue,
             show_notifications=not no_notify,
             show_active_status=not no_status,

@@ -27,6 +27,6 @@ def test_ignore_package():
     pass  # TODO: Implement this for various dependency relationships
 
 
-def test_deblacklist():
-    """Test build behavior when removing a package from the blacklist that has yet to be built"""
+def test_deskiplist():
+    """Test build behavior when removing a package from the skiplist that has yet to be built"""
     pass  # TODO: Implement this for various dependency relationships

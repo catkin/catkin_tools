@@ -31,8 +31,8 @@ List-type options include:
  - ``--cmake-args``
  - ``--make-args``
  - ``--catkin-make-args``
- - ``--whitelist``
- - ``--blacklist``
+ - ``--buildlist``
+ - ``--skiplist``
 
 Installing Packages
 ^^^^^^^^^^^^^^^^^^^
@@ -135,46 +135,46 @@ This can be done with the ``--extend`` option like so:
     /tmp/path/to/my_catkin_ws:/opt/ros/indigo
 
 
-Whitelisting and Blacklisting Packages
+Buildlisting and Skiplisting Packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Packages can be added to a package *whitelist* or *blacklist* in order to change which packages get built.
-If the *whitelist*  is non-empty, then a call to ``catkin build`` with no specific package names will only build the packages on the *whitelist*.
-This means that you can still build packages not on the *whitelist*, but only if they are named explicitly or are dependencies of other whitelisted packages.
+Packages can be added to a package *buildlist* or *skiplist* in order to change which packages get built.
+If the *buildlist*  is non-empty, then a call to ``catkin build`` with no specific package names will only build the packages on the *buildlist*.
+This means that you can still build packages not on the *buildlist*, but only if they are named explicitly or are dependencies of other buildlisted packages.
 
-To set the whitelist, you can call the following command:
-
-.. code-block:: text
-
-    catkin config --whitelist foo bar
-
-To clear the whitelist, you can use the ``--no-whitelist`` option:
+To set the buildlist, you can call the following command:
 
 .. code-block:: text
 
-    catkin config --no-whitelist
+    catkin config --buildlist foo bar
 
-If the *blacklist* is non-empty, it will filter the packages to be built in all cases except where a given package is named explicitly.
-This means that blacklisted packages will not be built even if another package in the workspace depends on them.
+To clear the buildlist, you can use the ``--no-buildlist`` option:
+
+.. code-block:: text
+
+    catkin config --no-buildlist
+
+If the *skiplist* is non-empty, it will filter the packages to be built in all cases except where a given package is named explicitly.
+This means that skiplisted packages will not be built even if another package in the workspace depends on them.
 
 .. note::
 
-    Blacklisting a package does not remove its build directory or build
+    Skiplisting a package does not remove its build directory or build
     products, it only prevents it from being rebuilt.
 
-To set the blacklist, you can call the following command:
+To set the skiplist, you can call the following command:
 
 .. code-block:: text
 
-    catkin config --blacklist baz
+    catkin config --skiplist baz
 
-To clear the blacklist, you can use the ``--no-blacklist`` option:
+To clear the skiplist, you can use the ``--no-skiplist`` option:
 
 .. code-block:: text
 
-    catkin config --no-blacklist
+    catkin config --no-skiplist
 
-Note that you can still build packages on the blacklist and whitelist by passing their names to ``catkin build`` explicitly.
+Note that you can still build packages on the skiplist and buildlist by passing their names to ``catkin build`` explicitly.
 
 Accelerated Building with Environment Caching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
