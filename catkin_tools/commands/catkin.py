@@ -200,26 +200,6 @@ def catkin_main(sysargs):
               file=sys.stderr)
         sys.exit(0)
 
-    # Deprecated options
-    deprecated_args = [
-            ('--blacklist',    '--skiplist',),
-            ('--no-blacklist', '--no-skiplist'),
-            ('--whitelist',    '--buildlist'),
-            ('--no-whitelist', '--no-buildlist')]
-
-    used_deprecated_args = [(old, new) for old, new in deprecated_args if old in sysargs]
-
-    if any(used_deprecated_args):
-        print('')
-        print(fmt('@!@{rf}WARNING:@| Some arguments are deprecated and will be'
-                  ' removed in a future release.\n'))
-        print('Please switch to using their replacements as follows:')
-        for old_arg, new_arg in used_deprecated_args:
-            print(" - note: '{}' is deprecated, use '{}' instead".format(
-                    old_arg,
-                    new_arg))
-        print('')
-
     # Check for --test-colors
     for arg in sysargs:
         if arg == '--test-colors':
