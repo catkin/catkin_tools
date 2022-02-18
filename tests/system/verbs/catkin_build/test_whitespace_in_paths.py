@@ -15,9 +15,9 @@ def test_catkin_build_with_whitespace_in_paths():
 
         assert os.path.isdir(wf.workspace)
 
-        cmd = ['config', '--source', wf.source_space,
-               '--devel', 'devel space',
-               '--build', 'build space',
+        cmd = ['config', '--source-space', wf.source_space,
+               '--devel-space', 'devel space',
+               '--build-space', 'build space',
                '--install-space', 'install space']
         assert catkin_success(cmd), cmd
 
