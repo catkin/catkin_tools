@@ -523,6 +523,13 @@ def create_catkin_clean_job(
     # Remove installed files
     if clean_install:
         installed_files = get_installed_files(context.package_metadata_path(package))
+        if context.merge_install:
+            # Don't clean shared files in a merged install space layout.
+            install_dir = context.package_install_space(package)
+            installed_files = [
+                path for path in installed_files
+                if os.path.dirname(path) != install_dir
+            ]
         stages.append(FunctionStage(
             'cleaninstall',
             rmfiles,
