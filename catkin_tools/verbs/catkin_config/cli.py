@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import add_context_args
@@ -132,6 +133,25 @@ def prepare_arguments(parser):
 
 def main(opts):
     try:
+        sysargs = sys.argv[1:]
+
+        # Deprecated options
+        deprecated_args = [
+                ('--blacklist',    '--skiplist',),
+                ('--no-blacklist', '--no-skiplist'),
+                ('--whitelist',    '--buildlist'),
+                ('--no-whitelist', '--no-buildlist')]
+
+        used_deprecated_args = [(old, new) for old, new in deprecated_args if old in sysargs]
+
+        if any(used_deprecated_args):
+            print(fmt('@!@{rf}WARNING:@| Some arguments are deprecated and will be'
+                      ' removed in a future release.\n'))
+            print('Please switch to using their replacements as follows:')
+            for old_arg, new_arg in used_deprecated_args:
+                print(" - '{}' is deprecated, use '{}' instead".format(old_arg, new_arg))
+            print()
+
         # Determine if the user is trying to perform some action, in which
         # case, the workspace should be automatically initialized
         ignored_opts = ['main', 'verb']
