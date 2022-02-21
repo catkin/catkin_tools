@@ -32,12 +32,12 @@ from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
+from .cmake import copy_install_manifest
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
-from .cmake import copy_install_manifest
 
 
 def get_prebuild_package(build_space_abs, devel_space_abs, force):
