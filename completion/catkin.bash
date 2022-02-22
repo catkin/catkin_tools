@@ -55,7 +55,11 @@ _catkin()
   _init_completion || return # this handles default completion (variables, redirection)
 
   # complete to the following verbs
-  local catkin_verbs="build clean config create init list profile test"
+  local catkin_verbs="build "
+  [[ $(type -t catkin) == "function" ]] && catkin_verbs+="cd "
+  catkin_verbs+="clean config create init list profile "
+  [[ $(type -t catkin) == "function" ]] && catkin_verbs+="source "
+  catkin_verbs+="test"
 
   # filter for long options (from bash_completion)
   local OPTS_FILTER='s/.*\(--[-A-Za-z0-9]\{1,\}=\{0,1\}\).*/\1/p'
@@ -82,6 +86,9 @@ _catkin()
       else
         COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
       fi
+      ;;
+    cd)
+      COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
       ;;
     config)
       # list all options
