@@ -1,6 +1,7 @@
 import argparse
 from distutils import log
 import os
+import platform
 import site
 from stat import ST_MODE
 import sys
@@ -21,21 +22,29 @@ if 'DEB_BUILD' not in os.environ:
     install_requires += ['catkin_pkg >= 0.3.0']
 
 
-# Figure out the resources that need to be installed
-this_dir = os.path.abspath(os.path.dirname(__file__))
-osx_resources_path = os.path.join(
-    this_dir,
-    'catkin_tools',
-    'notifications',
-    'resources',
-    'osx',
-    'catkin build.app')
-osx_notification_resources = [os.path.join(dp, f)
-                              for dp, dn, fn in os.walk(osx_resources_path)
-                              for f in fn]
-src_path = os.path.join(this_dir, 'catkin_tools')
-osx_notification_resources = [os.path.relpath(x, src_path)
-                              for x in osx_notification_resources]
+
+def get_osx_notification_resources():
+    if platform.system() == 'Linux':
+        return ['notifications/resources/linux/catkin_icon.png',
+                'notifications/resources/linux/catkin_icon_red.png']
+    elif platform.system() == 'Darwin':
+        this_dir = os.path.abspath(os.path.dirname(__file__))
+        osx_resources_path = os.path.join(
+            this_dir,
+            'catkin_tools',
+            'notifications',
+            'resources',
+            'osx',
+            'catkin build.app')
+        osx_notification_resources = [os.path.join(dp, f)
+                                      for dp, dn, fn in os.walk(osx_resources_path)
+                                      for f in fn]
+        src_path = os.path.join(this_dir, 'catkin_tools')
+        osx_notification_resources = [os.path.relpath(x, src_path)
+                                      for x in osx_notification_resources]
+        return osx_notification_resources
+    else:
+        return []
 
 
 def _resolve_prefix(type):
@@ -70,7 +79,6 @@ def get_data_files():
 
 
 class PermissiveInstall(install):
-
     def run(self):
         install.run(self)
         if os.name == 'posix':
@@ -90,11 +98,9 @@ setup(
         'catkin_tools': [
             'jobs/cmake/python.cmake',
             'jobs/cmake/python_install_dir.cmake',
-            'notifications/resources/linux/catkin_icon.png',
-            'notifications/resources/linux/catkin_icon_red.png',
             'verbs/catkin_shell_verbs.bash',
             'docs/examples',
-        ] + osx_notification_resources
+        ] + get_osx_notification_resources()
     },
     data_files=get_data_files(),
     install_requires=install_requires,
