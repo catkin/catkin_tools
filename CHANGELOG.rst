@@ -5,6 +5,15 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.3 (2022-02-27)
+------------------
+
+* Enable shell completion for the catkin cd and catkin test verb (#706)
+* docs: reference verbs/catkin_test in index.rst (#704)
+* Grammar correction to catkin_config.rst (#709)
+* Replace blacklist/whitelist by buildlist/skiplist terms (#712)
+* Small repository / build system cleanup
+
 0.8.2 (2021-12-01)
 ------------------
 
