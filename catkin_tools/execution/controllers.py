@@ -197,7 +197,8 @@ class ConsoleStatusController(threading.Thread):
             show_full_summary=False,
             show_repro_cmd=True,
             active_status_rate=10.0,
-            pre_start_time=None):
+            pre_start_time=None,
+            **kwargs):
         """
         :param label: The label for this task (build, clean, etc)
         :param job_labels: The labels to be used for the jobs (packages, tests, etc)
@@ -217,6 +218,14 @@ class ConsoleStatusController(threading.Thread):
         :param pre_start_time: The actual start time to report, if preprocessing was done
         """
         super(ConsoleStatusController, self).__init__()
+
+        # Handle deprecated arguments
+        if 'whitelisted_jobs' in kwargs:
+            buildlisted_jobs = kwargs['whitelisted_jobs']
+            del kwargs['whitelisted_jobs']
+        if 'blacklisted_jobs' in kwargs:
+            skiplisted_jobs = kwargs['blacklisted_jobs']
+            del kwargs['blacklisted_jobs']
 
         self.label = label
         self.job_label = job_labels[0]

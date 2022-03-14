@@ -167,6 +167,14 @@ def main(opts):
         actions = [v for k, v in vars(opts).items() if k not in ignored_opts]
         no_action = not any(actions)
 
+        # Handle old argument names necessary for Context.load
+        if opts.buildlist:
+            opts.whitelist = opts.buildlist
+            del opts.buildlist
+        if opts.skiplist:
+            opts.blacklist = opts.skiplist
+            del opts.skiplist
+
         # Try to find a metadata directory to get context defaults
         # Otherwise use the specified directory
         context = Context.load(

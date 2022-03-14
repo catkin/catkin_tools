@@ -62,8 +62,8 @@ class Context(object):
         'use_internal_make_jobserver',
         'use_env_cache',
         'catkin_make_args',
-        'buildlist',
-        'skiplist',
+        'blacklist',
+        'whitelist',
         'authors',
         'maintainers',
         'licenses',
@@ -368,6 +368,14 @@ class Context(object):
         :param extends: the name of a profile to use as a base and inherit settings from
         """
         self.__locked = False
+
+        # Handle deprecated arguments
+        if 'whitelist' in kwargs:
+            buildlist = kwargs['whitelist']
+            del kwargs['whitelist']
+        if 'blacklist' in kwargs:
+            skiplist = kwargs['blacklist']
+            del kwargs['blacklist']
 
         # Validation is done on assignment
         self.workspace = workspace
@@ -826,6 +834,23 @@ class Context(object):
 
     @skiplist.setter
     def skiplist(self, value):
+        self.__skiplist = value
+
+    # Deprecated args: white/blacklist
+    @property
+    def whitelist(self):
+        return self.__buildlist
+
+    @whitelist.setter
+    def whitelist(self, value):
+        self.__buildlist = value
+
+    @property
+    def blacklist(self):
+        return self.__skiplist
+
+    @blacklist.setter
+    def blacklist(self, value):
         self.__skiplist = value
 
     @property
