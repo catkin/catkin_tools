@@ -193,13 +193,13 @@ def migrate_metadata_version(workspace_path, old_version):
                 devel_layout = ('isolated' if isolate_devel else 'merged')
                 metadata['devel_layout'] = devel_layout
 
-            # Migrate old terminology
-            if 'blacklist' in metadata:
-                metadata['skiplist'] = metadata['blacklist']
-                del metadata['blacklist']
-            if 'whitelist' in metadata:
-                metadata['buildlist'] = metadata['whitelist']
-                del metadata['whitelist']
+            # Migrate new terminology back to old one to avoid breaking change in config file
+            if 'skiplist' in metadata:
+                metadata['blacklist'] = metadata['skiplist']
+                del metadata['skiplist']
+            if 'buildlist' in metadata:
+                metadata['whitelist'] = metadata['buildlist']
+                del metadata['buildlist']
 
             # Save the new metadata
             update_metadata(workspace_path, profile_name, verb, metadata, no_init=True, merge=False)
