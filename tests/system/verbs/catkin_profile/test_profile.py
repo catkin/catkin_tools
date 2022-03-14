@@ -38,4 +38,4 @@ def test_profile_extend():
         assert_cmd_success(['catkin', 'profile', 'add', '--extend', 'default', 'myextend'])
         assert_cmd_success(['catkin', 'config', '--profile', 'myextend', '--skiplist', 'mypackage'])
         assert_in_config('.', 'default', 'make_args', ['test'])
-        assert_in_config('.', 'myextend', 'skiplist', ['mypackage'])
+        assert_in_config('.', 'myextend', 'blacklist', ['mypackage'])
