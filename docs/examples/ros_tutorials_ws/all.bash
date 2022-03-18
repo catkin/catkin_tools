@@ -7,7 +7,7 @@ pushd `dirname $0`
 
 rm -rf $WS
 
-source /opt/ros/indigo/setup.bash
+source /opt/ros/noetic/setup.bash
 
 $SLOWRECORD --check --tall 0_checkout.bash
 $SLOWRECORD --check --tall --buffer 1_init.bash

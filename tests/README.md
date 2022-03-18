@@ -29,7 +29,7 @@ pip install git+https://github.com/osrf/osrf_pycommon.git
 Second, build the Catkin CMake tool:
 
 ```
-git clone https://github.com/ros/catkin.git /tmp/catkin_source -b indigo-devel --depth 1
+git clone https://github.com/ros/catkin.git /tmp/catkin_source -b noetic-devel --depth 1
 mkdir /tmp/catkin_source/build
 pushd /tmp/catkin_source/build
 cmake .. && make

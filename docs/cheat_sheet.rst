@@ -18,7 +18,7 @@ Initialize a workspace with a default layout (``src``/``build``/``devel``) in th
   - ``catkin init --workspace /tmp/path/to/my_catkin_ws``
 
 ... which explicitly extends another workspace:
-  - ``catkin config --init --extend /opt/ros/indigo``
+  - ``catkin config --init --extend /opt/ros/noetic``
 
 Initialize a workspace with a **source space** called ``other_src``:
   - ``catkin config --init --source-space other_src``
@@ -139,7 +139,7 @@ Change from implicit to explicit chaining:
   .. code-block:: bash
 
     catkin clean
-    catkin config --extend /opt/ros/indigo
+    catkin config --extend /opt/ros/noetic
 
 Change from explicit to implicit chaining:
   .. code-block:: bash
@@ -154,13 +154,13 @@ Build with ``distcc``:
   .. code-block:: bash
 
      CC="distcc gcc" CXX="distcc g++" catkin build -p$(distcc -j) -j$(distcc -j) --no-jobserver
-     
+
 Changing Package's Build Type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Set the build type to ``cmake`` in the ``package.xml`` file's ``<export/>`` section:
   .. code-block:: xml
-    
+
     <export>
       <build_type>cmake</build_type>
     </export>

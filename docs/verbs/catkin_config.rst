@@ -56,7 +56,7 @@ This is also sometimes referred to as "workspace chaining" and sometimes the ext
 
 With ``catkin config``, you can explicitly set the workspace you want to extend, using the ``--extend`` argument.
 This is equivalent to sourcing a setup file, building, and then reverting to the environment before sourcing the setup file.
-For example, regardless of your current environment variable settings (like ``$CMAKE_PREFIX_PATH``), using ``--extend`` can build your workspace against the ``/opt/ros/indigo`` install space.
+For example, regardless of your current environment variable settings (like ``$CMAKE_PREFIX_PATH``), using ``--extend`` can build your workspace against the ``/opt/ros/noetic`` install space.
 
 Note that in case the desired parent workspace is different from one already being used, using the ``--extend`` argument also necessitates cleaning your workspace with ``catkin clean``.
 
@@ -100,16 +100,16 @@ At this point you have a workspace which doesn't extend anything.
 With the default **devel space** layout, this won't build without the ``catkin`` CMake package, since this package is used to generate setup files.
 
 If you realize this after the fact, you still can explicitly tell ``catkin build`` to extend  some result space.
-Suppose you wanted to extend a standard ROS system install like ``/opt/ros/indigo``.
+Suppose you wanted to extend a standard ROS system install like ``/opt/ros/noetic``.
 This can be done with the ``--extend`` option like so:
 
 .. code-block:: bash
 
     $ catkin clean
-    $ catkin config --extend /opt/ros/indigo
+    $ catkin config --extend /opt/ros/noetic
     --------------------------------------------------------------
     Profile:                     default
-    Extending:        [explicit] /opt/ros/indigo
+    Extending:        [explicit] /opt/ros/noetic
     Workspace:                   /tmp/path/to/my_catkin_ws
     --------------------------------------------------------------
     Source Space:       [exists] /tmp/path/to/my_catkin_ws/src
@@ -132,7 +132,7 @@ This can be done with the ``--extend`` option like so:
 
     $ source devel/setup.bash
     $ echo $CMAKE_PREFIX_PATH
-    /tmp/path/to/my_catkin_ws:/opt/ros/indigo
+    /tmp/path/to/my_catkin_ws:/opt/ros/noetic
 
 
 Buildlisting and Skiplisting Packages
