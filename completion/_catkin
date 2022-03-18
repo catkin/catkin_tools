@@ -399,7 +399,7 @@ _catkin_create_complete() {
           pkg_opts=(\
             {-h,--help}'[Show usage help]'\
             {-p,--path}'[The path into which the package should be generated]:path:_files'\
-            '--rosdistro[Which ROS distro to use for the template]:rosdistro:(hydro indigo jade kinetic)'\
+            '--rosdistro[Which ROS distro to use for the template]:rosdistro:(melodic noetic)'\
             {-v,--version}'[Version MAJOR.MINOR.PATCH]:version'\
             {-l,--license}'[Software license for distribution]:license:(BSD MIT GPLV3)'\
             {-d,--description}'[Package description]:description'\
