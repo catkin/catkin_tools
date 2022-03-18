@@ -51,3 +51,17 @@ def test_config_no_args_flags():
         assert_in_config('.', 'default', 'jobs_args', [])
         assert_in_config('.', 'default', 'make_args', [])
         assert_in_config('.', 'default', 'cmake_args', [])
+
+@in_temporary_directory
+def test_config_no_buildlist():
+    assert_cmd_success(['catkin', 'config', '--buildlist', 'mypackage'])
+    assert_in_config('.', 'default', 'whitelist', ['mypackage'])
+    assert_cmd_success(['catkin', 'config', '--no-buildlist'])
+    assert_in_config('.', 'default', 'whitelist', [])
+
+@in_temporary_directory
+def test_config_no_skiplist():
+    assert_cmd_success(['catkin', 'config', '--skiplist', 'mypackage'])
+    assert_in_config('.', 'default', 'blacklist', ['mypackage'])
+    assert_cmd_success(['catkin', 'config', '--no-skiplist'])
+    assert_in_config('.', 'default', 'blacklist', [])
