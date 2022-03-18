@@ -168,10 +168,10 @@ def main(opts):
         no_action = not any(actions)
 
         # Handle old argument names necessary for Context.load
-        if opts.buildlist:
+        if opts.buildlist is not None:
             opts.whitelist = opts.buildlist
             del opts.buildlist
-        if opts.skiplist:
+        if opts.skiplist is not None:
             opts.blacklist = opts.skiplist
             del opts.skiplist
 
