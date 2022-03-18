@@ -17,8 +17,11 @@ jobs:
             python: 3.8
             catkin: indigo-devel
           - dist: ubuntu-20.04
+            python: 3.8
+            catkin: noetic-devel
+          - dist: ubuntu-20.04
             python: 3.9
-            catkin: indigo-devel
+            catkin: noetic-devel
 
     runs-on: ${{ matrix.versions.dist }}
     steps:
