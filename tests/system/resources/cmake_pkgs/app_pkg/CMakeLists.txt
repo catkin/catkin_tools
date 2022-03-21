@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(app_pkg)
 
-include_directories(${CMAKE_INSTALL_PREFIX}/include)
+include_directories($ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/include)
 add_executable(vanilla_app vanilla.cpp)
 find_library(LIBVANILLA vanilla)
 target_link_libraries(vanilla_app ${LIBVANILLA})
