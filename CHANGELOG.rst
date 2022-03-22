@@ -5,6 +5,11 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.8.5 (2022-03-22)
+------------------
+
+* Correct usage check of build/skiplist (#716)
+
 0.8.4 (2022-03-15)
 ------------------
 
