@@ -1,4 +1,4 @@
-source /opt/ros/indigo/setup.bash          # Source ROS indigo to use Catkin
+source /opt/ros/noetic/setup.bash          # Source ROS noetic to use Catkin
 mkdir -p /tmp/quickstart_ws/src            # Make a new workspace and source space
 cd /tmp/quickstart_ws                      # Navigate to the workspace root
 catkin init                                # Initialize it with a hidden marker file

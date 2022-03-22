@@ -324,11 +324,11 @@ Implicit Chaining via ``CMAKE_PREFIX_PATH`` Environment or Cache Variable
 In this case, the ``catkin`` command is *implicitly* assuming that you want to build this workspace against resources which have been built into the directories listed in your ``CMAKE_PREFIX_PATH`` environment variable.
 As such, you can control this value simply by changing this environment variable.
 
-For example, ROS users who load their system's installed ROS environment by calling something similar to ``source /opt/ros/indigo/setup.bash`` will normally see an ``Extending`` value such as:
+For example, ROS users who load their system's installed ROS environment by calling something similar to ``source /opt/ros/noetic/setup.bash`` will normally see an ``Extending`` value such as:
 
 .. code-block:: bash
 
-      Extending:             [env] /opt/ros/indigo
+      Extending:             [env] /opt/ros/noetic
 
 If you don't want to extend the given workspace, unsetting the ``CMAKE_PREFIX_PATH`` environment variable will change it back to none.
 Once you have built your workspace once, this ``CMAKE_PREFIX_PATH`` will be cached by the underlying CMake buildsystem.
@@ -336,7 +336,7 @@ As such, the ``Extending`` status will subsequently describe this as the "cached
 
 .. code-block:: bash
 
-      Extending:          [cached] /opt/ros/indigo
+      Extending:          [cached] /opt/ros/noetic
 
 Once the extension mode is cached like this, you must use ``catkin clean`` to before changing it to something else.
 

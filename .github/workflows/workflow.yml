@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         versions:
           - dist: ubuntu-18.04
@@ -17,8 +18,11 @@ jobs:
             python: 3.8
             catkin: indigo-devel
           - dist: ubuntu-20.04
+            python: 3.8
+            catkin: noetic-devel
+          - dist: ubuntu-20.04
             python: 3.9
-            catkin: indigo-devel
+            catkin: noetic-devel
 
     runs-on: ${{ matrix.versions.dist }}
     steps:
