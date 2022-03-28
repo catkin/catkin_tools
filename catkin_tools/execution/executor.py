@@ -174,7 +174,8 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
                 break
 
         finally:
-            logger.close()
+            if logger is not None:
+                logger.close()
 
             lock.release()
 
