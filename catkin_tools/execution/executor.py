@@ -173,9 +173,10 @@ async def async_job(verb, job, threadpool, locks, event_queue, log_path):
             if retcode == stage.early_termination_retcode:
                 break
 
-            # Close logger
-            logger.close()
         finally:
+            if logger is not None:
+                logger.close()
+
             lock.release()
 
     # Finally, return whether all stages of the job completed
