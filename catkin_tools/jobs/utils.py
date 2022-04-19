@@ -15,12 +15,10 @@
 import os
 import shutil
 
-from catkin_tools.common import mkdir_p
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
-
-from catkin_tools.resultspace import get_resultspace_environment
-
+from catkin_tools.common import mkdir_p
 from catkin_tools.execution.events import ExecutionEvent
+from catkin_tools.resultspace import get_resultspace_environment
 
 
 class CommandMissing(Exception):

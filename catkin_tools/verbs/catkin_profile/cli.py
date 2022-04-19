@@ -13,13 +13,11 @@
 # limitations under the License.
 
 from catkin_tools.context import Context
-
+from catkin_tools.metadata import DEFAULT_PROFILE_NAME
 from catkin_tools.metadata import get_active_profile
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import remove_profile
 from catkin_tools.metadata import set_active_profile
-from catkin_tools.metadata import DEFAULT_PROFILE_NAME
-
 from catkin_tools.terminal_color import ColorMapper
 
 color_mapper = ColorMapper()

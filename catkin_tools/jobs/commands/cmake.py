@@ -15,12 +15,10 @@
 import os
 import re
 
-from catkin_tools.execution.io import IOBufferProtocol
 from catkin_tools.execution.events import ExecutionEvent
-
+from catkin_tools.execution.io import IOBufferProtocol
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import sanitize
-
 from catkin_tools.utils import which
 
 CMAKE_EXEC = which('cmake')

@@ -14,11 +14,10 @@
 
 import os
 
-from catkin_tools.argument_parsing import add_context_args
-from catkin_pkg.package_templates import create_package_files, PackageTemplate
+from catkin_pkg.package_templates import PackageTemplate
+from catkin_pkg.package_templates import create_package_files
 
-# Exempt build directories
-# See https://github.com/catkin/catkin_tools/issues/82
+from catkin_tools.argument_parsing import add_context_args
 
 
 def prepare_arguments(parser):

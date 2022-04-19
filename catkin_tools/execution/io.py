@@ -20,7 +20,6 @@ from glob import glob
 from osrf_pycommon.process_utils import AsyncSubprocessProtocol
 
 from catkin_tools.common import mkdir_p
-
 from catkin_tools.terminal_color import fmt
 
 from .events import ExecutionEvent

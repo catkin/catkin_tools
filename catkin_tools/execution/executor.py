@@ -14,9 +14,10 @@
 
 import asyncio
 import traceback
-from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import FIRST_COMPLETED
+from concurrent.futures import ThreadPoolExecutor
 from itertools import tee
+
 from osrf_pycommon.process_utils import async_execute_process
 from osrf_pycommon.process_utils import get_loop
 
@@ -24,9 +25,7 @@ from catkin_tools.common import FakeLock
 from catkin_tools.execution import job_server
 
 from .events import ExecutionEvent
-
 from .io import IOBufferLogger
-
 from .stages import CommandStage
 from .stages import FunctionStage
 

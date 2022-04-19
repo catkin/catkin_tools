@@ -17,17 +17,13 @@ from catkin_pkg.package import InvalidPackage
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import configure_make_args
-from catkin_tools.common import is_tty
-from catkin_tools.common import getcwd
 from catkin_tools.common import find_enclosing_package
-
+from catkin_tools.common import getcwd
+from catkin_tools.common import is_tty
 from catkin_tools.context import Context
 from catkin_tools.context import clr
-
 from catkin_tools.metadata import find_enclosing_workspace
-
 from catkin_tools.resultspace import load_resultspace_environment
-
 from catkin_tools.terminal_color import set_color
 
 from .test import test_workspace

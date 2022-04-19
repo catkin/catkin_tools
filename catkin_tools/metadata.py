@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import os
-import pkg_resources
 import shutil
+
+import pkg_resources
 import yaml
 
 from .common import mkdir_p

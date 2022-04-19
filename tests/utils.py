@@ -6,7 +6,6 @@ import subprocess
 import sys
 import tempfile
 from io import StringIO
-from subprocess import TimeoutExpired
 
 from catkin_tools.commands.catkin import main as catkin_main
 

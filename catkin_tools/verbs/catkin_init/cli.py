@@ -15,9 +15,7 @@
 import os
 
 from catkin_tools.argument_parsing import add_workspace_arg
-
 from catkin_tools.context import Context
-
 from catkin_tools.metadata import init_metadata_root
 from catkin_tools.terminal_color import fmt
 

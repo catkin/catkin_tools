@@ -3,9 +3,9 @@ import re
 import shutil
 import subprocess
 
-from tests.system.workspace_factory import workspace_factory
-from tests.utils import catkin_success
-from tests.utils import redirected_stdio
+from ....utils import catkin_success
+from ....utils import redirected_stdio
+from ...workspace_factory import workspace_factory
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 

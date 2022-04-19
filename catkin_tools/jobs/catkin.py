@@ -17,22 +17,20 @@ import os
 from hashlib import md5
 
 from catkin_tools.argument_parsing import handle_make_arguments
-
 from catkin_tools.common import mkdir_p
-
+from catkin_tools.execution.io import CatkinTestResultsIOBufferProtocol
 from catkin_tools.execution.jobs import Job
 from catkin_tools.execution.stages import CommandStage
 from catkin_tools.execution.stages import FunctionStage
-from catkin_tools.execution.io import CatkinTestResultsIOBufferProtocol
 
+from .cmake import copy_install_manifest
+from .cmake import get_python_install_dir
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
-
-from .cmake import copy_install_manifest, get_python_install_dir
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs

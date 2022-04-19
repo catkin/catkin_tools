@@ -24,7 +24,6 @@ from termios import FIONREAD
 
 from catkin_tools.common import log
 from catkin_tools.common import version_tuple
-
 from catkin_tools.terminal_color import ColorMapper
 
 mapper = ColorMapper()

@@ -31,36 +31,28 @@ from catkin_pkg.package import InvalidPackage
 from catkin_pkg.tool_detection import get_previous_tool_used_on_the_space
 from catkin_pkg.tool_detection import mark_space_as_built_by
 
-from catkin_tools.argument_parsing import add_context_args
+import catkin_tools.execution.job_server as job_server
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
+from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import configure_make_args
-
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import format_env_dict
 from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
 from catkin_tools.common import log
-from catkin_tools.common import find_enclosing_package
-from catkin_tools.common import format_env_dict
-
 from catkin_tools.context import Context
-
-import catkin_tools.execution.job_server as job_server
-
 from catkin_tools.jobs.utils import CommandMissing
 from catkin_tools.jobs.utils import loadenv
-
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata
 from catkin_tools.metadata import update_metadata
-
 from catkin_tools.resultspace import load_resultspace_environment
-
 from catkin_tools.terminal_color import set_color
-
-from .color import clr
 
 from .build import build_isolated_workspace
 from .build import determine_packages_to_be_built
 from .build import verify_start_with_option
+from .color import clr
 
 
 def prepare_arguments(parser):

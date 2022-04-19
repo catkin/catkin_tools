@@ -16,13 +16,11 @@ import os
 import sys
 
 from catkin_pkg.package import InvalidPackage
-
-from catkin_tools.common import find_enclosing_package
-from catkin_tools.common import getcwd
-
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import getcwd
 from catkin_tools.context import Context
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.terminal_color import ColorMapper

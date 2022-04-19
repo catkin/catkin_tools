@@ -18,10 +18,13 @@ import subprocess
 import sys
 import tempfile
 
-
 from catkin_tools.argument_parsing import handle_make_arguments
-
 from catkin_tools.common import mkdir_p
+from catkin_tools.execution.io import IOBufferProtocol
+from catkin_tools.execution.jobs import Job
+from catkin_tools.execution.stages import CommandStage
+from catkin_tools.execution.stages import FunctionStage
+from catkin_tools.terminal_color import ColorMapper
 
 from .commands.cmake import CMAKE_EXEC
 from .commands.cmake import CMAKE_INSTALL_MANIFEST_FILENAME
@@ -29,19 +32,11 @@ from .commands.cmake import CMakeIOBufferProtocol
 from .commands.cmake import CMakeMakeIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
-
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs
 from .utils import require_command
 from .utils import rmfiles
-
-from catkin_tools.execution.io import IOBufferProtocol
-from catkin_tools.execution.jobs import Job
-from catkin_tools.execution.stages import CommandStage
-from catkin_tools.execution.stages import FunctionStage
-
-from catkin_tools.terminal_color import ColorMapper
 
 mapper = ColorMapper()
 clr = mapper.clr

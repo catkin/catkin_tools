@@ -19,23 +19,18 @@ import sys
 from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 
+import catkin_tools.execution.job_server as job_server
 from catkin_tools.argument_parsing import add_context_args
-
-from catkin_tools.context import Context
-
-from catkin_tools.common import log
-from catkin_tools.common import wide_log
 from catkin_tools.common import find_enclosing_package
 from catkin_tools.common import getcwd
-
-import catkin_tools.execution.job_server as job_server
-
+from catkin_tools.common import log
+from catkin_tools.common import wide_log
+from catkin_tools.context import Context
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata_root_path
 from catkin_tools.metadata import get_paths as get_metadata_paths
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import update_metadata
-
 from catkin_tools.terminal_color import ColorMapper
 
 from .clean import clean_packages

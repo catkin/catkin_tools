@@ -14,18 +14,19 @@
 
 """This modules implements the engine for building packages in parallel"""
 
+import asyncio
 import os
-import pkg_resources
-from queue import Queue
 import sys
 import time
 import traceback
+from queue import Queue
+
+import pkg_resources
 import yaml
-import asyncio
 
 try:
-    from catkin_pkg.package import parse_package
     from catkin_pkg.package import InvalidPackage
+    from catkin_pkg.package import parse_package
     from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
@@ -34,17 +35,16 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
-from catkin_tools.common import FakeLock, expand_glob_package
+from catkin_tools.common import FakeLock
+from catkin_tools.common import expand_glob_package
 from catkin_tools.common import format_time_delta
 from catkin_tools.common import get_cached_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_depends_in_workspace
 from catkin_tools.common import log
 from catkin_tools.common import wide_log
-
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
-
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.catkin import create_catkin_clean_job
 from catkin_tools.jobs.catkin import get_prebuild_package

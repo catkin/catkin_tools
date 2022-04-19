@@ -1,5 +1,3 @@
-import os
-
 from ....utils import assert_cmd_success
 from ....utils import catkin_success
 from ....utils import in_temporary_directory

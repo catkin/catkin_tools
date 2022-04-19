@@ -10,8 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-import traceback
 import time
+import traceback
 from queue import Queue
 
 import pkg_resources
@@ -19,10 +19,13 @@ from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
 
-from catkin_tools.common import clr, wide_log, expand_glob_package
+from catkin_tools.common import clr
+from catkin_tools.common import expand_glob_package
+from catkin_tools.common import wide_log
 from catkin_tools.execution import job_server
 from catkin_tools.execution.controllers import ConsoleStatusController
-from catkin_tools.execution.executor import run_until_complete, execute_jobs
+from catkin_tools.execution.executor import execute_jobs
+from catkin_tools.execution.executor import run_until_complete
 
 
 def test_workspace(
