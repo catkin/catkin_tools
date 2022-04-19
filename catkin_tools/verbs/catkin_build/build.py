@@ -353,36 +353,35 @@ def build_isolated_workspace(
         all_packages,
         packages_to_be_built + packages_to_be_built_deps)
 
-    # Populate .catkin file if we're not installing
+    # Populate .catkin file containing source space paths
     # NOTE: This is done to avoid the Catkin CMake code from doing it,
     # which isn't parallel-safe. Catkin CMake only modifies this file if
     # it's package source path isn't found.
-    if not context.install:
-        dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
-        # If the file exists, get the current paths
-        if os.path.exists(dot_catkin_file_path):
-            dot_catkin_paths = open(dot_catkin_file_path, 'r').read().split(';')
-        else:
-            dot_catkin_paths = []
+    dot_catkin_file_path = os.path.join(context.devel_space_abs, '.catkin')
+    # If the file exists, get the current paths
+    if os.path.exists(dot_catkin_file_path):
+        dot_catkin_paths = open(dot_catkin_file_path, 'r').read().split(';')
+    else:
+        dot_catkin_paths = []
 
-        # Update the list with the new packages (in topological order)
-        packages_to_be_built_paths = [
-            os.path.join(context.source_space_abs, path)
-            for path, pkg in packages_to_be_built
-        ]
+    # Update the list with the new packages (in topological order)
+    packages_to_be_built_paths = [
+        os.path.join(context.source_space_abs, path)
+        for path, pkg in packages_to_be_built
+    ]
 
-        new_dot_catkin_paths = [
-            os.path.join(context.source_space_abs, path)
-            for path in [os.path.join(context.source_space_abs, path) for path, pkg in all_packages]
-            if path in dot_catkin_paths or path in packages_to_be_built_paths
-        ]
+    new_dot_catkin_paths = [
+        os.path.join(context.source_space_abs, path)
+        for path in [os.path.join(context.source_space_abs, path) for path, pkg in all_packages]
+        if path in dot_catkin_paths or path in packages_to_be_built_paths
+    ]
 
-        # Write the new file if it's different, otherwise, leave it alone
-        if dot_catkin_paths == new_dot_catkin_paths:
-            wide_log("[build] Package table is up to date.")
-        else:
-            wide_log("[build] Updating package table.")
-            open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
+    # Write the new file if it's different, otherwise, leave it alone
+    if dot_catkin_paths == new_dot_catkin_paths:
+        wide_log("[build] Package table is up to date.")
+    else:
+        wide_log("[build] Updating package table.")
+        open(dot_catkin_file_path, 'w').write(';'.join(new_dot_catkin_paths))
 
     # Remove packages before start_with
     if start_with is not None:
