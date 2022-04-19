@@ -88,6 +88,7 @@ class redirected_stdio(object):
         sys.stderr = self.original_stderr
 
         print(self.out.getvalue())
+        print(self.err.getvalue())
 
 
 class temporary_directory(object):
