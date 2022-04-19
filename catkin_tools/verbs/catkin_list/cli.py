@@ -53,11 +53,14 @@ def prepare_arguments(parser):
     add('--depends-on', nargs='*', metavar='PKG', default=[],
         help="Only show packages that directly depend on specific package(s).")
     add('--rdepends-on', '--recursive-depends-on', nargs='*', metavar='PKG', default=[],
-        help="Only show packages that recursively depend on specific package(s).")
+        help="Only show packages that recursively depend on specific package(s). "
+             "Limited to packages present in the current workspace.")
     add('--this', action='store_true',
         help="Show the package which contains the current working directory.")
     add('--directory', '-d', nargs='*', default=[],
-        help="Pass list of directories process all packages in directory")
+        help="Process all packages in the given directories")
+    add('packages', metavar='PKG', type=str, nargs='*', help="Manually specify a list of packages to process. "
+                                                             "Defaults to all packages.")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -82,7 +85,10 @@ def main(opts):
     else:
         folders = [ctx.source_space_abs]
 
-    list_entry_format = '@{pf}-@| @{cf}{}@|' if not opts.unformatted else '{}'
+    list_entry_format = clr('@{pf}-@| @{cf}{}@|') if not opts.unformatted else '{}'
+    list_entry_format_deps = clr('@{cf}{}:@|') if not opts.unformatted else '{}:'
+    depend_heading = clr('  @{yf}{}:@|') if not opts.unformatted else '  {}:'
+    depend_format = clr('  @{pf}-@| {}') if not opts.unformatted else '  - {}'
 
     opts.depends_on = set(opts.depends_on) if opts.depends_on else set()
     warnings = []
@@ -131,24 +137,31 @@ def main(opts):
             else:
                 filtered_packages = ordered_packages
 
-            for pkg_pth, pkg in filtered_packages:
-                print(clr(list_entry_format).format(pkg.name))
-                if opts.rdeps:
-                    build_deps = [p for dp, p in get_recursive_build_depends_in_workspace(pkg, ordered_packages)]
-                    run_deps = [p for dp, p in get_recursive_run_depends_in_workspace([pkg], ordered_packages)]
-                else:
-                    build_deps = [dep for dep in pkg.build_depends if dep.evaluated_condition]
-                    run_deps = [dep for dep in pkg.run_depends if dep.evaluated_condition]
+            if opts.packages:
+                packages_to_print = [(pth, pkg) for (pth, pkg) in filtered_packages if pkg.name in opts.packages]
+            else:
+                packages_to_print = filtered_packages
 
+            for pkg_pth, pkg in packages_to_print:
                 if opts.deps or opts.rdeps:
+                    print(clr(list_entry_format_deps).format(pkg.name))
+                    if opts.rdeps:
+                        build_deps = [p for dp, p in get_recursive_build_depends_in_workspace(pkg, ordered_packages)]
+                        run_deps = [p for dp, p in get_recursive_run_depends_in_workspace([pkg], ordered_packages)]
+                    else:
+                        build_deps = [dep for dep in pkg.build_depends if dep.evaluated_condition]
+                        run_deps = [dep for dep in pkg.run_depends if dep.evaluated_condition]
+
                     if len(build_deps) > 0:
-                        print(clr('  @{yf}build_depend:@|'))
+                        print(depend_heading.format('build_depend'))
                         for dep in build_deps:
-                            print(clr('  @{pf}-@| {}').format(dep.name))
+                            print(depend_format.format(dep.name))
                     if len(run_deps) > 0:
-                        print(clr('  @{yf}run_depend:@|'))
+                        print(depend_heading.format('run_depend'))
                         for dep in run_deps:
-                            print(clr('  @{pf}-@| {}').format(dep.name))
+                            print(depend_format.format(dep.name))
+                else:
+                    print(list_entry_format.format(pkg.name))
         except InvalidPackage as ex:
             sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
                          " See below for details:\n\n{}").format(ex.package_path, ex.msg))
