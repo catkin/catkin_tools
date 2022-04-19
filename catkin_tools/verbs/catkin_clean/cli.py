@@ -43,12 +43,6 @@ from .clean import clean_packages
 color_mapper = ColorMapper()
 clr = color_mapper.clr
 
-# Exempt build directories
-# See https://github.com/catkin/catkin_tools/issues/82
-exempt_build_files = ['.catkin_tools.yaml', 'catkin_tools_prebuild']
-
-setup_files = ['.catkin', 'env.sh', 'setup.bash', 'setup.sh', 'setup.zsh', '_setup_util.py']
-
 
 def yes_no_loop(question):
     while True:

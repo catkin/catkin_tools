@@ -138,7 +138,7 @@ def main(opts):
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
             sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
-                         ctx.extend_path, exc.message))
+                         ctx.extend_path, str(exc)))
 
     # Extract make arguments
     make_args, _, _, _ = configure_make_args(ctx.make_args, ctx.jobs_args, ctx.use_internal_make_jobserver)

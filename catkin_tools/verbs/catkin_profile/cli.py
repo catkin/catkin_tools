@@ -223,7 +223,7 @@ def main(opts):
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
-        print('error: could not %s catkin profile: %s' % (opts.subcommand, exc.message))
+        print('error: could not %s catkin profile: %s' % (opts.subcommand, str(exc)))
         return 1
 
     return 0

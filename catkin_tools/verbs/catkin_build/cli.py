@@ -293,7 +293,7 @@ def main(opts):
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
             sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
-                         ctx.extend_path, exc.message))
+                         ctx.extend_path, str(exc))
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
