@@ -243,6 +243,7 @@ def init_metadata_root(workspace_path, reset=False):
     else:
         # Create a new .catkin_tools directory
         os.mkdir(metadata_root_path)
+        os.mkdir(os.path.join(metadata_root_path, 'profiles'))
 
     # Write the README file describing the directory
     with open(os.path.join(metadata_root_path, 'README'), 'w') as metadata_readme:
@@ -355,6 +356,12 @@ def get_active_profile(workspace_path):
         return profiles_data['active']
 
     return DEFAULT_PROFILE_NAME
+
+
+def active_profile_set(workspace_path):
+    """Check if the active profile is set in profiles.yml"""
+    profiles_data = get_profiles_data(workspace_path)
+    return 'active' in profiles_data
 
 
 def get_profiles_data(workspace_path):

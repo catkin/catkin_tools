@@ -19,6 +19,7 @@ import sys
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.context import Context
+from catkin_tools.metadata import init_metadata_root
 from catkin_tools.terminal_color import ColorMapper
 from catkin_tools.terminal_color import fmt
 
@@ -179,12 +180,20 @@ def main(opts):
             opts.profile,
             opts,
             append=opts.append_args,
-            remove=opts.remove_args)
+            remove=opts.remove_args,
+            strict=True)
 
         do_init = opts.init or not no_action
         summary_notes = []
 
-        if not context.initialized() and do_init:
+        if not context and do_init:
+            init_metadata_root(opts.workspace or os.getcwd())
+            context = Context.load(
+                opts.workspace,
+                opts.profile,
+                opts,
+                append=opts.append_args,
+                remove=opts.remove_args)
             summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
 
         if context.initialized() or do_init:
