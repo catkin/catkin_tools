@@ -644,9 +644,12 @@ def create_catkin_test_job(
     ))
 
     # catkin_test_results
+    result_cmd = ['catkin_test_results']
+    if verbose:
+        result_cmd.append('--verbose')
     stages.append(CommandStage(
         'results',
-        ['catkin_test_results'],
+        result_cmd,
         cwd=build_space,
         logger_factory=CatkinTestResultsIOBufferProtocol.factory,
     ))
