@@ -11,6 +11,6 @@ def test_flake8():
     cmd.extend(['--jobs', '1'])
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = p.communicate()
-    print(stdout)
+    print(stdout.decode())
     assert p.returncode == 0, \
         "Command '{0}' returned non-zero exit code '{1}'".format(' '.join(cmd), p.returncode)

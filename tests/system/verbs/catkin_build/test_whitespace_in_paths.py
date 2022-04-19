@@ -1,7 +1,7 @@
 import os
 
 from ....utils import catkin_success
-
+from ....utils import redirected_stdio
 from ...workspace_factory import workspace_factory
 
 
@@ -15,11 +15,12 @@ def test_catkin_build_with_whitespace_in_paths():
 
         assert os.path.isdir(wf.workspace)
 
-        cmd = ['config', '--source-space', wf.source_space,
-               '--devel-space', 'devel space',
-               '--build-space', 'build space',
-               '--install-space', 'install space']
-        assert catkin_success(cmd), cmd
+        with redirected_stdio():
+            cmd = ['config', '--source-space', wf.source_space,
+                   '--devel-space', 'devel space',
+                   '--build-space', 'build space',
+                   '--install-space', 'install space']
+            assert catkin_success(cmd), cmd
 
-        cmd = ['build', '--no-status', '--no-notify', '--verbose']
-        assert catkin_success(cmd), cmd
+            cmd = ['build', '--no-status', '--no-notify', '--verbose']
+            assert catkin_success(cmd), cmd

@@ -1,10 +1,10 @@
 import os
 import shutil
 
-from ...workspace_factory import workspace_factory
-
-from ....utils import catkin_success
 from ....utils import catkin_failure
+from ....utils import catkin_success
+from ....utils import redirected_stdio
+from ...workspace_factory import workspace_factory
 
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -15,29 +15,30 @@ CLEAN = ['clean', '--all', '--yes']  # , '--no-notify', '--no-color', '--no-stat
 
 def test_cmake_args():
     """Test passing CMake args to packages."""
-    with workspace_factory():
-        shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'cmake_args'), 'src')
+    with redirected_stdio():
+        with workspace_factory():
+            shutil.copytree(os.path.join(RESOURCES_DIR, 'catkin_pkgs', 'cmake_args'), 'src')
 
-        # cmake_args package requires all three vars to be set
-        assert catkin_failure(
-            BUILD +
-            ['cmake_args', '--no-deps'] +
-            ['--cmake-args', '-DVAR1=VAL1'])
+            # cmake_args package requires all three vars to be set
+            assert catkin_failure(
+                BUILD +
+                ['cmake_args', '--no-deps'] +
+                ['--cmake-args', '-DVAR1=VAL1'])
 
-        assert catkin_failure(
-            BUILD +
-            ['cmake_args', '--no-deps'] +
-            ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2'])
+            assert catkin_failure(
+                BUILD +
+                ['cmake_args', '--no-deps'] +
+                ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2'])
 
-        assert catkin_success(
-            BUILD +
-            ['cmake_args', '--no-deps'] +
-            ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3'])
+            assert catkin_success(
+                BUILD +
+                ['cmake_args', '--no-deps'] +
+                ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3'])
 
-        assert catkin_success(
-            BUILD +
-            ['cmake_args', '--no-deps'] +
-            ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3', '--'])
+            assert catkin_success(
+                BUILD +
+                ['cmake_args', '--no-deps'] +
+                ['--cmake-args', '-DVAR1=VAL1', '-DVAR2=VAL2', '-DVAR3=VAL3', '--'])
 
 
 def test_no_cmake_args():

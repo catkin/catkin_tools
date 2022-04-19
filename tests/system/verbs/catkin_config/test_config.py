@@ -1,67 +1,76 @@
 import os
 
-from ...workspace_factory import workspace_factory
+from ....utils import catkin_success
 from ....utils import in_temporary_directory
-from ....utils import assert_cmd_success
-
-from ....workspace_assertions import assert_workspace_initialized
-from ....workspace_assertions import assert_warning_message
-from ....workspace_assertions import assert_no_warnings
+from ....utils import redirected_stdio
 from ....workspace_assertions import assert_in_config
+from ....workspace_assertions import assert_no_warnings
+from ....workspace_assertions import assert_warning_message
+from ....workspace_assertions import assert_workspace_initialized
+from ...workspace_factory import workspace_factory
 
 
 @in_temporary_directory
 def test_config_no_ws():
-    out = assert_cmd_success(['catkin', 'config'])
-    assert_warning_message(out, 'Workspace .+ is not yet initialized')
+    with redirected_stdio() as (out, err):
+        assert catkin_success(['config'])
+        assert_warning_message(out, 'Workspace .+ is not yet initialized')
 
 
 @in_temporary_directory
 def test_init_local_empty_src():
     cwd = os.getcwd()
     os.mkdir(os.path.join(cwd, 'src'))
-    out = assert_cmd_success(['catkin', 'config', '--init'])
-    assert_no_warnings(out)
+    with redirected_stdio() as (out, err):
+        assert catkin_success(['config', '--init'])
+        assert_no_warnings(out)
     assert_workspace_initialized('.')
 
 
 @in_temporary_directory
 def test_config_non_bare():
-    out = assert_cmd_success(['catkin', 'config', '--install'])
+    with redirected_stdio() as (out, err):
+        assert catkin_success(['config', '--install'])
+        assert_warning_message(out, 'Source space .+ does not yet exist')
     assert_workspace_initialized('.')
-    assert_warning_message(out, 'Source space .+ does not yet exist')
 
 
 @in_temporary_directory
 def test_config_unchanged():
     with workspace_factory() as wf:
         wf.build()
-        assert_cmd_success(['catkin', 'config', '--make-args', '-j6'])
-        assert_cmd_success(['catkin', 'config'])
+        with redirected_stdio():
+            assert catkin_success(['config', '--make-args', '-j6'])
+            assert catkin_success(['config'])
         assert_in_config('.', 'default', 'jobs_args', ['-j6'])
 
 
 def test_config_no_args_flags():
     with workspace_factory() as wf:
         wf.build()
-        assert_cmd_success(['catkin', 'config', '--make-args', '-j6', 'test'])
-        assert_cmd_success(['catkin', 'config', '--cmake-args', '-DCMAKE_BUILD_TYPE=Release'])
-        assert_cmd_success(['catkin', 'config', '--catkin-make-args', 'run_tests'])
-        assert_cmd_success(['catkin', 'config', '--no-make-args', '--no-cmake-args', '--no-catkin-make-args'])
+        with redirected_stdio():
+            assert catkin_success(['config', '--make-args', '-j6', 'test'])
+            assert catkin_success(['config', '--cmake-args', '-DCMAKE_BUILD_TYPE=Release'])
+            assert catkin_success(['config', '--catkin-make-args', 'run_tests'])
+            assert catkin_success(['config', '--no-make-args', '--no-cmake-args', '--no-catkin-make-args'])
         assert_in_config('.', 'default', 'jobs_args', [])
         assert_in_config('.', 'default', 'make_args', [])
         assert_in_config('.', 'default', 'cmake_args', [])
 
+
 @in_temporary_directory
 def test_config_no_buildlist():
-    assert_cmd_success(['catkin', 'config', '--buildlist', 'mypackage'])
-    assert_in_config('.', 'default', 'whitelist', ['mypackage'])
-    assert_cmd_success(['catkin', 'config', '--no-buildlist'])
-    assert_in_config('.', 'default', 'whitelist', [])
+    with redirected_stdio():
+        assert catkin_success(['config', '--buildlist', 'mypackage'])
+        assert_in_config('.', 'default', 'whitelist', ['mypackage'])
+        assert catkin_success(['config', '--no-buildlist'])
+        assert_in_config('.', 'default', 'whitelist', [])
+
 
 @in_temporary_directory
 def test_config_no_skiplist():
-    assert_cmd_success(['catkin', 'config', '--skiplist', 'mypackage'])
-    assert_in_config('.', 'default', 'blacklist', ['mypackage'])
-    assert_cmd_success(['catkin', 'config', '--no-skiplist'])
-    assert_in_config('.', 'default', 'blacklist', [])
+    with redirected_stdio():
+        assert catkin_success(['config', '--skiplist', 'mypackage'])
+        assert_in_config('.', 'default', 'blacklist', ['mypackage'])
+        assert catkin_success(['config', '--no-skiplist'])
+        assert_in_config('.', 'default', 'blacklist', [])
