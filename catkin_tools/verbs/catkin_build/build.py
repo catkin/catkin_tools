@@ -441,7 +441,7 @@ def build_isolated_workspace(
                     prebuild_pkg_path, prebuild_pkg = pkg_dict['catkin']
                     prebuild_pkg_deps.append('catkin_tools_prebuild')
             else:
-                # How did these get here??
+                # This can happen when a user manually deletes the .catkin_tools folder
                 log("Warning: devel space setup files have an unknown origin.")
         else:
             # Setup util needs to be generated
