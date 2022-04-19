@@ -243,6 +243,16 @@ def link_devel_products(
     # Select the skiplist
     skiplist = DEVEL_LINK_PREBUILD_SKIPLIST if prebuild else DEVEL_LINK_SKIPLIST
 
+    def should_skip_file(filename):
+        # Skip files that are in the skiplist...
+        if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in skiplist:
+            return True
+        # ... or somewhere in a directory in the directory skip list
+        for directory in os.path.relpath(os.path.join(source_path, filename), source_devel_path).split(os.path.sep):
+            if directory in DEVEL_LINK_SKIP_DIRECTORIES:
+                return True
+        return False
+
     # Gather all of the files in the devel space
     for source_path, dirs, files in os.walk(source_devel_path):
         # compute destination path
@@ -250,6 +260,9 @@ def link_devel_products(
 
         # create directories in the destination develspace
         for dirname in dirs:
+            if dirname in DEVEL_LINK_SKIP_DIRECTORIES:
+                continue
+
             source_dir = os.path.join(source_path, dirname)
             dest_dir = os.path.join(dest_path, dirname)
 
@@ -281,8 +294,8 @@ def link_devel_products(
         # create symbolic links from the source to the dest
         for filename in files:
 
-            # Don't link files on the skiplist unless this is a prebuild package
-            if os.path.relpath(os.path.join(source_path, filename), source_devel_path) in skiplist:
+            # Don't link files on the skiplist
+            if should_skip_file(filename):
                 continue
 
             source_file = os.path.join(source_path, filename)
@@ -687,6 +700,9 @@ DEVEL_LINK_SKIPLIST = DEVEL_LINK_PREBUILD_SKIPLIST + [
     'local_setup.zsh',
     'local_setup.sh',
     '_setup_util.py',
+]
+DEVEL_LINK_SKIP_DIRECTORIES = [
+    '__pycache__',
 ]
 # Deprecated names
 DEVEL_LINK_PREBUILD_BLACKLIST = DEVEL_LINK_PREBUILD_SKIPLIST
