@@ -205,7 +205,7 @@ def print_build_env(context, package_name):
             loadenv(None, None, environ, pkg, context)
             print(format_env_dict(environ, human_readable=sys.stdout.isatty()))
             return 0
-    print('[build] Error: Package `{}` not in workspace.'.format(package_name),
+    print(clr('[build] @!@{rf}Error:@| Package `{}` not in workspace.').format(package_name),
           file=sys.stderr)
     return 1
 
@@ -237,7 +237,7 @@ def main(opts):
                 ws_path=ws_path,
                 warnings=[])
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+            sys.exit(clr("@!@{rf}Error:@| The file {} is an invalid package.xml file."
                          " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
         # Handle context-based package building
@@ -245,16 +245,16 @@ def main(opts):
             if this_package:
                 opts.packages += [this_package]
             else:
-                sys.exit(
-                    "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
+                sys.exit(clr("[build] @!@{rf}Error:@| In order to use --this, "
+                             "the current directory must be part of a catkin package."))
 
         # If --start--with was used without any packages and --this was specified, start with this package
         if opts.start_with_this:
             if this_package:
                 opts.start_with = this_package
             else:
-                sys.exit(
-                    "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
+                sys.exit(clr("[build] @!@{rf}Error:@| In order to use --this, "
+                             "the current directory must be part of a catkin package."))
 
     if opts.no_deps and not opts.packages and not opts.unbuilt:
         sys.exit(clr("[build] @!@{rf}Error:@| With --no-deps, you must specify packages to build."))
@@ -280,9 +280,10 @@ def main(opts):
         try:
             import psutil  # noqa
         except ImportError as exc:
-            log("Could not import psutil, but psutil is required when using --mem-limit.")
-            log("Please either install psutil or avoid using --mem-limit.")
-            sys.exit("Exception: {0}".format(exc))
+            sys.exit(clr(
+                "[build] @!@{rf}Error:@| Could not import psutil, but psutil is required when using --mem-limit.\n"
+                "[build] Please either install psutil or avoid using --mem-limit.\n"
+                "[build] Exception: {0}").format(exc))
         job_server.set_max_mem(opts.mem_limit)
 
     ctx.make_args = make_args
@@ -293,7 +294,7 @@ def main(opts):
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
             sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
-                         ctx.extend_path, str(exc))
+                         ctx.extend_path, str(exc)))
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():

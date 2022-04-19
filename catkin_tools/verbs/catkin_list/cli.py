@@ -78,7 +78,7 @@ def main(opts):
     ctx = Context.load(opts.workspace, opts.profile, load_env=False)
 
     if not ctx:
-        sys.exit(clr("@{rf}ERROR: Could not determine workspace.@|"))
+        sys.exit(clr("[list] @!@{rf}Error:@| Could not determine workspace."))
 
     if opts.directory:
         folders = opts.directory
@@ -97,7 +97,7 @@ def main(opts):
             packages = find_packages(folder, warnings=warnings)
             ordered_packages = topological_order_packages(packages)
             if ordered_packages and ordered_packages[-1][0] is None:
-                sys.exit(clr("@{rf}ERROR: Circular dependency within packages:@| ")
+                sys.exit(clr("[list] @!@{rf}Error:@| Circular dependency within packages: ")
                          + ordered_packages[-1][1])
             packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
@@ -163,7 +163,7 @@ def main(opts):
                 else:
                     print(list_entry_format.format(pkg.name))
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+            sys.exit(clr("[list] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                          " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
     # Print out warnings

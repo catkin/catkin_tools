@@ -148,16 +148,14 @@ def clean_profile(opts, profile):
 
     if not ctx:
         if not opts.workspace:
-            log(
-                "[clean] Error: The current or desired workspace could not be "
-                "determined. Please run `catkin clean` from within a catkin "
-                "workspace or specify the workspace explicitly with the "
-                "`--workspace` option.")
+            log(clr("[clean] @!@{rf}Error:@| The current or desired workspace could not be "
+                    "determined. Please run `catkin clean` from within a catkin "
+                    "workspace or specify the workspace explicitly with the "
+                    "`--workspace` option."))
         else:
-            log(
-                "[clean] Error: Could not clean workspace \"%s\" because it "
-                "either does not exist or it has no catkin_tools metadata." %
-                opts.workspace)
+            log(clr("[clean] @!@{rf}Error:@| Could not clean workspace \"%s\" because it "
+                    "either does not exist or it has no catkin_tools metadata." %
+                    opts.workspace))
         return False
 
     profile = ctx.profile
@@ -298,7 +296,7 @@ def clean_profile(opts, profile):
                         ws_path=ws_path,
                         warnings=[])
                 except InvalidPackage as ex:
-                    sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                    sys.exit(clr("[clean] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                                  " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
                 # Handle context-based package cleaning
@@ -307,8 +305,8 @@ def clean_profile(opts, profile):
                         opts.packages += [this_package]
                     else:
                         sys.exit(
-                            "[clean] Error: In order to use --this, the current directory"
-                            " must be part of a catkin package.")
+                            clr("[clean] @!@{rf}Error:@| In order to use --this, the current directory"
+                                " must be part of a catkin package."))
                 try:
                     # Clean the packages
                     needs_force = clean_packages(
@@ -322,9 +320,9 @@ def clean_profile(opts, profile):
                     return False
 
         elif opts.orphans or len(opts.packages) > 0 or opts.clean_this:
-            log("[clean] Error: Individual packages cannot be cleaned from "
-                "workspaces with merged develspaces, use a symbolically-linked "
-                "or isolated develspace instead.")
+            log(clr("[clean] @!@{rf}Error:@| Individual packages cannot be cleaned from "
+                    "workspaces with merged develspaces, use a symbolically-linked "
+                    "or isolated develspace instead."))
 
     except:  # noqa: E722
         # Silencing E722 here since we immediately re-raise the exception.
@@ -353,15 +351,15 @@ def main(opts):
 
     if full_options:
         if opts.spaces or package_options or advanced_options:
-            log("[clean] Error: Using `--deinit` will remove all spaces, so"
-                " additional partial cleaning options will be ignored.")
+            log(clr("[clean] @!@{rf}Error:@| Using `--deinit` will remove all spaces, so"
+                    " additional partial cleaning options will be ignored."))
     elif opts.spaces:
         if package_options:
-            log("[clean] Error: Package arguments are not allowed with space"
-                " arguments. See usage.")
+            log(clr("[clean] @!@{rf}Error:@| Package arguments are not allowed with space"
+                    " arguments. See usage."))
         elif advanced_options:
-            log("[clean] Error: Advanced arguments are not allowed with space"
-                " arguments. See usage.")
+            log(clr("[clean] @!@{rf}Error:@| Advanced arguments are not allowed with space"
+                    " arguments. See usage."))
 
     # Check for all profiles option
     if opts.all_profiles:

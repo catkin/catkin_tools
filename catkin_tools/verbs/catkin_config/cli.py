@@ -199,7 +199,7 @@ def main(opts):
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
-        print(clr("@{rf}Error:@| Could not configure catkin workspace: {}").format(exc), file=sys.stderr)
+        print(clr("@!@{rf}Error:@| Could not configure catkin workspace: {}").format(exc), file=sys.stderr)
         return 1
 
     return 0

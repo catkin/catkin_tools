@@ -20,6 +20,7 @@ import time
 import traceback
 from queue import Queue
 
+from catkin_tools.terminal_color import fmt
 
 try:
     from catkin_pkg.packages import find_packages
@@ -130,7 +131,8 @@ def clean_packages(
 
         # It's a problem if there aren't any build types available
         if len(clean_job_creators) == 0:
-            sys.exit('Error: No build types available. Please check your catkin_tools installation.')
+            sys.exit(fmt(
+                '[clean] @!@{rf}Error:@| No build types available. Please check your catkin_tools installation.'))
 
         # Determine the job parameters
         clean_job_kwargs = dict(

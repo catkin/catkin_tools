@@ -89,7 +89,8 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     # If this is the case, the last entry of ordered packages is a tuple that starts with nil.
     if ordered_packages and ordered_packages[-1][0] is None:
         guilty_packages = ", ".join(ordered_packages[-1][1:])
-        sys.exit("[build] Circular dependency detected in the following packages: {}".format(guilty_packages))
+        sys.exit(clr("[build] @!@{rf}Error:@| Circular dependency detected in the following packages: {}")
+                 .format(guilty_packages))
 
     workspace_package_names = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     # Determine the packages to be built
@@ -103,8 +104,8 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
                     packages.extend(glob_packages)
                     continue
                 else:
-                    sys.exit("[build] Given package '{0}' is not in the workspace "
-                             "and pattern does not match any package".format(package))
+                    sys.exit(clr("[build] @!@{rf}Error:@| Given package '{0}' is not in the workspace "
+                             "and pattern does not match any package").format(package))
             # If metapackage, include run depends which are in the workspace
             package_obj = workspace_package_names[package][1]
             if 'metapackage' in [e.tagname for e in package_obj.exports]:
@@ -149,10 +150,11 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
 def verify_start_with_option(start_with, packages, all_packages, packages_to_be_built):
     if start_with is not None:
         if start_with not in [pkg.name for pth, pkg in all_packages]:
-            sys.exit("Package given for --start-with, '{0}', is not in the workspace.".format(start_with))
+            sys.exit(clr("[build] @!@{rf}Error:@| Package given for --start-with, '{0}', is not in the workspace.")
+                     .format(start_with))
         elif start_with not in [pkg.name for pth, pkg in packages_to_be_built]:
-            sys.exit("Package given for --start-with, '{0}', "
-                     "is in the workspace but would not be built with given package arguments: '{1}'"
+            sys.exit(clr("[build] @!@{rf}Error:@| Package given for --start-with, '{0}', "
+                     "is in the workspace but would not be built with given package arguments: '{1}'")
                      .format(start_with, ' '.join(packages)))
 
 
@@ -243,7 +245,7 @@ def build_isolated_workspace(
 
     # Assert that the limit_status_rate is valid
     if limit_status_rate < 0:
-        sys.exit("[build] @!@{rf}Error:@| The value of --limit-status-rate must be greater than or equal to zero.")
+        sys.exit(clr("[build] @!@{rf}Error:@| The value of --limit-status-rate must be greater than or equal to zero."))
 
     # Declare a buildspace marker describing the build config for error checking
     buildspace_marker_data = {
@@ -267,12 +269,11 @@ def build_isolated_workspace(
                         (k, v, new_v))
             if len(misconfig_lines) > 0:
                 sys.exit(clr(
-                    "\n@{rf}Error:@| Attempting to build a catkin workspace using build space: "
-                    "\"{}\" but that build space's most recent configuration "
-                    "differs from the commanded one in ways which will cause "
-                    "problems. Fix the following options or use @{yf}`catkin "
-                    "clean -b`@| to remove the build space: {}").format(
-                    context.build_space_abs, misconfig_lines))
+                    "[build] @!@{rf}Error:@| Attempting to build a catkin workspace using build space: \"{}\"\n"
+                    "[build] but that build space's most recent configuration differs from the commanded one in \n"
+                    "[build] ways which will cause problems.\n"
+                    "[build] Fix the following options or use @{yf}`catkin clean -b`@| to remove the build space:\n"
+                    "{}").format(context.build_space_abs, misconfig_lines))
 
     # Summarize the context
     summary_notes = []
@@ -300,8 +301,11 @@ def build_isolated_workspace(
     try:
         workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     except InvalidPackage as ex:
-        sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+        sys.exit(clr("[build] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                      " See below for details:\n\n{}").format(ex.package_path, ex.msg))
+    except RuntimeError as ex:
+        sys.exit(clr("[build] @!@{rf}Error:@| There was an error while searching for available packages:\n\n{}")
+                 .format(str(ex)))
 
     # Get packages which have not been built yet
     built_packages, unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)
