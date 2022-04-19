@@ -2,6 +2,7 @@ usage: catkin list [-h] [--workspace WORKSPACE] [--profile PROFILE]
                    [--deps | --rdeps] [--depends-on [PKG ...]]
                    [--rdepends-on [PKG ...]] [--this]
                    [--directory [DIRECTORY ...]] [--quiet] [--unformatted]
+                   [PKG ...]
 
 Lists catkin packages in the workspace or other arbitrary folders.
 
@@ -29,12 +30,14 @@ Packages:
                         package(s).
   --rdepends-on [PKG ...], --recursive-depends-on [PKG ...]
                         Only show packages that recursively depend on specific
-                        package(s).
+                        package(s). Limited to packages present in the current
+                        workspace.
   --this                Show the package which contains the current working
                         directory.
   --directory [DIRECTORY ...], -d [DIRECTORY ...]
-                        Pass list of directories process all packages in
-                        directory
+                        Process all packages in the given directories
+  PKG                   Manually specify a list of packages to process.
+                        Defaults to all packages.
 
 Interface:
   The behavior of the command-line interface.

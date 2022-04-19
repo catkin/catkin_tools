@@ -53,11 +53,14 @@ def prepare_arguments(parser):
     add('--depends-on', nargs='*', metavar='PKG', default=[],
         help="Only show packages that directly depend on specific package(s).")
     add('--rdepends-on', '--recursive-depends-on', nargs='*', metavar='PKG', default=[],
-        help="Only show packages that recursively depend on specific package(s).")
+        help="Only show packages that recursively depend on specific package(s). "
+             "Limited to packages present in the current workspace.")
     add('--this', action='store_true',
         help="Show the package which contains the current working directory.")
     add('--directory', '-d', nargs='*', default=[],
-        help="Pass list of directories process all packages in directory")
+        help="Process all packages in the given directories")
+    add('packages', metavar='PKG', type=str, nargs='*', help="Manually specify a list of packages to process. "
+                                                             "Defaults to all packages.")
 
     behavior_group = parser.add_argument_group('Interface', 'The behavior of the command-line interface.')
     add = behavior_group.add_argument
@@ -134,7 +137,12 @@ def main(opts):
             else:
                 filtered_packages = ordered_packages
 
-            for pkg_pth, pkg in filtered_packages:
+            if opts.packages:
+                packages_to_print = [(pth, pkg) for (pth, pkg) in filtered_packages if pkg.name in opts.packages]
+            else:
+                packages_to_print = filtered_packages
+
+            for pkg_pth, pkg in packages_to_print:
                 if opts.deps or opts.rdeps:
                     print(clr(list_entry_format_deps).format(pkg.name))
                     if opts.rdeps:
