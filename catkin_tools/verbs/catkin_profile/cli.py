@@ -82,7 +82,7 @@ def prepare_arguments(parser):
 
 def list_profiles(profiles, active_profile, unformatted=False, active=False):
 
-    entry_format = '@{pf}-@| @{cf}%s@|' if not unformatted else '%s'
+    entry_format = '@{pf}-@| @{cf}{}@|' if not unformatted else '{}'
     entry_active_format = entry_format + (' (@{yf}active@|)' if not unformatted else '')
 
     ret = []
@@ -92,14 +92,11 @@ def list_profiles(profiles, active_profile, unformatted=False, active=False):
                 ret += [clr('[profile] Available profiles:')]
             for p in profiles:
                 if p == active_profile:
-                    ret += [clr(entry_active_format % p)]
+                    ret += [clr(entry_active_format).format(p)]
                 else:
-                    ret += [clr(entry_format % p)]
+                    ret += [clr(entry_format).format(p)]
         else:
-            if not unformatted:
-                ret += [clr(entry_active_format % active_profile)]
-            else:
-                ret += [active_profile]
+            ret += [clr(entry_active_format).format(active_profile)]
     else:
         if not unformatted:
             ret += [clr(
@@ -128,36 +125,37 @@ def main(opts):
         elif opts.subcommand == 'add':
             if opts.name in profiles:
                 if opts.force:
-                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}%s@|' % opts.name))
+                    print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}{}@|')
+                          .format(opts.name))
                 else:
                     print(clr('catkin profile: error: A profile named '
-                              '@{cf}%s@| already exists. Use `--force` to '
-                              'overwrite.' % opts.name))
+                              '@{cf}{}@| already exists. Use `--force` to '
+                              'overwrite.').format(opts.name))
                     return 1
             if opts.copy_active:
                 ctx.profile = opts.name
                 Context.save(ctx)
-                print(clr('[profile] Created a new profile named @{cf}%s@| '
-                          'based on active profile @{cf}%s@|' % (opts.name, active_profile)))
+                print(clr('[profile] Created a new profile named @{cf}{}@| '
+                          'based on active profile @{cf}{}@|').format(opts.name, active_profile))
             elif opts.copy:
                 if opts.copy in profiles:
                     new_ctx = Context.load(opts.workspace, profile=opts.copy)
                     new_ctx.profile = opts.name
                     Context.save(new_ctx)
-                    print(clr('[profile] Created a new profile named @{cf}%s@| '
-                              'based on profile @{cf}%s@|' % (opts.name, opts.copy)))
+                    print(clr('[profile] Created a new profile named @{cf}{}@| '
+                              'based on profile @{cf}{}@|').format(opts.name, opts.copy))
                 else:
-                    print(clr('[profile] @{rf}A profile with this name does not exist: %s@|' % opts.copy))
+                    print(clr('[profile] @{rf}A profile with this name does not exist: {}@|').format(opts.copy))
             elif opts.extend:
                 if opts.extend in profiles:
                     new_ctx = Context(workspace=ctx.workspace, profile=opts.name, extends=opts.extend)
                     Context.save(new_ctx)
-                    print(clr('[profile] Created a new profile named @{cf}%s@| '
-                              'extending profile @{cf}%s@|' % (opts.name, opts.extend)))
+                    print(clr('[profile] Created a new profile named @{cf}{}@| '
+                              'extending profile @{cf}{}@|').format(opts.name, opts.extend))
             else:
                 new_ctx = Context(workspace=ctx.workspace, profile=opts.name)
                 Context.save(new_ctx)
-                print(clr('[profile] Created a new profile named @{cf}%s@| with default settings.' % opts.name))
+                print(clr('[profile] Created a new profile named @{cf}{}@| with default settings.').format(opts.name))
 
             profiles = get_profile_names(ctx.workspace)
             active_profile = get_active_profile(ctx.workspace)
@@ -168,10 +166,10 @@ def main(opts):
                 set_active_profile(ctx.workspace, opts.name)
 
                 active_profile = get_active_profile(ctx.workspace)
-                print(clr('[profile] Activated catkin metadata profile: @{cf}%s@|' % active_profile))
+                print(clr('[profile] Activated catkin metadata profile: @{cf}{}@|').format(active_profile))
             else:
-                print('catkin profile: error: Profile `%s` does not exist in workspace `%s`.' %
-                      (opts.name, ctx.workspace))
+                print('catkin profile: error: Profile `{}` does not exist in workspace `{}`.'.format(
+                      opts.name, ctx.workspace))
                 return 1
 
             profiles = get_profile_names(ctx.workspace)
@@ -183,18 +181,18 @@ def main(opts):
                 if opts.new_name in profiles:
                     if opts.force:
                         print(clr('[profile] @{yf}Warning:@| Overwriting '
-                                  'existing profile named @{cf}%s@|' % opts.new_name))
+                                  'existing profile named @{cf}{}@|').format(opts.new_name))
                     else:
                         print(clr('catkin profile: error: A profile named '
-                                  '@{cf}%s@| already exists. Use `--force` to '
-                                  'overwrite.' % opts.new_name))
+                                  '@{cf}{}@| already exists. Use `--force` to '
+                                  'overwrite.').format(opts.new_name))
                         return 1
                 ctx.profile = opts.new_name
                 Context.save(ctx)
                 remove_profile(ctx.workspace, opts.current_name)
                 if opts.current_name == active_profile:
                     set_active_profile(ctx.workspace, opts.new_name)
-                print(clr('[profile] Renamed profile @{cf}%s@| to @{cf}%s@|' % (opts.current_name, opts.new_name)))
+                print(clr('[profile] Renamed profile @{cf}{}@| to @{cf}{}@|').format(opts.current_name, opts.new_name))
             else:
                 print('catkin profile: error: Profile `%s` does not exist in workspace `%s`.' %
                       (opts.current_name, ctx.workspace))
@@ -218,7 +216,7 @@ def main(opts):
                           (name, ctx.workspace))
                     return 1
 
-                print(clr('[profile] Removed profile: @{rf}%s@|' % name))
+                print(clr('[profile] Removed profile: @{rf}{}@|').format(name))
             profiles = get_profile_names(ctx.workspace)
             active_profile = get_active_profile(ctx.workspace)
             print(list_profiles(profiles, active_profile))

@@ -74,7 +74,7 @@ def determine_packages_to_be_built(packages, context, workspace_packages):
     if not workspace_packages:
         log("[build] No packages were found in the source space '{0}'".format(context.source_space_abs))
     else:
-        wide_log("[build] Found '{0}' packages in {1}."
+        wide_log("[build] Found {} packages in {}."
                  .format(len(workspace_packages), format_time_delta(time.time() - start)))
 
     # Order the packages by topology
@@ -268,11 +268,11 @@ def build_isolated_workspace(
             if len(misconfig_lines) > 0:
                 sys.exit(clr(
                     "\n@{rf}Error:@| Attempting to build a catkin workspace using build space: "
-                    "\"%s\" but that build space's most recent configuration "
+                    "\"{}\" but that build space's most recent configuration "
                     "differs from the commanded one in ways which will cause "
                     "problems. Fix the following options or use @{yf}`catkin "
-                    "clean -b`@| to remove the build space: %s" %
-                    (context.build_space_abs, misconfig_lines)))
+                    "clean -b`@| to remove the build space: {}").format(
+                    context.build_space_abs, misconfig_lines))
 
     # Summarize the context
     summary_notes = []
@@ -283,13 +283,12 @@ def build_isolated_workspace(
     # Make sure there is a build folder and it is not a file
     if os.path.exists(context.build_space_abs):
         if os.path.isfile(context.build_space_abs):
-            sys.exit(clr(
-                "[build] @{rf}Error:@| " +
-                "Build space '{0}' exists but is a file and not a folder."
-                .format(context.build_space_abs)))
+            sys.exit(clr("[build] @{rf}Error:@| "
+                         "Build space '{}' exists but is a file and not a folder.")
+                     .format(context.build_space_abs))
     # If it doesn't exist, create it
     else:
-        log("[build] Creating build space: '{0}'".format(context.build_space_abs))
+        log("[build] Creating build space: '{}'".format(context.build_space_abs))
         os.makedirs(context.build_space_abs)
 
     # Write the current build config for config error checking
@@ -301,8 +300,8 @@ def build_isolated_workspace(
     try:
         workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     except InvalidPackage as ex:
-        sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                     " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+        sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                     " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
     # Get packages which have not been built yet
     built_packages, unbuilt_pkgs = get_built_unbuilt_packages(context, workspace_packages)
@@ -523,7 +522,7 @@ def build_isolated_workspace(
 
             wide_log(clr("[build] Note: Available build types:"))
             for bt_name in build_job_creators.keys():
-                wide_log(clr("[build]  - `{}`".format(bt_name)))
+                wide_log(clr("[build]  - `{}`").format(bt_name))
 
     # Queue for communicating status
     event_queue = Queue()

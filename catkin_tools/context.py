@@ -463,8 +463,8 @@ class Context(object):
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
             self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '')
             if not self.env_cmake_prefix_path:
-                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '%s', "
-                          "target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'" % self.extend_path))
+                print(clr("@!@{rf}Error:@| Could not load environment from workspace: '{}', "
+                          "target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'").format(self.extend_path))
                 print(extended_env)
                 sys.exit(1)
         else:
@@ -502,10 +502,10 @@ class Context(object):
                     "If you want to use a different CMAKE_PREFIX_PATH you "
                     "should call @{yf}`catkin clean`@| to remove all "
                     "references to the previous CMAKE_PREFIX_PATH.\\n\\n"
-                    "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|\\n"
+                    "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|\\n"
                     "@{cf}Other workspace to extend:@|\\n\\t@{yf}{_Context__extend_path}@|\\n"
-                    "@{cf}Other workspace's CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|"
-                    % (self.cached_cmake_prefix_path, self.env_cmake_prefix_path))]
+                    "@{cf}Other workspace's CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|").format(
+                    self.cached_cmake_prefix_path, self.env_cmake_prefix_path)]
 
         elif self.env_cmake_prefix_path and\
                 self.cached_cmake_prefix_path and\
@@ -517,9 +517,9 @@ class Context(object):
                 "If you want to use a different CMAKE_PREFIX_PATH you should "
                 "call @{yf}`catkin clean`@| to remove all references to "
                 "the previous CMAKE_PREFIX_PATH.\\n\\n"
-                "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|\\n"
-                "@{cf}Current CMAKE_PREFIX_PATH:@|\\n\\t@{yf}%s@|" %
-                (self.cached_cmake_prefix_path, self.env_cmake_prefix_path))]
+                "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|\\n"
+                "@{cf}Current CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|").format(
+                self.cached_cmake_prefix_path, self.env_cmake_prefix_path)]
 
         # Check if prefix path is different from the environment prefix path
         if self.manual_cmake_prefix_path:

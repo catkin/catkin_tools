@@ -109,7 +109,7 @@ def main(opts):
 
     if not workspace:
         if not opts.quiet:
-            print(clr("@{rf}ERROR: No workspace found containing '%s'@|" % workspace_hint), file=sys.stderr)
+            print(clr("@{rf}ERROR: No workspace found containing '{}'@|").format(workspace_hint), file=sys.stderr)
         sys.exit(1)
 
     # Load the context to get the subspaces
@@ -130,10 +130,10 @@ def main(opts):
                     warnings=[])
                 if package is None:
                     sys.exit(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
-                                 "Is '%s' in a package in '%s' workspace?@|" % (getcwd(), ctx.workspace)))
+                                 "Is '{}' in a package in '{}' workspace?@|").format(getcwd(), ctx.workspace))
             except InvalidPackage as ex:
-                sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                             " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+                sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                             " See below for details:\n\n{}").format(ex.package_path, ex.msg))
         else:
             package = opts.package
         # Get the path to the given package
@@ -145,10 +145,10 @@ def main(opts):
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
-                    sys.exit(clr("@{rf}ERROR: Could not locate a package named '%s' in path '%s'@|" %
-                                 (package, path)))
+                    sys.exit(clr("@{rf}ERROR: Could not locate a package named '{}' in path '{}'@|").format(
+                                 package, path))
             except RuntimeError as e:
-                sys.exit(clr('@{rf}ERROR: %s@|' % str(e)))
+                sys.exit(clr('@{rf}ERROR: {}@|').format(str(e)))
         elif opts.space in ['devel', 'install']:
             path = os.path.join(path, 'share', package)
         else:
@@ -160,7 +160,7 @@ def main(opts):
 
     # Check if the path exists
     if opts.existing_only and not os.path.exists(path):
-        sys.exit(clr("@{rf}ERROR: Requested path '%s' does not exist.@|" % path))
+        sys.exit(clr("@{rf}ERROR: Requested path '{}' does not exist.@|").format(path))
 
     # Make the path relative if desired
     if opts.relative:

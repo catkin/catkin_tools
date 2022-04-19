@@ -77,8 +77,8 @@ def test_workspace(
     try:
         workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     except InvalidPackage as ex:
-        sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                     " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+        sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                     " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
     # Get all build type plugins
     test_job_creators = {
