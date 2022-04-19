@@ -22,7 +22,6 @@ from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.context import Context
 
 from catkin_tools.terminal_color import ColorMapper
-from catkin_tools.terminal_color import sanitize
 from catkin_tools.terminal_color import fmt
 
 color_mapper = ColorMapper()
@@ -188,7 +187,7 @@ def main(opts):
         summary_notes = []
 
         if not context.initialized() and do_init:
-            summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `%s`@|' % sanitize(context.workspace)))
+            summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
 
         if context.initialized() or do_init:
             Context.save(context)

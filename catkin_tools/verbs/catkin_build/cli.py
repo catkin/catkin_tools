@@ -237,8 +237,8 @@ def main(opts):
                 ws_path=ws_path,
                 warnings=[])
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                         " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
         # Handle context-based package building
         if opts.build_this:
@@ -275,7 +275,7 @@ def main(opts):
 
     # Set the jobserver memory limit
     if jobserver and opts.mem_limit:
-        log(clr("@!@{pf}EXPERIMENTAL: limit memory to '%s'@|" % str(opts.mem_limit)))
+        log(clr("@!@{pf}EXPERIMENTAL: limit memory to '{}'@|").format(str(opts.mem_limit)))
         # At this point psuitl will be required, check for it and bail out if not set
         try:
             import psutil  # noqa
@@ -292,26 +292,26 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
-                         (ctx.extend_path, exc.message)))
+            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
+                         ctx.extend_path, exc.message))
 
     # Check if the context is valid before writing any metadata
     if not ctx.source_space_exists():
-        sys.exit(clr("[build] @!@{rf}Error:@| Unable to find source space `%s`") % ctx.source_space_abs)
+        sys.exit(clr("[build] @!@{rf}Error:@| Unable to find source space `{}`").format(ctx.source_space_abs))
 
     # ensure the build space was previously built by catkin_tools
     previous_tool = get_previous_tool_used_on_the_space(ctx.build_space_abs)
     if previous_tool is not None and previous_tool != 'catkin build':
         if opts.override_build_tool_check:
             log(clr(
-                "@{yf}Warning: build space at '%s' was previously built by '%s', "
-                "but --override-build-tool-check was passed so continuing anyways."
-                % (ctx.build_space_abs, previous_tool)))
+                "@{yf}Warning: build space at '{}' was previously built by '{}', "
+                "but --override-build-tool-check was passed so continuing anyways.").format(
+                ctx.build_space_abs, previous_tool))
         else:
             sys.exit(clr(
-                "@{rf}The build space at '%s' was previously built by '%s'. "
-                "Please remove the build space or pick a different build space."
-                % (ctx.build_space_abs, previous_tool)))
+                "@{rf}The build space at '{}' was previously built by '{}'. "
+                "Please remove the build space or pick a different build space.").format(
+                ctx.build_space_abs, previous_tool))
     # the build space will be marked as catkin build's if dry run doesn't return
 
     # ensure the devel space was previously built by catkin_tools
@@ -319,14 +319,14 @@ def main(opts):
     if previous_tool is not None and previous_tool != 'catkin build':
         if opts.override_build_tool_check:
             log(clr(
-                "@{yf}Warning: devel space at '%s' was previously built by '%s', "
-                "but --override-build-tool-check was passed so continuing anyways."
-                % (ctx.devel_space_abs, previous_tool)))
+                "@{yf}Warning: devel space at '{}' was previously built by '{}', "
+                "but --override-build-tool-check was passed so continuing anyways.").format(
+                ctx.devel_space_abs, previous_tool))
         else:
             sys.exit(clr(
-                "@{rf}The devel space at '%s' was previously built by '%s'. "
-                "Please remove the devel space or pick a different devel space."
-                % (ctx.devel_space_abs, previous_tool)))
+                "@{rf}The devel space at '{}' was previously built by '{}'. "
+                "Please remove the devel space or pick a different devel space.").format(
+                ctx.devel_space_abs, previous_tool))
     # the devel space will be marked as catkin build's if dry run doesn't return
 
     # Display list and leave the file system untouched

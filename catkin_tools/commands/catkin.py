@@ -96,9 +96,9 @@ def expand_one_verb_alias(sysargs, verb_aliases, used_aliases):
             continue
         if arg in used_aliases:
             print(fmt(
-                "@!@{gf}==>@| Expanding alias '@!@{yf}" + arg +
+                "@!@{gf}==>@| Expanding alias '@!@{yf}{alias}"
                 "@|' was previously expanded, ignoring this time to prevent infinite recursion."
-            ))
+            ).format(alias=arg))
         if arg in verb_aliases:
             before = [] if index == 0 else sysargs[:index - 1]
             after = [] if index == len(sysargs) else sysargs[index + 1:]

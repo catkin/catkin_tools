@@ -69,7 +69,7 @@ def safe_rmtree(path, workspace_root, force):
     yes = True
     if not path_in_workspace and not force:
         log(clr("[clean] Warning: `{}` is outside of the workspace root. (Use"
-                " --force to skip this check)".format(path)))
+                " --force to skip this check)").format(path))
         yes = yes_no_loop("Are you sure you want to entirely remove `{}`?".format(path))
 
     if yes:
@@ -304,8 +304,8 @@ def clean_profile(opts, profile):
                         ws_path=ws_path,
                         warnings=[])
                 except InvalidPackage as ex:
-                    sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                                 " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+                    sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                                 " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
                 # Handle context-based package cleaning
                 if opts.clean_this:

@@ -595,7 +595,8 @@ class ConsoleStatusController(threading.Thread):
                     reason = clr('Unrelated job failed')
                 elif 'MISSING_DEPS' == event.data['reason']:
                     reason = clr('Depends on unknown jobs: {}').format(
-                        ', '.join([clr('@!{}@|').format(jid) for jid in event.data['dep_ids']]))
+                        ', '.join([fmt('@{boldon}{}@{boldoff}', reset=False).format(jid)
+                                   for jid in event.data['dep_ids']]))
 
                 wide_log(clr('Abandoned <<< {:<{}} [ {} ]').format(
                     event.data['job_id'],

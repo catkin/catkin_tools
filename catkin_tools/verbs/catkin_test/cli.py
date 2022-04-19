@@ -119,8 +119,8 @@ def main(opts):
                 ws_path=ws_path,
                 warnings=[])
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                         " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
         # Handle context-based package building
         if this_package:
@@ -137,8 +137,8 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"%s\": %s" %
-                         (ctx.extend_path, exc.message)))
+            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
+                         ctx.extend_path, exc.message))
 
     # Extract make arguments
     make_args, _, _, _ = configure_make_args(ctx.make_args, ctx.jobs_args, ctx.use_internal_make_jobserver)

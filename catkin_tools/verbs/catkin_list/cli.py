@@ -82,7 +82,7 @@ def main(opts):
     else:
         folders = [ctx.source_space_abs]
 
-    list_entry_format = '@{pf}-@| @{cf}%s@|' if not opts.unformatted else '%s'
+    list_entry_format = '@{pf}-@| @{cf}{}@|' if not opts.unformatted else '{}'
 
     opts.depends_on = set(opts.depends_on) if opts.depends_on else set()
     warnings = []
@@ -91,8 +91,8 @@ def main(opts):
             packages = find_packages(folder, warnings=warnings)
             ordered_packages = topological_order_packages(packages)
             if ordered_packages and ordered_packages[-1][0] is None:
-                sys.exit(clr("@{rf}ERROR: Circular dependency within packages:@| "
-                             + ordered_packages[-1][1]))
+                sys.exit(clr("@{rf}ERROR: Circular dependency within packages:@| ")
+                         + ordered_packages[-1][1])
             packages_by_name = {pkg.name: (pth, pkg) for pth, pkg in ordered_packages}
 
             if opts.depends_on or opts.rdepends_on:
@@ -132,7 +132,7 @@ def main(opts):
                 filtered_packages = ordered_packages
 
             for pkg_pth, pkg in filtered_packages:
-                print(clr(list_entry_format % pkg.name))
+                print(clr(list_entry_format).format(pkg.name))
                 if opts.rdeps:
                     build_deps = [p for dp, p in get_recursive_build_depends_in_workspace(pkg, ordered_packages)]
                     run_deps = [p for dp, p in get_recursive_run_depends_in_workspace([pkg], ordered_packages)]
@@ -144,14 +144,14 @@ def main(opts):
                     if len(build_deps) > 0:
                         print(clr('  @{yf}build_depend:@|'))
                         for dep in build_deps:
-                            print(clr('  @{pf}-@| %s' % dep.name))
+                            print(clr('  @{pf}-@| {}').format(dep.name))
                     if len(run_deps) > 0:
                         print(clr('  @{yf}run_depend:@|'))
                         for dep in run_deps:
-                            print(clr('  @{pf}-@| %s' % dep.name))
+                            print(clr('  @{pf}-@| {}').format(dep.name))
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file %s is an invalid package.xml file."
-                         " See below for details:\n\n%s" % (ex.package_path, ex.msg)))
+            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                         " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
     # Print out warnings
     if not opts.quiet:
