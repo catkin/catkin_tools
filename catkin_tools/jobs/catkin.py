@@ -32,6 +32,7 @@ from .commands.cmake import CMakeMakeRunTestsIOBufferProtocol
 from .commands.cmake import get_installed_files
 from .commands.make import MAKE_EXEC
 
+from .cmake import copy_install_manifest, get_python_install_dir
 from .utils import copyfiles
 from .utils import loadenv
 from .utils import makedirs
@@ -497,6 +498,13 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             logger_factory=CMakeMakeIOBufferProtocol.factory,
             locked_resource=None if context.isolate_install else 'installspace'
         ))
+        # Copy install manifest
+        stages.append(FunctionStage(
+            'register',
+            copy_install_manifest,
+            src_install_manifest_path=build_space,
+            dst_install_manifest_path=context.package_metadata_path(package)
+        ))
 
     return Job(
         jid=package.name,
@@ -528,6 +536,17 @@ def create_catkin_clean_job(
     # Remove installed files
     if clean_install:
         installed_files = get_installed_files(context.package_metadata_path(package))
+        install_dir = context.package_install_space(package)
+        if context.merge_install:
+            # Don't clean shared files in a merged install space layout.
+            installed_files = [
+                path for path in installed_files
+                if os.path.dirname(path) != install_dir
+            ]
+        # If a Python package with the package name is installed, clean it too.
+        python_dir = os.path.join(install_dir, get_python_install_dir(context), package.name)
+        if os.path.exists(python_dir):
+            installed_files.append(python_dir)
         stages.append(FunctionStage(
             'cleaninstall',
             rmfiles,
