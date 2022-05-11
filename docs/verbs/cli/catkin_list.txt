@@ -9,8 +9,8 @@ Lists catkin packages in the workspace or other arbitrary folders.
 optional arguments:
   -h, --help            show this help message and exit
   --workspace WORKSPACE, -w WORKSPACE
-                        The path to the catkin_tools workspace or a directory
-                        contained within it (default: ".")
+                        The path to the catkin_tools workspace (default:
+                        autodetect)
   --profile PROFILE     The name of a config profile to use (default: active
                         profile)
 

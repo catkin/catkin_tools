@@ -101,6 +101,29 @@ def get_paths(workspace_path, profile_name, verb=None):
 
     return metadata_path, metadata_file_path
 
+def find_enclosing_workspaces(search_start_path):
+    """Find a catkin workspaces based on the existence of a catkin_tools
+    metadata directory starting in the path given by search_path and traversing
+    each parent directory and returns a list of workspaces.
+
+    :search_start_path: Directory which either is a catkin workspace or is
+    contained in a catkin workspace
+
+    :returns: List of path to the workspaces if found, an empty list otherwise.
+    """
+    workspaces = []
+    while search_start_path:
+        # Check if marker file exists
+        candidate_path = os.path.join(search_start_path, METADATA_DIR_NAME)
+        if os.path.exists(candidate_path) and os.path.isdir(candidate_path):
+            workspaces.append(search_start_path)
+
+        # Update search path or end
+        (search_start_path, child_path) = os.path.split(search_start_path)
+        if len(child_path) == 0:
+            break
+
+    return workspaces
 
 def find_enclosing_workspace(search_start_path):
     """Find a catkin workspace based on the existence of a catkin_tools
@@ -108,24 +131,18 @@ def find_enclosing_workspace(search_start_path):
     each parent directory until either finding such a directory or getting to
     the root of the filesystem.
 
+    If more than one candidate exists, returns the topmost workspace (closest
+    to the root of the filesystem.
+
     :search_start_path: Directory which either is a catkin workspace or is
     contained in a catkin workspace
 
     :returns: Path to the workspace if found, `None` if not found.
     """
-    while search_start_path:
-        # Check if marker file exists
-        candidate_path = os.path.join(search_start_path, METADATA_DIR_NAME)
-        if os.path.exists(candidate_path) and os.path.isdir(candidate_path):
-            return search_start_path
-
-        # Update search path or end
-        (search_start_path, child_path) = os.path.split(search_start_path)
-        if len(child_path) == 0:
-            break
-
-    return None
-
+    workspaces = find_enclosing_workspaces(search_start_path)
+    if not workspaces:
+        return None
+    return workspaces[-1]
 
 def migrate_metadata(workspace_path):
     """Migrate metadata if it's out of date."""
@@ -219,15 +236,6 @@ def init_metadata_root(workspace_path, reset=False):
         raise IOError(
             "Can't initialize Catkin workspace in path %s because it does "
             "not exist." % workspace_path)
-
-    # Check if the desired workspace is enclosed in another workspace
-    marked_workspace = find_enclosing_workspace(workspace_path)
-
-    if marked_workspace and marked_workspace != workspace_path:
-        raise IOError(
-            "Can't initialize Catkin workspace in path %s because it is "
-            "already contained in another workspace: %s." %
-            (workspace_path, marked_workspace))
 
     # Construct the full path to the metadata directory
     metadata_root_path = get_metadata_root_path(workspace_path)

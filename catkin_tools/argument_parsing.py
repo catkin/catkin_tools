@@ -46,7 +46,7 @@ def add_workspace_arg(parser):
 
     add = parser.add_argument
     add('--workspace', '-w', default=None,
-        help='The path to the catkin_tools workspace or a directory contained within it (default: ".")')
+        help='The path to the catkin_tools workspace (default: autodetect)')
 
 
 def add_cmake_and_make_and_catkin_make_args(parser):
