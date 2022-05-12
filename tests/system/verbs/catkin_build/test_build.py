@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 
+from ....utils import assert_file_contents
 from ....utils import catkin_failure
 from ....utils import catkin_success
 from ....utils import in_temporary_directory
@@ -410,20 +411,32 @@ def test_generate_setup_util():
         with workspace_factory() as wf:
             wf.create_package('pkg')
             wf.build()
+
+            setup_util_devel_path = os.path.join(wf.workspace, 'devel', '_setup_util.py')
+            setup_util_install_path = os.path.join(wf.workspace, 'install', '_setup_util.py')
+            catkin_marker_path = os.path.join(wf.workspace, 'devel', '.catkin')
+            catkin_marker_contents = os.path.join(wf.source_space, 'pkg')
+
             # Test that the files are generated in a clean workspace
             assert catkin_success(['config', '--install'])
             assert catkin_success(BUILD)
-            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
-            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))
+            assert os.path.exists(setup_util_devel_path)
+            assert os.path.exists(setup_util_install_path)
+            assert os.path.exists(catkin_marker_path)
+            assert_file_contents(catkin_marker_path, catkin_marker_contents)
 
             # Test that the files are regenerated after clean
             assert catkin_success(['clean', '--yes'])
             assert catkin_success(BUILD)
-            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
-            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))
+            assert os.path.exists(setup_util_devel_path)
+            assert os.path.exists(setup_util_install_path)
+            assert os.path.exists(catkin_marker_path)
+            assert_file_contents(catkin_marker_path, catkin_marker_contents)
 
             # Test that the files are regenerated after cleaning the install space
             assert catkin_success(['clean', '--yes', '--install'])
             assert catkin_success(BUILD)
-            assert os.path.exists(os.path.join(wf.workspace, 'devel', '_setup_util.py'))
-            assert os.path.exists(os.path.join(wf.workspace, 'install', '_setup_util.py'))
+            assert os.path.exists(setup_util_devel_path)
+            assert os.path.exists(setup_util_install_path)
+            assert os.path.exists(catkin_marker_path)
+            assert_file_contents(catkin_marker_path, catkin_marker_contents)
