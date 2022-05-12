@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import os
-import yaml
 from shlex import split as cmd_split
+
+import yaml
 
 catkin_config_path = os.path.join(os.path.expanduser('~'), '.config', 'catkin')
 

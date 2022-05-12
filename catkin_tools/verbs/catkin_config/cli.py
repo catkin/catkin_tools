@@ -18,9 +18,7 @@ import sys
 
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import add_context_args
-
 from catkin_tools.context import Context
-
 from catkin_tools.terminal_color import ColorMapper
 from catkin_tools.terminal_color import fmt
 
@@ -199,7 +197,7 @@ def main(opts):
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
-        print('error: could not configure catkin workspace: %s' % exc.message)
+        print(clr("@!@{rf}Error:@| Could not configure catkin workspace: {}").format(exc), file=sys.stderr)
         return 1
 
     return 0

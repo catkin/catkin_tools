@@ -1,10 +1,11 @@
 import os
 import shutil
+
 import mock
+from nose.tools import assert_raises_regexp
 
 from catkin_tools import config
 
-from nose.tools import assert_raises_regexp
 from ..utils import in_temporary_directory
 from ..utils import redirected_stdio
 

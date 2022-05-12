@@ -16,8 +16,8 @@
 Module to enable color terminal output
 """
 
-import string
 import os
+import string
 
 _ansi = {}
 

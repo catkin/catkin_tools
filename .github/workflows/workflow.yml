@@ -35,7 +35,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          pip install --upgrade empy sphinx_rtd_theme sphinxcontrib-spelling nose coverage flake8 mock
+          pip install --upgrade empy sphinx_rtd_theme sphinxcontrib-spelling nose coverage flake8 mock isort
       - name: Set up catkin
         run: |
           git clone https://github.com/ros/catkin.git -b ${{ matrix.versions.catkin }} /tmp/catkin_source
@@ -46,7 +46,8 @@ jobs:
       - name: Test catkin_tools
         run: |
           source /tmp/catkin_source/build/devel/setup.bash
-          nosetests -s tests
+          nosetests tests
+          isort -c --df --sl -l 120 catkin_tools tests
       - name: Build documentation
         run: |
           pushd docs

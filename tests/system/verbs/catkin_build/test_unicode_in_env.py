@@ -1,7 +1,7 @@
 import os
 
 from ....utils import catkin_success
-
+from ....utils import redirected_stdio
 from ...workspace_factory import workspace_factory
 
 
@@ -17,4 +17,5 @@ def test_catkin_build_with_unicode_in_env():
 
         env = {'NON_ASCII': '\xc3\xb6'}
         cmd = ['build', '--no-status', '--no-notify', '--verbose']
-        assert catkin_success(cmd, env)
+        with redirected_stdio():
+            assert catkin_success(cmd, env)

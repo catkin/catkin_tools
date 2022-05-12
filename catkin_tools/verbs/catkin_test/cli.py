@@ -17,17 +17,13 @@ from catkin_pkg.package import InvalidPackage
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import configure_make_args
-from catkin_tools.common import is_tty
-from catkin_tools.common import getcwd
 from catkin_tools.common import find_enclosing_package
-
+from catkin_tools.common import getcwd
+from catkin_tools.common import is_tty
 from catkin_tools.context import Context
 from catkin_tools.context import clr
-
 from catkin_tools.metadata import find_enclosing_workspace
-
 from catkin_tools.resultspace import load_resultspace_environment
-
 from catkin_tools.terminal_color import set_color
 
 from .test import test_workspace
@@ -119,15 +115,15 @@ def main(opts):
                 ws_path=ws_path,
                 warnings=[])
         except InvalidPackage as ex:
-            sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+            sys.exit(clr("[test] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                          " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
         # Handle context-based package building
         if this_package:
             opts.packages += [this_package]
         else:
-            sys.exit(
-                "[build] Error: In order to use --this, the current directory must be part of a catkin package.")
+            sys.exit(clr("[test] @!@{rf}Error:@| In order to use --this, "
+                         "the current directory must be part of a catkin package."))
 
     # Load the context
     ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
@@ -137,8 +133,12 @@ def main(opts):
         try:
             load_resultspace_environment(ctx.extend_path)
         except IOError as exc:
-            sys.exit(clr("[build] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
-                         ctx.extend_path, exc.message))
+            sys.exit(clr("[test] @!@{rf}Error:@| Unable to extend workspace from \"{}\": {}").format(
+                         ctx.extend_path, str(exc)))
+
+    # Check if the context is valid before writing any metadata
+    if not ctx.source_space_exists():
+        sys.exit(clr("[test] @!@{rf}Error:@| Unable to find source space `{}`").format(ctx.source_space_abs))
 
     # Extract make arguments
     make_args, _, _, _ = configure_make_args(ctx.make_args, ctx.jobs_args, ctx.use_internal_make_jobserver)

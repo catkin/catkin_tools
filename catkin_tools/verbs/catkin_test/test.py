@@ -10,8 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
-import traceback
 import time
+import traceback
 from queue import Queue
 
 import pkg_resources
@@ -19,10 +19,13 @@ from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
 
-from catkin_tools.common import clr, wide_log, expand_glob_package
+from catkin_tools.common import clr
+from catkin_tools.common import expand_glob_package
+from catkin_tools.common import wide_log
 from catkin_tools.execution import job_server
 from catkin_tools.execution.controllers import ConsoleStatusController
-from catkin_tools.execution.executor import run_until_complete, execute_jobs
+from catkin_tools.execution.executor import execute_jobs
+from catkin_tools.execution.executor import run_until_complete
 
 
 def test_workspace(
@@ -77,7 +80,7 @@ def test_workspace(
     try:
         workspace_packages = find_packages(context.source_space_abs, exclude_subspaces=True, warnings=[])
     except InvalidPackage as ex:
-        sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+        sys.exit(clr("[test] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                      " See below for details:\n\n{}").format(ex.package_path, ex.msg))
 
     # Get all build type plugins
@@ -88,7 +91,7 @@ def test_workspace(
 
     # It's a problem if there aren't any build types available
     if len(test_job_creators) == 0:
-        sys.exit('Error: No build types available. Please check your catkin_tools installation.')
+        sys.exit(clr('[test] @!@{rf}Error:@| No build types available. Please check your catkin_tools installation.'))
 
     # Get list of packages to test
     ordered_packages = topological_order_packages(workspace_packages)
@@ -97,7 +100,8 @@ def test_workspace(
     # If this is the case, the last entry of ordered packages is a tuple that starts with nil.
     if ordered_packages and ordered_packages[-1][0] is None:
         guilty_packages = ", ".join(ordered_packages[-1][1:])
-        sys.exit("[test] Circular dependency detected in the following packages: {}".format(guilty_packages))
+        sys.exit(clr("[test] @!@{rf}Error:@| Circular dependency detected in the following packages: {}")
+                 .format(guilty_packages))
 
     workspace_packages = dict([(pkg.name, (path, pkg)) for path, pkg in ordered_packages])
     packages_to_test = []
@@ -143,7 +147,7 @@ def test_workspace(
 
     packages_to_test_names = set(pkg.name for path, pkg in packages_to_test)
     if not built_packages.issuperset(packages_to_test_names):
-        wide_log(clr("@{rf}Error: Packages have to be built before they can be tested.@|"))
+        wide_log(clr("[test] @!@{rf}Error:@| Packages have to be built before they can be tested."))
         wide_log(clr("The following requested packages are not built yet:"))
         for package_name in packages_to_test_names.difference(built_packages):
             wide_log(' - ' + package_name)

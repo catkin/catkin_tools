@@ -16,13 +16,11 @@ import os
 import sys
 
 from catkin_pkg.package import InvalidPackage
-
-from catkin_tools.common import find_enclosing_package
-from catkin_tools.common import getcwd
-
 from catkin_pkg.packages import find_packages
 
 from catkin_tools.argument_parsing import add_context_args
+from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import getcwd
 from catkin_tools.context import Context
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.terminal_color import ColorMapper
@@ -109,7 +107,8 @@ def main(opts):
 
     if not workspace:
         if not opts.quiet:
-            print(clr("@{rf}ERROR: No workspace found containing '{}'@|").format(workspace_hint), file=sys.stderr)
+            print(clr("[locate] @!@{rf}Error:@| No workspace found containing '{}'")
+                  .format(workspace_hint), file=sys.stderr)
         sys.exit(1)
 
     # Load the context to get the subspaces
@@ -129,10 +128,10 @@ def main(opts):
                     ws_path=ctx.workspace,
                     warnings=[])
                 if package is None:
-                    sys.exit(clr("@{rf}ERROR: Passed '--this' but could not determine enclosing package. "
-                                 "Is '{}' in a package in '{}' workspace?@|").format(getcwd(), ctx.workspace))
+                    sys.exit(clr("[locate] @!@{rf}Error:@| Passed '--this' but could not determine enclosing package. "
+                                 "Is '{}' in a package in '{}' workspace?").format(getcwd(), ctx.workspace))
             except InvalidPackage as ex:
-                sys.exit(clr("@{rf}Error:@| The file {} is an invalid package.xml file."
+                sys.exit(clr("[locate] @!@{rf}Error:@| The file {} is an invalid package.xml file."
                              " See below for details:\n\n{}").format(ex.package_path, ex.msg))
         else:
             package = opts.package
@@ -145,10 +144,10 @@ def main(opts):
                 if catkin_package:
                     path = os.path.join(path, catkin_package[0])
                 else:
-                    sys.exit(clr("@{rf}ERROR: Could not locate a package named '{}' in path '{}'@|").format(
+                    sys.exit(clr("[locate] @!@{rf}Error:@| Could not locate a package named '{}' in path '{}'").format(
                                  package, path))
             except RuntimeError as e:
-                sys.exit(clr('@{rf}ERROR: {}@|').format(str(e)))
+                sys.exit(clr('[locate] @!@{rf}Error:@| {}').format(str(e)))
         elif opts.space in ['devel', 'install']:
             path = os.path.join(path, 'share', package)
         else:
@@ -160,7 +159,7 @@ def main(opts):
 
     # Check if the path exists
     if opts.existing_only and not os.path.exists(path):
-        sys.exit(clr("@{rf}ERROR: Requested path '{}' does not exist.@|").format(path))
+        sys.exit(clr("[locate] @!@{rf}Error:@| Requested path '{}' does not exist.").format(path))
 
     # Make the path relative if desired
     if opts.relative:

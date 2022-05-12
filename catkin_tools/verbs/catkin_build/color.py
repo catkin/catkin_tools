@@ -14,10 +14,10 @@
 
 """This module implements many of the colorization functions used by catkin build"""
 
+from catkin_tools.terminal_color import ColorMapper
 from catkin_tools.terminal_color import ansi
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import sanitize
-from catkin_tools.terminal_color import ColorMapper
 
 # This map translates more human readable format strings into colorized versions
 _color_translation_map = {

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .cli import argument_preprocessor
 from .cli import main
 from .cli import prepare_arguments
-from .cli import argument_preprocessor
 
 # This describes this command to the loader
 description = dict(

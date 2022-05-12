@@ -14,16 +14,15 @@
 
 import argparse
 import os
-import pkg_resources
 import sys
 from datetime import date
 from shlex import quote as cmd_quote
 
-from catkin_tools.common import is_tty
+import pkg_resources
 
+from catkin_tools.common import is_tty
 from catkin_tools.config import get_verb_aliases
 from catkin_tools.config import initialize_config
-
 from catkin_tools.terminal_color import fmt
 from catkin_tools.terminal_color import set_color
 from catkin_tools.terminal_color import test_colors

@@ -6,10 +6,8 @@ import subprocess
 import sys
 import tempfile
 from io import StringIO
-from subprocess import TimeoutExpired
 
 from catkin_tools.commands.catkin import main as catkin_main
-
 
 TESTS_DIR = os.path.dirname(__file__)
 MOCK_DIR = os.path.join(TESTS_DIR, 'mock_resources')
@@ -90,6 +88,7 @@ class redirected_stdio(object):
         sys.stderr = self.original_stderr
 
         print(self.out.getvalue())
+        print(self.err.getvalue())
 
 
 class temporary_directory(object):
@@ -117,6 +116,7 @@ def in_temporary_directory(f):
     def decorated(*args, **kwds):
         with temporary_directory() as directory:
             from inspect import getargspec
+
             # If it takes directory of kwargs and kwds does already have
             # directory, inject it
             if 'directory' not in kwds and 'directory' in getargspec(f)[0]:

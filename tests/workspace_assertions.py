@@ -1,5 +1,7 @@
 import os
 import re
+from io import StringIO
+
 import yaml
 
 from .utils import assert_files_exist
@@ -14,6 +16,8 @@ def assert_warning_message(out_str, pattern=''):
     Assert that the stdout returned from a call contains a catkin_tools
     warning.
     """
+    if isinstance(out_str, StringIO):
+        out_str = out_str.getvalue()
     out_str_stripped = ' '.join(str(out_str).splitlines())
     found = re.findall('WARNING:', out_str_stripped)
     assert len(found) > 0
@@ -28,6 +32,8 @@ def assert_no_warnings(out_str):
     Assert that the stdout returned from a call contains a catkin_tools
     warning.
     """
+    if isinstance(out_str, StringIO):
+        out_str = out_str.getvalue()
     out_str_stripped = ' '.join(str(out_str).splitlines())
     found = re.findall('WARNING:', out_str_stripped)
     assert len(found) == 0

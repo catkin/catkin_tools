@@ -2,19 +2,14 @@ import os
 import re
 import shutil
 
-from ...workspace_factory import workspace_factory
-
-from ....utils import in_temporary_directory, temporary_directory
-from ....utils import assert_cmd_success
-from ....utils import assert_cmd_failure
-from ....utils import assert_files_exist
-from ....utils import catkin_success
 from ....utils import catkin_failure
+from ....utils import catkin_success
+from ....utils import in_temporary_directory
 from ....utils import redirected_stdio
-
-
-from ....workspace_assertions import assert_workspace_initialized
+from ....utils import temporary_directory
 from ....workspace_assertions import assert_no_warnings
+from ....workspace_assertions import assert_workspace_initialized
+from ...workspace_factory import workspace_factory
 
 TEST_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -54,7 +49,8 @@ def create_tree_workspace(wf, build_type, n_pkg_layers, n_children=2):
 @in_temporary_directory
 def test_build_no_src():
     """Calling catkin build without a source space should fail."""
-    assert catkin_failure(BUILD)
+    with redirected_stdio():
+        assert catkin_failure(BUILD)
 
 
 def test_build_auto_init_no_pkgs():
@@ -80,7 +76,7 @@ def test_build_auto_init_with_pkg():
 
 def test_build_dry_run():
     """Test showing the build jobs without doing anything."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_tree_workspace(wf, build_type, 3)
@@ -129,7 +125,7 @@ def test_build_all_merged():
 def test_build_pkg():
     """Test building a package by name.
     """
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_chain_workspace(wf, build_type, 4)
@@ -144,7 +140,7 @@ def test_build_pkg():
 
 def test_build_no_deps():
     """Test building a package by name without deps."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_chain_workspace(wf, build_type, 3)
@@ -161,7 +157,7 @@ def test_build_no_deps():
 
 def test_build_start_with():
     """Test building all packages starting with a specific one."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_chain_workspace(wf, build_type, 4)
@@ -190,7 +186,7 @@ def test_build_start_with():
 
 def test_unbuilt_linked():
     """Test building packages which have yet to be built"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_chain_workspace(wf, build_type, 2)
@@ -249,7 +245,7 @@ def test_force_cmake():
 
 def test_install():
     """Test building and installing catkin packages without DESTDIR"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_chain_workspace(wf, build_type, 2)
@@ -262,7 +258,7 @@ def test_install():
 
 def test_install_cmake():
     """Test building and installing cmake packages without DESTDIR."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             print(os.getcwd())
             wf.build()
@@ -277,7 +273,7 @@ def test_install_cmake():
 
 def test_install_cmake_destdir():
     """Test building and installing cmake packages with DESTDIR."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             print(os.getcwd())
             wf.build()
@@ -296,7 +292,7 @@ def test_install_cmake_destdir():
 
 def test_install_catkin_destdir():
     """Test building and installing catkin packages with DESTDIR."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             print(os.getcwd())
             wf.build()
@@ -328,7 +324,7 @@ def test_install_catkin_destdir():
 
 def test_pkg_with_unicode_names():
     """Test building a package with unicode file names."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             print(os.getcwd())
             wf.build()
@@ -342,7 +338,7 @@ def test_pkg_with_unicode_names():
 
 def test_glob_pattern_build():
     """Test building multiple packages given as glob pattern"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         for build_type in BUILD_TYPES:
             with workspace_factory() as wf:
                 create_flat_workspace(wf, build_type, 11)
@@ -363,7 +359,7 @@ def test_glob_pattern_build():
 
 def test_pkg_with_conditional_build_type():
     """Test building a dual catkin/ament package."""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             print(os.getcwd())
             wf.build()
@@ -382,7 +378,7 @@ def test_pkg_with_conditional_build_type():
 
 def test_pkg_with_conditional_depend():
     """Test building a package with a condition attribute in the depend tag"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             wf.create_package('ros1_pkg')
             wf.create_package('ros2_pkg')
@@ -398,7 +394,7 @@ def test_pkg_with_conditional_depend():
 
 def test_symlinked_workspace():
     """Test building from a symlinked workspace"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             wf.create_package('pkg')
             wf.build()
@@ -410,7 +406,7 @@ def test_symlinked_workspace():
 
 def test_generate_setup_util():
     """Test generation of setup utilities in a linked devel space"""
-    with redirected_stdio() as (out, err):
+    with redirected_stdio():
         with workspace_factory() as wf:
             wf.create_package('pkg')
             wf.build()

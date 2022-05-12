@@ -19,16 +19,12 @@ import re
 import sys
 
 from . import metadata
-
 from .common import getcwd
 from .common import printed_fill
 from .common import remove_ansi_escape
 from .common import terminal_width
-
 from .metadata import find_enclosing_workspace
-
 from .resultspace import get_resultspace_environment
-
 from .terminal_color import ColorMapper
 
 color_mapper = ColorMapper()

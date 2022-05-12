@@ -1,7 +1,6 @@
 from catkin_tools.argument_parsing import extract_jobs_flags
 from catkin_tools.argument_parsing import extract_jobs_flags_values
 
-
 JOB_FLAG_ERR = "`extract_job_flags` failed to correctly extract flags from %s"
 
 

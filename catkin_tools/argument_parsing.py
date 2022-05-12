@@ -16,12 +16,10 @@ import argparse
 import os
 import re
 import sys
-
 from multiprocessing import cpu_count
 
-from catkin_tools.common import wide_log
-
-import catkin_tools.execution.job_server as job_server
+from .common import wide_log
+from .execution import job_server
 
 
 def add_context_args(parser):

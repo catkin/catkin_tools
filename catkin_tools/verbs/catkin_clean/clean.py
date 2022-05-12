@@ -14,12 +14,14 @@
 
 """This modules implements the engine for cleaning packages in parallel"""
 
-import pkg_resources
 import sys
 import time
 import traceback
 from queue import Queue
 
+import pkg_resources
+
+from catkin_tools.terminal_color import fmt
 
 try:
     from catkin_pkg.packages import find_packages
@@ -31,13 +33,12 @@ except ImportError as e:
         '"catkin_pkg", and that it is up to date and on the PYTHONPATH.' % e
     )
 
-from catkin_tools.execution.controllers import ConsoleStatusController
-from catkin_tools.execution.executor import execute_jobs
-from catkin_tools.execution.executor import run_until_complete
-
 from catkin_tools.common import expand_glob_package
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
+from catkin_tools.execution.controllers import ConsoleStatusController
+from catkin_tools.execution.executor import execute_jobs
+from catkin_tools.execution.executor import run_until_complete
 
 
 def determine_packages_to_be_cleaned(context, include_dependents, packages):
@@ -130,7 +131,8 @@ def clean_packages(
 
         # It's a problem if there aren't any build types available
         if len(clean_job_creators) == 0:
-            sys.exit('Error: No build types available. Please check your catkin_tools installation.')
+            sys.exit(fmt(
+                '[clean] @!@{rf}Error:@| No build types available. Please check your catkin_tools installation.'))
 
         # Determine the job parameters
         clean_job_kwargs = dict(

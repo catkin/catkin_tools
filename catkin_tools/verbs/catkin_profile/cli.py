@@ -13,13 +13,11 @@
 # limitations under the License.
 
 from catkin_tools.context import Context
-
+from catkin_tools.metadata import DEFAULT_PROFILE_NAME
 from catkin_tools.metadata import get_active_profile
 from catkin_tools.metadata import get_profile_names
 from catkin_tools.metadata import remove_profile
 from catkin_tools.metadata import set_active_profile
-from catkin_tools.metadata import DEFAULT_PROFILE_NAME
-
 from catkin_tools.terminal_color import ColorMapper
 
 color_mapper = ColorMapper()
@@ -128,7 +126,7 @@ def main(opts):
                     print(clr('[profile] @{yf}Warning:@| Overwriting existing profile named @{cf}{}@|')
                           .format(opts.name))
                 else:
-                    print(clr('catkin profile: error: A profile named '
+                    print(clr('[profile] @!@{rf}Error:@| A profile named '
                               '@{cf}{}@| already exists. Use `--force` to '
                               'overwrite.').format(opts.name))
                     return 1
@@ -168,7 +166,7 @@ def main(opts):
                 active_profile = get_active_profile(ctx.workspace)
                 print(clr('[profile] Activated catkin metadata profile: @{cf}{}@|').format(active_profile))
             else:
-                print('catkin profile: error: Profile `{}` does not exist in workspace `{}`.'.format(
+                print(clr('[profile] @!@{rf}Error:@| Profile `{}` does not exist in workspace `{}`.').format(
                       opts.name, ctx.workspace))
                 return 1
 
@@ -183,7 +181,7 @@ def main(opts):
                         print(clr('[profile] @{yf}Warning:@| Overwriting '
                                   'existing profile named @{cf}{}@|').format(opts.new_name))
                     else:
-                        print(clr('catkin profile: error: A profile named '
+                        print(clr('[profile] @!@{rf}Error:@| A profile named '
                                   '@{cf}{}@| already exists. Use `--force` to '
                                   'overwrite.').format(opts.new_name))
                         return 1
@@ -194,7 +192,7 @@ def main(opts):
                     set_active_profile(ctx.workspace, opts.new_name)
                 print(clr('[profile] Renamed profile @{cf}{}@| to @{cf}{}@|').format(opts.current_name, opts.new_name))
             else:
-                print('catkin profile: error: Profile `%s` does not exist in workspace `%s`.' %
+                print('[profile] @!@{rf}Error:@| Profile `%s` does not exist in workspace `%s`.' %
                       (opts.current_name, ctx.workspace))
                 return 1
 
@@ -205,15 +203,15 @@ def main(opts):
         elif opts.subcommand == 'remove':
             for name in opts.name:
                 if name == active_profile:
-                    print('Profile `%s` is currently active. Re-setting active profile to `%s`.'
+                    print('[profile] Profile `%s` is currently active. Re-setting active profile to `%s`.'
                           % (name, DEFAULT_PROFILE_NAME))
                     set_active_profile(ctx.workspace, DEFAULT_PROFILE_NAME)
 
                 if name in profiles:
                     remove_profile(ctx.workspace, name)
                 else:
-                    print('catkin profile: error: Profile `%s` does not exist in workspace `%s`.' %
-                          (name, ctx.workspace))
+                    print(clr('[profile] @!@{rf}Error:@| Profile `{}` does not exist in workspace `{}`.').format(
+                          name, ctx.workspace))
                     return 1
 
                 print(clr('[profile] Removed profile: @{rf}{}@|').format(name))
@@ -223,7 +221,7 @@ def main(opts):
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
-        print('error: could not %s catkin profile: %s' % (opts.subcommand, exc.message))
+        print(clr('[profile] @!@{rf}Error:@| Could not {} catkin profile: {}').format(opts.subcommand, str(exc)))
         return 1
 
     return 0

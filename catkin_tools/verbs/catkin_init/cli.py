@@ -15,10 +15,9 @@
 import os
 
 from catkin_tools.argument_parsing import add_workspace_arg
-
 from catkin_tools.context import Context
-
 from catkin_tools.metadata import init_metadata_root
+from catkin_tools.terminal_color import fmt
 
 
 def prepare_arguments(parser):
@@ -53,7 +52,7 @@ def main(opts):
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace
-        print('error: could not initialize catkin workspace: %s' % exc.message)
+        print(fmt('[init] @!@{rf}Error:@| Could not initialize catkin workspace: %s' % str(exc)))
         return 1
 
     return 0
