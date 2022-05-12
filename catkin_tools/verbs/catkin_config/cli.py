@@ -186,21 +186,27 @@ def main(opts):
         do_init = opts.init or not no_action
         summary_notes = []
 
-        if not context and do_init:
-            init_metadata_root(opts.workspace or os.getcwd())
-            context = Context.load(
-                opts.workspace,
-                opts.profile,
-                opts,
-                append=opts.append_args,
-                remove=opts.remove_args)
-            summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
+        if not context and not do_init:
+            # Don't initialize a new workspace
+            summary_notes.append(clr('@!@{rf}Error:@| Workspace is not initialized yet.'
+                                     'Use catkin init or run catkin config with --init'))
 
-        if context.initialized() or do_init:
+        else:
+            # Either initialize it or it already exists
+            if not context:
+                init_metadata_root(opts.workspace or os.getcwd())
+                context = Context.load(
+                    opts.workspace,
+                    opts.profile,
+                    opts,
+                    append=opts.append_args,
+                    remove=opts.remove_args)
+                summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
+
             Context.save(context)
 
-        if opts.mkdirs and not context.source_space_exists():
-            os.makedirs(context.source_space_abs)
+            if opts.mkdirs and not context.source_space_exists():
+                os.makedirs(context.source_space_abs)
 
         print(context.summary(notes=summary_notes))
 
