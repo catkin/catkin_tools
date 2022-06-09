@@ -5,6 +5,19 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.0 (2022-06-09)
+------------------
+
+* Small fixes / cleanup (#727)
+* Use yaml output in catkin list (#726)
+* Fix catkin clean for single packages (#710)
+* Do not symlink pycache to devel space (#724)
+* Fix string formatting sanitization (#723)
+* catkin_test_results verbose (#722)
+* Close logger in finally (#719)
+* Migrate to noetic (#717)
+* Contributors: DanielDowling1, Johannes Meyer, Jonathan Bohren, Matthijs van der Burgh, Michael Grupp, Timon Engelke
+
 0.8.5 (2022-03-22)
 ------------------
 
