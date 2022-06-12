@@ -449,7 +449,7 @@ class Context(object):
 
         self.cached_cmake_prefix_path = ''
         if 'CMAKE_PREFIX_PATH' in sticky_env:
-            split_result_cmake_prefix_path = sticky_env.get('CMAKE_PREFIX_PATH', '').strip(':').split(':')
+            split_result_cmake_prefix_path = sticky_env.get('CMAKE_PREFIX_PATH', '').strip(':').replace('::', ':').split(':')
             if len(split_result_cmake_prefix_path) > 1:
                 self.cached_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
 
@@ -457,7 +457,7 @@ class Context(object):
         self.env_cmake_prefix_path = ''
         if self.extend_path:
             extended_env = get_resultspace_environment(self.extend_path, quiet=False)
-            self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '').strip(':')
+            self.env_cmake_prefix_path = extended_env.get('CMAKE_PREFIX_PATH', '').strip(':').replace('::', ':')
             if not self.env_cmake_prefix_path:
                 print(clr("@!@{rf}Error:@| Could not load environment from workspace: '{}', "
                           "target environment (env.sh) does not provide 'CMAKE_PREFIX_PATH'").format(self.extend_path))
@@ -466,14 +466,14 @@ class Context(object):
         else:
             # Get the current CMAKE_PREFIX_PATH
             if 'CMAKE_PREFIX_PATH' in os.environ:
-                split_result_cmake_prefix_path = os.environ['CMAKE_PREFIX_PATH'].strip(':').split(':')
+                split_result_cmake_prefix_path = os.environ['CMAKE_PREFIX_PATH'].strip(':').replace('::', ':').split(':')
                 if len(split_result_cmake_prefix_path) > 1 and (
                         (not self.install and split_result_cmake_prefix_path[0] == self.devel_space_abs) or
                         (self.install and split_result_cmake_prefix_path[0] == self.install_space_abs)):
 
                     self.env_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
                 else:
-                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '').strip(':')
+                    self.env_cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', '').strip(':').replace('::', ':')
 
         # Add warning for empty extend path
         if (self.devel_layout == 'linked' and
