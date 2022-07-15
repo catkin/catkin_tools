@@ -115,7 +115,10 @@ def in_temporary_directory(f):
     @functools.wraps(f)
     def decorated(*args, **kwds):
         with temporary_directory() as directory:
-            from inspect import getargspec
+            try:
+                from inspect import getfullargspec as getargspec
+            except ImportError:
+                from inspect import getargspec
 
             # If it takes directory of kwargs and kwds does already have
             # directory, inject it
