@@ -177,3 +177,14 @@ def assert_files_exist(prefix, files):
         p = os.path.join(prefix, f)
         print("Checking for", p)
         assert os.path.exists(p), "%s doesn't exist" % p
+
+
+def assert_file_contents(path, contents):
+    """Assert that a file has exactly the given contents"""
+    try:
+        contents = contents.encode()
+    except (UnicodeDecodeError, AttributeError):
+        pass
+
+    with open(path, 'rb') as f:
+        assert f.read() == contents
