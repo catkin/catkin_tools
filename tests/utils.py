@@ -116,6 +116,7 @@ def in_temporary_directory(f):
     def decorated(*args, **kwds):
         with temporary_directory() as directory:
             from inspect import getfullargspec
+
             # If it takes directory of kwargs and kwds does already have
             # directory, inject it
             if 'directory' not in kwds and 'directory' in getfullargspec(f)[0]:
