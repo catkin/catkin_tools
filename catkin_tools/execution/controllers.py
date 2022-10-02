@@ -342,19 +342,19 @@ class ConsoleStatusController(threading.Thread):
             wide_log("")
             print_items_in_columns(sorted(skiplisted.items()), number_of_columns)
 
-        # Print out jobs that failed
-        if len(faileds) > 0:
-            wide_log("")
-            wide_log(clr("[{}] Failed {}:").format(self.label, self.jobs_label))
-            wide_log("")
-            print_items_in_columns(sorted(faileds.items()), number_of_columns)
-
         # Print out jobs that were abandoned
         if len(abandoneds) > 0:
             wide_log("")
             wide_log(clr("[{}] Abandoned {}:").format(self.label, self.jobs_label))
             wide_log("")
             print_items_in_columns(sorted(abandoneds.items()), number_of_columns)
+
+        # Print out jobs that failed
+        if len(faileds) > 0:
+            wide_log("")
+            wide_log(clr("[{}] Failed {}:").format(self.label, self.jobs_label))
+            wide_log("")
+            print_items_in_columns(sorted(faileds.items()), number_of_columns)
 
         wide_log("")
 
