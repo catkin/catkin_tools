@@ -1,7 +1,7 @@
 ``catkin init`` -- Initialize a Workspace
 =========================================
 
-The ``init`` verb is the simplest way to "initialize" a catkin workspace so that it can be automatically detected automatically by other verbs which need to know the location of the workspace root.
+The ``init`` verb is the simplest way to "initialize" a catkin workspace so that it can be automatically detected by other verbs which need to know the location of the workspace root.
 
 This verb does not store any configuration information, but simply creates the hidden ``.catkin_tools`` directory in the specified workspace.
 If you want to initialize a workspace simultaneously with an initial config, see the ``--init`` option for the ``config`` verb.
