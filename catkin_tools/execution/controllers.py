@@ -316,12 +316,12 @@ class ConsoleStatusController(threading.Thread):
                 abandoneds[jid] = templates['abandoned']
 
         # Combine successfuls and ignoreds, sort by key
-        if len(successfuls) + len(ignoreds) > 0:
+        if len(successfuls) + len(warneds) + len(ignoreds) > 0:
             wide_log("")
             wide_log(clr("[{}] Successful {}:").format(self.label, self.jobs_label))
             wide_log("")
             print_items_in_columns(
-                sorted(itertools.chain(successfuls.items(), ignoreds.items())),
+                sorted(itertools.chain(successfuls.items(), warneds.items(), ignoreds.items())),
                 number_of_columns)
         else:
             wide_log("")
