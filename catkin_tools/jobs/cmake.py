@@ -114,7 +114,7 @@ def get_multiarch():
             return ''
     # be sure to return empty string or a valid multiarch tuple
     decoded = out.decode().strip()
-    assert(not decoded or decoded.count('-') == 2)
+    assert (not decoded or decoded.count('-') == 2)
     return decoded
 
 
