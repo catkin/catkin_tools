@@ -449,7 +449,8 @@ class Context(object):
 
         self.cached_cmake_prefix_path = ''
         if 'CMAKE_PREFIX_PATH' in sticky_env:
-            split_result_cmake_prefix_path = sticky_env.get('CMAKE_PREFIX_PATH', '').replace('::', ':').strip(':').split(':')
+            split_result_cmake_prefix_path = \
+                sticky_env.get('CMAKE_PREFIX_PATH', '').replace('::', ':').strip(':').split(':')
             if len(split_result_cmake_prefix_path) > 1:
                 self.cached_cmake_prefix_path = ':'.join(split_result_cmake_prefix_path[1:])
 
@@ -466,7 +467,8 @@ class Context(object):
         else:
             # Get the current CMAKE_PREFIX_PATH
             if 'CMAKE_PREFIX_PATH' in os.environ:
-                split_result_cmake_prefix_path = os.environ['CMAKE_PREFIX_PATH'].replace('::', ':').strip(':').split(':')
+                split_result_cmake_prefix_path = \
+                    os.environ['CMAKE_PREFIX_PATH'].replace('::', ':').strip(':').split(':')
                 if len(split_result_cmake_prefix_path) > 1 and (
                         (not self.install and split_result_cmake_prefix_path[0] == self.devel_space_abs) or
                         (self.install and split_result_cmake_prefix_path[0] == self.install_space_abs)):
