@@ -5,6 +5,17 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.1 (2022-12-14)
+------------------
+
+* Use inspect.getfullargspec where available (#733)
+* Fix `.catkin` file generation when installing (#725)
+* list failed jobs last (#734)
+* Add warned packages to summary (#739)
+* remove leading and trailing ':' in CMAKE_PREFIX_PATH (#729)
+* Always add prebuild jobs as dependencies, even with --no-deps (#740)
+* Contributors: Lucas Walter, Michael Görner, Scott K Logan, Timon Engelke, Yuki Furuta
+
 0.9.0 (2022-06-09)
 ------------------
 
