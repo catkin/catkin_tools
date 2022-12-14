@@ -499,9 +499,8 @@ def build_isolated_workspace(
             if p.name not in prebuild_jobs
         ]
         # All jobs depend on the prebuild jobs if they're defined
-        if not no_deps:
-            for j in prebuild_jobs.values():
-                deps.append(j.jid)
+        for j in prebuild_jobs.values():
+            deps.append(j.jid)
 
         # Determine the job parameters
         build_job_kwargs = dict(
