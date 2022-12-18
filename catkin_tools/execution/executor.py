@@ -30,7 +30,6 @@ from .io import IOBufferLogger
 from .stages import CommandStage
 from .stages import FunctionStage
 
-
 PY37 = version_info[:2] >= (3, 7)
 
 
