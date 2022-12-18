@@ -260,7 +260,7 @@ async def execute_jobs(
 
             # Start the job coroutine
             active_jobs.append(job)
-            active_job_fs.add(async_job(verb, job, threadpool, locks, event_queue, log_path))
+            active_job_fs.add(asyncio.create_task(async_job(verb, job, threadpool, locks, event_queue, log_path)))
 
         # Report running jobs
         event_queue.put(ExecutionEvent(
