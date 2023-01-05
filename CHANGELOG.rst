@@ -5,6 +5,11 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.2 (2023-01-05)
+------------------
+
+* Re-release for technical reasons
+
 0.9.1 (2022-12-14)
 ------------------
 
