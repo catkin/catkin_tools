@@ -3,6 +3,8 @@ import re
 import shutil
 import subprocess
 
+import pytest
+
 from ....utils import catkin_success
 from ....utils import redirected_stdio
 from ...workspace_factory import workspace_factory
@@ -20,6 +22,8 @@ BUILD = ['build', '--no-notify', '--no-status']
 
 
 def test_python2_devel():
+    if not shutil.which('python2'):
+        pytest.skip('skipping python2 test because it is not installed')
     with workspace_factory() as wf:
         os.mkdir(os.path.join(wf.workspace, 'src'))
         shutil.copytree(
@@ -55,6 +59,8 @@ def test_python3_devel():
 
 
 def test_python2_install():
+    if not shutil.which('python2'):
+        pytest.skip('skipping python2 test because it is not installed')
     with workspace_factory() as wf:
         os.mkdir(os.path.join(wf.workspace, 'src'))
         shutil.copytree(
