@@ -9,19 +9,25 @@ jobs:
       matrix:
         versions:
           - dist: ubuntu-18.04
-            python: 3.6
+            python: "3.7"
             catkin: indigo-devel
           - dist: ubuntu-18.04
-            python: 3.7
-            catkin: indigo-devel
-          - dist: ubuntu-18.04
-            python: 3.8
+            python: "3.8"
             catkin: indigo-devel
           - dist: ubuntu-20.04
-            python: 3.8
+            python: "3.8"
             catkin: noetic-devel
           - dist: ubuntu-20.04
-            python: 3.9
+            python: "3.9"
+            catkin: noetic-devel
+          - dist: ubuntu-22.04
+            python: "3.9"
+            catkin: noetic-devel
+          - dist: ubuntu-22.04
+            python: "3.10"
+            catkin: noetic-devel
+          - dist: ubuntu-22.04
+            python: "3.11"
             catkin: noetic-devel
 
     runs-on: ${{ matrix.versions.dist }}
