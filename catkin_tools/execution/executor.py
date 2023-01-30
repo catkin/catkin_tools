@@ -17,6 +17,7 @@ import traceback
 from concurrent.futures import FIRST_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from itertools import tee
+from sys import version_info
 
 from osrf_pycommon.process_utils import async_execute_process
 from osrf_pycommon.process_utils import get_loop
@@ -28,6 +29,8 @@ from .events import ExecutionEvent
 from .io import IOBufferLogger
 from .stages import CommandStage
 from .stages import FunctionStage
+
+PY37 = version_info[:2] >= (3, 7)
 
 
 def split(values, cond):
@@ -260,7 +263,10 @@ async def execute_jobs(
 
             # Start the job coroutine
             active_jobs.append(job)
-            active_job_fs.add(async_job(verb, job, threadpool, locks, event_queue, log_path))
+            if PY37:
+                active_job_fs.add(asyncio.create_task(async_job(verb, job, threadpool, locks, event_queue, log_path)))
+            else:
+                active_job_fs.add(async_job(verb, job, threadpool, locks, event_queue, log_path))
 
         # Report running jobs
         event_queue.put(ExecutionEvent(
