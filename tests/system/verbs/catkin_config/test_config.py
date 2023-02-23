@@ -14,7 +14,7 @@ from ...workspace_factory import workspace_factory
 def test_config_no_ws():
     with redirected_stdio() as (out, err):
         assert catkin_success(['config'])
-        assert_warning_message(out, 'Workspace .+ is not yet initialized')
+        assert_warning_message(out, 'Workspace is not yet initialized')
 
 
 @in_temporary_directory

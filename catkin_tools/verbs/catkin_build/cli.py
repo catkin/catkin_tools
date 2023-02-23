@@ -45,6 +45,7 @@ from catkin_tools.jobs.utils import CommandMissing
 from catkin_tools.jobs.utils import loadenv
 from catkin_tools.metadata import find_enclosing_workspace
 from catkin_tools.metadata import get_metadata
+from catkin_tools.metadata import init_metadata_root
 from catkin_tools.metadata import update_metadata
 from catkin_tools.resultspace import load_resultspace_environment
 from catkin_tools.terminal_color import set_color
@@ -252,14 +253,15 @@ def main(opts):
         sys.exit(clr("[build] @!@{rf}Error:@| With --no-deps, you must specify packages to build."))
 
     # Load the context
-    if opts.build_this or opts.start_with_this:
-        ctx = Context.load(opts.workspace, opts.profile, opts, append=True, strict=True)
-    else:
-        ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
+    ctx = Context.load(opts.workspace, opts.profile, opts, append=True, strict=True)
 
     # Handle no workspace
-    if ctx is None:
+    if ctx is None and (opts.build_this or opts.start_with_this):
         sys.exit(clr("[build] @!@{rf}Error:@| The current folder is not part of a catkin workspace."))
+    elif ctx is None:
+        init_metadata_root(opts.workspace or os.getcwd())
+        ctx = Context.load(opts.workspace, opts.profile, opts, append=True)
+        log(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(ctx.workspace))
 
     # Initialize the build configuration
     make_args, makeflags, cli_flags, jobserver = configure_make_args(

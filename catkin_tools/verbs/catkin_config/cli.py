@@ -19,6 +19,7 @@ import sys
 from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_args
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.context import Context
+from catkin_tools.metadata import init_metadata_root
 from catkin_tools.terminal_color import ColorMapper
 from catkin_tools.terminal_color import fmt
 
@@ -179,21 +180,35 @@ def main(opts):
             opts.profile,
             opts,
             append=opts.append_args,
-            remove=opts.remove_args)
+            remove=opts.remove_args,
+            strict=True)
 
         do_init = opts.init or not no_action
         summary_notes = []
 
-        if not context.initialized() and do_init:
-            summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
+        if not context and not do_init:
+            # Don't initialize a new workspace
+            print(clr('@!@{rf}WARNING:@| Workspace is not yet initialized. '
+                      'Use catkin init or run catkin config with --init.'))
 
-        if context.initialized() or do_init:
+        else:
+            # Either initialize it or it already exists
+            if not context:
+                init_metadata_root(opts.workspace or os.getcwd())
+                context = Context.load(
+                    opts.workspace,
+                    opts.profile,
+                    opts,
+                    append=opts.append_args,
+                    remove=opts.remove_args)
+                summary_notes.append(clr('@!@{cf}Initialized new catkin workspace in `{}`@|').format(context.workspace))
+
             Context.save(context)
 
-        if opts.mkdirs and not context.source_space_exists():
-            os.makedirs(context.source_space_abs)
+            if opts.mkdirs and not context.source_space_exists():
+                os.makedirs(context.source_space_abs)
 
-        print(context.summary(notes=summary_notes))
+            print(context.summary(notes=summary_notes))
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace

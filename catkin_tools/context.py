@@ -191,6 +191,8 @@ class Context(object):
 
         # Get the active profile
         profile = profile or opts_vars.get('profile', None) or metadata.get_active_profile(workspace)
+        if not metadata.active_profile_set(workspace):
+            metadata.set_active_profile(workspace, profile)
         opts_vars['profile'] = profile
 
         # Initialize empty metadata/args
