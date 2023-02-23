@@ -108,8 +108,12 @@ _catkin()
       fi
       ;;
     clean)
-      local catkin_clean_opts=$(catkin clean --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
-      COMPREPLY=($(compgen -W "${catkin_clean_opts}" -- ${cur}))
+      if [[ ${cur} == -* ]]; then
+        local catkin_clean_opts=$(catkin clean --help 2>&1 | sed -ne $OPTS_FILTER | sort -u)
+        COMPREPLY=($(compgen -W "${catkin_clean_opts}" -- ${cur}))
+      else
+        COMPREPLY=($(compgen -W "$(_catkin_pkgs)" -- ${cur}))
+      fi
       ;;
     create)
       if [[ "${words[@]}" == *" pkg"* ]] ; then
