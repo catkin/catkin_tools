@@ -188,8 +188,8 @@ def main(opts):
 
         if not context and not do_init:
             # Don't initialize a new workspace
-            summary_notes.append(clr('@!@{rf}Error:@| Workspace is not initialized yet.'
-                                     'Use catkin init or run catkin config with --init'))
+            print(clr('@!@{rf}WARNING:@| Workspace is not yet initialized. '
+                      'Use catkin init or run catkin config with --init.'))
 
         else:
             # Either initialize it or it already exists
@@ -208,7 +208,7 @@ def main(opts):
             if opts.mkdirs and not context.source_space_exists():
                 os.makedirs(context.source_space_abs)
 
-        print(context.summary(notes=summary_notes))
+            print(context.summary(notes=summary_notes))
 
     except IOError as exc:
         # Usually happens if workspace is already underneath another catkin_tools workspace

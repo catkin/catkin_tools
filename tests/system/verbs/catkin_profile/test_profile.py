@@ -15,7 +15,7 @@ BUILD = ['build', '--no-notify', '--no-status']
 
 
 def assert_active_profile(workspace, profile):
-    profile_file = os.path.join(workspace, '.catkin_tools', 'profiles', 'profiles.yml')
+    profile_file = os.path.join(workspace, '.catkin_tools', 'profiles', 'profiles.yaml')
     if not os.path.exists(profile_file):
         assert profile == 'default'
     else:
