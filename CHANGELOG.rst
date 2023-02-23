@@ -5,6 +5,15 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.3 (2023-02-23)
+------------------
+
+* Fix deprecated asyncio.wait() usage (#741)
+* Fix bash completion for catkin clean (#746)
+* Fix behavior when a different profile is set on the first launch (#728)
+* Update workflows with python > 3.9 (#745)
+* Contributors: Timo Röhling, Timon Engelke
+
 0.9.2 (2023-01-05)
 ------------------
 
