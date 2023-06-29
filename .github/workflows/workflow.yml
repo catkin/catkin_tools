@@ -8,10 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         versions:
-          - dist: ubuntu-18.04
-            python: "3.7"
-            catkin: indigo-devel
-          - dist: ubuntu-18.04
+          - dist: ubuntu-20.04
             python: "3.8"
             catkin: indigo-devel
           - dist: ubuntu-20.04
@@ -32,9 +29,9 @@ jobs:
 
     runs-on: ${{ matrix.versions.dist }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.versions.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.versions.python }}
       - name: Install package and dependencies
