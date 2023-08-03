@@ -5,6 +5,15 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.4 (2023-08-03)
+------------------
+
+* Update action versions (#757)
+* Add bookworm as a python3 target (#753)
+* Fix typo in documentation (#755)
+* Create .readthedocs.yaml (#756)
+* Contributors: Jonas Zohren, Timon Engelke, Tully Foote, William Woodall
+
 0.9.3 (2023-02-23)
 ------------------
 
