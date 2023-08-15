@@ -37,7 +37,7 @@ def test_python2_devel():
         ws_pythonpath = [p for p in pythonpaths if p.startswith(wf.workspace)][0]
         assert ws_pythonpath
         # it might be dist-packages (debian) or site-packages
-        assert re.match('^' + wf.workspace + '/devel/lib/python2\.\d/(site|dist)-packages$', ws_pythonpath)
+        assert re.match('^' + wf.workspace + r'/devel/lib/python2\.\d/(site|dist)-packages$', ws_pythonpath)
 
 
 def test_python3_devel():
@@ -55,7 +55,7 @@ def test_python3_devel():
         assert ws_pythonpath
         # it might be python3/dist-packages (debian) or python3.x/site-packages
         assert (ws_pythonpath == wf.workspace + '/devel/lib/python3/dist-packages' or
-                re.match('^' + wf.workspace + '/devel/lib/python3\.\d/site-packages$', ws_pythonpath))
+                re.match('^' + wf.workspace + r'/devel/lib/python3\.\d/site-packages$', ws_pythonpath))
 
 
 def test_python2_install():
@@ -74,7 +74,7 @@ def test_python2_install():
         ws_pythonpath = [p for p in pythonpaths if p.startswith(wf.workspace)][0]
         assert ws_pythonpath
         # it might be dist-packages (debian) or site-packages
-        assert re.match('^' + wf.workspace + '/install/lib/python2\.\d/(site|dist)-packages$', ws_pythonpath)
+        assert re.match('^' + wf.workspace + r'/install/lib/python2\.\d/(site|dist)-packages$', ws_pythonpath)
 
 
 def test_python3_install():
@@ -92,4 +92,4 @@ def test_python3_install():
         assert ws_pythonpath
         # it might be python3/dist-packages (debian) or python3.x/site-packages
         assert (ws_pythonpath == wf.workspace + '/install/lib/python3/dist-packages' or
-                re.match('^' + wf.workspace + '/install/lib/python3\.\d/site-packages$', ws_pythonpath))
+                re.match('^' + wf.workspace + r'/install/lib/python3\.\d/site-packages$', ws_pythonpath))

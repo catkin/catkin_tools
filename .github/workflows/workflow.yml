@@ -10,9 +10,6 @@ jobs:
         versions:
           - dist: ubuntu-20.04
             python: "3.8"
-            catkin: indigo-devel
-          - dist: ubuntu-20.04
-            python: "3.8"
             catkin: noetic-devel
           - dist: ubuntu-20.04
             python: "3.9"
@@ -39,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
           # Fix some sphinx versions until python 3.7 support is dropped
-          pip install --upgrade empy 'sphinx_rtd_theme<1.2.0' 'sphinxcontrib-spelling<8.0.0' pytest nose coverage flake8 mock isort
+          pip install --upgrade empy sphinx_rtd_theme sphinxcontrib-spelling pytest nose coverage flake8 mock isort
       - name: Set up catkin
         run: |
           git clone https://github.com/ros/catkin.git -b ${{ matrix.versions.catkin }} /tmp/catkin_source
