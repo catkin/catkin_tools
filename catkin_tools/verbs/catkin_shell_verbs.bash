@@ -54,11 +54,7 @@ function catkin() {
   fi
 
   # Capture original args
-  if [[ "$SHELL_EXT" == "bash" ]]; then
-      ORIG_ARGS=$@
-  else
-      ORIG_ARGS=(${@[*]})
-  fi
+  ORIG_ARGS=("$@")
 
   # Handle main arguments
   OPTSPEC=":hw-:"
@@ -100,6 +96,6 @@ function catkin() {
   case "${SUBCOMMAND}" in
     cd) cd "$($CATKIN locate $MAIN_ARGS $@)";;
     source) source "$($CATKIN locate $MAIN_ARGS -d)/setup.$SHELL_EXT";;
-    *) $CATKIN ${ORIG_ARGS}
+    *) $CATKIN "${ORIG_ARGS[@]}"
   esac
 }
