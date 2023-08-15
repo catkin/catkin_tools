@@ -61,7 +61,8 @@ catkin_package()"""
 cmake_minimum_required(VERSION 3.10)
 project({name})
 {find_packages}
-add_custom_target(install)"""
+install(FILES ${{CMAKE_CURRENT_SOURCE_DIR}}/package.xml DESTINATION share/${{PROJECT_NAME}})
+"""
 
         CMAKE_CMAKELISTS_FIND_PACKAGE_TEMPLATE = """
 find_package({name})"""
