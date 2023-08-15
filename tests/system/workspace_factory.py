@@ -52,16 +52,17 @@ class WorkspaceFactory(object):
   </export>"""
 
         CATKIN_CMAKELISTS_TEMPLATE = """
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 project({name})
 find_package(catkin REQUIRED COMPONENTS {catkin_components})
 catkin_package()"""
 
         CMAKE_CMAKELISTS_TEMPLATE = """
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 project({name})
 {find_packages}
-add_custom_target(install)"""
+install(FILES ${{CMAKE_CURRENT_SOURCE_DIR}}/package.xml DESTINATION share/${{PROJECT_NAME}})
+"""
 
         CMAKE_CMAKELISTS_FIND_PACKAGE_TEMPLATE = """
 find_package({name})"""
