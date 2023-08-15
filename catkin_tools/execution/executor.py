@@ -380,5 +380,7 @@ def run_until_complete(coroutine):
     loop = get_loop()
     loop.slow_callback_duration = 1.0
 
+    task = loop.create_task(coroutine)
+
     # Run jobs
-    return loop.run_until_complete(coroutine)
+    return loop.run_until_complete(task)
