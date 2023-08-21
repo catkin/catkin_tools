@@ -205,7 +205,7 @@ def generate_setup_file(logger, event_queue, context, install_target):
     return 0
 
 
-def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean):
+def create_cmake_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, no_make):
 
     # Package source space path
     pkg_dir = os.path.join(context.source_space_abs, package_path)
@@ -279,6 +279,13 @@ def create_cmake_build_job(context, package, package_path, dependencies, force_c
             cwd=build_space,
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir)
         ))
+
+    if no_make:
+        return Job(
+            jid=package.name,
+            deps=dependencies,
+            env=job_env,
+            stages=stages)
 
     # Pre-clean command
     if pre_clean:

@@ -363,7 +363,7 @@ def link_devel_products(
     return 0
 
 
-def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, prebuild=False):
+def create_catkin_build_job(context, package, package_path, dependencies, force_cmake, pre_clean, no_make, prebuild=False):
     """Job class for building catkin packages"""
 
     # Package source space path
@@ -447,6 +447,13 @@ def create_catkin_build_job(context, package, package_path, dependencies, force_
             logger_factory=CMakeIOBufferProtocol.factory_factory(pkg_dir),
             occupy_job=True
         ))
+
+    if no_make:
+        return Job(
+            jid=package.name,
+            deps=dependencies,
+            env=job_env,
+            stages=stages)
 
     # Filter make arguments
     make_args = handle_make_arguments(

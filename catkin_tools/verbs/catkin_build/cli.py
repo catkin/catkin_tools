@@ -110,6 +110,8 @@ the --save-config argument. To see the current config, use the
         help='Runs `make clean` before building each package.')
     add('--no-install-lock', action='store_true', default=None,
         help='Prevents serialization of the install steps, which is on by default to prevent file install collisions')
+    add('--no-make', action='store_true', default=False,
+        help='Generates cmake files only and does not build packages.')
 
     config_group = parser.add_argument_group('Config', 'Parameters for the underlying build system.')
     add = config_group.add_argument
@@ -393,7 +395,8 @@ def main(opts):
             lock_install=not opts.no_install_lock,
             no_notify=opts.no_notify,
             continue_on_failure=opts.continue_on_failure,
-            summarize_build=opts.summarize  # Can be True, False, or None
+            summarize_build=opts.summarize,  # Can be True, False, or None
+            no_make=opts.no_make,
         )
     except CommandMissing as e:
         sys.exit(clr("[build] @!@{rf}Error:@| {0}").format(e))

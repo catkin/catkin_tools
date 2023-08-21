@@ -193,6 +193,7 @@ def build_isolated_workspace(
     no_notify=False,
     continue_on_failure=False,
     summarize_build=None,
+    no_make=False,
 ):
     """Builds a catkin workspace in isolation
 
@@ -237,6 +238,8 @@ def build_isolated_workspace(
     :param summarize_build: if True summarizes the build at the end, if None and continue_on_failure is True and the
         the build fails, then the build will be summarized, but if False it never will be summarized.
     :type summarize_build: bool
+    :param no_make: builds cmake file only and does not build packages
+    :type no_make: bool
 
     :raises: SystemExit if buildspace is a file or no packages were found in the source space
         or if the provided options are invalid
@@ -464,6 +467,7 @@ def build_isolated_workspace(
                 dependencies=prebuild_pkg_deps,
                 force_cmake=force_cmake,
                 pre_clean=pre_clean,
+                no_make=False,
                 prebuild=True)
 
             # Add the prebuld job
@@ -509,7 +513,9 @@ def build_isolated_workspace(
             package_path=pkg_path,
             dependencies=deps,
             force_cmake=force_cmake,
-            pre_clean=pre_clean)
+            pre_clean=pre_clean,
+            no_make=no_make,
+        )
 
         # Create the job based on the build type
         build_type = pkg.get_build_type()
