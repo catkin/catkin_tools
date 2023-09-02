@@ -14,7 +14,11 @@ import time
 import traceback
 from queue import Queue
 
-import pkg_resources
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
@@ -86,7 +90,7 @@ def test_workspace(
     # Get all build type plugins
     test_job_creators = {
         ep.name: ep.load()['create_test_job']
-        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+        for ep in entry_points.get('catkin_tools.jobs', [])
     }
 
     # It's a problem if there aren't any build types available

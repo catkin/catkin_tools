@@ -120,9 +120,12 @@ class Context(object):
         if cls.KEYS:
             return
 
-        from pkg_resources import iter_entry_points
+        try:
+            from importlib.metadata import entry_points
+        except ImportError:
+            from importlib_metadata import entry_points
 
-        for entry_point in iter_entry_points(group=cls.CATKIN_SPACES_GROUP):
+        for entry_point in entry_points().get(cls.CATKIN_SPACES_GROUP, []):
             ep_dict = entry_point.load()
             cls.STORED_KEYS.append(entry_point.name + '_space')
             cls.SPACES[entry_point.name] = ep_dict
