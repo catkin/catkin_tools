@@ -14,12 +14,11 @@
 
 import argparse
 import functools
+import importlib.metadata
 import os
 import sys
 from datetime import date
 from shlex import quote as cmd_quote
-
-import importlib.metadata
 
 from catkin_tools.common import is_tty
 from catkin_tools.config import get_verb_aliases
