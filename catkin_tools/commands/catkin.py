@@ -19,9 +19,9 @@ from datetime import date
 from shlex import quote as cmd_quote
 
 try:
-    from importlib.metadata import distribution, entry_points
+    from importlib.metadata import entry_points, version
 except ImportError:
-    from importlib_metadata import distribution, entry_points
+    from importlib_metadata import entry_points, version
 
 from catkin_tools.common import is_tty
 from catkin_tools.config import get_verb_aliases
@@ -196,7 +196,7 @@ def catkin_main(sysargs):
     # Check for version
     if '--version' in sysargs:
         print('catkin_tools {} (C) 2014-{} Open Source Robotics Foundation'.format(
-            distribution('catkin_tools').version,
+            version('catkin_tools'),
             date.today().year)
         )
         print('catkin_tools is released under the Apache License,'

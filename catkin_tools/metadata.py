@@ -16,9 +16,9 @@ import os
 import shutil
 
 try:
-    from importlib.metadata import distribution
+    from importlib.metadata import version
 except ImportError:
-    from importlib_metadata import distribution
+    from importlib_metadata import version
 
 import yaml
 
@@ -142,7 +142,7 @@ def migrate_metadata(workspace_path):
 
     # Check metadata version
     last_version = None
-    current_version = distribution("catkin_tools").version
+    current_version = version("catkin_tools")
     version_file_path = os.path.join(metadata_root_path, 'VERSION')
 
     # Read the VERSION file
