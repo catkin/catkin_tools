@@ -90,7 +90,7 @@ def test_workspace(
     # Get all build type plugins
     test_job_creators = {
         ep.name: ep.load()['create_test_job']
-        for ep in entry_points().get('catkin_tools.jobs', [])
+        for ep in entry_points().select('catkin_tools.jobs')
     }
 
     # It's a problem if there aren't any build types available

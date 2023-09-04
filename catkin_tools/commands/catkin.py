@@ -44,13 +44,13 @@ def _get_entry_points():
 
 def list_verbs():
     verbs = []
-    for entry_point in _get_entry_points().get(CATKIN_COMMAND_VERB_GROUP, []):
+    for entry_point in _get_entry_points().select(CATKIN_COMMAND_VERB_GROUP):
         verbs.append(entry_point.name)
     return verbs
 
 
 def load_verb_description(verb_name):
-    for entry_point in _get_entry_points().get(CATKIN_COMMAND_VERB_GROUP, []):
+    for entry_point in _get_entry_points().select(CATKIN_COMMAND_VERB_GROUP):
         if entry_point.name == verb_name:
             return entry_point.load()
 
