@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import argparse
-import functools
 import importlib.metadata
 import os
 import sys
@@ -31,20 +30,15 @@ from catkin_tools.utils import entry_points
 CATKIN_COMMAND_VERB_GROUP = 'catkin_tools.commands.catkin.verbs'
 
 
-@functools.lru_cache(maxsize=None)
-def _get_verb_entrypoints():
-    return list(entry_points(group=CATKIN_COMMAND_VERB_GROUP))
-
-
 def list_verbs():
     verbs = []
-    for entry_point in _get_verb_entrypoints():
+    for entry_point in entry_points(group=CATKIN_COMMAND_VERB_GROUP):
         verbs.append(entry_point.name)
     return verbs
 
 
 def load_verb_description(verb_name):
-    for entry_point in _get_verb_entrypoints():
+    for entry_point in entry_points(group=CATKIN_COMMAND_VERB_GROUP):
         if entry_point.name == verb_name:
             return entry_point.load()
 

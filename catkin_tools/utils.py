@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import os
 import sys
 
-if sys.version_info >= (3, 10):
-    from importlib.metadata import entry_points
-else:
-    import importlib.metadata
 
-    def entry_points(*, group):
-        for ep in importlib.metadata.entry_points().get(group, []):
-            yield ep
+def entry_points(*, group):
+    @functools.lru_cache(maxsize=None)
+    def _entry_points():
+        from importlib.metadata import entry_points
+        return entry_points()
+
+    if sys.version_info >= (3, 10):
+        return _entry_points().select(group=group)
+    else:
+        return _entry_points().get(group, [])
 
 
 def which(program):
