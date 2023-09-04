@@ -18,10 +18,7 @@ import sys
 from datetime import date
 from shlex import quote as cmd_quote
 
-try:
-    from importlib.metadata import entry_points, version
-except ImportError:
-    from importlib_metadata import entry_points, version
+from importlib.metadata import entry_points, version
 
 from catkin_tools.common import is_tty
 from catkin_tools.config import get_verb_aliases
