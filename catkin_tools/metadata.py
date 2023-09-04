@@ -15,11 +15,7 @@
 import os
 import shutil
 
-try:
-    from importlib.metadata import distribution
-except ImportError:
-    from importlib_metadata import distribution
-
+from importlib.metadata import distribution
 import yaml
 
 from .common import mkdir_p

@@ -19,10 +19,7 @@ import time
 import traceback
 from queue import Queue
 
-try:
-    from importlib.metadata import entry_points
-except ImportError:
-    from importlib_metadata import entry_points
+from importlib.metadata import entry_points
 
 from catkin_tools.terminal_color import fmt
 

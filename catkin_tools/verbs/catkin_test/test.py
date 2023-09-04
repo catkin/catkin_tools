@@ -14,10 +14,7 @@ import time
 import traceback
 from queue import Queue
 
-try:
-    from importlib.metadata import entry_points
-except ImportError:
-    from importlib_metadata import entry_points
+from importlib.metadata import entry_points
 
 from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages

@@ -120,10 +120,7 @@ class Context(object):
         if cls.KEYS:
             return
 
-        try:
-            from importlib.metadata import entry_points
-        except ImportError:
-            from importlib_metadata import entry_points
+        from importlib.metadata import entry_points
 
         for entry_point in entry_points().get(cls.CATKIN_SPACES_GROUP, []):
             ep_dict = entry_point.load()
