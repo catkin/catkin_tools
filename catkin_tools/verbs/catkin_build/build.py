@@ -21,7 +21,6 @@ import time
 import traceback
 from queue import Queue
 
-import pkg_resources
 import yaml
 
 try:
@@ -48,6 +47,7 @@ from catkin_tools.execution.executor import run_until_complete
 from catkin_tools.jobs.catkin import create_catkin_build_job
 from catkin_tools.jobs.catkin import create_catkin_clean_job
 from catkin_tools.jobs.catkin import get_prebuild_package
+from catkin_tools.utils import entry_points
 
 from .color import clr
 
@@ -480,7 +480,7 @@ def build_isolated_workspace(
     # Get all build type plugins
     build_job_creators = {
         ep.name: ep.load()['create_build_job']
-        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+        for ep in entry_points(group='catkin_tools.jobs')
     }
 
     # It's a problem if there aren't any build types available

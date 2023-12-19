@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import importlib.metadata
 import os
 import shutil
 
-import pkg_resources
 import yaml
 
 from .common import mkdir_p
@@ -138,7 +138,7 @@ def migrate_metadata(workspace_path):
 
     # Check metadata version
     last_version = None
-    current_version = pkg_resources.require("catkin_tools")[0].version
+    current_version = importlib.metadata.version("catkin_tools")
     version_file_path = os.path.join(metadata_root_path, 'VERSION')
 
     # Read the VERSION file
