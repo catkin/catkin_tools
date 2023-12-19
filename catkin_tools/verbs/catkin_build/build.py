@@ -21,7 +21,8 @@ import time
 import traceback
 from queue import Queue
 
-import pkg_resources
+from importlib.metadata import entry_points
+
 import yaml
 
 try:
@@ -480,7 +481,7 @@ def build_isolated_workspace(
     # Get all build type plugins
     build_job_creators = {
         ep.name: ep.load()['create_build_job']
-        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+        for ep in entry_points().select('catkin_tools.jobs')
     }
 
     # It's a problem if there aren't any build types available

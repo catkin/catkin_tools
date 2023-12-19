@@ -18,7 +18,7 @@ import sys
 from datetime import date
 from shlex import quote as cmd_quote
 
-import pkg_resources
+from importlib.metadata import entry_points, version
 
 from catkin_tools.common import is_tty
 from catkin_tools.config import get_verb_aliases
@@ -29,16 +29,25 @@ from catkin_tools.terminal_color import test_colors
 
 CATKIN_COMMAND_VERB_GROUP = 'catkin_tools.commands.catkin.verbs'
 
+ENTRY_POINTS = None
+
+
+def _get_entry_points():
+    global ENTRY_POINTS
+    if ENTRY_POINTS is None:
+        ENTRY_POINTS = entry_points()
+    return ENTRY_POINTS
+
 
 def list_verbs():
     verbs = []
-    for entry_point in pkg_resources.iter_entry_points(group=CATKIN_COMMAND_VERB_GROUP):
+    for entry_point in _get_entry_points().select(CATKIN_COMMAND_VERB_GROUP):
         verbs.append(entry_point.name)
     return verbs
 
 
 def load_verb_description(verb_name):
-    for entry_point in pkg_resources.iter_entry_points(group=CATKIN_COMMAND_VERB_GROUP):
+    for entry_point in _get_entry_points().select(CATKIN_COMMAND_VERB_GROUP):
         if entry_point.name == verb_name:
             return entry_point.load()
 
@@ -184,7 +193,7 @@ def catkin_main(sysargs):
     # Check for version
     if '--version' in sysargs:
         print('catkin_tools {} (C) 2014-{} Open Source Robotics Foundation'.format(
-            pkg_resources.get_distribution('catkin_tools').version,
+            version('catkin_tools'),
             date.today().year)
         )
         print('catkin_tools is released under the Apache License,'
