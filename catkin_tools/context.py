@@ -503,9 +503,9 @@ class Context(object):
                     "should call @{yf}`catkin clean`@| to remove all "
                     "references to the previous CMAKE_PREFIX_PATH.\\n\\n"
                     "@{cf}Cached CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|\\n"
-                    "@{cf}Other workspace to extend:@|\\n\\t@{yf}{_Context__extend_path}@|\\n"
+                    "@{cf}Other workspace to extend:@|\\n\\t@{yf}{}@|\\n"
                     "@{cf}Other workspace's CMAKE_PREFIX_PATH:@|\\n\\t@{yf}{}@|").format(
-                    self.cached_cmake_prefix_path, self.env_cmake_prefix_path)]
+                        self.cached_cmake_prefix_path, self.extend_path, self.env_cmake_prefix_path)]
 
         elif self.env_cmake_prefix_path and\
                 self.cached_cmake_prefix_path and\
