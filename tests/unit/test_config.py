@@ -1,7 +1,7 @@
 import os
 import shutil
 
-import mock
+from unittest import mock
 import pytest
 
 from catkin_tools import config

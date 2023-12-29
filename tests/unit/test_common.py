@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from catkin_tools import common
 
