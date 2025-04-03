@@ -24,7 +24,6 @@ _ansi = {}
 
 def ansi(key):
     """Returns the escape sequence for a given ansi color key"""
-    global _ansi
     return _ansi[key]
 
 
@@ -75,7 +74,6 @@ def disable_ANSI_colors():
     Sets all the ANSI escape sequences to empty strings, effectively disabling
     console colors.
     """
-    global _ansi
     for key in _ansi:
         _ansi[key] = ''
 
@@ -124,7 +122,6 @@ def sanitize(msg):
 
 def fmt(msg, reset=True):
     """Replaces color annotations with ansi escape sequences"""
-    global _ansi
     msg = msg.replace('@!', '@{boldon}')
     msg = msg.replace('@/', '@{italicson}')
     msg = msg.replace('@_', '@{ulon}')
@@ -177,7 +174,6 @@ class ColorMapper(object):
         :param key: string to be colorized
         :type key: str
         """
-        global _color_on
         if not _color_on:
             return fmt(key)
         val = self.color_map.get(key, None)

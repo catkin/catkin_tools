@@ -381,7 +381,6 @@ _ansi_escape = re.compile(r'\x1b[^m]*m')
 
 def remove_ansi_escape(string):
     """Removes any ansi escape sequences from a string and returns it"""
-    global _ansi_escape
     return _ansi_escape.sub('', string)
 
 
@@ -404,7 +403,6 @@ def slice_to_printed_length(string, length):
     :returns: truncated string
     :rtype: str
     """
-    global _ansi_escape
     lookup_array = []
     current_index = 0
     matches = list(_ansi_escape.finditer(string))
@@ -517,7 +515,6 @@ def wide_log(msg, **kwargs):
     :type truncate: bool
     """
     try:
-        global wide_log_fn
         wide_log_fn(msg, **kwargs)
     except IOError:
         # This happens when someone ctrl-c's during a log message
