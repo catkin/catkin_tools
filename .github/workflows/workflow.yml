@@ -3,7 +3,29 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: flake8 lint
+        uses: py-actions/flake8@v2
+        with:
+          max-line-length: "120"
+          path: "catkin_tools"
+      - name: isort
+        uses: isort/isort-action@v1
+        with:
+          requirements-files: "requirements.txt"
+          sort-paths: "catkin_tools tests"
+          configuration: "--check-only --diff --force-single-line-imports --line-length 120"
+
+  build_and_test:
     strategy:
       fail-fast: false
       matrix:
@@ -65,8 +87,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          # Fix some sphinx versions until python 3.7 support is dropped
-          pip install --upgrade empy sphinx_rtd_theme sphinxcontrib-spelling pytest nose coverage flake8 isort
+          pip install --upgrade empy pytest pynose coverage
       - name: Set up catkin
         run: |
           git clone https://github.com/ros/catkin.git -b ${{ matrix.versions.catkin }} /tmp/catkin_source
@@ -78,10 +99,23 @@ jobs:
         run: |
           source /tmp/catkin_source/build/devel/setup.bash
           pytest tests --ignore=tests/system/resources
-          isort -c --df --sl -l 120 catkin_tools tests
-      - name: Build documentation
+
+  docs:
+    runs-on: ubuntu-latest
+    name: Documentation
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install documentation dependencies
         run: |
-          pushd docs
+          python -m pip install --upgrade pip
+          pip install .
+          pip install --upgrade sphinx-rtd-theme sphinxcontrib-spelling
+      - name: Build documentation
+        working-directory: docs
+        run: |
           make html
           sphinx-build -b spelling . build -t use_spelling
-          popd
