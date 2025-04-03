@@ -72,7 +72,7 @@ jobs:
           git clone https://github.com/ros/catkin.git -b ${{ matrix.versions.catkin }} /tmp/catkin_source
           mkdir /tmp/catkin_source/build
           pushd /tmp/catkin_source/build
-          cmake .. && make
+          cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .. && make
           popd
       - name: Test catkin_tools
         run: |
