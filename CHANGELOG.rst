@@ -5,6 +5,19 @@ Changelog for package catkin_tools
 Upcoming
 --------
 
+0.9.5 (2025-04-01)
+------------------
+
+* Various CI fixes (#762)
+* Use explicit asyncio task creation to fix broken python3.11 (#760)
+* Fix incorrect argument forwarding with shell verbs (#748)
+* chore: fix cmake min version deprecation warning (#761)
+* Fix formatting warning message (#768)
+* Replace pkg_resources by importlib.metadata (#767)
+* Use only CATKIN_IGNORE to ignore packages (#688)
+* Use unittest.mock instead of standalone mock package (#764)
+* Contributors: Mihai Babiac, Timon Engelke, Yuki Furuta, Thomas Grainger, Scott K Logan, jackpittenger, Rick Staa, Jan Strohbeck
+
 0.9.4 (2023-08-03)
 ------------------
 
