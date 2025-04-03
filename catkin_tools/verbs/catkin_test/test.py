@@ -14,7 +14,6 @@ import time
 import traceback
 from queue import Queue
 
-import pkg_resources
 from catkin_pkg.package import InvalidPackage
 from catkin_pkg.packages import find_packages
 from catkin_pkg.topological_order import topological_order_packages
@@ -26,6 +25,7 @@ from catkin_tools.execution import job_server
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
+from catkin_tools.utils import entry_points
 
 
 def test_workspace(
@@ -86,7 +86,7 @@ def test_workspace(
     # Get all build type plugins
     test_job_creators = {
         ep.name: ep.load()['create_test_job']
-        for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+        for ep in entry_points(group='catkin_tools.jobs')
     }
 
     # It's a problem if there aren't any build types available

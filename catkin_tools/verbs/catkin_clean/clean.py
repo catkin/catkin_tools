@@ -19,8 +19,6 @@ import time
 import traceback
 from queue import Queue
 
-import pkg_resources
-
 from catkin_tools.terminal_color import fmt
 
 try:
@@ -39,6 +37,7 @@ from catkin_tools.common import wide_log
 from catkin_tools.execution.controllers import ConsoleStatusController
 from catkin_tools.execution.executor import execute_jobs
 from catkin_tools.execution.executor import run_until_complete
+from catkin_tools.utils import entry_points
 
 
 def determine_packages_to_be_cleaned(context, include_dependents, packages):
@@ -126,7 +125,7 @@ def clean_packages(
         # Get all build type plugins
         clean_job_creators = {
             ep.name: ep.load()['create_clean_job']
-            for ep in pkg_resources.iter_entry_points(group='catkin_tools.jobs')
+            for ep in entry_points(group='catkin_tools.jobs')
         }
 
         # It's a problem if there aren't any build types available

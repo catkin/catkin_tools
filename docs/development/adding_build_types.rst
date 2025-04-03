@@ -29,7 +29,7 @@ Regardless of what package the ``entry_point`` is defined in, it will be defined
 This entry in the ``setup.py`` places a file in the ``PYTHONPATH`` when either the ``install`` or the ``develop`` verb is given to ``setup.py``.
 This file relates the key (in this case ``mybuild``) to a module and attribute (in this case ``my_package.some.module`` and ``description``).
 
-Then the ``catkin`` command will use the ``pkg_resources`` modules to retrieve these mapping at run time.
+Then the ``catkin`` command will use the ``importlib.metadata`` modules to retrieve these mapping at run time.
 Any entry for the ``catkin_tools.jobs`` group must point to a ``description`` attribute of a module, where the ``description`` attribute is a ``dict``.
 The ``description`` ``dict`` should take this form:
 
@@ -63,4 +63,3 @@ The signature of the factory callable should be similar to the following:
             jid=package.name,
             deps=dependencies,
             stages=stages)
-
