@@ -22,7 +22,6 @@ from queue import Queue
 from catkin_tools.terminal_color import fmt
 
 try:
-    from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
@@ -32,6 +31,7 @@ except ImportError as e:
     )
 
 from catkin_tools.common import expand_glob_package
+from catkin_tools.common import find_packages
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import wide_log
 from catkin_tools.execution.controllers import ConsoleStatusController

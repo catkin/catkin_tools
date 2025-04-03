@@ -20,6 +20,7 @@ from catkin_pkg.topological_order import topological_order_packages
 
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import find_packages
 from catkin_tools.common import get_recursive_build_dependents_in_workspace
 from catkin_tools.common import get_recursive_build_depends_in_workspace
 from catkin_tools.common import get_recursive_run_dependents_in_workspace

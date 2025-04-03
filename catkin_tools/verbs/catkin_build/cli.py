@@ -18,7 +18,6 @@ import os
 import sys
 
 try:
-    from catkin_pkg.packages import find_packages
     from catkin_pkg.topological_order import topological_order_packages
 except ImportError as e:
     sys.exit(
@@ -36,6 +35,7 @@ from catkin_tools.argument_parsing import add_cmake_and_make_and_catkin_make_arg
 from catkin_tools.argument_parsing import add_context_args
 from catkin_tools.argument_parsing import configure_make_args
 from catkin_tools.common import find_enclosing_package
+from catkin_tools.common import find_packages
 from catkin_tools.common import format_env_dict
 from catkin_tools.common import getcwd
 from catkin_tools.common import is_tty
