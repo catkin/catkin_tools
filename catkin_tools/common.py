@@ -523,7 +523,7 @@ def wide_log(msg, **kwargs):
 
 def find_packages(*args, **kwargs):
     """
-    Crawls the filesystem to find package manifest files. Ignores subfolders if an ignore_marker is present (e.g. CATKIN_IGNORE).
+    Crawls the filesystem to find package manifest files. Ignores subfolders if CATKIN_IGNORE is present.
     :param basepath: The path to search in, ``str``
     :param exclude_paths: A list of paths which should not be searched, ``list``
     :param exclude_subspaces: The flag is subfolders containing a .catkin file should not be
